@@ -1,0 +1,28 @@
+{
+  "name": "@agentindex/sdk",
+  "version": "0.3.0",
+  "description": "Discovery service for AI agents. Find any agent by capability.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "ai",
+    "agent",
+    "discovery",
+    "mcp",
+    "a2a",
+    "llm",
+    "autonomous",
+    "agent-discovery",
+    "multi-agent",
+    "model-context-protocol"
+  ],
+  "author": "AgentIndex",
+  "license": "MIT",
+  "homepage": "https://github.com/agentindex/agentindex-sdk-js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/agentindex/agentindex-sdk-js"
+  }
+}

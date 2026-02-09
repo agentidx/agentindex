@@ -1,0 +1,14 @@
+venv/
+__pycache__/
+*.pyc
+*.egg-info/
+dist/
+build/
+.env
+*.log
+*.pid
+health.json
+alerts.log
+missionary_output/
+.DS_Store
+*.sql
