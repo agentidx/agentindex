@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="agentindex",
+    name="agentcrawl",
     version="0.3.0",
     description="Discovery service for AI agents. Find any agent by capability.",
     long_description=open("README.md").read(),

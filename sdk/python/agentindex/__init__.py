@@ -24,7 +24,7 @@ from typing import Optional
 __version__ = "0.3.0"
 
 # Will be updated when domain is decided
-DEFAULT_ENDPOINT = "http://localhost:8100/v1"
+DEFAULT_ENDPOINT = "https://api.agentcrawl.dev/v1"
 
 _client = None
 _api_key = None

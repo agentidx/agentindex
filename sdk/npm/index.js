@@ -12,7 +12,7 @@
  *   const info = await stats();
  */
 
-let endpoint = "http://localhost:8100/v1";
+let endpoint = "https://api.agentcrawl.dev/v1";
 let apiKey = null;
 
 function configure(options = {}) {
