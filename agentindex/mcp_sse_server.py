@@ -1,24 +1,12 @@
 """
 AgentIndex MCP Server — SSE Transport
-
-Exposes AgentIndex as an MCP server over HTTP+SSE for Smithery, MCP Hub, etc.
-
-Usage:
-    python -m agentindex.mcp_sse_server
-
-Endpoints:
-    GET  /sse          — SSE stream (client connects here)
-    POST /messages     — Client sends JSON-RPC messages here
-    GET  /health       — Health check
 """
 
 import json
-import sys
 import os
 import logging
 import asyncio
 import uuid
-from typing import Optional
 
 from starlette.applications import Starlette
 from starlette.routing import Route
@@ -42,28 +30,13 @@ TOOLS = [
         "inputSchema": {
             "type": "object",
             "properties": {
-                "need": {
-                    "type": "string",
-                    "description": "Natural language description of what you need an agent to do."
-                },
-                "category": {
-                    "type": "string",
-                    "description": "Optional category filter",
-                    "enum": ["coding", "research", "content", "legal", "data",
-                             "finance", "marketing", "design", "devops", "security",
-                             "education", "health", "communication", "productivity",
-                             "infrastructure"]
-                },
-                "protocols": {
-                    "type": "array",
-                    "items": {"type": "string"},
-                    "description": "Required protocols: mcp, a2a, rest, grpc"
-                },
-                "min_quality": {
-                    "type": "number",
-                    "description": "Minimum quality score 0.0-1.0",
-                    "default": 0.0
-                }
+                "need": {"type": "string", "description": "Natural language description of what you need an agent to do."},
+                "category": {"type": "string", "description": "Optional category filter",
+                    "enum": ["coding", "research", "content", "legal", "data", "finance", "marketing",
+                             "design", "devops", "security", "education", "health", "communication",
+                             "productivity", "infrastructure"]},
+                "protocols": {"type": "array", "items": {"type": "string"}, "description": "Required protocols: mcp, a2a, rest, grpc"},
+                "min_quality": {"type": "number", "description": "Minimum quality score 0.0-1.0", "default": 0.0}
             },
             "required": ["need"]
         }
@@ -73,24 +46,23 @@ TOOLS = [
         "description": "Get detailed information about a specific agent including full capabilities, invocation method, scores, and metadata.",
         "inputSchema": {
             "type": "object",
-            "properties": {
-                "agent_id": {
-                    "type": "string",
-                    "description": "Agent UUID from discover_agents results"
-                }
-            },
+            "properties": {"agent_id": {"type": "string", "description": "Agent UUID from discover_agents results"}},
             "required": ["agent_id"]
         }
     },
     {
         "name": "agent_index_stats",
         "description": "Get statistics about the AgentIndex: total agents indexed, categories, protocols, sources.",
-        "inputSchema": {
-            "type": "object",
-            "properties": {}
-        }
+        "inputSchema": {"type": "object", "properties": {}}
     }
 ]
+
+SERVER_CARD = {
+    "name": "agentindex",
+    "description": "Discovery platform for AI agents. Find any AI agent by capability — search 20,000+ indexed agents across GitHub, npm, MCP, and HuggingFace.",
+    "version": "0.4.0",
+    "tools": TOOLS
+}
 
 
 def _call_tool(name, arguments):
@@ -129,7 +101,7 @@ def handle_jsonrpc(request):
     if method == "initialize":
         return {"jsonrpc": JSONRPC_VERSION, "id": req_id, "result": {
             "protocolVersion": MCP_PROTOCOL_VERSION,
-            "capabilities": {"tools": {}},
+            "capabilities": {"tools": {"listChanged": False}},
             "serverInfo": {"name": "agentindex", "version": "0.4.0"},
         }}
     elif method == "tools/list":
@@ -150,14 +122,26 @@ def handle_jsonrpc(request):
                 "error": {"code": -32601, "message": f"Method not found: {method}"}}
 
 
-async def sse_endpoint(request):
+async def sse_endpoint(request: Request):
+    if request.method == "POST":
+        try:
+            body = await request.json()
+            logger.info(f"POST /sse: {body.get('method', 'unknown')}")
+            response = handle_jsonrpc(body)
+            if response:
+                return JSONResponse(response)
+            return JSONResponse({"ok": True}, status_code=202)
+        except Exception as e:
+            logger.error(f"POST /sse error: {e}")
+            return JSONResponse({"error": str(e)}, status_code=400)
+
     session_id = str(uuid.uuid4())
     queue = asyncio.Queue()
     sessions[session_id] = queue
     logger.info(f"SSE session started: {session_id}")
 
     async def event_generator():
-        yield {"event": "endpoint", "data": f"/messages?session_id={session_id}"}
+        yield {"event": "endpoint", "data": f"https://mcp.agentcrawl.dev/messages?session_id={session_id}"}
         try:
             while True:
                 try:
@@ -174,7 +158,7 @@ async def sse_endpoint(request):
     return EventSourceResponse(event_generator())
 
 
-async def messages_endpoint(request):
+async def messages_endpoint(request: Request):
     session_id = request.query_params.get("session_id")
     if not session_id or session_id not in sessions:
         return JSONResponse({"error": "Invalid or expired session_id"}, status_code=400)
@@ -190,14 +174,19 @@ async def messages_endpoint(request):
     return JSONResponse({"ok": True}, status_code=202)
 
 
-async def health_endpoint(request):
+async def health_endpoint(request: Request):
     return JSONResponse({"status": "ok", "transport": "sse", "server": "agentindex-mcp"})
 
 
+async def server_card(request: Request):
+    return JSONResponse(SERVER_CARD)
+
+
 app = Starlette(routes=[
-    Route("/sse", sse_endpoint),
-    Route("/messages", messages_endpoint, methods=["POST"]),
+    Route("/sse", sse_endpoint, methods=["GET", "POST"]),
+    Route("/messages", messages_endpoint, methods=["POST", "GET"]),
     Route("/health", health_endpoint),
+    Route("/.well-known/mcp/server-card.json", server_card),
 ])
 
 
