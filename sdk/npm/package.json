@@ -1,6 +1,6 @@
 {
   "name": "@agentidx/sdk",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Discovery service for AI agents. Find any agent by capability.",
   "main": "index.js",
   "scripts": {

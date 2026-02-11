@@ -21,7 +21,7 @@ Usage:
 import httpx
 from typing import Optional
 
-__version__ = "0.3.0"
+__version__ = "0.3.1"
 
 # Will be updated when domain is decided
 DEFAULT_ENDPOINT = "https://api.agentcrawl.dev/v1"
