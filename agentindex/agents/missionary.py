@@ -52,6 +52,120 @@ class Missionary:
             "presence_tracker": {},
         }
 
+    # --- Filters ---
+
+    IRRELEVANT_KEYWORDS = [
+        "chinese", "中文", "leetcode", "interview", "面试", "课程",
+        "tutorial", "学习", "笔记", "shop", "mall", "商城", "电商",
+        "blog", "博客", "cms", "admin", "后台", "管理系统",
+        "wechat", "微信", "weixin", "小程序", "android", "ios",
+        "spring", "springboot", "springcloud", "mybatis", "thinkphp",
+        "laravel", "django", "flask", "爬虫", "crawler", "spider",
+        "game", "游戏", "music", "音乐", "video", "视频",
+        "php", "java", "golang", "rust", "ruby", "swift",
+        "vpn", "proxy", "shadowsocks", "v2ray", "trojan",
+        "docker", "kubernetes", "k8s", "devops", "linux",
+        "blockchain", "bitcoin", "crypto", "stock", "量化",
+        "awesome-go", "awesome-python", "awesome-java", "awesome-rust",
+        "finance", "trading", "compression", "security", "json",
+        "nacos", "consul", "eureka", "pageindex", "service-mesh",
+        "kubernetes", "操作", "数据", "算法", "编程",
+    ]
+
+    RELEVANT_KEYWORDS = [
+        "agent", "mcp", "autonomous agent",
+        "discovery", "registry", "directory",
+        "langchain", "crewai", "autogen",
+        "function-calling", "tool-use", "a2a", "agent2agent",
+        "agentic", "multi-agent", "agent framework",
+    ]
+
+    def _is_relevant(self, repo: dict) -> bool:
+        """Check if a repo is relevant to agent/MCP ecosystem."""
+        name = (repo.get("name", "") or "").lower()
+        desc = (repo.get("description", "") or "").lower()
+        full = name + " " + desc
+
+        # Must have at least one relevant keyword
+        has_relevant = any(kw in full for kw in self.RELEVANT_KEYWORDS)
+        if not has_relevant:
+            return False
+
+        # Must not be dominated by irrelevant keywords
+        irrelevant_count = sum(1 for kw in self.IRRELEVANT_KEYWORDS if kw in full)
+        if irrelevant_count >= 2:
+            return False
+
+        return True
+
+    def _is_english(self, text: str) -> bool:
+        """Check if text is primarily English/ASCII."""
+        if not text:
+            return False
+        # Reject if contains CJK characters
+        cjk_count = sum(1 for c in text if 0x4E00 <= ord(c) <= 0x9FFF)
+        if cjk_count > 2:
+            return False
+        ascii_count = sum(1 for c in text if ord(c) < 128)
+        return (ascii_count / len(text)) > 0.85
+
+    # --- Filters ---
+
+    IRRELEVANT_KEYWORDS = [
+        "chinese", "中文", "leetcode", "interview", "面试", "课程",
+        "tutorial", "学习", "笔记", "shop", "mall", "商城", "电商",
+        "blog", "博客", "cms", "admin", "后台", "管理系统",
+        "wechat", "微信", "weixin", "小程序", "android", "ios",
+        "spring", "springboot", "springcloud", "mybatis", "thinkphp",
+        "laravel", "django", "flask", "爬虫", "crawler", "spider",
+        "game", "游戏", "music", "音乐", "video", "视频",
+        "php", "java", "golang", "rust", "ruby", "swift",
+        "vpn", "proxy", "shadowsocks", "v2ray", "trojan",
+        "docker", "kubernetes", "k8s", "devops", "linux",
+        "blockchain", "bitcoin", "crypto", "stock", "量化",
+        "awesome-go", "awesome-python", "awesome-java", "awesome-rust",
+        "finance", "trading", "compression", "security", "json",
+        "nacos", "consul", "eureka", "pageindex", "service-mesh",
+        "kubernetes", "操作", "数据", "算法", "编程",
+    ]
+
+    RELEVANT_KEYWORDS = [
+        "agent", "mcp", "autonomous agent",
+        "discovery", "registry", "directory",
+        "langchain", "crewai", "autogen",
+        "function-calling", "tool-use", "a2a", "agent2agent",
+        "agentic", "multi-agent", "agent framework",
+    ]
+
+    def _is_relevant(self, repo: dict) -> bool:
+        """Check if a repo is relevant to agent/MCP ecosystem."""
+        name = (repo.get("name", "") or "").lower()
+        desc = (repo.get("description", "") or "").lower()
+        full = name + " " + desc
+
+        # Must have at least one relevant keyword
+        has_relevant = any(kw in full for kw in self.RELEVANT_KEYWORDS)
+        if not has_relevant:
+            return False
+
+        # Must not be dominated by irrelevant keywords
+        irrelevant_count = sum(1 for kw in self.IRRELEVANT_KEYWORDS if kw in full)
+        if irrelevant_count >= 2:
+            return False
+
+        return True
+
+    def _is_english(self, text: str) -> bool:
+        """Check if text is primarily English/ASCII."""
+        if not text:
+            return False
+        # Reject if contains CJK characters
+        cjk_count = sum(1 for c in text if 0x4E00 <= ord(c) <= 0x9FFF)
+        if cjk_count > 2:
+            return False
+        ascii_count = sum(1 for c in text if ord(c) < 128)
+        return (ascii_count / len(text)) > 0.85
+
     def run_daily(self) -> dict:
         logger.info("Missionary 2.0 daily run starting...")
         self._collect_stats()
@@ -127,14 +241,16 @@ class Missionary:
                     for repo in response.json().get("items", []):
                         repo_full = repo["full_name"]
                         stars = repo.get("stargazers_count", 0)
-                        if stars > 500 and repo_full not in [a["repo"] for a in self.AWESOME_LISTS]:
-                            found_lists.append({
-                                "repo": repo_full,
-                                "name": repo["name"],
-                                "stars": stars,
-                                "description": repo.get("description", ""),
-                                "url": repo["html_url"],
-                            })
+                        if stars > 1000 and repo_full not in [a["repo"] for a in self.AWESOME_LISTS]:
+                            desc = repo.get("description", "") or ""
+                            if self._is_english(desc) and self._is_relevant(repo):
+                                found_lists.append({
+                                    "repo": repo_full,
+                                    "name": repo["name"],
+                                    "stars": stars,
+                                    "description": desc,
+                                    "url": repo["html_url"],
+                                })
             except Exception as e:
                 logger.error(f"GitHub search error for '{query}': {e}")
         if found_lists:
@@ -200,7 +316,7 @@ class Missionary:
                     name = repo["full_name"]
                     if name not in [r.get("repo", "") for r in self.REGISTRIES]:
                         stars = repo.get("stargazers_count", 0)
-                        if stars > 100:
+                        if stars > 500 and self._is_relevant(repo) and self._is_english(repo.get("description", "") or ""):
                             self.report["new_channels"].append({
                                 "type": "registry", "name": repo["name"],
                                 "repo": name, "stars": stars, "url": repo["html_url"],
@@ -225,7 +341,7 @@ class Missionary:
                 if response.status_code == 200:
                     for repo in response.json().get("items", []):
                         stars = repo.get("stargazers_count", 0)
-                        if stars > 200:
+                        if stars > 1000 and self._is_relevant(repo) and self._is_english(repo.get("description", "") or ""):
                             self.report["new_channels"].append({
                                 "type": "directory", "name": repo["name"],
                                 "stars": stars, "url": repo["html_url"],
@@ -236,7 +352,7 @@ class Missionary:
 
     def _suggest_search_terms(self):
         logger.info("Suggesting new search terms...")
-        trending_queries = ["agent", "mcp server", "ai tool", "llm"]
+        trending_queries = ["ai agent framework", "mcp server tool", "autonomous agent", "llm agent tool"]
         new_terms = []
         for query in trending_queries:
             try:
@@ -285,7 +401,7 @@ class Missionary:
                         name = repo["full_name"]
                         if "agentidx" not in name and "agentindex" not in name.lower():
                             stars = repo.get("stargazers_count", 0)
-                            if stars > 50:
+                            if stars > 200 and self._is_relevant(repo) and self._is_english(repo.get("description", "") or "") and repo["name"].lower() not in ["nacos", "pageindex", "consul", "eureka", "etcd", "zookeeper"]:
                                 self.report["competitors"].append({
                                     "name": repo["name"], "repo": name, "stars": stars,
                                     "description": repo.get("description", ""),
@@ -313,7 +429,7 @@ class Missionary:
         }
         for name, info in presence.items():
             try:
-                response = self.client.head(info["url"], follow_redirects=True, timeout=10)
+                response = self.client.get(info["url"], follow_redirects=True, timeout=15)
                 info["http_status"] = response.status_code
                 info["status"] = "live" if response.status_code < 400 else "down"
             except Exception:
@@ -396,8 +512,10 @@ class Missionary:
             summary += f"\n## Suggested New Search Terms\n{', '.join(self.report['new_search_terms'])}\n"
         if self.report.get("competitors"):
             summary += "\n## Competitors\n"
-            for c in sorted(self.report["competitors"], key=lambda x: x["stars"], reverse=True)[:5]:
-                summary += f"- **{c['name']}** ({c['stars']}*): {c.get('description', 'N/A')}\n"
+            top_competitors = sorted(self.report["competitors"], key=lambda x: x["stars"], reverse=True)[:5]
+            for c in top_competitors:
+                desc = (c.get("description", "N/A") or "N/A")[:100]
+                summary += f"- **{c['name']}** ({c['stars']}*): {desc}\n"
         if self.report.get("pr_texts"):
             summary += "\n## Ready PR Texts\n"
             for name, pr in self.report["pr_texts"].items():
