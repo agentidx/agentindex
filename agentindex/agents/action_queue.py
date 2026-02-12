@@ -54,6 +54,7 @@ ACTION_LEVELS = {
     "spy_daily_summary": ActionLevel.NOTIFY,
     "spy_feature_done": ActionLevel.NOTIFY,
     "spy_feature_reminder": ActionLevel.NOTIFY,
+    "spy_a2a_outreach": ActionLevel.NOTIFY,
 }
 
 

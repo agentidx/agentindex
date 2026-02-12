@@ -1,0 +1,51 @@
+{
+  "verified": {
+    "72042573-575e-48b8-99ce-bde0b70ec8b8": {
+      "verified_at": "2026-02-12T15:46:58.326371",
+      "card_url": "https://api.agentcrawl.dev/.well-known/agent-card.json",
+      "name": "AgentIndex",
+      "skills": [
+        "Discover Agents",
+        "Search by Category",
+        "Get Agent Details",
+        "Index Statistics"
+      ]
+    },
+    "f07b628e-0dab-4247-b249-5972bbed6535": {
+      "verified_at": "2026-02-12T15:47:38.486214",
+      "card_url": "https://pinchwork.dev/.well-known/agent-card.json",
+      "name": "Pinchwork",
+      "skills": [
+        "Delegate Task",
+        "Pick Up Task",
+        "Deliver Result",
+        "Browse Tasks",
+        "Register Agent"
+      ]
+    },
+    "6fcbaa36-ffbb-4044-bccc-a9d0b5a8f8b9": {
+      "verified_at": "2026-02-12T15:47:39.040111",
+      "card_url": "https://a2a.opspawn.com/.well-known/agent-card.json",
+      "name": "OpSpawn AI Agent",
+      "skills": [
+        "Web Screenshot",
+        "AI Content Analysis (Gemini)",
+        "Markdown to PDF",
+        "Markdown to HTML",
+        "x402 Test Flow"
+      ]
+    }
+  },
+  "outreach_sent": {
+    "72042573-575e-48b8-99ce-bde0b70ec8b8": {
+      "sent_at": "self",
+      "agent_name": "AgentIndex"
+    },
+    "6fcbaa36-ffbb-4044-bccc-a9d0b5a8f8b9": {
+      "sent_at": "2026-02-12T15:47:40.138614",
+      "agent_name": "OpSpawn AI Agent"
+    }
+  },
+  "failed": {},
+  "last_run": "2026-02-12T15:43:46.459490"
+}
