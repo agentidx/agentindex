@@ -130,6 +130,17 @@ def run_ranker():
         logger.error(f"Ranker failed: {e}")
 
 
+def run_executor():
+    logger.info("Running action executor...")
+    try:
+        from agentindex.agents.executor import Executor
+        executor = Executor()
+        stats = executor.run_approved()
+        logger.info(f"Executor complete: {stats}")
+    except Exception as e:
+        logger.error(f"Executor failed: {e}")
+
+
 def run_missionary_daily():
     logger.info("Running Missionary 2.0 daily scan...")
     try:
@@ -227,6 +238,7 @@ def main():
     scheduler.add_job(run_classifier, "interval", minutes=30, id="classifier", next_run_time=datetime.now() + timedelta(minutes=5))
     scheduler.add_job(run_ranker, "cron", hour=3, minute=0, id="ranker")  # 03:00 UTC nightly
     scheduler.add_job(run_missionary_daily, "cron", hour=7, minute=0, id="missionary")  # 07:00 UTC daily
+    scheduler.add_job(run_executor, "interval", minutes=15, id="executor", next_run_time=datetime.now() + timedelta(minutes=2))
     scheduler.add_job(run_system_check, "interval", minutes=15,
                       id="status", next_run_time=datetime.now())
     scheduler.add_job(run_daily_report, "cron", hour=6, minute=0, id="daily")

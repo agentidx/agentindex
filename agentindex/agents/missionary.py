@@ -26,6 +26,7 @@ from typing import Optional
 import httpx
 from agentindex.db.models import Agent, get_session
 from sqlalchemy import select, func, text
+from agentindex.agents.action_queue import add_action, ActionLevel
 
 logger = logging.getLogger("agentindex.missionary")
 
@@ -263,6 +264,8 @@ class Missionary:
                     self.report["actions"].append(
                         f"NEW AWESOME LIST: {lst['name']} ({lst['stars']}*) - {lst['url']}"
                     )
+                    add_action("add_awesome_list", f"Track: {lst['name']} ({lst['stars']}*)",
+                              {"repo": lst["repo"], "name": lst["name"], "stars": lst["stars"], "url": lst["url"]})
             self.report["new_channels"].extend(unique)
             logger.info(f"Found {len(unique)} new awesome lists")
         for lst in self.AWESOME_LISTS:
@@ -305,6 +308,8 @@ class Missionary:
         for registry in self.REGISTRIES:
             if registry["status"] == "not_registered":
                 self.report["actions"].append(f"REGISTER: {registry['name']} at {registry['url']}")
+                add_action("register_registry", f"Register on {registry['name']}",
+                          {"name": registry["name"], "url": registry["url"]})
         try:
             response = self.client.get(
                 "https://api.github.com/search/repositories",
@@ -373,6 +378,8 @@ class Missionary:
         if unique_terms:
             self.report["new_search_terms"] = unique_terms
             self.report["actions"].append(f"NEW SEARCH TERMS: Consider adding: {', '.join(unique_terms)}")
+            for term in unique_terms[:5]:
+                add_action("add_search_term", f"Add search term: {term}", {"term": term})
 
     def _get_existing_search_terms(self):
         return [
@@ -415,6 +422,9 @@ class Missionary:
                 f"COMPETITORS: Top {len(top)}: " +
                 ", ".join(f"{c['name']} ({c['stars']}*)" for c in top)
             )
+            for c in top:
+                add_action("new_competitor", f"Competitor: {c['name']} ({c['stars']}*)",
+                          {"name": c["name"], "stars": c["stars"], "url": c["url"]})
 
     def _track_presence(self):
         logger.info("Tracking presence...")
@@ -438,6 +448,9 @@ class Missionary:
         down = [k for k, v in presence.items() if v["status"] != "live"]
         if down:
             self.report["actions"].append(f"ALERT: Endpoints down: {', '.join(down)}")
+            for ep in down:
+                add_action("endpoint_down", f"Endpoint down: {ep}",
+                          {"endpoint": ep, "url": presence[ep].get("url", "")})
 
     def _generate_pr_texts(self):
         stats = self.report.get("stats", {})
@@ -458,6 +471,8 @@ class Missionary:
             lst = next((a for a in self.AWESOME_LISTS if name.replace("-", " ") in a["name"].lower()), None)
             if lst and lst.get("pr_status") == "not_submitted":
                 self.report["actions"].append(f"SUBMIT PR: {name} - PR text ready in report")
+                add_action("submit_pr", f"Submit PR to {name}",
+                          {"repo": lst["repo"], "title": pr_texts[name]["title"], "body": pr_texts[name]["body"]})
 
     def _auto_update_repo_stats(self):
         stats = self.report.get("stats", {})
@@ -477,6 +492,7 @@ class Missionary:
                 with open(agent_md_path, "w") as f:
                     f.write(content)
                 self.report["actions"].append(f"UPDATED: agent.md with {total:,} agents")
+                add_action("update_agent_md", f"Update agent.md with {total:,} agents", {"total": total})
                 logger.info(f"Updated agent.md with {total:,} agents")
         except Exception as e:
             logger.error(f"Failed to update agent.md: {e}")

@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
 from fastapi.responses import HTMLResponse
 from agentindex.db.models import Agent, DiscoveryLog, CrawlJob, get_session
 from sqlalchemy import select, func, text
@@ -6,6 +6,28 @@ from datetime import datetime, timedelta
 import uvicorn, os, json
 
 app = FastAPI()
+
+@app.get("/action/approve")
+def approve(id: str = Query(...)):
+    from agentindex.agents.action_queue import approve_action
+    result = approve_action(id)
+    if result:
+        return HTMLResponse(content='<script>window.location="/"</script>')
+    return HTMLResponse(content='<script>alert("Action not found");window.location="/"</script>')
+
+@app.get("/action/reject")
+def reject(id: str = Query(...)):
+    from agentindex.agents.action_queue import reject_action
+    result = reject_action(id)
+    if result:
+        return HTMLResponse(content='<script>window.location="/"</script>')
+    return HTMLResponse(content='<script>alert("Action not found");window.location="/"</script>')
+
+@app.get("/action/dismiss")
+def dismiss(id: str = Query(...)):
+    from agentindex.agents.action_queue import mark_dismissed
+    mark_dismissed(id)
+    return HTMLResponse(content='<script>window.location="/"</script>')
 
 @app.get("/", response_class=HTMLResponse)
 def dashboard():
@@ -71,28 +93,35 @@ def dashboard():
                 errors_html += f'<div style="background:#1a1a1a;border-left:3px solid #fbbf24;padding:12px;margin-bottom:8px;border-radius:0 8px 8px 0;font-size:13px">{short}</div>'
     except Exception:
         pass
-    # Missionary report
-    missionary_html = '<div style="color:#666;font-size:13px;padding:8px">No missionary report yet</div>'
+    # Action Queue
+    missionary_html = '<div style="color:#666;font-size:13px;padding:8px">No actions pending</div>'
     try:
-        report_dir = os.path.expanduser("~/agentindex/missionary_reports")
-        if os.path.exists(report_dir):
-            reports = sorted([f for f in os.listdir(report_dir) if f.endswith(".json")], reverse=True)
-            if reports:
-                with open(os.path.join(report_dir, reports[0])) as f:
-                    mr = json.load(f)
-                actions = mr.get("actions", [])
-                presence = mr.get("presence_tracker", {})
-                report_date = reports[0].replace("report-", "").replace(".json", "")
-                missionary_html = f'<div style="font-size:11px;color:#666;margin-bottom:8px">Report: {report_date} | {len(actions)} actions</div>'
-                for a in actions[:12]:
-                    color = "#4ade80" if "SUBMIT" in a or "MERGED" in a else "#fbbf24" if "REGISTER" in a or "ALERT" in a else "#60a5fa" if "NEW" in a else "#e0e0e0"
-                    icon = "🎯" if "SUBMIT" in a else "📋" if "REGISTER" in a else "🆕" if "NEW" in a else "⚠️" if "ALERT" in a else "🔍" if "COMPETITOR" in a else "💡" if "SEARCH TERM" in a else "📝" if "UPDATED" in a else "•"
-                    short = a[:100] + "..." if len(a) > 100 else a
-                    missionary_html += f'<div style="background:#1a1a1a;border-left:3px solid {color};padding:8px 12px;margin-bottom:4px;border-radius:0 8px 8px 0;font-size:12px">{icon} {short}</div>'
-                if len(actions) > 12:
-                    missionary_html += f'<div style="color:#666;font-size:11px;padding:4px 12px">...and {len(actions)-12} more</div>'
-    except Exception:
-        pass
+        from agentindex.agents.action_queue import load_queue
+        queue = load_queue()
+        pending_actions = [a for a in queue if a["status"] == "pending"]
+        if pending_actions:
+            approval_actions = [a for a in pending_actions if a["level"] == "approval"]
+            notify_actions = [a for a in pending_actions if a["level"] == "notify"]
+            auto_actions = [a for a in pending_actions if a["level"] == "auto"]
+            missionary_html = f'<div style="font-size:11px;color:#666;margin-bottom:8px">{len(pending_actions)} pending | {len(approval_actions)} need approval | {len(auto_actions)} auto</div>'
+            if approval_actions:
+                missionary_html += '<div style="font-size:11px;color:#fbbf24;margin:8px 0 4px;font-weight:600">NEEDS YOUR APPROVAL</div>'
+                for a in approval_actions[:15]:
+                    aid = a["id"]
+                    title = a["title"][:80]
+                    atype = a["type"]
+                    color = "#fbbf24"
+                    icon = {"submit_pr": "🎯", "register_registry": "📋", "add_awesome_list": "📝", "add_spider_source": "🕷️"}.get(atype, "❓")
+                    missionary_html += f'<div style="background:#1a1a1a;border-left:3px solid {color};padding:8px 12px;margin-bottom:4px;border-radius:0 8px 8px 0;font-size:12px;display:flex;justify-content:space-between;align-items:center"><span>{icon} {title}</span><span><a href="/action/approve?id={aid}" style="color:#4ade80;text-decoration:none;padding:4px 8px;border:1px solid #4ade80;border-radius:4px;margin-left:8px;font-size:11px">✓ Approve</a><a href="/action/reject?id={aid}" style="color:#f87171;text-decoration:none;padding:4px 8px;border:1px solid #f87171;border-radius:4px;margin-left:4px;font-size:11px">✗ Reject</a></span></div>'
+            if notify_actions:
+                missionary_html += '<div style="font-size:11px;color:#60a5fa;margin:8px 0 4px;font-weight:600">NOTIFICATIONS</div>'
+                for a in notify_actions[:10]:
+                    aid = a["id"]
+                    title = a["title"][:80]
+                    missionary_html += f'<div style="background:#1a1a1a;border-left:3px solid #60a5fa;padding:8px 12px;margin-bottom:4px;border-radius:0 8px 8px 0;font-size:12px;display:flex;justify-content:space-between;align-items:center"><span>ℹ️ {title}</span><a href="/action/dismiss?id={aid}" style="color:#666;text-decoration:none;padding:2px 6px;font-size:10px">dismiss</a></div>'
+    except Exception as e:
+        missionary_html = f'<div style="color:#f87171;font-size:13px;padding:8px">Error loading actions: {e}</div>'
+    
 
     sr = "".join(f"<tr><td>{x}</td><td>{c:,}</td></tr>" for x,c in sources)
     pr = "".join(f"<tr><td>{x}</td><td>{c:,}</td></tr>" for x,c in statuses)
@@ -141,7 +170,7 @@ td{{border-bottom:1px solid #1a1a1a}}
 <div class="sec"><h2>Distribution Channels</h2>
 <table><tr><th>Channel</th><th>Address</th><th>Status</th></tr>{dr}</table></div>
 <div class="sec"><h2>Alerts</h2>{alerts_html}</div>
-<div class="sec"><h2>Missionary Report</h2>{missionary_html}</div>
+<div class="sec"><h2>Action Queue</h2>{missionary_html}</div>
 <div class="row">
 <div class="sec"><h2>Sources</h2><table><tr><th>Source</th><th>Count</th></tr>{sr}</table></div>
 <div class="sec"><h2>Top Queries (7d)</h2><table><tr><th>Query</th><th>Count</th></tr>{tqr}</table></div>
