@@ -71,6 +71,29 @@ def dashboard():
                 errors_html += f'<div style="background:#1a1a1a;border-left:3px solid #fbbf24;padding:12px;margin-bottom:8px;border-radius:0 8px 8px 0;font-size:13px">{short}</div>'
     except Exception:
         pass
+    # Missionary report
+    missionary_html = '<div style="color:#666;font-size:13px;padding:8px">No missionary report yet</div>'
+    try:
+        report_dir = os.path.expanduser("~/agentindex/missionary_reports")
+        if os.path.exists(report_dir):
+            reports = sorted([f for f in os.listdir(report_dir) if f.endswith(".json")], reverse=True)
+            if reports:
+                with open(os.path.join(report_dir, reports[0])) as f:
+                    mr = json.load(f)
+                actions = mr.get("actions", [])
+                presence = mr.get("presence_tracker", {})
+                report_date = reports[0].replace("report-", "").replace(".json", "")
+                missionary_html = f'<div style="font-size:11px;color:#666;margin-bottom:8px">Report: {report_date} | {len(actions)} actions</div>'
+                for a in actions[:12]:
+                    color = "#4ade80" if "SUBMIT" in a or "MERGED" in a else "#fbbf24" if "REGISTER" in a or "ALERT" in a else "#60a5fa" if "NEW" in a else "#e0e0e0"
+                    icon = "🎯" if "SUBMIT" in a else "📋" if "REGISTER" in a else "🆕" if "NEW" in a else "⚠️" if "ALERT" in a else "🔍" if "COMPETITOR" in a else "💡" if "SEARCH TERM" in a else "📝" if "UPDATED" in a else "•"
+                    short = a[:100] + "..." if len(a) > 100 else a
+                    missionary_html += f'<div style="background:#1a1a1a;border-left:3px solid {color};padding:8px 12px;margin-bottom:4px;border-radius:0 8px 8px 0;font-size:12px">{icon} {short}</div>'
+                if len(actions) > 12:
+                    missionary_html += f'<div style="color:#666;font-size:11px;padding:4px 12px">...and {len(actions)-12} more</div>'
+    except Exception:
+        pass
+
     sr = "".join(f"<tr><td>{x}</td><td>{c:,}</td></tr>" for x,c in sources)
     pr = "".join(f"<tr><td>{x}</td><td>{c:,}</td></tr>" for x,c in statuses)
     cr = "".join(f'<tr><td>{x or "unclassified"}</td><td>{c:,}</td></tr>' for x,c in cats)
@@ -118,6 +141,7 @@ td{{border-bottom:1px solid #1a1a1a}}
 <div class="sec"><h2>Distribution Channels</h2>
 <table><tr><th>Channel</th><th>Address</th><th>Status</th></tr>{dr}</table></div>
 <div class="sec"><h2>Alerts</h2>{alerts_html}</div>
+<div class="sec"><h2>Missionary Report</h2>{missionary_html}</div>
 <div class="row">
 <div class="sec"><h2>Sources</h2><table><tr><th>Source</th><th>Count</th></tr>{sr}</table></div>
 <div class="sec"><h2>Top Queries (7d)</h2><table><tr><th>Query</th><th>Count</th></tr>{tqr}</table></div>
