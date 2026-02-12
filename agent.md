@@ -1,7 +1,7 @@
 ---
 name: agentindex
 version: 0.1.0
-description: Discovery service for AI agents. Find any agent by capability, protocol, or category.
+description: Discovery service for AI agents. 22,617+ agents indexed across GitHub, npm, MCP, HuggingFace.
 capabilities:
   - agent discovery
   - capability search

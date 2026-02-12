@@ -130,16 +130,18 @@ def run_ranker():
         logger.error(f"Ranker failed: {e}")
 
 
-def run_missionary_setup():
-    logger.info("Generating missionary artifacts...")
+def run_missionary_daily():
+    logger.info("Running Missionary 2.0 daily scan...")
     try:
         from agentindex.agents.missionary import Missionary
-        api_endpoint = os.getenv("API_PUBLIC_ENDPOINT", "http://localhost:8000")
-        missionary = Missionary(api_endpoint=api_endpoint)
-        missionary.generate_all_artifacts(output_dir="./missionary_output")
-        logger.info("Missionary artifacts generated.")
+        missionary = Missionary()
+        report = missionary.run_daily()
+        actions = report.get("actions", [])
+        logger.info(f"Missionary 2.0 complete. Actions: {len(actions)}")
+        for action in actions[:5]:
+            logger.info(f"  -> {action}")
     except Exception as e:
-        logger.error(f"Missionary setup failed: {e}")
+        logger.error(f"Missionary daily failed: {e}")
 
 
 def run_system_check():
@@ -201,7 +203,7 @@ def main():
     from agentindex.db.models import init_db
     init_db()
 
-    run_missionary_setup()
+    run_missionary_daily()
     start_api_thread()
     time.sleep(2)
 
@@ -224,6 +226,7 @@ def main():
     # scheduler.add_job(run_parser, "interval", minutes=10, id="parser", next_run_time=datetime.now())
     scheduler.add_job(run_classifier, "interval", minutes=30, id="classifier", next_run_time=datetime.now() + timedelta(minutes=5))
     scheduler.add_job(run_ranker, "cron", hour=3, minute=0, id="ranker")  # 03:00 UTC nightly
+    scheduler.add_job(run_missionary_daily, "cron", hour=7, minute=0, id="missionary")  # 07:00 UTC daily
     scheduler.add_job(run_system_check, "interval", minutes=15,
                       id="status", next_run_time=datetime.now())
     scheduler.add_job(run_daily_report, "cron", hour=6, minute=0, id="daily")
