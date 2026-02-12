@@ -53,6 +53,7 @@ class Executor:
             "submit_pr": self._submit_pr,
             "register_registry": self._register_registry,
             "add_awesome_list": self._add_awesome_list,
+            "spy_implement_feature": self._spy_implement_feature,
         }
 
         handler = handlers.get(action["type"])
@@ -117,6 +118,36 @@ class Executor:
         repo = details.get("repo", "")
         name = details.get("name", "")
         return f"Added {name} ({repo}) to tracking list"
+
+
+    def _spy_implement_feature(self, details: dict) -> str:
+        """Log approved feature implementation to prioritized backlog."""
+        feature = details.get("feature", "unknown")
+        backlog_path = os.path.expanduser("~/agentindex/spionen_backlog.json")
+        import json
+        from datetime import datetime
+        backlog = []
+        if os.path.exists(backlog_path):
+            try:
+                with open(backlog_path) as f:
+                    backlog = json.load(f)
+            except Exception:
+                pass
+        # Check for duplicates
+        if not any(b["feature"] == feature for b in backlog):
+            backlog.append({
+                "feature": feature,
+                "approved_at": datetime.utcnow().isoformat(),
+                "approach": details.get("approach", ""),
+                "effort": details.get("effort", ""),
+                "impact": details.get("impact", ""),
+                "competitor": details.get("competitor", ""),
+                "status": "approved",
+            })
+            with open(backlog_path, "w") as f:
+                json.dump(backlog, f, indent=2)
+            logger.info(f"Feature added to backlog: {feature}")
+        return f"Feature '{feature}' added to implementation backlog"
 
 
 if __name__ == "__main__":

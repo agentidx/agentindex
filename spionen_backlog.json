@@ -1,0 +1,29 @@
+[
+  {
+    "feature": "a2a_support",
+    "approved_at": "2026-02-12T15:00:50.127146",
+    "approach": "Implement Agent2Agent protocol endpoints. Allow agents to register capabilities and discover each other. Reference: mcp-gateway-registry A2A implementation.",
+    "effort": "3-5 days",
+    "impact": "Enables true agent-to-agent communication through our platform.",
+    "competitor": "mcp-gateway-registry",
+    "status": "approved"
+  },
+  {
+    "feature": "semantic_search",
+    "approved_at": "2026-02-12T15:00:50.130762",
+    "approach": "Add FAISS index + sentence-transformers for /v1/discover. Replace keyword matching with vector similarity. Reference: mcp-gateway-registry uses FAISS + all-MiniLM-L6-v2.",
+    "effort": "2-3 days",
+    "impact": "Dramatically better search results, closes biggest feature gap.",
+    "competitor": "mcp-gateway-registry",
+    "status": "approved"
+  },
+  {
+    "feature": "enterprise_auth",
+    "approved_at": "2026-02-12T15:00:50.133427",
+    "approach": "Add OAuth2 support alongside API keys. Consider Keycloak or Auth0 integration.",
+    "effort": "3-5 days",
+    "impact": "Required for enterprise adoption.",
+    "competitor": "mcp-gateway-registry",
+    "status": "approved"
+  }
+]

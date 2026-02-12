@@ -15,8 +15,16 @@ from pydantic import BaseModel, Field
 from sqlalchemy import select, func, text, or_, and_
 from agentindex.db.models import Agent, DiscoveryLog, SystemStatus, get_session
 from agentindex.api.keys import register_key, validate_key, ApiKey
+from agentindex.api.a2a import get_agent_card, handle_a2a_request
 import os
 import uuid
+
+# Semantic search (FAISS + sentence-transformers)
+try:
+    from agentindex.api.semantic import get_semantic_search
+    SEMANTIC_AVAILABLE = True
+except ImportError:
+    SEMANTIC_AVAILABLE = False
 
 logger = logging.getLogger("agentindex.api")
 
@@ -149,43 +157,83 @@ def discover(req: DiscoverRequest, request: Request, _=Depends(check_rate_limit)
     if req.protocols:
         query = query.where(Agent.protocols.overlap(req.protocols))
 
-    # Full-text search on need
-    search_query = func.plainto_tsquery("english", req.need)
-    query = query.where(
-        text(
-            "to_tsvector('english', coalesce(name, '') || ' ' || "
-            "coalesce(description, '') || ' ' || "
-            "coalesce(category, '')) @@ plainto_tsquery('english', :search)"
-        ).bindparams(search=req.need)
-    )
+    # --- Semantic search (primary) ---
+    fts_results = []
+    search_method = "fts"
 
-    # Also search capabilities JSON
-    # Fallback: if FTS returns nothing, do a broader capabilities search
-    fts_results = session.execute(
-        query.order_by(Agent.quality_score.desc()).limit(limit)
-    ).scalars().all()
+    if SEMANTIC_AVAILABLE:
+        try:
+            sem = get_semantic_search()
+            if sem.index is not None and sem.index_size > 0:
+                # Get more candidates than needed, then filter
+                sem_results = sem.search(req.need, top_k=limit * 5)
+                if sem_results:
+                    search_method = "semantic"
+                    candidate_ids = [r["agent_id"] for r in sem_results]
+                    sem_scores = {r["agent_id"]: r["score"] for r in sem_results}
 
+                    # Fetch agents by IDs with filters applied
+                    sem_query = select(Agent).where(
+                        Agent.id.in_([uuid.UUID(aid) for aid in candidate_ids]),
+                        Agent.is_active == True,
+                        Agent.crawl_status.in_(["parsed", "classified", "ranked"]),
+                        Agent.quality_score >= (req.min_quality or 0.0),
+                    )
+                    if req.category:
+                        sem_query = sem_query.where(Agent.category == req.category)
+                    if req.protocols:
+                        sem_query = sem_query.where(Agent.protocols.overlap(req.protocols))
+
+                    agents_by_id = {
+                        str(a.id): a
+                        for a in session.execute(sem_query).scalars().all()
+                    }
+
+                    # Sort by combined score: 0.7 * semantic + 0.3 * quality
+                    scored = []
+                    for aid in candidate_ids:
+                        agent = agents_by_id.get(aid)
+                        if agent:
+                            combined = 0.7 * sem_scores[aid] + 0.3 * (agent.quality_score or 0.0)
+                            scored.append((combined, agent))
+                    scored.sort(key=lambda x: x[0], reverse=True)
+                    fts_results = [agent for _, agent in scored[:limit]]
+        except Exception as e:
+            logger.error(f"Semantic search failed, falling back to FTS: {e}")
+
+    # --- Full-text search (fallback) ---
     if not fts_results:
-        # Broader search — check if any capability matches
-        broader_query = select(Agent).where(
-            Agent.is_active == True,
-            Agent.crawl_status.in_(["parsed", "classified", "ranked"]),
-            Agent.quality_score >= (req.min_quality or 0.0),
-        )
-        if req.category:
-            broader_query = broader_query.where(Agent.category == req.category)
-        if req.protocols:
-            broader_query = broader_query.where(Agent.protocols.overlap(req.protocols))
-
-        # Search capabilities as text
-        broader_query = broader_query.where(
-            text("capabilities::text ILIKE :pattern").bindparams(
-                pattern=f"%{req.need.split()[0] if req.need.split() else req.need}%"
-            )
+        search_method = "fts"
+        query = query.where(
+            text(
+                "to_tsvector('english', coalesce(name, '') || ' ' || "
+                "coalesce(description, '') || ' ' || "
+                "coalesce(category, '')) @@ plainto_tsquery('english', :search)"
+            ).bindparams(search=req.need)
         )
         fts_results = session.execute(
-            broader_query.order_by(Agent.quality_score.desc()).limit(limit)
+            query.order_by(Agent.quality_score.desc()).limit(limit)
         ).scalars().all()
+
+        # Broader fallback
+        if not fts_results:
+            broader_query = select(Agent).where(
+                Agent.is_active == True,
+                Agent.crawl_status.in_(["parsed", "classified", "ranked"]),
+                Agent.quality_score >= (req.min_quality or 0.0),
+            )
+            if req.category:
+                broader_query = broader_query.where(Agent.category == req.category)
+            if req.protocols:
+                broader_query = broader_query.where(Agent.protocols.overlap(req.protocols))
+            broader_query = broader_query.where(
+                text("capabilities::text ILIKE :pattern").bindparams(
+                    pattern=f"%{req.need.split()[0] if req.need.split() else req.need}%"
+                )
+            )
+            fts_results = session.execute(
+                broader_query.order_by(Agent.quality_score.desc()).limit(limit)
+            ).scalars().all()
 
     # Count total matching
     total_matching = len(fts_results)
@@ -202,7 +250,7 @@ def discover(req: DiscoverRequest, request: Request, _=Depends(check_rate_limit)
 
     # Log discovery request (no identifying info)
     log_entry = DiscoveryLog(
-        query={"need": req.need, "category": req.category, "protocols": req.protocols},
+        query={"need": req.need, "category": req.category, "protocols": req.protocols, "search_method": search_method},
         results_count=len(results),
         top_result_id=fts_results[0].id if fts_results else None,
         response_time_ms=response_time,
@@ -314,6 +362,30 @@ def mcp_discover(request_body: dict, request: Request, _=Depends(check_rate_limi
     # Delegate to main discover
     req = DiscoverRequest(need=need)
     return discover(req, request)
+
+
+# --- A2A Protocol Endpoints ---
+
+@app.get("/.well-known/agent-card.json")
+@app.get("/.well-known/agent.json")
+def agent_card():
+    """A2A Agent Card — discovery endpoint for the A2A protocol."""
+    return get_agent_card()
+
+
+@app.post("/a2a")
+async def a2a_endpoint(request: Request):
+    """A2A JSON-RPC 2.0 endpoint for agent-to-agent communication."""
+    return await handle_a2a_request(request)
+
+
+@app.get("/v1/semantic/status")
+def semantic_status():
+    """Semantic search index status."""
+    if SEMANTIC_AVAILABLE:
+        sem = get_semantic_search()
+        return sem.get_status()
+    return {"status": "not_available"}
 
 
 def start_api():

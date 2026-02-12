@@ -1,0 +1,42 @@
+[
+  {
+    "date": "2026-02-12",
+    "our_index_size": 36464,
+    "our_stars": 0,
+    "competitors": [],
+    "gap_count": 0,
+    "critical_gaps": 0
+  },
+  {
+    "date": "2026-02-12",
+    "our_index_size": 36472,
+    "our_stars": 0,
+    "competitors": [],
+    "gap_count": 0,
+    "critical_gaps": 0
+  },
+  {
+    "date": "2026-02-12",
+    "our_index_size": 36484,
+    "our_stars": 0,
+    "competitors": [
+      {
+        "name": "mcp-gateway-registry",
+        "stars": 436,
+        "commits_30d": 100
+      },
+      {
+        "name": "mcp-compass",
+        "stars": 223,
+        "commits_30d": 0
+      },
+      {
+        "name": "claude-plugins-official",
+        "stars": 7288,
+        "commits_30d": 29
+      }
+    ],
+    "gap_count": 8,
+    "critical_gaps": 3
+  }
+]

@@ -45,6 +45,15 @@ ACTION_LEVELS = {
     "new_competitor": ActionLevel.NOTIFY,
     "endpoint_down": ActionLevel.NOTIFY,
     "pr_status_update": ActionLevel.NOTIFY,
+
+    # Spionen (Competitor Intelligence)
+    "spy_new_competitor": ActionLevel.NOTIFY,
+    "spy_implement_feature": ActionLevel.APPROVAL,
+    "spy_improve_visibility": ActionLevel.NOTIFY,
+    "spy_competitor_active": ActionLevel.NOTIFY,
+    "spy_daily_summary": ActionLevel.NOTIFY,
+    "spy_feature_done": ActionLevel.NOTIFY,
+    "spy_feature_reminder": ActionLevel.NOTIFY,
 }
 
 

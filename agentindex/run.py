@@ -205,6 +205,30 @@ def start_api_thread():
     logger.info("Discovery API started on port 8000")
 
 
+def run_semantic_index():
+    logger.info("Rebuilding semantic search index...")
+    try:
+        from agentindex.api.semantic import get_semantic_search
+        sem = get_semantic_search()
+        result = sem.build_index()
+        logger.info(f"Semantic index rebuilt: {result}")
+    except Exception as e:
+        logger.error(f"Semantic index rebuild failed: {e}")
+
+def run_spionen_daily():
+    logger.info("Running Spionen (Competitor Intelligence)...")
+    try:
+        from agentindex.agents.spionen import Spionen
+        spionen = Spionen()
+        report = spionen.run_daily()
+        gaps = report.get("gaps", [])
+        logger.info(f"Spionen complete. Gaps: {len(gaps)}, Actions: {len(report.get('actions', []))}")
+        for gap in gaps[:3]:
+            logger.info(f"  [{gap['severity']}] {gap['kpi']} vs {gap['competitor']}")
+    except Exception as e:
+        logger.error(f"Spionen daily failed: {e}")
+
+
 def main():
     logger.info("=" * 60)
     logger.info("AgentIndex starting...")
@@ -238,6 +262,8 @@ def main():
     scheduler.add_job(run_classifier, "interval", minutes=30, id="classifier", next_run_time=datetime.now() + timedelta(minutes=5))
     scheduler.add_job(run_ranker, "cron", hour=3, minute=0, id="ranker")  # 03:00 UTC nightly
     scheduler.add_job(run_missionary_daily, "cron", hour=7, minute=0, id="missionary")  # 07:00 UTC daily
+    scheduler.add_job(run_spionen_daily, "cron", hour=8, minute=0, id="spionen")  # 08:00 UTC daily
+    scheduler.add_job(run_semantic_index, "interval", hours=6, id="semantic", next_run_time=datetime.now() + timedelta(minutes=10))  # rebuild after crawl
     scheduler.add_job(run_executor, "interval", minutes=15, id="executor", next_run_time=datetime.now() + timedelta(minutes=2))
     scheduler.add_job(run_system_check, "interval", minutes=15,
                       id="status", next_run_time=datetime.now())
