@@ -717,8 +717,9 @@
       "stars": 8903,
       "url": "https://github.com/Arindam200/awesome-ai-apps"
     },
-    "status": "pending",
-    "created": "2026-02-12T15:12:39.950315"
+    "status": "approved",
+    "created": "2026-02-12T15:12:39.950315",
+    "approved_at": "2026-02-12T15:29:53.688081"
   },
   {
     "id": "8adf1a3b",
@@ -731,8 +732,9 @@
       "stars": 8584,
       "url": "https://github.com/sickn33/antigravity-awesome-skills"
     },
-    "status": "pending",
-    "created": "2026-02-12T15:12:39.951549"
+    "status": "approved",
+    "created": "2026-02-12T15:12:39.951549",
+    "approved_at": "2026-02-12T15:29:55.596234"
   },
   {
     "id": "b9e24eb8",
@@ -745,8 +747,9 @@
       "stars": 6276,
       "url": "https://github.com/punkpeye/awesome-mcp-clients"
     },
-    "status": "pending",
-    "created": "2026-02-12T15:12:39.952961"
+    "status": "approved",
+    "created": "2026-02-12T15:12:39.952961",
+    "approved_at": "2026-02-12T15:29:56.416921"
   },
   {
     "id": "964af653",
@@ -759,8 +762,9 @@
       "stars": 5140,
       "url": "https://github.com/appcypher/awesome-mcp-servers"
     },
-    "status": "pending",
-    "created": "2026-02-12T15:12:39.953796"
+    "status": "approved",
+    "created": "2026-02-12T15:12:39.953796",
+    "approved_at": "2026-02-12T15:29:58.217275"
   },
   {
     "id": "602fbc5c",
@@ -773,8 +777,9 @@
       "stars": 1129,
       "url": "https://github.com/e2b-dev/awesome-ai-sdks"
     },
-    "status": "pending",
-    "created": "2026-02-12T15:12:39.954585"
+    "status": "approved",
+    "created": "2026-02-12T15:12:39.954585",
+    "approved_at": "2026-02-12T15:30:01.784773"
   },
   {
     "id": "d134ec93",
@@ -787,8 +792,9 @@
       "stars": 2892,
       "url": "https://github.com/Meirtz/Awesome-Context-Engineering"
     },
-    "status": "pending",
-    "created": "2026-02-12T15:12:39.955379"
+    "status": "approved",
+    "created": "2026-02-12T15:12:39.955379",
+    "approved_at": "2026-02-12T15:30:02.741559"
   },
   {
     "id": "39ef136a",
@@ -801,8 +807,9 @@
       "stars": 1312,
       "url": "https://github.com/kaushikb11/awesome-llm-agents"
     },
-    "status": "pending",
-    "created": "2026-02-12T15:12:39.956249"
+    "status": "approved",
+    "created": "2026-02-12T15:12:39.956249",
+    "approved_at": "2026-02-12T15:30:03.587472"
   },
   {
     "id": "6b90f0e1",
@@ -815,8 +822,9 @@
       "stars": 1219,
       "url": "https://github.com/steel-dev/awesome-web-agents"
     },
-    "status": "pending",
-    "created": "2026-02-12T15:12:39.957046"
+    "status": "approved",
+    "created": "2026-02-12T15:12:39.957046",
+    "approved_at": "2026-02-12T15:30:04.513691"
   },
   {
     "id": "16d577f1",
@@ -827,8 +835,9 @@
       "name": "MCP Hub",
       "url": "https://mcphub.io"
     },
-    "status": "pending",
-    "created": "2026-02-12T15:12:40.161115"
+    "status": "approved",
+    "created": "2026-02-12T15:12:40.161115",
+    "approved_at": "2026-02-12T15:30:05.367500"
   },
   {
     "id": "e65cf8fc",
@@ -839,8 +848,9 @@
       "name": "Glama",
       "url": "https://glama.ai/mcp/servers"
     },
-    "status": "pending",
-    "created": "2026-02-12T15:12:40.166557"
+    "status": "approved",
+    "created": "2026-02-12T15:12:40.166557",
+    "approved_at": "2026-02-12T15:30:06.125772"
   },
   {
     "id": "dd4e66bd",
@@ -851,8 +861,9 @@
       "name": "PulseMCP",
       "url": "https://pulsemcp.com"
     },
-    "status": "pending",
-    "created": "2026-02-12T15:12:40.172313"
+    "status": "approved",
+    "created": "2026-02-12T15:12:40.172313",
+    "approved_at": "2026-02-12T15:30:06.964345"
   },
   {
     "id": "da6ae50d",
@@ -863,8 +874,9 @@
       "name": "mcp.run",
       "url": "https://mcp.run"
     },
-    "status": "pending",
-    "created": "2026-02-12T15:12:40.175949"
+    "status": "approved",
+    "created": "2026-02-12T15:12:40.175949",
+    "approved_at": "2026-02-12T15:30:07.760627"
   },
   {
     "id": "721bff11",
@@ -875,8 +887,9 @@
       "name": "Composio MCP",
       "url": "https://composio.dev/mcp"
     },
-    "status": "pending",
-    "created": "2026-02-12T15:12:40.180105"
+    "status": "approved",
+    "created": "2026-02-12T15:12:40.180105",
+    "approved_at": "2026-02-12T15:30:08.569188"
   },
   {
     "id": "4754f41f",
@@ -932,8 +945,9 @@
       "title": "Add AgentIndex - AI agent discovery platform",
       "body": "## AgentIndex\n\n**Discovery platform for AI agents.** Find any AI agent by capability - search 23,080+ indexed agents across 4 sources.\n\n- **API:** https://api.agentcrawl.dev\n- **MCP Server:** [Smithery](https://smithery.ai/server/agentidx/agentcrawl)\n- **SDK:** `pip install agentcrawl` | `npm install @agentidx/sdk`\n- **GitHub:** https://github.com/agentidx/agentindex\n\n### What it does\nAgentIndex crawls and indexes all publicly available AI agents (GitHub, npm, MCP, HuggingFace) so that agents can automatically discover and hire other agents.\n\n### Categories\ncoding, devops, infrastructure, finance, communication, research, agent framework, data, security, AI assistant\n\n### Usage\n```python\nfrom agentcrawl import discover\nagents = discover('code review', min_quality=0.7)\n```\n"
     },
-    "status": "pending",
-    "created": "2026-02-12T15:12:49.911636"
+    "status": "approved",
+    "created": "2026-02-12T15:12:49.911636",
+    "approved_at": "2026-02-12T15:30:09.331558"
   },
   {
     "id": "91d65542",
@@ -945,7 +959,8 @@
       "title": "Add AgentIndex - agent discovery for LangChain projects",
       "body": "## AgentIndex\n\nDiscovery API for finding AI agents by capability. Index of 23,080+ agents.\n\n- **API:** https://api.agentcrawl.dev\n- **SDK:** `pip install agentcrawl`\n- **MCP Server:** [Smithery](https://smithery.ai/server/agentidx/agentcrawl)\n- **GitHub:** https://github.com/agentidx/agentindex\n\n```python\nfrom agentcrawl import discover\nagents = discover('data analysis agent', protocols=['rest'])\n```\n"
     },
-    "status": "pending",
-    "created": "2026-02-12T15:12:49.916041"
+    "status": "approved",
+    "created": "2026-02-12T15:12:49.916041",
+    "approved_at": "2026-02-12T15:30:10.266730"
   }
 ]

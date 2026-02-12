@@ -1,0 +1,11 @@
+{
+  "endpoints": [
+    {
+      "url": "https://api.agentcrawl.dev",
+      "name": "AgentIndex",
+      "found_at": "2026-02-12T15:32:14.679813",
+      "source": "known"
+    }
+  ],
+  "last_crawl": "2026-02-12T15:32:42.216958"
+}

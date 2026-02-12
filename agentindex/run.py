@@ -205,6 +205,15 @@ def start_api_thread():
     logger.info("Discovery API started on port 8000")
 
 
+def run_a2a_spider():
+    logger.info("Running A2A Agent Card spider...")
+    try:
+        from agentindex.spiders.a2a_spider import run_a2a_crawl
+        stats = run_a2a_crawl()
+        logger.info(f"A2A spider complete: {stats}")
+    except Exception as e:
+        logger.error(f"A2A spider failed: {e}")
+
 def run_semantic_index():
     logger.info("Rebuilding semantic search index...")
     try:
@@ -263,6 +272,7 @@ def main():
     scheduler.add_job(run_ranker, "cron", hour=3, minute=0, id="ranker")  # 03:00 UTC nightly
     scheduler.add_job(run_missionary_daily, "cron", hour=7, minute=0, id="missionary")  # 07:00 UTC daily
     scheduler.add_job(run_spionen_daily, "cron", hour=8, minute=0, id="spionen")  # 08:00 UTC daily
+    scheduler.add_job(run_a2a_spider, "cron", hour="9,21", minute=0, id="a2a_spider")  # 09:00 + 21:00 UTC
     scheduler.add_job(run_semantic_index, "interval", hours=6, id="semantic", next_run_time=datetime.now() + timedelta(minutes=10))  # rebuild after crawl
     scheduler.add_job(run_executor, "interval", minutes=15, id="executor", next_run_time=datetime.now() + timedelta(minutes=2))
     scheduler.add_job(run_system_check, "interval", minutes=15,
