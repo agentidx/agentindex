@@ -1,459 +1,423 @@
 """
-AgentIndex Missionary (Missionären)
+AgentIndex Missionary 2.0 (Missionären)
 
-Responsible for making AgentIndex discoverable by other agents
-through machine-native channels. No human marketing — only
-protocols, packages, and machine-readable presence.
+Proactive agent that spreads AgentIndex presence through machine-native
+and human-discoverable channels. Runs daily as a scheduled job.
 
-Channels:
-1. MCP Registry registration
-2. pip/npm package publishing
-3. agent.md specification
-4. MCP server endpoint (so agents can use us as a tool)
+Capabilities:
+1. Scans for new registries/awesome-lists to register on
+2. Generates PR texts with live stats from API
+3. Monitors API + Smithery traffic
+4. Finds new distribution channels
+5. Suggests new search terms for spiders
+6. Tracks where we're listed vs not
+7. Generates daily action report
+8. Auto-updates agent.md/README with live stats
+9. Monitors competitors/similar services
 """
 
 import json
 import logging
 import os
-from datetime import datetime
+import re
+from datetime import datetime, timedelta
+from typing import Optional
+
+import httpx
+from agentindex.db.models import Agent, get_session
+from sqlalchemy import select, func, text
 
 logger = logging.getLogger("agentindex.missionary")
 
-
-# --- Channel 1: MCP Server Definition ---
-
-MCP_SERVER_MANIFEST = {
-    "name": "agentindex",
-    "version": "0.1.0",
-    "description": "Discovery service for AI agents. Find any agent by capability.",
-    "tools": [
-        {
-            "name": "discover_agents",
-            "description": "Find AI agents that can perform a specific task or have specific capabilities. Returns ranked list of matching agents with invocation details.",
-            "inputSchema": {
-                "type": "object",
-                "properties": {
-                    "need": {
-                        "type": "string",
-                        "description": "Natural language description of what you need an agent to do"
-                    },
-                    "category": {
-                        "type": "string",
-                        "description": "Optional category filter: coding, research, content, legal, data, finance, marketing, design, devops, security, education, health, communication, productivity",
-                        "enum": ["coding", "research", "content", "legal", "data", "finance", "marketing", "design", "devops", "security", "education", "health", "communication", "productivity"]
-                    },
-                    "protocols": {
-                        "type": "array",
-                        "items": {"type": "string"},
-                        "description": "Required protocols: mcp, a2a, rest, grpc, websocket"
-                    },
-                    "min_quality": {
-                        "type": "number",
-                        "description": "Minimum quality score 0.0-1.0",
-                        "default": 0.0
-                    }
-                },
-                "required": ["need"]
-            }
-        },
-        {
-            "name": "get_agent_details",
-            "description": "Get detailed information about a specific agent by ID",
-            "inputSchema": {
-                "type": "object",
-                "properties": {
-                    "agent_id": {
-                        "type": "string",
-                        "description": "Agent UUID from discover_agents results"
-                    }
-                },
-                "required": ["agent_id"]
-            }
-        },
-        {
-            "name": "get_index_stats",
-            "description": "Get statistics about the AgentIndex: total agents, categories, protocols",
-            "inputSchema": {
-                "type": "object",
-                "properties": {}
-            }
-        }
-    ]
-}
-
-
-def generate_mcp_manifest() -> str:
-    """Generate MCP server manifest JSON."""
-    return json.dumps(MCP_SERVER_MANIFEST, indent=2)
-
-
-# --- Channel 2: agent.md specification ---
-
-AGENT_MD_SPEC = """# agent.md Specification v0.1
-
-A standard file for AI agents to declare their capabilities,
-making them discoverable by other agents and indexing services.
-
-## Usage
-
-Place an `agent.md` file in the root of your repository or host it at
-`/.well-known/agent.md` on your domain.
-
-## Format
-
-```yaml
----
-name: your-agent-name
-version: 1.0.0
-description: One sentence describing what your agent does
-capabilities:
-  - capability one
-  - capability two
-  - capability three
-category: one of coding|research|content|legal|data|finance|marketing|design|devops|security|education|health|communication|productivity
-protocols:
-  - mcp
-  - rest
-invocation:
-  type: mcp|api|npm|pip|docker
-  install: "npm install your-package"
-  endpoint: "https://your-api.com/v1"
-pricing:
-  model: free|freemium|paid
-  price: 0.00
-  currency: USD
-  unit: per_call|per_month
-author: your-name
-license: MIT
----
-
-# Your Agent Name
-
-Detailed description of what your agent does and how to use it.
-```
-
-## Why
-
-By publishing an agent.md, your agent becomes automatically discoverable
-by other agents seeking capabilities. AgentIndex and similar services
-crawl and index these files to build a comprehensive directory of
-available agents.
-
-## Discovery
-
-Services that index agent.md files:
-- AgentIndex discovery API
-- MCP registries
-- A2A agent card registries
-"""
-
-
-def generate_agent_md_spec() -> str:
-    """Generate the agent.md specification document."""
-    return AGENT_MD_SPEC
-
-
-# --- Channel 3: pip package ---
-
-PIP_SETUP_PY = '''"""
-agentindex - Discovery SDK for AI agents.
-
-Find any AI agent by capability. Machine-first API.
-
-Usage:
-    from agentindex import discover
-    
-    results = discover("contract review")
-    for agent in results:
-        print(agent["name"], agent["capabilities"])
-"""
-
-from setuptools import setup, find_packages
-
-setup(
-    name="agentindex",
-    version="0.1.0",
-    description="Discovery service for AI agents. Find any agent by capability.",
-    long_description="""
-# AgentIndex
-
-Discovery service for AI agents. Find any agent by capability.
-
-## Quick Start
-
-```python
-from agentindex import discover
-
-# Find agents that can review contracts
-results = discover("contract review")
-
-# Find MCP servers for data analysis
-results = discover("data analysis", protocols=["mcp"])
-
-# Find high-quality coding agents
-results = discover("code review", min_quality=0.7)
-```
-
-## As MCP Tool
-
-AgentIndex is available as an MCP server. Add it to your agent's tools
-to enable automatic discovery of other agents.
-
-## API
-
-Direct API access:
-
-```
-POST https://YOUR_ENDPOINT/v1/discover
-{"need": "contract review", "min_quality": 0.5}
-```
-    """,
-    long_description_content_type="text/markdown",
-    author="AgentIndex",
-    url="https://github.com/agentindex/agentindex-sdk",
-    packages=find_packages(),
-    python_requires=">=3.9",
-    install_requires=["httpx>=0.25.0"],
-    classifiers=[
-        "Development Status :: 3 - Alpha",
-        "Intended Audience :: Developers",
-        "Topic :: Software Development :: Libraries",
-        "Programming Language :: Python :: 3",
-    ],
-    keywords="ai agent discovery mcp a2a llm autonomous",
-)
-'''
-
-PIP_SDK_CODE = '''"""
-AgentIndex Python SDK
-
-Minimal SDK for discovering AI agents.
-"""
-
-import httpx
-from typing import Optional
-
-DEFAULT_ENDPOINT = "https://YOUR_ENDPOINT/v1"
-
-
-def discover(
-    need: str,
-    category: Optional[str] = None,
-    protocols: Optional[list] = None,
-    min_quality: float = 0.0,
-    endpoint: str = DEFAULT_ENDPOINT,
-) -> list:
-    """
-    Find AI agents by capability.
-    
-    Args:
-        need: Natural language description of what you need
-        category: Optional category filter
-        protocols: Optional list of required protocols
-        min_quality: Minimum quality score 0.0-1.0
-        endpoint: AgentIndex API endpoint
-    
-    Returns:
-        List of matching agent dicts with name, capabilities, invocation details
-    """
-    response = httpx.post(
-        f"{endpoint}/discover",
-        json={
-            "need": need,
-            "category": category,
-            "protocols": protocols,
-            "min_quality": min_quality,
-        },
-        timeout=30,
-    )
-    response.raise_for_status()
-    return response.json().get("results", [])
-
-
-def get_agent(agent_id: str, endpoint: str = DEFAULT_ENDPOINT) -> dict:
-    """Get detailed info about a specific agent."""
-    response = httpx.get(f"{endpoint}/agent/{agent_id}", timeout=30)
-    response.raise_for_status()
-    return response.json().get("agent", {})
-
-
-def stats(endpoint: str = DEFAULT_ENDPOINT) -> dict:
-    """Get index statistics."""
-    response = httpx.get(f"{endpoint}/stats", timeout=30)
-    response.raise_for_status()
-    return response.json()
-'''
-
-
-# --- Channel 4: npm package ---
-
-NPM_PACKAGE_JSON = {
-    "name": "@agentindex/sdk",
-    "version": "0.1.0",
-    "description": "Discovery service for AI agents. Find any agent by capability.",
-    "main": "index.js",
-    "keywords": [
-        "ai", "agent", "discovery", "mcp", "a2a", "llm",
-        "autonomous", "agent-discovery", "agent-index",
-        "model-context-protocol", "agent2agent"
-    ],
-    "license": "MIT",
-}
-
-NPM_SDK_CODE = '''/**
- * AgentIndex SDK
- * Discovery service for AI agents. Find any agent by capability.
- */
-
-const DEFAULT_ENDPOINT = "https://YOUR_ENDPOINT/v1";
-
-async function discover(need, options = {}) {
-  const { category, protocols, minQuality = 0.0, endpoint = DEFAULT_ENDPOINT } = options;
-  
-  const response = await fetch(`${endpoint}/discover`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      need,
-      category,
-      protocols,
-      min_quality: minQuality,
-    }),
-  });
-  
-  if (!response.ok) throw new Error(`AgentIndex error: ${response.status}`);
-  const data = await response.json();
-  return data.results;
-}
-
-async function getAgent(agentId, endpoint = DEFAULT_ENDPOINT) {
-  const response = await fetch(`${endpoint}/agent/${agentId}`);
-  if (!response.ok) throw new Error(`AgentIndex error: ${response.status}`);
-  const data = await response.json();
-  return data.agent;
-}
-
-async function stats(endpoint = DEFAULT_ENDPOINT) {
-  const response = await fetch(`${endpoint}/stats`);
-  if (!response.ok) throw new Error(`AgentIndex error: ${response.status}`);
-  return response.json();
-}
-
-module.exports = { discover, getAgent, stats };
-'''
+API_ENDPOINT = os.getenv("API_PUBLIC_ENDPOINT", "https://api.agentcrawl.dev")
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "")
 
 
 class Missionary:
-    """
-    Spreads AgentIndex presence through machine-native channels.
-    """
+    def __init__(self):
+        self.session = get_session()
+        self.client = httpx.Client(timeout=30)
+        self.github_headers = {
+            "Authorization": f"token {GITHUB_TOKEN}",
+            "Accept": "application/vnd.github.v3+json",
+        }
+        self.report = {
+            "timestamp": datetime.utcnow().isoformat(),
+            "actions": [],
+            "stats": {},
+            "new_channels": [],
+            "new_sources": [],
+            "new_search_terms": [],
+            "competitors": [],
+            "presence_tracker": {},
+        }
 
-    def __init__(self, api_endpoint: str = "https://YOUR_ENDPOINT"):
-        self.api_endpoint = api_endpoint
+    def run_daily(self) -> dict:
+        logger.info("Missionary 2.0 daily run starting...")
+        self._collect_stats()
+        self._scan_awesome_lists()
+        self._scan_registries()
+        self._find_new_channels()
+        self._suggest_search_terms()
+        self._monitor_competitors()
+        self._track_presence()
+        self._generate_pr_texts()
+        self._auto_update_repo_stats()
+        self._save_report()
+        logger.info(f"Missionary 2.0 complete. Actions: {len(self.report['actions'])}")
+        return self.report
 
-    def generate_all_artifacts(self, output_dir: str = "./missionary_output"):
-        """Generate all publishable artifacts."""
-        os.makedirs(output_dir, exist_ok=True)
+    def _collect_stats(self):
+        try:
+            response = self.client.get(f"{API_ENDPOINT}/v1/stats")
+            if response.status_code == 200:
+                self.report["stats"] = response.json()
+                logger.info(f"Stats collected")
+        except Exception as e:
+            logger.error(f"Failed to collect stats: {e}")
+        try:
+            result = self.session.execute(
+                text("SELECT crawl_status, count(*) FROM agents GROUP BY crawl_status")
+            ).fetchall()
+            self.report["stats"]["pipeline"] = {row[0]: row[1] for row in result}
+            total = self.session.execute(
+                text("SELECT count(*) FROM agents WHERE is_active = true")
+            ).scalar()
+            self.report["stats"]["total_active"] = total
+            sources = self.session.execute(
+                text("SELECT source, count(*) FROM agents GROUP BY source")
+            ).fetchall()
+            self.report["stats"]["sources"] = {row[0]: row[1] for row in sources}
+            categories = self.session.execute(
+                text("SELECT category, count(*) FROM agents WHERE crawl_status IN ('parsed','classified','ranked') GROUP BY category ORDER BY count(*) DESC LIMIT 15")
+            ).fetchall()
+            self.report["stats"]["top_categories"] = {row[0]: row[1] for row in categories}
+        except Exception as e:
+            logger.error(f"DB stats error: {e}")
 
-        # MCP manifest
-        with open(f"{output_dir}/mcp-manifest.json", "w") as f:
-            f.write(generate_mcp_manifest())
-        logger.info("Generated MCP manifest")
+    AWESOME_LISTS = [
+        {"repo": "punkpeye/awesome-mcp-servers", "name": "Awesome MCP Servers", "stars": 30000, "pr_status": "submitted"},
+        {"repo": "e2b-dev/awesome-ai-agents", "name": "Awesome AI Agents", "stars": 10000, "pr_status": "not_submitted"},
+        {"repo": "kyrolabs/awesome-langchain", "name": "Awesome LangChain", "stars": 7000, "pr_status": "not_submitted"},
+        {"repo": "f/awesome-chatgpt-prompts", "name": "Awesome ChatGPT Prompts", "stars": 100000, "pr_status": "not_relevant"},
+        {"repo": "Shubhamsaboo/awesome-llm-apps", "name": "Awesome LLM Apps", "stars": 5000, "pr_status": "not_submitted"},
+        {"repo": "filipecalegario/awesome-generative-ai", "name": "Awesome Generative AI", "stars": 5000, "pr_status": "not_submitted"},
+        {"repo": "aimerou/awesome-ai-papers", "name": "Awesome AI Papers", "stars": 3000, "pr_status": "not_relevant"},
+        {"repo": "mahseema/awesome-ai-tools", "name": "Awesome AI Tools", "stars": 3000, "pr_status": "not_submitted"},
+    ]
 
-        # agent.md spec
-        with open(f"{output_dir}/agent-md-spec.md", "w") as f:
-            f.write(generate_agent_md_spec())
-        logger.info("Generated agent.md specification")
-
-        # pip package
-        pip_dir = f"{output_dir}/pip-package/agentindex"
-        os.makedirs(pip_dir, exist_ok=True)
-        with open(f"{output_dir}/pip-package/setup.py", "w") as f:
-            f.write(PIP_SETUP_PY.replace("YOUR_ENDPOINT", self.api_endpoint))
-        with open(f"{pip_dir}/__init__.py", "w") as f:
-            f.write(PIP_SDK_CODE.replace("YOUR_ENDPOINT", self.api_endpoint))
-        logger.info("Generated pip package")
-
-        # npm package
-        npm_dir = f"{output_dir}/npm-package"
-        os.makedirs(npm_dir, exist_ok=True)
-        with open(f"{npm_dir}/package.json", "w") as f:
-            json.dump(NPM_PACKAGE_JSON, f, indent=2)
-        with open(f"{npm_dir}/index.js", "w") as f:
-            f.write(NPM_SDK_CODE.replace("YOUR_ENDPOINT", self.api_endpoint))
-        logger.info("Generated npm package")
-
-        # Our own agent.md (for our repo)
-        our_agent_md = f"""---
-name: agentindex
-version: 0.1.0
-description: Discovery service for AI agents. Find any agent by capability, protocol, or category.
-capabilities:
-  - agent discovery
-  - capability search
-  - agent ranking
-  - protocol-agnostic search
-  - MCP server discovery
-  - A2A agent discovery
-category: productivity
-protocols:
-  - mcp
-  - rest
-invocation:
-  type: api
-  endpoint: "{self.api_endpoint}/v1"
-pricing:
-  model: free
-author: agentindex
----
-
-# AgentIndex
-
-The most comprehensive index of AI agents. Search by capability, category, or protocol.
-
-## API
-
-```
-POST {self.api_endpoint}/v1/discover
-{{"need": "what you need", "min_quality": 0.5}}
-```
-
-## MCP
-
-Available as MCP tool. Add to your agent's toolset for automatic agent discovery.
-
-## SDK
-
-```
-pip install agentindex
-npm install @agentindex/sdk
-```
-"""
-        with open(f"{output_dir}/agent.md", "w") as f:
-            f.write(our_agent_md)
-        logger.info("Generated our agent.md")
-
-        logger.info(f"All missionary artifacts generated in {output_dir}")
-
-    def get_publish_checklist(self) -> list:
-        """Return checklist of publishing actions needed."""
-        return [
-            "[ ] Register MCP server in Anthropic MCP Registry",
-            "[ ] Publish pip package: cd pip-package && python -m build && twine upload dist/*",
-            "[ ] Publish npm package: cd npm-package && npm publish",
-            "[ ] Create GitHub repo with agent.md in root",
-            "[ ] Submit PR to awesome-mcp-servers list",
-            "[ ] Submit PR to modelcontextprotocol/servers if applicable",
-            "[ ] Register in A2A protocol registry if available",
+    def _scan_awesome_lists(self):
+        logger.info("Scanning for awesome lists...")
+        search_queries = [
+            "awesome ai agents",
+            "awesome mcp",
+            "awesome llm tools",
+            "awesome autonomous agents",
+            "awesome agent framework",
         ]
+        found_lists = []
+        for query in search_queries:
+            try:
+                response = self.client.get(
+                    "https://api.github.com/search/repositories",
+                    params={"q": f"{query} in:name,description", "sort": "stars", "per_page": 5},
+                    headers=self.github_headers,
+                )
+                if response.status_code == 200:
+                    for repo in response.json().get("items", []):
+                        repo_full = repo["full_name"]
+                        stars = repo.get("stargazers_count", 0)
+                        if stars > 500 and repo_full not in [a["repo"] for a in self.AWESOME_LISTS]:
+                            found_lists.append({
+                                "repo": repo_full,
+                                "name": repo["name"],
+                                "stars": stars,
+                                "description": repo.get("description", ""),
+                                "url": repo["html_url"],
+                            })
+            except Exception as e:
+                logger.error(f"GitHub search error for '{query}': {e}")
+        if found_lists:
+            seen = set()
+            unique = []
+            for lst in found_lists:
+                if lst["repo"] not in seen:
+                    seen.add(lst["repo"])
+                    unique.append(lst)
+                    self.report["actions"].append(
+                        f"NEW AWESOME LIST: {lst['name']} ({lst['stars']}*) - {lst['url']}"
+                    )
+            self.report["new_channels"].extend(unique)
+            logger.info(f"Found {len(unique)} new awesome lists")
+        for lst in self.AWESOME_LISTS:
+            if lst["pr_status"] == "submitted":
+                self._check_pr_status(lst)
+
+    def _check_pr_status(self, awesome_list):
+        try:
+            response = self.client.get(
+                f"https://api.github.com/repos/{awesome_list['repo']}/pulls",
+                params={"state": "all", "per_page": 20},
+                headers=self.github_headers,
+            )
+            if response.status_code == 200:
+                for pr in response.json():
+                    if "agentindex" in pr.get("title", "").lower() or "agentcrawl" in pr.get("title", "").lower():
+                        state = pr["state"]
+                        merged = pr.get("merged_at") is not None
+                        if merged:
+                            self.report["actions"].append(f"PR MERGED: {awesome_list['name']}")
+                        elif state == "closed":
+                            self.report["actions"].append(f"PR CLOSED: {awesome_list['name']} - consider resubmitting")
+                        else:
+                            self.report["actions"].append(f"PR PENDING: {awesome_list['name']} - waiting for review")
+                        return
+        except Exception as e:
+            logger.error(f"PR status check error: {e}")
+
+    REGISTRIES = [
+        {"name": "Smithery", "url": "https://smithery.ai/server/agentidx/agentcrawl", "status": "listed"},
+        {"name": "MCP Hub", "url": "https://mcphub.io", "status": "not_registered"},
+        {"name": "Glama", "url": "https://glama.ai/mcp/servers", "status": "not_registered"},
+        {"name": "PulseMCP", "url": "https://pulsemcp.com", "status": "not_registered"},
+        {"name": "mcp.run", "url": "https://mcp.run", "status": "not_registered"},
+        {"name": "Composio MCP", "url": "https://composio.dev/mcp", "status": "not_registered"},
+    ]
+
+    def _scan_registries(self):
+        logger.info("Scanning MCP registries...")
+        for registry in self.REGISTRIES:
+            if registry["status"] == "not_registered":
+                self.report["actions"].append(f"REGISTER: {registry['name']} at {registry['url']}")
+        try:
+            response = self.client.get(
+                "https://api.github.com/search/repositories",
+                params={"q": "mcp registry OR mcp hub OR mcp directory", "sort": "stars", "per_page": 10},
+                headers=self.github_headers,
+            )
+            if response.status_code == 200:
+                for repo in response.json().get("items", []):
+                    name = repo["full_name"]
+                    if name not in [r.get("repo", "") for r in self.REGISTRIES]:
+                        stars = repo.get("stargazers_count", 0)
+                        if stars > 100:
+                            self.report["new_channels"].append({
+                                "type": "registry", "name": repo["name"],
+                                "repo": name, "stars": stars, "url": repo["html_url"],
+                            })
+                            self.report["actions"].append(f"NEW REGISTRY: {repo['name']} ({stars}*) - {repo['html_url']}")
+        except Exception as e:
+            logger.error(f"Registry scan error: {e}")
+
+    def _find_new_channels(self):
+        logger.info("Finding new channels...")
+        channel_searches = [
+            "agent marketplace", "ai agent directory",
+            "mcp server list", "ai tool directory", "llm tool registry",
+        ]
+        for query in channel_searches:
+            try:
+                response = self.client.get(
+                    "https://api.github.com/search/repositories",
+                    params={"q": query, "sort": "stars", "per_page": 3},
+                    headers=self.github_headers,
+                )
+                if response.status_code == 200:
+                    for repo in response.json().get("items", []):
+                        stars = repo.get("stargazers_count", 0)
+                        if stars > 200:
+                            self.report["new_channels"].append({
+                                "type": "directory", "name": repo["name"],
+                                "stars": stars, "url": repo["html_url"],
+                                "description": repo.get("description", ""),
+                            })
+            except Exception as e:
+                logger.error(f"Channel search error: {e}")
+
+    def _suggest_search_terms(self):
+        logger.info("Suggesting new search terms...")
+        trending_queries = ["agent", "mcp server", "ai tool", "llm"]
+        new_terms = []
+        for query in trending_queries:
+            try:
+                response = self.client.get(
+                    "https://api.github.com/search/repositories",
+                    params={"q": query, "sort": "updated", "per_page": 10},
+                    headers=self.github_headers,
+                )
+                if response.status_code == 200:
+                    for repo in response.json().get("items", []):
+                        topics = repo.get("topics", [])
+                        for topic in topics:
+                            if topic not in self._get_existing_search_terms() and "agent" in topic:
+                                new_terms.append(topic)
+            except Exception as e:
+                logger.error(f"Search term suggestion error: {e}")
+        unique_terms = list(set(new_terms))[:10]
+        if unique_terms:
+            self.report["new_search_terms"] = unique_terms
+            self.report["actions"].append(f"NEW SEARCH TERMS: Consider adding: {', '.join(unique_terms)}")
+
+    def _get_existing_search_terms(self):
+        return [
+            "ai-agent", "ai agent framework", "autonomous agent", "llm agent",
+            "mcp-server", "mcp server", "model context protocol", "mcp tool",
+            "langchain agent", "crewai agent", "autogen agent", "llamaindex agent",
+            "coding agent", "research agent", "agent framework python",
+            "agent orchestration", "multi-agent system", "agent2agent", "a2a protocol",
+        ]
+
+    def _monitor_competitors(self):
+        logger.info("Monitoring competitors...")
+        competitor_queries = [
+            "agent discovery service", "agent registry api",
+            "mcp server discovery", "ai agent index", "agent directory api",
+        ]
+        for query in competitor_queries:
+            try:
+                response = self.client.get(
+                    "https://api.github.com/search/repositories",
+                    params={"q": query, "sort": "stars", "per_page": 5},
+                    headers=self.github_headers,
+                )
+                if response.status_code == 200:
+                    for repo in response.json().get("items", []):
+                        name = repo["full_name"]
+                        if "agentidx" not in name and "agentindex" not in name.lower():
+                            stars = repo.get("stargazers_count", 0)
+                            if stars > 50:
+                                self.report["competitors"].append({
+                                    "name": repo["name"], "repo": name, "stars": stars,
+                                    "description": repo.get("description", ""),
+                                    "url": repo["html_url"], "updated": repo.get("updated_at", ""),
+                                })
+            except Exception as e:
+                logger.error(f"Competitor search error: {e}")
+        if self.report["competitors"]:
+            top = sorted(self.report["competitors"], key=lambda x: x["stars"], reverse=True)[:5]
+            self.report["actions"].append(
+                f"COMPETITORS: Top {len(top)}: " +
+                ", ".join(f"{c['name']} ({c['stars']}*)" for c in top)
+            )
+
+    def _track_presence(self):
+        logger.info("Tracking presence...")
+        presence = {
+            "api": {"url": "https://api.agentcrawl.dev", "status": "unknown"},
+            "dashboard": {"url": "https://dash.agentcrawl.dev", "status": "unknown"},
+            "mcp_sse": {"url": "https://mcp.agentcrawl.dev", "status": "unknown"},
+            "github": {"url": "https://github.com/agentidx/agentindex", "status": "unknown"},
+            "pypi": {"url": "https://pypi.org/project/agentcrawl/", "status": "unknown", "version": "0.3.1"},
+            "npm": {"url": "https://www.npmjs.com/package/@agentidx/sdk", "status": "unknown", "version": "0.3.0", "needs_update": True},
+            "smithery": {"url": "https://smithery.ai/server/agentidx/agentcrawl", "status": "unknown"},
+        }
+        for name, info in presence.items():
+            try:
+                response = self.client.head(info["url"], follow_redirects=True, timeout=10)
+                info["http_status"] = response.status_code
+                info["status"] = "live" if response.status_code < 400 else "down"
+            except Exception:
+                info["status"] = "unreachable"
+        self.report["presence_tracker"] = presence
+        down = [k for k, v in presence.items() if v["status"] != "live"]
+        if down:
+            self.report["actions"].append(f"ALERT: Endpoints down: {', '.join(down)}")
+
+    def _generate_pr_texts(self):
+        stats = self.report.get("stats", {})
+        total = stats.get("total_active", 20000)
+        sources = stats.get("sources", {})
+        categories = list(stats.get("top_categories", {}).keys())[:10]
+        pr_texts = {}
+        pr_texts["awesome-ai-agents"] = {
+            "title": "Add AgentIndex - AI agent discovery platform",
+            "body": f"## AgentIndex\n\n**Discovery platform for AI agents.** Find any AI agent by capability - search {total:,}+ indexed agents across {len(sources)} sources.\n\n- **API:** https://api.agentcrawl.dev\n- **MCP Server:** [Smithery](https://smithery.ai/server/agentidx/agentcrawl)\n- **SDK:** `pip install agentcrawl` | `npm install @agentidx/sdk`\n- **GitHub:** https://github.com/agentidx/agentindex\n\n### What it does\nAgentIndex crawls and indexes all publicly available AI agents (GitHub, npm, MCP, HuggingFace) so that agents can automatically discover and hire other agents.\n\n### Categories\n{', '.join(categories)}\n\n### Usage\n```python\nfrom agentcrawl import discover\nagents = discover('code review', min_quality=0.7)\n```\n",
+        }
+        pr_texts["awesome-langchain"] = {
+            "title": "Add AgentIndex - agent discovery for LangChain projects",
+            "body": f"## AgentIndex\n\nDiscovery API for finding AI agents by capability. Index of {total:,}+ agents.\n\n- **API:** https://api.agentcrawl.dev\n- **SDK:** `pip install agentcrawl`\n- **MCP Server:** [Smithery](https://smithery.ai/server/agentidx/agentcrawl)\n- **GitHub:** https://github.com/agentidx/agentindex\n\n```python\nfrom agentcrawl import discover\nagents = discover('data analysis agent', protocols=['rest'])\n```\n",
+        }
+        self.report["pr_texts"] = pr_texts
+        for name in ["awesome-ai-agents", "awesome-langchain"]:
+            lst = next((a for a in self.AWESOME_LISTS if name.replace("-", " ") in a["name"].lower()), None)
+            if lst and lst.get("pr_status") == "not_submitted":
+                self.report["actions"].append(f"SUBMIT PR: {name} - PR text ready in report")
+
+    def _auto_update_repo_stats(self):
+        stats = self.report.get("stats", {})
+        total = stats.get("total_active", 0)
+        if total == 0:
+            return
+        agent_md_path = os.path.expanduser("~/agentindex/agent.md")
+        try:
+            if os.path.exists(agent_md_path):
+                with open(agent_md_path, "r") as f:
+                    content = f.read()
+                content = re.sub(
+                    r'description:.*',
+                    f'description: Discovery service for AI agents. {total:,}+ agents indexed across GitHub, npm, MCP, HuggingFace.',
+                    content, count=1,
+                )
+                with open(agent_md_path, "w") as f:
+                    f.write(content)
+                self.report["actions"].append(f"UPDATED: agent.md with {total:,} agents")
+                logger.info(f"Updated agent.md with {total:,} agents")
+        except Exception as e:
+            logger.error(f"Failed to update agent.md: {e}")
+
+    def _save_report(self):
+        report_dir = os.path.expanduser("~/agentindex/missionary_reports")
+        os.makedirs(report_dir, exist_ok=True)
+        date_str = datetime.utcnow().strftime("%Y-%m-%d")
+        report_path = f"{report_dir}/report-{date_str}.json"
+        with open(report_path, "w") as f:
+            json.dump(self.report, f, indent=2, default=str)
+        summary_path = f"{report_dir}/report-{date_str}.md"
+        with open(summary_path, "w") as f:
+            f.write(self._generate_summary())
+        logger.info(f"Report saved: {report_path}")
+
+    def _generate_summary(self):
+        stats = self.report.get("stats", {})
+        actions = self.report.get("actions", [])
+        presence = self.report.get("presence_tracker", {})
+        summary = f"# Missionary Daily Report - {datetime.utcnow().strftime('%Y-%m-%d')}\n\n"
+        summary += f"## Index Stats\n- **Total active agents:** {stats.get('total_active', 'N/A')}\n"
+        summary += f"- **Sources:** {json.dumps(stats.get('sources', {}))}\n"
+        summary += f"- **Pipeline:** {json.dumps(stats.get('pipeline', {}))}\n\n"
+        summary += "## Presence Status\n"
+        for name, info in presence.items():
+            emoji = "+" if info.get("status") == "live" else "X"
+            summary += f"- [{emoji}] **{name}**: {info.get('url', 'N/A')} ({info.get('status', 'unknown')})\n"
+        summary += f"\n## Actions Required ({len(actions)})\n"
+        for i, action in enumerate(actions, 1):
+            summary += f"{i}. {action}\n"
+        if self.report.get("new_search_terms"):
+            summary += f"\n## Suggested New Search Terms\n{', '.join(self.report['new_search_terms'])}\n"
+        if self.report.get("competitors"):
+            summary += "\n## Competitors\n"
+            for c in sorted(self.report["competitors"], key=lambda x: x["stars"], reverse=True)[:5]:
+                summary += f"- **{c['name']}** ({c['stars']}*): {c.get('description', 'N/A')}\n"
+        if self.report.get("pr_texts"):
+            summary += "\n## Ready PR Texts\n"
+            for name, pr in self.report["pr_texts"].items():
+                summary += f"### {name}\n**Title:** {pr['title']}\n\n"
+        return summary
+
+    # Legacy compatibility
+    def generate_all_artifacts(self, output_dir="./missionary_output"):
+        self.run_daily()
+
+    def get_publish_checklist(self):
+        return self.report.get("actions", [])
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
-
-    missionary = Missionary(api_endpoint="https://YOUR_ENDPOINT")
-    missionary.generate_all_artifacts()
-
-    print("\nPublish checklist:")
-    for item in missionary.get_publish_checklist():
-        print(f"  {item}")
+    from dotenv import load_dotenv
+    load_dotenv()
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(name)s] %(levelname)s: %(message)s")
+    missionary = Missionary()
+    report = missionary.run_daily()
+    print(f"\nActions: {len(report['actions'])}")
+    for action in report["actions"]:
+        print(f"  -> {action}")
