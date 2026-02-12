@@ -123,6 +123,62 @@ def dashboard():
         missionary_html = f'<div style="color:#f87171;font-size:13px;padding:8px">Error loading actions: {e}</div>'
     
 
+    # System health / last runs
+    health_html = ""
+    try:
+        import glob
+        checks = {
+            "Orchestrator": ("~/agentindex/agentindex.log", "scheduler"),
+            "Parser": ("~/agentindex/parser.log", "parsed"),
+            "Classifier": ("~/agentindex/agentindex.log", "Classifier"),
+            "Executor": ("~/agentindex/agentindex.log", "Executor complete"),
+            "Missionary": ("~/agentindex/agentindex.log", "Missionary"),
+            "Vakten": ("~/agentindex/agentindex.log", "VAKTEN"),
+        }
+        for name, (logfile, keyword) in checks.items():
+            logpath = os.path.expanduser(logfile)
+            last_seen = "never"
+            status_color = "#f87171"
+            try:
+                with open(logpath) as f:
+                    lines = f.readlines()
+                for line in reversed(lines[-200:]):
+                    if keyword.lower() in line.lower():
+                        # Extract timestamp
+                        ts_match = line[:19]
+                        if "-" in ts_match and ":" in ts_match:
+                            last_seen = ts_match
+                            # Check if recent (within 2 hours)
+                            try:
+                                last_dt = datetime.strptime(ts_match, "%Y-%m-%d %H:%M:%S")
+                                age_min = (now - last_dt).total_seconds() / 60
+                                if age_min < 30:
+                                    status_color = "#4ade80"
+                                elif age_min < 120:
+                                    status_color = "#fbbf24"
+                                else:
+                                    status_color = "#f87171"
+                            except Exception:
+                                status_color = "#666"
+                        break
+            except Exception:
+                pass
+            health_html += f'<tr><td>{name}</td><td style="font-family:monospace;font-size:11px">{last_seen}</td><td><span style="color:{status_color}">●</span></td></tr>'
+
+        # Action queue stats
+        try:
+            from agentindex.agents.action_queue import load_queue, load_history
+            q = load_queue()
+            h = load_history()
+            approved_count = len([a for a in q if a["status"] == "approved"])
+            executed_count = len(h)
+            health_html += f'<tr><td>Action Queue</td><td style="font-size:11px">{len(q)} queued, {approved_count} approved, {executed_count} executed</td><td><span style="color:#4ade80">●</span></td></tr>'
+        except Exception:
+            pass
+
+    except Exception as e:
+        health_html = f'<tr><td colspan="3" style="color:#f87171">Error: {e}</td></tr>'
+
     sr = "".join(f"<tr><td>{x}</td><td>{c:,}</td></tr>" for x,c in sources)
     pr = "".join(f"<tr><td>{x}</td><td>{c:,}</td></tr>" for x,c in statuses)
     cr = "".join(f'<tr><td>{x or "unclassified"}</td><td>{c:,}</td></tr>' for x,c in cats)
@@ -171,6 +227,8 @@ td{{border-bottom:1px solid #1a1a1a}}
 <table><tr><th>Channel</th><th>Address</th><th>Status</th></tr>{dr}</table></div>
 <div class="sec"><h2>Alerts</h2>{alerts_html}</div>
 <div class="sec"><h2>Action Queue</h2>{missionary_html}</div>
+<div class="sec"><h2>System Heartbeat</h2>
+<table><tr><th>Component</th><th>Last Active</th><th>Status</th></tr>{health_html}</table></div>
 <div class="row">
 <div class="sec"><h2>Sources</h2><table><tr><th>Source</th><th>Count</th></tr>{sr}</table></div>
 <div class="sec"><h2>Top Queries (7d)</h2><table><tr><th>Query</th><th>Count</th></tr>{tqr}</table></div>

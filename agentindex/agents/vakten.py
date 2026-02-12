@@ -71,6 +71,12 @@ class Vakten:
         # 9. Index growth
         report["checks"]["growth"] = self._check_growth()
 
+        # 10. Process monitoring + auto-restart
+        report["checks"]["processes"] = self._check_processes()
+
+        # 11. Progress / stall detection
+        report["checks"]["progress"] = self._check_progress()
+
         # Determine overall status
         report["alerts"] = self.alerts
         if any(a["severity"] == "critical" for a in self.alerts):
@@ -289,6 +295,97 @@ class Vakten:
                 "total_active": total,
                 "new_24h": new_today,
                 "new_7d": new_week,
+            }
+        except Exception as e:
+            return {"status": "error", "error": str(e)}
+
+    def _check_processes(self) -> dict:
+        """Check that all critical processes are running, restart if not."""
+        import subprocess
+        processes = {
+            "orchestrator": {"match": "agentindex.run", "plist": "com.agentindex.orchestrator"},
+            "parser": {"match": "run_parser_loop", "plist": "com.agentindex.parser"},
+            "dashboard": {"match": "agentindex.dashboard", "plist": "com.agentindex.dashboard"},
+            "mcp_sse": {"match": "agentindex.mcp_sse_server", "plist": "com.agentindex.mcp-sse"},
+            "cloudflared": {"match": "cloudflared tunnel", "plist": None},
+        }
+        results = {}
+        for name, info in processes.items():
+            try:
+                result = subprocess.run(
+                    ["pgrep", "-f", info["match"]], capture_output=True, text=True, timeout=5
+                )
+                running = result.returncode == 0
+                results[name] = {"running": running}
+
+                if not running:
+                    self._alert("critical", f"process:{name}", f"{name} is not running")
+                    # Auto-restart via LaunchAgent
+                    if info["plist"]:
+                        plist_path = os.path.expanduser(f"~/Library/LaunchAgents/{info['plist']}.plist")
+                        if os.path.exists(plist_path):
+                            subprocess.run(["launchctl", "unload", plist_path], capture_output=True, timeout=5)
+                            time.sleep(1)
+                            subprocess.run(["launchctl", "load", plist_path], capture_output=True, timeout=5)
+                            results[name]["action"] = "restarted via launchctl"
+                            logger.info(f"AUTO-RESTART: {name} restarted via LaunchAgent")
+                        else:
+                            results[name]["action"] = "no plist found"
+                    elif name == "cloudflared":
+                        subprocess.Popen(
+                            ["nohup", "cloudflared", "tunnel", "run", "agentindex"],
+                            stdout=open("/tmp/cloudflared.log", "a"),
+                            stderr=subprocess.STDOUT,
+                            start_new_session=True,
+                        )
+                        results[name]["action"] = "restarted manually"
+                        logger.info("AUTO-RESTART: cloudflared restarted")
+            except Exception as e:
+                results[name] = {"running": False, "error": str(e)}
+
+        running_count = sum(1 for r in results.values() if r.get("running"))
+        return {
+            "status": "ok" if running_count == len(processes) else "warning",
+            "running": running_count,
+            "total": len(processes),
+            "details": results,
+        }
+
+    def _check_progress(self) -> dict:
+        """Detect if parser/classifier are stalled (no progress in 2 hours)."""
+        try:
+            two_hours_ago = datetime.utcnow() - timedelta(hours=2)
+
+            # Check parser progress
+            recently_parsed = self.session.execute(
+                select(func.count(Agent.id)).where(
+                    Agent.crawl_status.in_(["parsed", "classified", "ranked"]),
+                    Agent.last_parsed > two_hours_ago,
+                )
+            ).scalar() or 0
+
+            # Check if there's work to do
+            pending_parse = self.session.execute(
+                select(func.count(Agent.id)).where(Agent.crawl_status == "indexed")
+            ).scalar() or 0
+
+            parser_stalled = recently_parsed == 0 and pending_parse > 0
+
+            if parser_stalled:
+                self._alert("warning", "progress", f"Parser stalled: 0 parsed in 2h, {pending_parse} waiting")
+                # Try to restart parser
+                plist = os.path.expanduser("~/Library/LaunchAgents/com.agentindex.parser.plist")
+                if os.path.exists(plist):
+                    subprocess.run(["launchctl", "unload", plist], capture_output=True, timeout=5)
+                    time.sleep(2)
+                    subprocess.run(["launchctl", "load", plist], capture_output=True, timeout=5)
+                    logger.info("AUTO-RESTART: Parser restarted due to stall")
+
+            return {
+                "status": "ok" if not parser_stalled else "warning",
+                "parsed_2h": recently_parsed,
+                "pending_parse": pending_parse,
+                "parser_stalled": parser_stalled,
             }
         except Exception as e:
             return {"status": "error", "error": str(e)}

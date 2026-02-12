@@ -1,33 +1,5 @@
 [
   {
-    "id": "5530df1c",
-    "type": "add_awesome_list",
-    "level": "approval",
-    "title": "Track: awesome-ai-apps (8898*)",
-    "details": {
-      "repo": "Arindam200/awesome-ai-apps",
-      "name": "awesome-ai-apps",
-      "stars": 8898,
-      "url": "https://github.com/Arindam200/awesome-ai-apps"
-    },
-    "status": "pending",
-    "created": "2026-02-12T09:52:40.747917"
-  },
-  {
-    "id": "0622da6b",
-    "type": "add_awesome_list",
-    "level": "approval",
-    "title": "Track: antigravity-awesome-skills (8532*)",
-    "details": {
-      "repo": "sickn33/antigravity-awesome-skills",
-      "name": "antigravity-awesome-skills",
-      "stars": 8532,
-      "url": "https://github.com/sickn33/antigravity-awesome-skills"
-    },
-    "status": "pending",
-    "created": "2026-02-12T09:52:40.748241"
-  },
-  {
     "id": "d1071565",
     "type": "add_awesome_list",
     "level": "approval",
