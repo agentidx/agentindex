@@ -359,5 +359,99 @@
     },
     "status": "pending",
     "created": "2026-02-12T09:53:01.425718"
+  },
+  {
+    "id": "083ded7f",
+    "type": "add_awesome_list",
+    "level": "approval",
+    "title": "Track: awesome-ai-apps (8898*)",
+    "details": {
+      "repo": "Arindam200/awesome-ai-apps",
+      "name": "awesome-ai-apps",
+      "stars": 8898,
+      "url": "https://github.com/Arindam200/awesome-ai-apps"
+    },
+    "status": "pending",
+    "created": "2026-02-12T10:12:35.305638"
+  },
+  {
+    "id": "1633a604",
+    "type": "add_awesome_list",
+    "level": "approval",
+    "title": "Track: antigravity-awesome-skills (8534*)",
+    "details": {
+      "repo": "sickn33/antigravity-awesome-skills",
+      "name": "antigravity-awesome-skills",
+      "stars": 8534,
+      "url": "https://github.com/sickn33/antigravity-awesome-skills"
+    },
+    "status": "pending",
+    "created": "2026-02-12T10:12:35.306842"
+  },
+  {
+    "id": "92ab2414",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: agent-framework",
+    "details": {
+      "term": "agent-framework"
+    },
+    "status": "pending",
+    "created": "2026-02-12T10:12:41.952178"
+  },
+  {
+    "id": "86002951",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: agent-memory",
+    "details": {
+      "term": "agent-memory"
+    },
+    "status": "pending",
+    "created": "2026-02-12T10:12:41.954311"
+  },
+  {
+    "id": "66aa20ba",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: agent-runtime",
+    "details": {
+      "term": "agent-runtime"
+    },
+    "status": "pending",
+    "created": "2026-02-12T10:12:41.956138"
+  },
+  {
+    "id": "3e5cf5f0",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: aiagentsframework",
+    "details": {
+      "term": "aiagentsframework"
+    },
+    "status": "pending",
+    "created": "2026-02-12T10:12:41.957436"
+  },
+  {
+    "id": "00d2c23b",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: multi-agent-reinforcement-learning",
+    "details": {
+      "term": "multi-agent-reinforcement-learning"
+    },
+    "status": "pending",
+    "created": "2026-02-12T10:12:41.958480"
+  },
+  {
+    "id": "1ffc331f",
+    "type": "update_agent_md",
+    "level": "auto",
+    "title": "Update agent.md with 22,823 agents",
+    "details": {
+      "total": 22823
+    },
+    "status": "pending",
+    "created": "2026-02-12T10:12:46.974828"
   }
 ]
