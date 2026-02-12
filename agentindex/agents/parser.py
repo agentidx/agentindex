@@ -18,7 +18,7 @@ import os
 logger = logging.getLogger("agentindex.parser")
 
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
-OLLAMA_MODEL = os.getenv("OLLAMA_MODEL_SMALL", "qwen2.5:7b")
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL_LARGE", "qwen2.5:7b")
 
 PARSE_PROMPT = """Classify this software. Is it an AI agent, AI tool, MCP server, agent framework, or agent platform? Respond ONLY with JSON.
 

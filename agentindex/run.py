@@ -100,16 +100,21 @@ def run_parser():
 
 
 def run_classifier():
-    logger.info("Starting classifier...")
+    logger.info("Starting classifier... pausing parser")
+    import subprocess
+    subprocess.run(["pkill", "-STOP", "-f", "parser_loop"], capture_output=True)
     try:
         from agentindex.agents.classifier import Classifier
         classifier = Classifier()
-        stats = classifier.classify_pending(batch_size=20)
+        stats = classifier.classify_pending(batch_size=200)
         logger.info(f"Classification complete: {stats}")
-        dedup = classifier.deduplicate(batch_size=30)
+        dedup = classifier.deduplicate(batch_size=100)
         logger.info(f"Dedup complete: {dedup}")
     except Exception as e:
         logger.error(f"Classifier failed: {e}")
+    finally:
+        subprocess.run(["pkill", "-CONT", "-f", "parser_loop"], capture_output=True)
+        logger.info("Parser resumed")
 
 
 def run_ranker():
@@ -217,7 +222,7 @@ def main():
 
     # Parser runs as separate process
     # scheduler.add_job(run_parser, "interval", minutes=10, id="parser", next_run_time=datetime.now())
-    scheduler.add_job(run_classifier, "interval", hours=2, id="classifier", next_run_time=datetime.now() + timedelta(minutes=5))
+    scheduler.add_job(run_classifier, "interval", minutes=30, id="classifier", next_run_time=datetime.now() + timedelta(minutes=5))
     scheduler.add_job(run_ranker, "cron", hour=3, minute=0, id="ranker")  # 03:00 UTC nightly
     scheduler.add_job(run_system_check, "interval", minutes=15,
                       id="status", next_run_time=datetime.now())
