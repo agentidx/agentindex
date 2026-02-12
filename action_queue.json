@@ -120,17 +120,6 @@
     "created": "2026-02-12T09:52:49.385654"
   },
   {
-    "id": "15443cc6",
-    "type": "update_agent_md",
-    "level": "auto",
-    "title": "Update agent.md with 22,731 agents",
-    "details": {
-      "total": 22731
-    },
-    "status": "pending",
-    "created": "2026-02-12T09:52:50.827848"
-  },
-  {
     "id": "92ab2414",
     "type": "add_search_term",
     "level": "auto",
@@ -184,17 +173,6 @@
     },
     "status": "pending",
     "created": "2026-02-12T10:12:41.958480"
-  },
-  {
-    "id": "1ffc331f",
-    "type": "update_agent_md",
-    "level": "auto",
-    "title": "Update agent.md with 22,823 agents",
-    "details": {
-      "total": 22823
-    },
-    "status": "pending",
-    "created": "2026-02-12T10:12:46.974828"
   },
   {
     "id": "73e7665e",
@@ -267,77 +245,6 @@
     "created": "2026-02-12T14:20:36.730432"
   },
   {
-    "id": "2c4ec55a",
-    "type": "update_agent_md",
-    "level": "auto",
-    "title": "Update agent.md with 22,873 agents",
-    "details": {
-      "total": 22873
-    },
-    "status": "pending",
-    "created": "2026-02-12T14:20:38.526480"
-  },
-  {
-    "id": "2c72df8a",
-    "type": "spy_new_competitor",
-    "level": "notify",
-    "title": "New competitor: deep-research (18448\u2605)",
-    "details": {
-      "repo": "dzhng/deep-research",
-      "name": "deep-research",
-      "stars": 18448,
-      "url": "https://github.com/dzhng/deep-research",
-      "description": "An AI-powered research assistant that performs iterative, deep research on any topic by combining search engines, web scraping, and large language models.  The goal of this repo is to provide the simp"
-    },
-    "status": "pending",
-    "created": "2026-02-12T14:38:58.342975"
-  },
-  {
-    "id": "7cd05777",
-    "type": "spy_new_competitor",
-    "level": "notify",
-    "title": "New competitor: ui (11522\u2605)",
-    "details": {
-      "repo": "creativetimofficial/ui",
-      "name": "ui",
-      "stars": 11522,
-      "url": "https://github.com/creativetimofficial/ui",
-      "description": "Open-source components, blocks, and AI agents designed to speed up your workflow. Import them seamlessly into your favorite tools through Registry and MCPs."
-    },
-    "status": "pending",
-    "created": "2026-02-12T14:38:58.344915"
-  },
-  {
-    "id": "780eea10",
-    "type": "spy_new_competitor",
-    "level": "notify",
-    "title": "New competitor: hexstrike-ai (6775\u2605)",
-    "details": {
-      "repo": "0x4m4/hexstrike-ai",
-      "name": "hexstrike-ai",
-      "stars": 6775,
-      "url": "https://github.com/0x4m4/hexstrike-ai",
-      "description": "HexStrike AI MCP Agents is an advanced MCP server that lets AI agents (Claude, GPT, Copilot, etc.) autonomously run 150+ cybersecurity tools for automated pentesting, vulnerability discovery, bug boun"
-    },
-    "status": "pending",
-    "created": "2026-02-12T14:38:58.346387"
-  },
-  {
-    "id": "d24b71a9",
-    "type": "spy_new_competitor",
-    "level": "notify",
-    "title": "New competitor: MindSearch (6768\u2605)",
-    "details": {
-      "repo": "InternLM/MindSearch",
-      "name": "MindSearch",
-      "stars": 6768,
-      "url": "https://github.com/InternLM/MindSearch",
-      "description": "\ud83d\udd0d An LLM-based Multi-agent Framework of Web Search Engine (like Perplexity.ai Pro and SearchGPT)"
-    },
-    "status": "pending",
-    "created": "2026-02-12T14:38:58.347806"
-  },
-  {
     "id": "0e6a739e",
     "type": "spy_new_competitor",
     "level": "notify",
@@ -381,51 +288,6 @@
     },
     "status": "pending",
     "created": "2026-02-12T14:38:58.350936"
-  },
-  {
-    "id": "19b3711d",
-    "type": "spy_new_competitor",
-    "level": "notify",
-    "title": "New competitor: spiceai (2797\u2605)",
-    "details": {
-      "repo": "spiceai/spiceai",
-      "name": "spiceai",
-      "stars": 2797,
-      "url": "https://github.com/spiceai/spiceai",
-      "description": "A portable accelerated SQL query, search, and LLM-inference engine, written in Rust, for data-grounded AI apps and agents."
-    },
-    "status": "pending",
-    "created": "2026-02-12T14:38:58.351791"
-  },
-  {
-    "id": "b332abfe",
-    "type": "spy_new_competitor",
-    "level": "notify",
-    "title": "New competitor: index (2334\u2605)",
-    "details": {
-      "repo": "lmnr-ai/index",
-      "name": "index",
-      "stars": 2334,
-      "url": "https://github.com/lmnr-ai/index",
-      "description": "The SOTA Open-Source Browser Agent for autonomously performing complex tasks on the web"
-    },
-    "status": "pending",
-    "created": "2026-02-12T14:38:58.352723"
-  },
-  {
-    "id": "83bc923b",
-    "type": "spy_new_competitor",
-    "level": "notify",
-    "title": "New competitor: AI-Scientist-v2 (2088\u2605)",
-    "details": {
-      "repo": "SakanaAI/AI-Scientist-v2",
-      "name": "AI-Scientist-v2",
-      "stars": 2088,
-      "url": "https://github.com/SakanaAI/AI-Scientist-v2",
-      "description": "The AI Scientist-v2: Workshop-Level Automated Scientific Discovery via Agentic Tree Search"
-    },
-    "status": "pending",
-    "created": "2026-02-12T14:38:58.353650"
   },
   {
     "id": "021d8052",
@@ -652,17 +514,6 @@
     "created": "2026-02-12T14:42:52.231692"
   },
   {
-    "id": "f2cee26e",
-    "type": "update_agent_md",
-    "level": "auto",
-    "title": "Update agent.md with 23,065 agents",
-    "details": {
-      "total": 23065
-    },
-    "status": "pending",
-    "created": "2026-02-12T14:42:52.244264"
-  },
-  {
     "id": "1ea9e5ce",
     "type": "add_search_term",
     "level": "auto",
@@ -694,17 +545,6 @@
     },
     "status": "pending",
     "created": "2026-02-12T14:58:45.834372"
-  },
-  {
-    "id": "fd9079cb",
-    "type": "update_agent_md",
-    "level": "auto",
-    "title": "Update agent.md with 23,080 agents",
-    "details": {
-      "total": 23080
-    },
-    "status": "pending",
-    "created": "2026-02-12T14:58:47.785258"
   },
   {
     "id": "4754f41f",
@@ -761,8 +601,9 @@
       "stars": 8903,
       "url": "https://github.com/Arindam200/awesome-ai-apps"
     },
-    "status": "pending",
-    "created": "2026-02-12T15:33:34.597461"
+    "status": "approved",
+    "created": "2026-02-12T15:33:34.597461",
+    "approved_at": "2026-02-12T16:11:10.355448"
   },
   {
     "id": "1fbd58e3",
@@ -775,8 +616,9 @@
       "stars": 8587,
       "url": "https://github.com/sickn33/antigravity-awesome-skills"
     },
-    "status": "pending",
-    "created": "2026-02-12T15:33:34.600285"
+    "status": "approved",
+    "created": "2026-02-12T15:33:34.600285",
+    "approved_at": "2026-02-12T16:11:11.920616"
   },
   {
     "id": "beb166da",
@@ -789,8 +631,9 @@
       "stars": 6276,
       "url": "https://github.com/punkpeye/awesome-mcp-clients"
     },
-    "status": "pending",
-    "created": "2026-02-12T15:33:34.602655"
+    "status": "approved",
+    "created": "2026-02-12T15:33:34.602655",
+    "approved_at": "2026-02-12T16:11:12.918764"
   },
   {
     "id": "a6371537",
@@ -803,8 +646,9 @@
       "stars": 5140,
       "url": "https://github.com/appcypher/awesome-mcp-servers"
     },
-    "status": "pending",
-    "created": "2026-02-12T15:33:34.604571"
+    "status": "approved",
+    "created": "2026-02-12T15:33:34.604571",
+    "approved_at": "2026-02-12T16:11:13.471298"
   },
   {
     "id": "e46d4760",
@@ -817,8 +661,9 @@
       "stars": 1129,
       "url": "https://github.com/e2b-dev/awesome-ai-sdks"
     },
-    "status": "pending",
-    "created": "2026-02-12T15:33:34.606497"
+    "status": "approved",
+    "created": "2026-02-12T15:33:34.606497",
+    "approved_at": "2026-02-12T16:11:14.335843"
   },
   {
     "id": "b0003c06",
@@ -831,8 +676,9 @@
       "stars": 2893,
       "url": "https://github.com/Meirtz/Awesome-Context-Engineering"
     },
-    "status": "pending",
-    "created": "2026-02-12T15:33:34.609098"
+    "status": "approved",
+    "created": "2026-02-12T15:33:34.609098",
+    "approved_at": "2026-02-12T16:11:15.903329"
   },
   {
     "id": "2d6f1826",
@@ -845,8 +691,9 @@
       "stars": 1312,
       "url": "https://github.com/kaushikb11/awesome-llm-agents"
     },
-    "status": "pending",
-    "created": "2026-02-12T15:33:34.611519"
+    "status": "approved",
+    "created": "2026-02-12T15:33:34.611519",
+    "approved_at": "2026-02-12T16:11:16.945626"
   },
   {
     "id": "4ba7c803",
@@ -859,8 +706,9 @@
       "stars": 1219,
       "url": "https://github.com/steel-dev/awesome-web-agents"
     },
-    "status": "pending",
-    "created": "2026-02-12T15:33:34.614249"
+    "status": "approved",
+    "created": "2026-02-12T15:33:34.614249",
+    "approved_at": "2026-02-12T16:11:17.542915"
   },
   {
     "id": "d55f68b4",
@@ -871,8 +719,9 @@
       "name": "MCP Hub",
       "url": "https://mcphub.io"
     },
-    "status": "pending",
-    "created": "2026-02-12T15:33:35.340761"
+    "status": "approved",
+    "created": "2026-02-12T15:33:35.340761",
+    "approved_at": "2026-02-12T16:11:18.184489"
   },
   {
     "id": "d8142cf7",
@@ -883,8 +732,9 @@
       "name": "Glama",
       "url": "https://glama.ai/mcp/servers"
     },
-    "status": "pending",
-    "created": "2026-02-12T15:33:35.349043"
+    "status": "approved",
+    "created": "2026-02-12T15:33:35.349043",
+    "approved_at": "2026-02-12T16:11:18.836789"
   },
   {
     "id": "861187ff",
@@ -895,8 +745,9 @@
       "name": "PulseMCP",
       "url": "https://pulsemcp.com"
     },
-    "status": "pending",
-    "created": "2026-02-12T15:33:35.353622"
+    "status": "approved",
+    "created": "2026-02-12T15:33:35.353622",
+    "approved_at": "2026-02-12T16:11:19.421648"
   },
   {
     "id": "8785bf30",
@@ -907,8 +758,9 @@
       "name": "mcp.run",
       "url": "https://mcp.run"
     },
-    "status": "pending",
-    "created": "2026-02-12T15:33:35.357473"
+    "status": "approved",
+    "created": "2026-02-12T15:33:35.357473",
+    "approved_at": "2026-02-12T16:11:20.096836"
   },
   {
     "id": "ff6c2d77",
@@ -919,8 +771,9 @@
       "name": "Composio MCP",
       "url": "https://composio.dev/mcp"
     },
-    "status": "pending",
-    "created": "2026-02-12T15:33:35.360902"
+    "status": "approved",
+    "created": "2026-02-12T15:33:35.360902",
+    "approved_at": "2026-02-12T16:11:20.956154"
   },
   {
     "id": "61d50967",
@@ -954,8 +807,9 @@
       "title": "Add AgentIndex - AI agent discovery platform",
       "body": "## AgentIndex\n\n**Discovery platform for AI agents.** Find any AI agent by capability - search 23,273+ indexed agents across 5 sources.\n\n- **API:** https://api.agentcrawl.dev\n- **MCP Server:** [Smithery](https://smithery.ai/server/agentidx/agentcrawl)\n- **SDK:** `pip install agentcrawl` | `npm install @agentidx/sdk`\n- **GitHub:** https://github.com/agentidx/agentindex\n\n### What it does\nAgentIndex crawls and indexes all publicly available AI agents (GitHub, npm, MCP, HuggingFace) so that agents can automatically discover and hire other agents.\n\n### Categories\ncoding, devops, infrastructure, finance, communication, research, agent framework, data, security, AI assistant\n\n### Usage\n```python\nfrom agentcrawl import discover\nagents = discover('code review', min_quality=0.7)\n```\n"
     },
-    "status": "pending",
-    "created": "2026-02-12T15:33:42.476270"
+    "status": "approved",
+    "created": "2026-02-12T15:33:42.476270",
+    "approved_at": "2026-02-12T16:11:21.673780"
   },
   {
     "id": "4847ae28",
@@ -967,31 +821,9 @@
       "title": "Add AgentIndex - agent discovery for LangChain projects",
       "body": "## AgentIndex\n\nDiscovery API for finding AI agents by capability. Index of 23,273+ agents.\n\n- **API:** https://api.agentcrawl.dev\n- **SDK:** `pip install agentcrawl`\n- **MCP Server:** [Smithery](https://smithery.ai/server/agentidx/agentcrawl)\n- **GitHub:** https://github.com/agentidx/agentindex\n\n```python\nfrom agentcrawl import discover\nagents = discover('data analysis agent', protocols=['rest'])\n```\n"
     },
-    "status": "pending",
-    "created": "2026-02-12T15:33:42.481528"
-  },
-  {
-    "id": "8a96ca95",
-    "type": "update_agent_md",
-    "level": "auto",
-    "title": "Update agent.md with 23,273 agents",
-    "details": {
-      "total": 23273
-    },
-    "status": "pending",
-    "created": "2026-02-12T15:33:42.488243"
-  },
-  {
-    "id": "a05a5e5c",
-    "type": "spy_a2a_outreach",
-    "level": "notify",
-    "title": "Outreach sent to AgentIndex",
-    "details": {
-      "agent_id": "72042573-575e-48b8-99ce-bde0b70ec8b8",
-      "name": "AgentIndex"
-    },
-    "status": "pending",
-    "created": "2026-02-12T15:47:00.048224"
+    "status": "approved",
+    "created": "2026-02-12T15:33:42.481528",
+    "approved_at": "2026-02-12T16:11:22.254809"
   },
   {
     "id": "7e0e8751",
@@ -1016,8 +848,9 @@
       "stars": 8591,
       "url": "https://github.com/sickn33/antigravity-awesome-skills"
     },
-    "status": "pending",
-    "created": "2026-02-12T15:48:28.742973"
+    "status": "approved",
+    "created": "2026-02-12T15:48:28.742973",
+    "approved_at": "2026-02-12T16:11:23.031970"
   },
   {
     "id": "a7022281",
@@ -1064,14 +897,14 @@
     "created": "2026-02-12T15:48:36.103891"
   },
   {
-    "id": "70c1148d",
+    "id": "15443cc6",
     "type": "update_agent_md",
     "level": "auto",
-    "title": "Update agent.md with 23,353 agents",
+    "title": "Update agent.md with 22,731 agents",
     "details": {
-      "total": 23353
+      "total": 22731
     },
     "status": "pending",
-    "created": "2026-02-12T15:48:38.351865"
+    "created": "2026-02-12T09:52:50.827848"
   }
 ]

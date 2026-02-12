@@ -97,11 +97,24 @@ def add_action(action_type: str, title: str, details: dict = None) -> dict:
 
     queue = load_queue()
 
-    # Check for duplicates (same type + title)
-    existing = [a for a in queue if a["type"] == action_type and a["title"] == title and a["status"] == "pending"]
+    # Check for duplicates (same type + title) in ANY non-rejected status
+    existing = [a for a in queue if a["type"] == action_type and a["title"] == title and a["status"] in ("pending", "approved", "done")]
     if existing:
         logger.debug(f"Duplicate action skipped: {title}")
         return existing[0]
+
+    # Also check history for recently completed actions (prevent re-generation)
+    try:
+        history = []
+        if os.path.exists(HISTORY_PATH):
+            with open(HISTORY_PATH) as f:
+                history = json.load(f)
+        hist_match = [a for a in history if a.get("type") == action_type and a.get("title") == title]
+        if hist_match:
+            logger.debug(f"Action already in history, skipped: {title}")
+            return hist_match[-1]
+    except Exception:
+        pass
 
     queue.append(action)
     save_queue(queue)
@@ -188,3 +201,27 @@ def cleanup_old(days: int = 7):
     cutoff = datetime.utcnow().isoformat()[:10]
     queue = [a for a in queue if a["status"] == "pending" or a.get("created", "")[:10] >= cutoff]
     save_queue(queue)
+
+
+def cleanup_queue(max_age_days: int = 7):
+    """Remove old notify actions and duplicates."""
+    from datetime import timedelta
+    queue = load_queue()
+    cutoff = (datetime.utcnow() - timedelta(days=max_age_days)).isoformat()
+    
+    cleaned = []
+    seen = set()
+    for a in queue:
+        key = (a.get("type", ""), a.get("title", ""))
+        if key in seen:
+            continue
+        seen.add(key)
+        if a.get("level") == "notify" and a.get("status") == "pending":
+            if a.get("created", "") < cutoff:
+                continue
+        cleaned.append(a)
+    
+    if len(cleaned) < len(queue):
+        logger.info(f"Queue cleanup: {len(queue)} -> {len(cleaned)} actions")
+        save_queue(cleaned)
+    return len(queue) - len(cleaned)
