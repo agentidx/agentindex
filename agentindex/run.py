@@ -41,7 +41,7 @@ def run_github_crawl():
     try:
         from agentindex.spiders.github_spider import GitHubSpider
         spider = GitHubSpider()
-        stats = spider.crawl(max_results_per_query=500)
+        stats = spider.crawl(max_results_per_query=100)
         logger.info(f"GitHub crawl complete: {stats}")
     except Exception as e:
         logger.error(f"GitHub crawl failed: {e}")
@@ -52,7 +52,7 @@ def run_npm_crawl():
     try:
         from agentindex.spiders.npm_spider import NpmSpider
         spider = NpmSpider()
-        stats = spider.crawl(max_results_per_query=250)
+        stats = spider.crawl(max_results_per_query=100)
         logger.info(f"npm crawl complete: {stats}")
     except Exception as e:
         logger.error(f"npm crawl failed: {e}")

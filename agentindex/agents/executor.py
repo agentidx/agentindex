@@ -87,37 +87,62 @@ class Executor:
         return f"logged term: {term}"
 
     def _submit_pr(self, details: dict) -> str:
-        repo = details.get("repo", "")
-        title = details.get("title", "")
-        body = details.get("body", "")
-        if not all([repo, title, body]):
-            return "missing repo/title/body"
-
-        # Fork the repo first
-        try:
-            self.client.post(
-                f"https://api.github.com/repos/{repo}/forks",
-                headers=self.github_headers,
-            )
-        except Exception:
-            pass  # May already be forked
-
-        # Note: actual PR creation requires creating a branch with changes
-        # For now, save PR details for manual submission
-        pr_file = os.path.expanduser(f"~/agentindex/missionary_reports/pr-{repo.replace('/', '-')}.md")
-        with open(pr_file, "w") as f:
-            f.write(f"# PR for {repo}\n\n**Title:** {title}\n\n{body}")
-        return f"PR text saved to {pr_file} — submit manually via GitHub"
+        """Submit PR via pr_bot."""
+        from agentindex.agents.pr_bot import submit_prs
+        result = submit_prs()
+        return f"PR bot: {result}"
 
     def _register_registry(self, details: dict) -> str:
-        name = details.get("name", "")
+        """Auto-register on MCP registries where possible."""
+        registry = details.get("registry", details.get("name", ""))
         url = details.get("url", "")
-        return f"Visit {url} to register manually — {name}"
+        
+        # Registries that accept GitHub-based submissions
+        github_registries = {
+            "mcphub": "mcphub-io/mcphub",
+            "glama": None,
+            "pulsemcp": None,
+            "mcp.run": None,
+            "composio": None,
+        }
+        
+        repo = github_registries.get(registry)
+        if repo:
+            # Submit via GitHub Issue
+            try:
+                token = os.getenv("GITHUB_TOKEN")
+                headers = {"Authorization": f"token {token}", "Accept": "application/vnd.github.v3+json"}
+                resp = self.client.post(
+                    f"https://api.github.com/repos/{repo}/issues",
+                    headers=headers,
+                    json={
+                        "title": "Add AgentIndex - AI agent discovery MCP server",
+                        "body": (
+                            "**Name:** AgentIndex\n"
+                            "**URL:** https://github.com/agentidx/agentindex\n"
+                            "**Smithery:** https://smithery.ai/server/agentidx/agentcrawl\n"
+                            "**Description:** Discovery service for 36,000+ AI agents. "
+                            "Find agents by capability via MCP, REST API, or A2A protocol.\n\n"
+                            "**Install:** `pip install agentcrawl`\n"
+                            "**PyPI:** https://pypi.org/project/agentcrawl/"
+                        ),
+                        "labels": ["submission"],
+                    },
+                    timeout=15,
+                )
+                if resp.status_code == 201:
+                    return f"Issue created on {repo}: {resp.json()['html_url']}"
+                return f"Issue failed on {repo}: {resp.status_code}"
+            except Exception as e:
+                return f"Issue failed: {e}"
+        
+        return f"Registry {registry} ({url}) requires manual submission — no API available"
 
     def _add_awesome_list(self, details: dict) -> str:
-        repo = details.get("repo", "")
-        name = details.get("name", "")
-        return f"Added {name} ({repo}) to tracking list"
+        """Track awesome list and submit PR if not already submitted."""
+        from agentindex.agents.pr_bot import submit_prs
+        result = submit_prs()
+        return f"Awesome list PR bot: {result}"
 
 
     def _spy_implement_feature(self, details: dict) -> str:

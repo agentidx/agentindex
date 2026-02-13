@@ -27,60 +27,27 @@ logger = logging.getLogger("agentindex.spiders.github")
 
 # Search queries designed to find AI agents across the ecosystem
 SEARCH_QUERIES = [
-    # Direct agent keywords
+    # Core — high-yield, sorted=updated catches new repos
     "ai-agent",
-    "ai agent framework",
-    "autonomous agent",
     "llm agent",
-    "ai assistant agent",
-
-    # MCP ecosystem
+    "autonomous agent",
     "mcp-server",
     "mcp server",
     "model context protocol",
-    "mcp tool",
-
-    # Popular frameworks
     "langchain agent",
     "crewai agent",
     "autogen agent",
-    "llamaindex agent",
-    "semantic kernel agent",
-    "openai agent",
-    "anthropic agent",
-
-    # Agent types
-    "coding agent",
-    "research agent",
-    "data agent",
-    "writing agent",
-    "analysis agent",
-    "trading agent",
-    "customer service agent",
-
-    # Agent infrastructure
-    "agent framework python",
-    "agent orchestration",
     "multi-agent system",
-    "agent workflow",
-    "agent tool",
+    "agent framework python",
 
-    # A2A protocol
+    # A2A ecosystem
     "agent2agent",
     "a2a protocol",
-    "agent card",
     "agent discovery",
-    "agent registry",
 
-    # Skill/capability files
-    "skill.md agent",
+    # Discovery targets
     "agent.md",
-    "agent.json well-known",
-
-    # OpenClaw / Moltbook ecosystem
-    "openclaw",
-    "moltbook",
-    "moltbot",
+    "agent registry",
 ]
 
 
