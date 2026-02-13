@@ -145,7 +145,7 @@ def _submit_pr(repo, info, headers, gh_user="agentidx"):
         headers=headers, timeout=15,
     )
     if resp.status_code == 200:
-        existing = [p for p in resp.json() if "agentindex" in (p.get("title") or "").lower() or "agentindex" in (p.get("body") or "").lower()]
+        existing = [p for p in resp.json() if ("agentindex" in (p.get("title") or "").lower() or "agentindex" in (p.get("body") or "").lower()) and p.get("state") != "closed"]
         if existing:
             logger.info(f"PR already exists for {repo}: {existing[0]['html_url']}")
             return "exists"

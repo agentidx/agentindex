@@ -1791,5 +1791,175 @@
     "created": "2026-02-13T07:48:46.157662",
     "executed_at": "2026-02-13T07:55:22.973607",
     "result": "Added  (anthropics/awesome-ai-sdks) to tracking list"
+  },
+  {
+    "id": "2be6f153",
+    "type": "add_awesome_list",
+    "level": "approval",
+    "title": "Track: antigravity-awesome-skills (8681*)",
+    "details": {
+      "repo": "sickn33/antigravity-awesome-skills",
+      "name": "antigravity-awesome-skills",
+      "stars": 8681,
+      "url": "https://github.com/sickn33/antigravity-awesome-skills"
+    },
+    "status": "executed",
+    "created": "2026-02-13T07:50:08.705743",
+    "approved_at": "2026-02-13T09:12:30.310128",
+    "executed_at": "2026-02-13T09:25:14.799541",
+    "result": "Awesome list PR bot: {'submitted': 1, 'skipped': 5, 'failed': 2}"
+  },
+  {
+    "id": "f9a82552",
+    "type": "add_awesome_list",
+    "level": "approval",
+    "title": "Track: awesome-llm-agents (1315*)",
+    "details": {
+      "repo": "kaushikb11/awesome-llm-agents",
+      "name": "awesome-llm-agents",
+      "stars": 1315,
+      "url": "https://github.com/kaushikb11/awesome-llm-agents"
+    },
+    "status": "executed",
+    "created": "2026-02-13T07:50:08.711220",
+    "approved_at": "2026-02-13T09:12:31.863991",
+    "executed_at": "2026-02-13T09:25:38.780054",
+    "result": "Awesome list PR bot: {'submitted': 0, 'skipped': 7, 'failed': 1}"
+  },
+  {
+    "id": "77803903",
+    "type": "add_awesome_list",
+    "level": "approval",
+    "title": "Track: awesome-web-agents (1222*)",
+    "details": {
+      "repo": "steel-dev/awesome-web-agents",
+      "name": "awesome-web-agents",
+      "stars": 1222,
+      "url": "https://github.com/steel-dev/awesome-web-agents"
+    },
+    "status": "executed",
+    "created": "2026-02-13T07:50:08.713990",
+    "approved_at": "2026-02-13T09:12:32.617998",
+    "executed_at": "2026-02-13T09:25:58.817231",
+    "result": "Awesome list PR bot: {'submitted': 0, 'skipped': 7, 'failed': 1}"
+  },
+  {
+    "id": "5ab43636",
+    "type": "add_awesome_list",
+    "level": "approval",
+    "title": "Track: antigravity-awesome-skills (8682*)",
+    "details": {
+      "repo": "sickn33/antigravity-awesome-skills",
+      "name": "antigravity-awesome-skills",
+      "stars": 8682,
+      "url": "https://github.com/sickn33/antigravity-awesome-skills"
+    },
+    "status": "executed",
+    "created": "2026-02-13T07:52:58.458453",
+    "approved_at": "2026-02-13T09:12:33.412565",
+    "executed_at": "2026-02-13T09:26:18.722504",
+    "result": "Awesome list PR bot: {'submitted': 0, 'skipped': 7, 'failed': 1}"
+  },
+  {
+    "id": "c4565c90",
+    "type": "add_awesome_list",
+    "level": "approval",
+    "title": "Track: awesome-ai-apps (8914*)",
+    "details": {
+      "repo": "Arindam200/awesome-ai-apps",
+      "name": "awesome-ai-apps",
+      "stars": 8914,
+      "url": "https://github.com/Arindam200/awesome-ai-apps"
+    },
+    "status": "executed",
+    "created": "2026-02-13T08:20:02.047817",
+    "approved_at": "2026-02-13T09:12:38.553224",
+    "executed_at": "2026-02-13T09:26:38.814696",
+    "result": "Awesome list PR bot: {'submitted': 0, 'skipped': 7, 'failed': 1}"
+  },
+  {
+    "id": "abffd245",
+    "type": "add_awesome_list",
+    "level": "approval",
+    "title": "Track: antigravity-awesome-skills (8683*)",
+    "details": {
+      "repo": "sickn33/antigravity-awesome-skills",
+      "name": "antigravity-awesome-skills",
+      "stars": 8683,
+      "url": "https://github.com/sickn33/antigravity-awesome-skills"
+    },
+    "status": "executed",
+    "created": "2026-02-13T08:20:02.053482",
+    "approved_at": "2026-02-13T09:12:39.286382",
+    "executed_at": "2026-02-13T09:26:59.123307",
+    "result": "Awesome list PR bot: {'submitted': 0, 'skipped': 7, 'failed': 1}"
+  },
+  {
+    "id": "ccbf2000",
+    "type": "add_awesome_list",
+    "level": "approval",
+    "title": "Track: awesome-mcp-servers (5141*)",
+    "details": {
+      "repo": "appcypher/awesome-mcp-servers",
+      "name": "awesome-mcp-servers",
+      "stars": 5141,
+      "url": "https://github.com/appcypher/awesome-mcp-servers"
+    },
+    "status": "executed",
+    "created": "2026-02-13T08:20:02.057699",
+    "approved_at": "2026-02-13T09:12:40.122531",
+    "executed_at": "2026-02-13T09:27:19.326985",
+    "result": "Awesome list PR bot: {'submitted': 0, 'skipped': 7, 'failed': 1}"
+  },
+  {
+    "id": "cf72479b",
+    "type": "add_awesome_list",
+    "level": "approval",
+    "title": "Track: awesome-llm-agents (1316*)",
+    "details": {
+      "repo": "kaushikb11/awesome-llm-agents",
+      "name": "awesome-llm-agents",
+      "stars": 1316,
+      "url": "https://github.com/kaushikb11/awesome-llm-agents"
+    },
+    "status": "executed",
+    "created": "2026-02-13T08:20:02.061909",
+    "approved_at": "2026-02-13T09:12:40.814693",
+    "executed_at": "2026-02-13T09:27:39.489323",
+    "result": "Awesome list PR bot: {'submitted': 0, 'skipped': 7, 'failed': 1}"
+  },
+  {
+    "id": "780c7fc4",
+    "type": "add_awesome_list",
+    "level": "approval",
+    "title": "Track: antigravity-awesome-skills (8685*)",
+    "details": {
+      "repo": "sickn33/antigravity-awesome-skills",
+      "name": "antigravity-awesome-skills",
+      "stars": 8685,
+      "url": "https://github.com/sickn33/antigravity-awesome-skills"
+    },
+    "status": "executed",
+    "created": "2026-02-13T08:37:10.225888",
+    "approved_at": "2026-02-13T09:12:41.568829",
+    "executed_at": "2026-02-13T09:27:59.759763",
+    "result": "Awesome list PR bot: {'submitted': 0, 'skipped': 7, 'failed': 1}"
+  },
+  {
+    "id": "2dcd45f3",
+    "type": "add_awesome_list",
+    "level": "approval",
+    "title": "Track: antigravity-awesome-skills (8686*)",
+    "details": {
+      "repo": "sickn33/antigravity-awesome-skills",
+      "name": "antigravity-awesome-skills",
+      "stars": 8686,
+      "url": "https://github.com/sickn33/antigravity-awesome-skills"
+    },
+    "status": "executed",
+    "created": "2026-02-13T08:37:12.283902",
+    "approved_at": "2026-02-13T09:12:42.378451",
+    "executed_at": "2026-02-13T09:28:19.821983",
+    "result": "Awesome list PR bot: {'submitted': 0, 'skipped': 7, 'failed': 1}"
   }
 ]

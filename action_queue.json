@@ -724,48 +724,6 @@
     "created": "2026-02-13T06:00:09.094263"
   },
   {
-    "id": "2be6f153",
-    "type": "add_awesome_list",
-    "level": "approval",
-    "title": "Track: antigravity-awesome-skills (8681*)",
-    "details": {
-      "repo": "sickn33/antigravity-awesome-skills",
-      "name": "antigravity-awesome-skills",
-      "stars": 8681,
-      "url": "https://github.com/sickn33/antigravity-awesome-skills"
-    },
-    "status": "pending",
-    "created": "2026-02-13T07:50:08.705743"
-  },
-  {
-    "id": "f9a82552",
-    "type": "add_awesome_list",
-    "level": "approval",
-    "title": "Track: awesome-llm-agents (1315*)",
-    "details": {
-      "repo": "kaushikb11/awesome-llm-agents",
-      "name": "awesome-llm-agents",
-      "stars": 1315,
-      "url": "https://github.com/kaushikb11/awesome-llm-agents"
-    },
-    "status": "pending",
-    "created": "2026-02-13T07:50:08.711220"
-  },
-  {
-    "id": "77803903",
-    "type": "add_awesome_list",
-    "level": "approval",
-    "title": "Track: awesome-web-agents (1222*)",
-    "details": {
-      "repo": "steel-dev/awesome-web-agents",
-      "name": "awesome-web-agents",
-      "stars": 1222,
-      "url": "https://github.com/steel-dev/awesome-web-agents"
-    },
-    "status": "pending",
-    "created": "2026-02-13T07:50:08.713990"
-  },
-  {
     "id": "470fb14c",
     "type": "add_search_term",
     "level": "auto",
@@ -902,20 +860,6 @@
     "created": "2026-02-13T07:51:37.324466"
   },
   {
-    "id": "5ab43636",
-    "type": "add_awesome_list",
-    "level": "approval",
-    "title": "Track: antigravity-awesome-skills (8682*)",
-    "details": {
-      "repo": "sickn33/antigravity-awesome-skills",
-      "name": "antigravity-awesome-skills",
-      "stars": 8682,
-      "url": "https://github.com/sickn33/antigravity-awesome-skills"
-    },
-    "status": "pending",
-    "created": "2026-02-13T07:52:58.458453"
-  },
-  {
     "id": "e4e12127",
     "type": "update_agent_md",
     "level": "auto",
@@ -925,62 +869,6 @@
     },
     "status": "pending",
     "created": "2026-02-13T07:53:47.591807"
-  },
-  {
-    "id": "c4565c90",
-    "type": "add_awesome_list",
-    "level": "approval",
-    "title": "Track: awesome-ai-apps (8914*)",
-    "details": {
-      "repo": "Arindam200/awesome-ai-apps",
-      "name": "awesome-ai-apps",
-      "stars": 8914,
-      "url": "https://github.com/Arindam200/awesome-ai-apps"
-    },
-    "status": "pending",
-    "created": "2026-02-13T08:20:02.047817"
-  },
-  {
-    "id": "abffd245",
-    "type": "add_awesome_list",
-    "level": "approval",
-    "title": "Track: antigravity-awesome-skills (8683*)",
-    "details": {
-      "repo": "sickn33/antigravity-awesome-skills",
-      "name": "antigravity-awesome-skills",
-      "stars": 8683,
-      "url": "https://github.com/sickn33/antigravity-awesome-skills"
-    },
-    "status": "pending",
-    "created": "2026-02-13T08:20:02.053482"
-  },
-  {
-    "id": "ccbf2000",
-    "type": "add_awesome_list",
-    "level": "approval",
-    "title": "Track: awesome-mcp-servers (5141*)",
-    "details": {
-      "repo": "appcypher/awesome-mcp-servers",
-      "name": "awesome-mcp-servers",
-      "stars": 5141,
-      "url": "https://github.com/appcypher/awesome-mcp-servers"
-    },
-    "status": "pending",
-    "created": "2026-02-13T08:20:02.057699"
-  },
-  {
-    "id": "cf72479b",
-    "type": "add_awesome_list",
-    "level": "approval",
-    "title": "Track: awesome-llm-agents (1316*)",
-    "details": {
-      "repo": "kaushikb11/awesome-llm-agents",
-      "name": "awesome-llm-agents",
-      "stars": 1316,
-      "url": "https://github.com/kaushikb11/awesome-llm-agents"
-    },
-    "status": "pending",
-    "created": "2026-02-13T08:20:02.061909"
   },
   {
     "id": "ec3d4ab1",
@@ -1049,34 +937,6 @@
     },
     "status": "pending",
     "created": "2026-02-13T08:20:12.476255"
-  },
-  {
-    "id": "780c7fc4",
-    "type": "add_awesome_list",
-    "level": "approval",
-    "title": "Track: antigravity-awesome-skills (8685*)",
-    "details": {
-      "repo": "sickn33/antigravity-awesome-skills",
-      "name": "antigravity-awesome-skills",
-      "stars": 8685,
-      "url": "https://github.com/sickn33/antigravity-awesome-skills"
-    },
-    "status": "pending",
-    "created": "2026-02-13T08:37:10.225888"
-  },
-  {
-    "id": "2dcd45f3",
-    "type": "add_awesome_list",
-    "level": "approval",
-    "title": "Track: antigravity-awesome-skills (8686*)",
-    "details": {
-      "repo": "sickn33/antigravity-awesome-skills",
-      "name": "antigravity-awesome-skills",
-      "stars": 8686,
-      "url": "https://github.com/sickn33/antigravity-awesome-skills"
-    },
-    "status": "pending",
-    "created": "2026-02-13T08:37:12.283902"
   },
   {
     "id": "a7a1e63b",

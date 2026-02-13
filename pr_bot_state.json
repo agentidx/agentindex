@@ -1,9 +1,10 @@
 {
   "submitted": [
-    "punkpeye/awesome-mcp-servers",
     "e2b-dev/awesome-ai-agents",
     "kyrolabs/awesome-langchain",
+    "appcypher/awesome-mcp-servers",
     "kaushikb11/awesome-llm-agents",
+    "steel-dev/awesome-web-agents",
     "Arindam200/awesome-ai-apps",
     "sickn33/antigravity-awesome-skills"
   ],
