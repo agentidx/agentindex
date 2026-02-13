@@ -113,20 +113,10 @@ class Classifier:
         self.model = self._select_model()
 
     def _select_model(self) -> str:
-        """Check which model is available, prefer large."""
-        desired = OLLAMA_MODEL_LARGE
-        try:
-            models = self.client.list()
-            available = [m.get("name", "") for m in models.get("models", [])]
-            if any(desired in m for m in available):
-                logger.info(f"Using large model: {desired}")
-                return desired
-            # Fall back to 7B
-            fallback = os.getenv("OLLAMA_MODEL_SMALL", "qwen2.5:7b")
-            logger.info(f"Large model not available, falling back to: {fallback}")
-            return fallback
-        except Exception:
-            return os.getenv("OLLAMA_MODEL_SMALL", "qwen2.5:7b")
+        """Use model from env config. No auto-detection."""
+        model = OLLAMA_MODEL_LARGE
+        logger.info(f"Using model from config: {model}")
+        return model
 
     def classify_pending(self, batch_size: int = 20) -> dict:
         """Classify agents that have been parsed but not yet classified."""

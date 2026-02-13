@@ -81,7 +81,7 @@
     "steel-dev/awesome-web-agents": {
       "name": "awesome-web-agents",
       "stars": 1219,
-      "pr_status": "not_submitted",
+      "pr_status": "submitted",
       "tracked_at": "2026-02-12T09:52:40.749855"
     },
     "anthropics/awesome-ai-sdks": {
@@ -234,7 +234,18 @@
     "marketing-agents",
     "agentgpt",
     "agentic-ai-development",
-    "agentx"
+    "agentx",
+    "openai-agents",
+    "subagents",
+    "agentneo",
+    "claudecode-subagents",
+    "claude-code-subagents",
+    "agentic-coding",
+    "intelligent-agent",
+    "voice-agents",
+    "open-policy-agent",
+    "sqlagent",
+    "llmagents"
   ],
   "competitors_seen": [
     "0x4m4/hexstrike-ai",
@@ -249,5 +260,5 @@
     "npm": "2026-02-13",
     "smithery": "2026-02-13"
   },
-  "last_run": "2026-02-13T12:51:13.350399"
+  "last_run": "2026-02-13T13:58:31.613617"
 }

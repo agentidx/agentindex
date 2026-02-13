@@ -109,7 +109,7 @@ def run_classifier():
     try:
         from agentindex.agents.classifier import Classifier
         classifier = Classifier()
-        stats = classifier.classify_pending(batch_size=200)
+        stats = classifier.classify_pending(batch_size=50)
         logger.info(f"Classification complete: {stats}")
         dedup = classifier.deduplicate(batch_size=100)
         logger.info(f"Dedup complete: {dedup}")
@@ -280,7 +280,7 @@ def main():
 
     # Parser runs as separate process
     # scheduler.add_job(run_parser, "interval", minutes=10, id="parser", next_run_time=datetime.now())
-    scheduler.add_job(run_classifier, "interval", minutes=30, id="classifier", next_run_time=datetime.now() + timedelta(minutes=5))
+    scheduler.add_job(run_classifier, "interval", minutes=10, id="classifier", next_run_time=datetime.now() + timedelta(minutes=5))
     scheduler.add_job(run_ranker, "cron", hour=3, minute=0, id="ranker")  # 03:00 UTC nightly
     scheduler.add_job(run_missionary_daily, "cron", hour=7, minute=0, id="missionary")  # 07:00 UTC daily
     scheduler.add_job(run_spionen_daily, "cron", hour=8, minute=0, id="spionen")  # 08:00 UTC daily

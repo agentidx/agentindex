@@ -2777,5 +2777,150 @@
     "approved_at": "2026-02-13T12:56:23.495739",
     "executed_at": "2026-02-13T12:56:45.626298",
     "result": "PR bot: {'submitted': 0, 'skipped': 8, 'failed': 0}"
+  },
+  {
+    "id": "39c0f5e8",
+    "type": "submit_pr",
+    "level": "approval",
+    "title": "PR: awesome-web-agents",
+    "details": {
+      "repo": "steel-dev/awesome-web-agents",
+      "name": "awesome-web-agents"
+    },
+    "status": "executed",
+    "created": "2026-02-13T12:58:18.392281",
+    "approved_at": "2026-02-13T12:58:49.588656",
+    "executed_at": "2026-02-13T13:00:21.470198",
+    "result": "PR bot: {'submitted': 0, 'skipped': 8, 'failed': 0}"
+  },
+  {
+    "id": "502cc8b2",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: openai-agents",
+    "details": {
+      "term": "openai-agents"
+    },
+    "status": "executed",
+    "created": "2026-02-13T12:58:14.066012",
+    "executed_at": "2026-02-13T13:00:21.481857",
+    "result": "logged term: openai-agents"
+  },
+  {
+    "id": "b47d2885",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: subagents",
+    "details": {
+      "term": "subagents"
+    },
+    "status": "executed",
+    "created": "2026-02-13T12:58:14.071827",
+    "executed_at": "2026-02-13T13:00:21.490342",
+    "result": "logged term: subagents"
+  },
+  {
+    "id": "5c2538e1",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: agentneo",
+    "details": {
+      "term": "agentneo"
+    },
+    "status": "executed",
+    "created": "2026-02-13T12:58:14.075138",
+    "executed_at": "2026-02-13T13:00:21.496610",
+    "result": "logged term: agentneo"
+  },
+  {
+    "id": "a64f1b6f",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: claudecode-subagents",
+    "details": {
+      "term": "claudecode-subagents"
+    },
+    "status": "executed",
+    "created": "2026-02-13T12:58:14.078348",
+    "executed_at": "2026-02-13T13:00:21.502238",
+    "result": "logged term: claudecode-subagents"
+  },
+  {
+    "id": "9efac8b4",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: claude-code-subagents",
+    "details": {
+      "term": "claude-code-subagents"
+    },
+    "status": "executed",
+    "created": "2026-02-13T12:58:14.081721",
+    "executed_at": "2026-02-13T13:00:21.507475",
+    "result": "logged term: claude-code-subagents"
+  },
+  {
+    "id": "caba8de0",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: agentic-coding",
+    "details": {
+      "term": "agentic-coding"
+    },
+    "status": "executed",
+    "created": "2026-02-13T13:14:36.886114",
+    "executed_at": "2026-02-13T13:24:11.329525",
+    "result": "logged term: agentic-coding"
+  },
+  {
+    "id": "831693b8",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: intelligent-agent",
+    "details": {
+      "term": "intelligent-agent"
+    },
+    "status": "executed",
+    "created": "2026-02-13T13:22:04.982200",
+    "executed_at": "2026-02-13T13:24:11.335552",
+    "result": "logged term: intelligent-agent"
+  },
+  {
+    "id": "9deb7330",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: voice-agents",
+    "details": {
+      "term": "voice-agents"
+    },
+    "status": "executed",
+    "created": "2026-02-13T13:22:04.985478",
+    "executed_at": "2026-02-13T13:24:11.340081",
+    "result": "logged term: voice-agents"
+  },
+  {
+    "id": "1861021c",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: open-policy-agent",
+    "details": {
+      "term": "open-policy-agent"
+    },
+    "status": "executed",
+    "created": "2026-02-13T13:22:04.988321",
+    "executed_at": "2026-02-13T13:24:11.344051",
+    "result": "logged term: open-policy-agent"
+  },
+  {
+    "id": "483452e3",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: sqlagent",
+    "details": {
+      "term": "sqlagent"
+    },
+    "status": "executed",
+    "created": "2026-02-13T13:22:04.990316",
+    "executed_at": "2026-02-13T13:24:11.348019",
+    "result": "logged term: sqlagent"
   }
 ]

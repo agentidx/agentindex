@@ -25,5 +25,16 @@
     "status": "rejected",
     "created": "2026-02-13T12:47:23.189457",
     "rejected_at": "2026-02-13T12:56:29.243816"
+  },
+  {
+    "id": "6a59b95d",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: llmagents",
+    "details": {
+      "term": "llmagents"
+    },
+    "status": "pending",
+    "created": "2026-02-13T13:58:28.494928"
   }
 ]

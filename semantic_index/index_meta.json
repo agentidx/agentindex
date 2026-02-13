@@ -1,7 +1,7 @@
 {
-  "built_at": "2026-02-13T12:22:14.276261",
-  "agent_count": 17154,
+  "built_at": "2026-02-13T13:32:59.115959",
+  "agent_count": 17142,
   "model": "all-MiniLM-L6-v2",
   "embedding_dim": 384,
-  "build_time_seconds": 203.3
+  "build_time_seconds": 24.2
 }
