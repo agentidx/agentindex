@@ -1,0 +1,253 @@
+{
+  "awesome_lists": {
+    "punkpeye/awesome-mcp-servers": {
+      "name": "Awesome MCP Servers",
+      "stars": 30000,
+      "pr_status": "submitted"
+    },
+    "e2b-dev/awesome-ai-agents": {
+      "name": "Awesome AI Agents",
+      "stars": 10000,
+      "pr_status": "submitted"
+    },
+    "kyrolabs/awesome-langchain": {
+      "name": "Awesome LangChain",
+      "stars": 7000,
+      "pr_status": "blocked"
+    },
+    "f/awesome-chatgpt-prompts": {
+      "name": "Awesome ChatGPT Prompts",
+      "stars": 100000,
+      "pr_status": "not_relevant"
+    },
+    "Shubhamsaboo/awesome-llm-apps": {
+      "name": "Awesome LLM Apps",
+      "stars": 5000,
+      "pr_status": "submitted"
+    },
+    "filipecalegario/awesome-generative-ai": {
+      "name": "Awesome Generative AI",
+      "stars": 5000,
+      "pr_status": "submitted"
+    },
+    "aimerou/awesome-ai-papers": {
+      "name": "Awesome AI Papers",
+      "stars": 3000,
+      "pr_status": "not_relevant"
+    },
+    "mahseema/awesome-ai-tools": {
+      "name": "Awesome AI Tools",
+      "stars": 3000,
+      "pr_status": "submitted"
+    },
+    "appcypher/awesome-mcp-servers": {
+      "name": "Awesome MCP Servers (appcypher)",
+      "stars": 5100,
+      "pr_status": "closed"
+    },
+    "kaushikb11/awesome-llm-agents": {
+      "name": "Awesome LLM Agents",
+      "stars": 1300,
+      "pr_status": "submitted"
+    },
+    "Arindam200/awesome-ai-apps": {
+      "name": "Awesome AI Apps",
+      "stars": 8900,
+      "pr_status": "closed"
+    },
+    "sickn33/antigravity-awesome-skills": {
+      "name": "Antigravity Awesome Skills",
+      "stars": 8700,
+      "pr_status": "submitted"
+    },
+    "punkpeye/awesome-mcp-clients": {
+      "name": "awesome-mcp-clients",
+      "stars": 6275,
+      "pr_status": "submitted",
+      "tracked_at": "2026-02-12T09:52:40.748839"
+    },
+    "e2b-dev/awesome-ai-sdks": {
+      "name": "awesome-ai-sdks",
+      "stars": 1128,
+      "pr_status": "submitted",
+      "tracked_at": "2026-02-12T09:52:40.749240"
+    },
+    "Meirtz/Awesome-Context-Engineering": {
+      "name": "Awesome-Context-Engineering",
+      "stars": 2891,
+      "pr_status": "submitted",
+      "tracked_at": "2026-02-12T09:52:40.749442"
+    },
+    "steel-dev/awesome-web-agents": {
+      "name": "awesome-web-agents",
+      "stars": 1219,
+      "pr_status": "not_submitted",
+      "tracked_at": "2026-02-12T09:52:40.749855"
+    },
+    "anthropics/awesome-ai-sdks": {
+      "name": "awesome-ai-sdks",
+      "stars": 0,
+      "pr_status": "not_submitted",
+      "tracked_at": "2026-02-13T07:48:46.157662"
+    }
+  },
+  "registries": {
+    "smithery": {
+      "name": "Smithery",
+      "url": "https://smithery.ai/server/agentidx/agentcrawl",
+      "status": "listed"
+    },
+    "mcphub": {
+      "name": "MCP Hub",
+      "url": "https://mcphub.io",
+      "status": "pending"
+    },
+    "glama": {
+      "name": "Glama",
+      "url": "https://glama.ai/mcp/servers",
+      "status": "manual_required"
+    },
+    "pulsemcp": {
+      "name": "PulseMCP",
+      "url": "https://pulsemcp.com",
+      "status": "manual_required"
+    },
+    "mcp.run": {
+      "name": "mcp.run",
+      "url": "https://mcp.run",
+      "status": "manual_required"
+    },
+    "composio": {
+      "name": "Composio MCP",
+      "url": "https://composio.dev/mcp",
+      "status": "not_registered"
+    }
+  },
+  "discovered_channels": {
+    "anthropics/claude-plugins-official": {
+      "type": "registry",
+      "name": "claude-plugins-official",
+      "stars": 7342,
+      "discovered_at": "2026-02-13T12:47:41.679034"
+    },
+    "chatmcp/mcpso": {
+      "type": "registry",
+      "name": "mcpso",
+      "stars": 1964,
+      "discovered_at": "2026-02-13T12:47:41.679095"
+    },
+    "davepoon/buildwithclaude": {
+      "type": "directory",
+      "name": "buildwithclaude",
+      "stars": 2413,
+      "discovered_at": "2026-02-13T12:47:42.320951"
+    },
+    "appcypher/awesome-mcp-servers": {
+      "type": "directory",
+      "name": "awesome-mcp-servers",
+      "stars": 5137,
+      "discovered_at": "2026-02-13T12:47:43.369593"
+    },
+    "wong2/awesome-mcp-servers": {
+      "type": "directory",
+      "name": "awesome-mcp-servers",
+      "stars": 3573,
+      "discovered_at": "2026-02-13T12:47:43.369655"
+    },
+    "ComposioHQ/awesome-claude-plugins": {
+      "type": "directory",
+      "name": "awesome-claude-plugins",
+      "stars": 1316,
+      "discovered_at": "2026-02-13T12:47:43.369718"
+    },
+    "mohsen1/yek": {
+      "type": "directory",
+      "name": "yek",
+      "stars": 2418,
+      "discovered_at": "2026-02-13T12:47:43.894120"
+    },
+    "IBM/mcp-context-forge": {
+      "type": "directory",
+      "name": "mcp-context-forge",
+      "stars": 3275,
+      "discovered_at": "2026-02-13T12:47:44.417734"
+    }
+  },
+  "search_terms_suggested": [
+    "agentic",
+    "aiagent",
+    "llm-agent",
+    "agent",
+    "agentic-ai",
+    "agent-framework",
+    "agent-memory",
+    "agent-runtime",
+    "aiagentsframework",
+    "multi-agent-reinforcement-learning",
+    "autonomous-agents",
+    "multi-agent-system",
+    "ai-agent-framework",
+    "multi-agent-systems",
+    "agent-observability",
+    "agent-native",
+    "sub-agents",
+    "generalist-agent",
+    "multiagent",
+    "user-agent",
+    "agenticai",
+    "cognitive-agents",
+    "llm-agents",
+    "agentic-framework",
+    "ai-agents",
+    "aiagentframework",
+    "user-agents",
+    "ai-agent-tools",
+    "agentic-workflow",
+    "agentframework",
+    "agents",
+    "agent-based",
+    "agent-frameworks",
+    "multi-agent",
+    "agent-based-framework",
+    "aiagents",
+    "ai-agents-framework",
+    "agentforce",
+    "agent-skills",
+    "ai-agent-monitoring",
+    "multiagent-systems",
+    "rl-agents",
+    "autonomous-agent",
+    "sales-agents",
+    "agent-evaluation",
+    "ssh-agent",
+    "agent-simulations",
+    "agent-orchestration",
+    "sentra-agent",
+    "claude-subagents",
+    "coding-agent",
+    "agent-communication",
+    "web-search-agent",
+    "agentmemory",
+    "agent-development-kit",
+    "research-agents",
+    "agent-functions",
+    "marketing-agents",
+    "agentgpt",
+    "agentic-ai-development",
+    "agentx"
+  ],
+  "competitors_seen": [
+    "0x4m4/hexstrike-ai",
+    "lmnr-ai/index",
+    "von-development/awesome-LangGraph",
+    "agentic-community/mcp-gateway-registry",
+    "liuyoshio/mcp-compass"
+  ],
+  "endpoints_alerted": {
+    "api": "2026-02-13",
+    "mcp_sse": "2026-02-13",
+    "npm": "2026-02-13",
+    "smithery": "2026-02-13"
+  },
+  "last_run": "2026-02-13T12:51:13.350399"
+}

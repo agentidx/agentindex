@@ -1961,5 +1961,821 @@
     "approved_at": "2026-02-13T09:12:42.378451",
     "executed_at": "2026-02-13T09:28:19.821983",
     "result": "Awesome list PR bot: {'submitted': 0, 'skipped': 7, 'failed': 1}"
+  },
+  {
+    "id": "55f65c64",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: agent-skills",
+    "details": {
+      "term": "agent-skills"
+    },
+    "status": "executed",
+    "created": "2026-02-13T06:00:09.094263",
+    "executed_at": "2026-02-13T12:54:58.076608",
+    "result": "logged term: agent-skills"
+  },
+  {
+    "id": "470fb14c",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: ai-agent-monitoring",
+    "details": {
+      "term": "ai-agent-monitoring"
+    },
+    "status": "executed",
+    "created": "2026-02-13T07:50:14.392320",
+    "executed_at": "2026-02-13T12:54:58.079478",
+    "result": "logged term: ai-agent-monitoring"
+  },
+  {
+    "id": "7e0583b1",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: multiagent-systems",
+    "details": {
+      "term": "multiagent-systems"
+    },
+    "status": "executed",
+    "created": "2026-02-13T07:50:14.400247",
+    "executed_at": "2026-02-13T12:54:58.081758",
+    "result": "logged term: multiagent-systems"
+  },
+  {
+    "id": "7cb11475",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: rl-agents",
+    "details": {
+      "term": "rl-agents"
+    },
+    "status": "executed",
+    "created": "2026-02-13T07:50:14.405539",
+    "executed_at": "2026-02-13T12:54:58.083935",
+    "result": "logged term: rl-agents"
+  },
+  {
+    "id": "c04195b1",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: autonomous-agent",
+    "details": {
+      "term": "autonomous-agent"
+    },
+    "status": "executed",
+    "created": "2026-02-13T07:50:14.410489",
+    "executed_at": "2026-02-13T12:54:58.086210",
+    "result": "logged term: autonomous-agent"
+  },
+  {
+    "id": "80b6b6c8",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: sales-agents",
+    "details": {
+      "term": "sales-agents"
+    },
+    "status": "executed",
+    "created": "2026-02-13T07:50:15.766586",
+    "executed_at": "2026-02-13T12:54:58.088425",
+    "result": "logged term: sales-agents"
+  },
+  {
+    "id": "c6d26f6a",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: agent-evaluation",
+    "details": {
+      "term": "agent-evaluation"
+    },
+    "status": "executed",
+    "created": "2026-02-13T07:50:15.772580",
+    "executed_at": "2026-02-13T12:54:58.090653",
+    "result": "logged term: agent-evaluation"
+  },
+  {
+    "id": "cc37e701",
+    "type": "update_agent_md",
+    "level": "auto",
+    "title": "Update agent.md with 25,628 agents",
+    "details": {
+      "total": 25628
+    },
+    "status": "executed",
+    "created": "2026-02-13T07:50:17.906802",
+    "executed_at": "2026-02-13T12:54:58.092984",
+    "result": "updated with 25,628 agents"
+  },
+  {
+    "id": "166f3a59",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: ssh-agent",
+    "details": {
+      "term": "ssh-agent"
+    },
+    "status": "executed",
+    "created": "2026-02-13T07:51:33.020956",
+    "executed_at": "2026-02-13T12:54:58.095282",
+    "result": "logged term: ssh-agent"
+  },
+  {
+    "id": "43efdaba",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: agent-simulations",
+    "details": {
+      "term": "agent-simulations"
+    },
+    "status": "executed",
+    "created": "2026-02-13T07:51:33.028408",
+    "executed_at": "2026-02-13T12:54:58.097469",
+    "result": "logged term: agent-simulations"
+  },
+  {
+    "id": "03bb0aac",
+    "type": "update_agent_md",
+    "level": "auto",
+    "title": "Update agent.md with 25,630 agents",
+    "details": {
+      "total": 25630
+    },
+    "status": "executed",
+    "created": "2026-02-13T07:51:37.324466",
+    "executed_at": "2026-02-13T12:54:58.099719",
+    "result": "updated with 25,630 agents"
+  },
+  {
+    "id": "e4e12127",
+    "type": "update_agent_md",
+    "level": "auto",
+    "title": "Update agent.md with 25,634 agents",
+    "details": {
+      "total": 25634
+    },
+    "status": "executed",
+    "created": "2026-02-13T07:53:47.591807",
+    "executed_at": "2026-02-13T12:54:58.102038",
+    "result": "updated with 25,634 agents"
+  },
+  {
+    "id": "ec3d4ab1",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: agent-orchestration",
+    "details": {
+      "term": "agent-orchestration"
+    },
+    "status": "executed",
+    "created": "2026-02-13T08:20:07.903459",
+    "executed_at": "2026-02-13T12:54:58.104319",
+    "result": "logged term: agent-orchestration"
+  },
+  {
+    "id": "e2d1a76e",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: sentra-agent",
+    "details": {
+      "term": "sentra-agent"
+    },
+    "status": "executed",
+    "created": "2026-02-13T08:20:07.912314",
+    "executed_at": "2026-02-13T12:54:58.106582",
+    "result": "logged term: sentra-agent"
+  },
+  {
+    "id": "c67852e4",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: claude-subagents",
+    "details": {
+      "term": "claude-subagents"
+    },
+    "status": "executed",
+    "created": "2026-02-13T08:20:07.919734",
+    "executed_at": "2026-02-13T12:54:58.108776",
+    "result": "logged term: claude-subagents"
+  },
+  {
+    "id": "9f23d4c2",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: coding-agent",
+    "details": {
+      "term": "coding-agent"
+    },
+    "status": "executed",
+    "created": "2026-02-13T08:20:07.924926",
+    "executed_at": "2026-02-13T12:54:58.111113",
+    "result": "logged term: coding-agent"
+  },
+  {
+    "id": "541a0fad",
+    "type": "update_agent_md",
+    "level": "auto",
+    "title": "Update agent.md with 25,659 agents",
+    "details": {
+      "total": 25659
+    },
+    "status": "executed",
+    "created": "2026-02-13T08:20:12.476255",
+    "executed_at": "2026-02-13T12:54:58.113445",
+    "result": "updated with 25,659 agents"
+  },
+  {
+    "id": "a7a1e63b",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: agent-communication",
+    "details": {
+      "term": "agent-communication"
+    },
+    "status": "executed",
+    "created": "2026-02-13T08:37:17.450797",
+    "executed_at": "2026-02-13T12:54:58.115616",
+    "result": "logged term: agent-communication"
+  },
+  {
+    "id": "f1498362",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: web-search-agent",
+    "details": {
+      "term": "web-search-agent"
+    },
+    "status": "executed",
+    "created": "2026-02-13T08:37:17.949770",
+    "executed_at": "2026-02-13T12:54:58.117858",
+    "result": "logged term: web-search-agent"
+  },
+  {
+    "id": "010fca08",
+    "type": "update_agent_md",
+    "level": "auto",
+    "title": "Update agent.md with 25,737 agents",
+    "details": {
+      "total": 25737
+    },
+    "status": "executed",
+    "created": "2026-02-13T08:37:21.194541",
+    "executed_at": "2026-02-13T12:54:58.120119",
+    "result": "updated with 25,737 agents"
+  },
+  {
+    "id": "2565a9e7",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: agentmemory",
+    "details": {
+      "term": "agentmemory"
+    },
+    "status": "executed",
+    "created": "2026-02-13T11:48:04.536464",
+    "executed_at": "2026-02-13T12:54:58.122347",
+    "result": "logged term: agentmemory"
+  },
+  {
+    "id": "62088ecf",
+    "type": "update_agent_md",
+    "level": "auto",
+    "title": "Update agent.md",
+    "details": {
+      "total": 25783
+    },
+    "status": "executed",
+    "created": "2026-02-13T11:48:06.140184",
+    "executed_at": "2026-02-13T12:54:58.124600",
+    "result": "updated with 25,783 agents"
+  },
+  {
+    "id": "703f7f3b",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: agent-development-kit",
+    "details": {
+      "term": "agent-development-kit"
+    },
+    "status": "executed",
+    "created": "2026-02-13T12:08:39.539987",
+    "executed_at": "2026-02-13T12:54:58.126785",
+    "result": "logged term: agent-development-kit"
+  },
+  {
+    "id": "e8fd2485",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: research-agents",
+    "details": {
+      "term": "research-agents"
+    },
+    "status": "executed",
+    "created": "2026-02-13T12:44:09.129275",
+    "executed_at": "2026-02-13T12:54:58.129020",
+    "result": "logged term: research-agents"
+  },
+  {
+    "id": "2f677499",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: agent-functions",
+    "details": {
+      "term": "agent-functions"
+    },
+    "status": "executed",
+    "created": "2026-02-13T12:47:46.606390",
+    "executed_at": "2026-02-13T12:54:58.131226",
+    "result": "logged term: agent-functions"
+  },
+  {
+    "id": "c72a5bc9",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: marketing-agents",
+    "details": {
+      "term": "marketing-agents"
+    },
+    "status": "executed",
+    "created": "2026-02-13T12:47:46.610304",
+    "executed_at": "2026-02-13T12:54:58.133408",
+    "result": "logged term: marketing-agents"
+  },
+  {
+    "id": "26f77c70",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: agentgpt",
+    "details": {
+      "term": "agentgpt"
+    },
+    "status": "executed",
+    "created": "2026-02-13T12:47:46.613110",
+    "executed_at": "2026-02-13T12:54:58.135635",
+    "result": "logged term: agentgpt"
+  },
+  {
+    "id": "41640344",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: agentic-ai-development",
+    "details": {
+      "term": "agentic-ai-development"
+    },
+    "status": "executed",
+    "created": "2026-02-13T12:47:46.615689",
+    "executed_at": "2026-02-13T12:54:58.138092",
+    "result": "logged term: agentic-ai-development"
+  },
+  {
+    "id": "8f8dc896",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: agentx",
+    "details": {
+      "term": "agentx"
+    },
+    "status": "executed",
+    "created": "2026-02-13T12:47:46.618082",
+    "executed_at": "2026-02-13T12:54:58.140318",
+    "result": "logged term: agentx"
+  },
+  {
+    "id": "0d4d65f4",
+    "type": "endpoint_down",
+    "level": "notify",
+    "title": "Endpoint down: api",
+    "details": {
+      "endpoint": "api",
+      "url": "https://api.agentcrawl.dev"
+    },
+    "status": "dismissed",
+    "created": "2026-02-13T12:08:41.653357",
+    "dismissed_at": "2026-02-13T12:55:45.245163"
+  },
+  {
+    "id": "73f3adcb",
+    "type": "endpoint_down",
+    "level": "notify",
+    "title": "Endpoint down: mcp_sse",
+    "details": {
+      "endpoint": "mcp_sse",
+      "url": "https://mcp.agentcrawl.dev"
+    },
+    "status": "dismissed",
+    "created": "2026-02-13T12:08:41.658026",
+    "dismissed_at": "2026-02-13T12:55:45.245425"
+  },
+  {
+    "id": "cbe8bd02",
+    "type": "endpoint_down",
+    "level": "notify",
+    "title": "Endpoint down: npm",
+    "details": {
+      "endpoint": "npm",
+      "url": "https://www.npmjs.com/package/@agentidx/sdk"
+    },
+    "status": "dismissed",
+    "created": "2026-02-13T12:08:41.664830",
+    "dismissed_at": "2026-02-13T12:55:45.245431"
+  },
+  {
+    "id": "60dd076b",
+    "type": "endpoint_down",
+    "level": "notify",
+    "title": "Endpoint down: smithery",
+    "details": {
+      "endpoint": "smithery",
+      "url": "https://smithery.ai/server/agentidx/agentcrawl"
+    },
+    "status": "dismissed",
+    "created": "2026-02-13T12:08:41.682912",
+    "dismissed_at": "2026-02-13T12:55:45.245435"
+  },
+  {
+    "id": "1bf6eecf",
+    "type": "new_competitor",
+    "level": "notify",
+    "title": "Competitor: hexstrike-ai",
+    "details": {
+      "name": "hexstrike-ai",
+      "stars": 6784,
+      "url": "https://github.com/0x4m4/hexstrike-ai"
+    },
+    "status": "dismissed",
+    "created": "2026-02-13T12:44:12.113243",
+    "dismissed_at": "2026-02-13T12:55:45.245439"
+  },
+  {
+    "id": "e36bc6b1",
+    "type": "new_competitor",
+    "level": "notify",
+    "title": "Competitor: index",
+    "details": {
+      "name": "index",
+      "stars": 2331,
+      "url": "https://github.com/lmnr-ai/index"
+    },
+    "status": "dismissed",
+    "created": "2026-02-13T12:44:12.115874",
+    "dismissed_at": "2026-02-13T12:55:45.245442"
+  },
+  {
+    "id": "c2c99b07",
+    "type": "new_competitor",
+    "level": "notify",
+    "title": "Competitor: awesome-LangGraph",
+    "details": {
+      "name": "awesome-LangGraph",
+      "stars": 1500,
+      "url": "https://github.com/von-development/awesome-LangGraph"
+    },
+    "status": "dismissed",
+    "created": "2026-02-13T12:44:12.118560",
+    "dismissed_at": "2026-02-13T12:55:45.245445"
+  },
+  {
+    "id": "82a8dc5e",
+    "type": "new_competitor",
+    "level": "notify",
+    "title": "Competitor: mcp-gateway-registry",
+    "details": {
+      "name": "mcp-gateway-registry",
+      "stars": 440,
+      "url": "https://github.com/agentic-community/mcp-gateway-registry"
+    },
+    "status": "dismissed",
+    "created": "2026-02-13T12:44:12.119952",
+    "dismissed_at": "2026-02-13T12:55:45.245448"
+  },
+  {
+    "id": "cf781ec4",
+    "type": "new_competitor",
+    "level": "notify",
+    "title": "Competitor: mcp-compass",
+    "details": {
+      "name": "mcp-compass",
+      "stars": 223,
+      "url": "https://github.com/liuyoshio/mcp-compass"
+    },
+    "status": "dismissed",
+    "created": "2026-02-13T12:44:12.121316",
+    "dismissed_at": "2026-02-13T12:55:45.245451"
+  },
+  {
+    "id": "2ce23afc",
+    "type": "add_awesome_list",
+    "level": "approval",
+    "title": "Track: awesome-ai-apps",
+    "details": {
+      "repo": "Arindam200/awesome-ai-apps",
+      "name": "awesome-ai-apps",
+      "stars": 8917,
+      "url": "https://github.com/Arindam200/awesome-ai-apps"
+    },
+    "status": "executed",
+    "created": "2026-02-13T11:47:57.702960",
+    "approved_at": "2026-02-13T12:56:23.483771",
+    "executed_at": "2026-02-13T12:56:38.872793",
+    "result": "Added awesome-ai-apps (Arindam200/awesome-ai-apps) to tracking list"
+  },
+  {
+    "id": "ba087afa",
+    "type": "add_awesome_list",
+    "level": "approval",
+    "title": "Track: antigravity-awesome-skills",
+    "details": {
+      "repo": "sickn33/antigravity-awesome-skills",
+      "name": "antigravity-awesome-skills",
+      "stars": 8703,
+      "url": "https://github.com/sickn33/antigravity-awesome-skills"
+    },
+    "status": "executed",
+    "created": "2026-02-13T11:47:57.706356",
+    "approved_at": "2026-02-13T12:56:23.485106",
+    "executed_at": "2026-02-13T12:56:39.365515",
+    "result": "Added antigravity-awesome-skills (sickn33/antigravity-awesome-skills) to tracking list"
+  },
+  {
+    "id": "9c074429",
+    "type": "add_awesome_list",
+    "level": "approval",
+    "title": "Track: awesome-mcp-clients",
+    "details": {
+      "repo": "punkpeye/awesome-mcp-clients",
+      "name": "awesome-mcp-clients",
+      "stars": 6278,
+      "url": "https://github.com/punkpeye/awesome-mcp-clients"
+    },
+    "status": "executed",
+    "created": "2026-02-13T11:47:57.709110",
+    "approved_at": "2026-02-13T12:56:23.485729",
+    "executed_at": "2026-02-13T12:56:39.877971",
+    "result": "Added awesome-mcp-clients (punkpeye/awesome-mcp-clients) to tracking list"
+  },
+  {
+    "id": "367646eb",
+    "type": "add_awesome_list",
+    "level": "approval",
+    "title": "Track: awesome-mcp-servers",
+    "details": {
+      "repo": "appcypher/awesome-mcp-servers",
+      "name": "awesome-mcp-servers",
+      "stars": 5141,
+      "url": "https://github.com/appcypher/awesome-mcp-servers"
+    },
+    "status": "executed",
+    "created": "2026-02-13T11:47:57.712337",
+    "approved_at": "2026-02-13T12:56:23.486244",
+    "executed_at": "2026-02-13T12:56:40.397681",
+    "result": "Added awesome-mcp-servers (appcypher/awesome-mcp-servers) to tracking list"
+  },
+  {
+    "id": "6dad76b4",
+    "type": "add_awesome_list",
+    "level": "approval",
+    "title": "Track: awesome-ai-sdks",
+    "details": {
+      "repo": "e2b-dev/awesome-ai-sdks",
+      "name": "awesome-ai-sdks",
+      "stars": 1129,
+      "url": "https://github.com/e2b-dev/awesome-ai-sdks"
+    },
+    "status": "executed",
+    "created": "2026-02-13T11:47:57.715234",
+    "approved_at": "2026-02-13T12:56:23.486711",
+    "executed_at": "2026-02-13T12:56:40.903528",
+    "result": "Added awesome-ai-sdks (e2b-dev/awesome-ai-sdks) to tracking list"
+  },
+  {
+    "id": "fbded057",
+    "type": "add_awesome_list",
+    "level": "approval",
+    "title": "Track: Awesome-Context-Engineering",
+    "details": {
+      "repo": "Meirtz/Awesome-Context-Engineering",
+      "name": "Awesome-Context-Engineering",
+      "stars": 2895,
+      "url": "https://github.com/Meirtz/Awesome-Context-Engineering"
+    },
+    "status": "executed",
+    "created": "2026-02-13T11:47:57.717777",
+    "approved_at": "2026-02-13T12:56:23.487173",
+    "executed_at": "2026-02-13T12:56:41.317266",
+    "result": "Added Awesome-Context-Engineering (Meirtz/Awesome-Context-Engineering) to tracking list"
+  },
+  {
+    "id": "5efaaede",
+    "type": "add_awesome_list",
+    "level": "approval",
+    "title": "Track: awesome-llm-agents",
+    "details": {
+      "repo": "kaushikb11/awesome-llm-agents",
+      "name": "awesome-llm-agents",
+      "stars": 1316,
+      "url": "https://github.com/kaushikb11/awesome-llm-agents"
+    },
+    "status": "executed",
+    "created": "2026-02-13T11:47:57.720909",
+    "approved_at": "2026-02-13T12:56:23.487629",
+    "executed_at": "2026-02-13T12:56:41.790239",
+    "result": "Added awesome-llm-agents (kaushikb11/awesome-llm-agents) to tracking list"
+  },
+  {
+    "id": "0c98abb7",
+    "type": "add_awesome_list",
+    "level": "approval",
+    "title": "Track: awesome-web-agents",
+    "details": {
+      "repo": "steel-dev/awesome-web-agents",
+      "name": "awesome-web-agents",
+      "stars": 1223,
+      "url": "https://github.com/steel-dev/awesome-web-agents"
+    },
+    "status": "executed",
+    "created": "2026-02-13T11:47:57.723669",
+    "approved_at": "2026-02-13T12:56:23.488088",
+    "executed_at": "2026-02-13T12:56:42.188727",
+    "result": "Added awesome-web-agents (steel-dev/awesome-web-agents) to tracking list"
+  },
+  {
+    "id": "4573b44d",
+    "type": "register_registry",
+    "level": "approval",
+    "title": "Register: MCP Hub",
+    "details": {
+      "name": "MCP Hub",
+      "url": "https://mcphub.io"
+    },
+    "status": "executed",
+    "created": "2026-02-13T11:47:58.199055",
+    "approved_at": "2026-02-13T12:56:23.488626",
+    "executed_at": "2026-02-13T12:56:42.467130",
+    "result": "Issue failed on mcphub-io/mcphub: 404"
+  },
+  {
+    "id": "b0b35f80",
+    "type": "register_registry",
+    "level": "approval",
+    "title": "Register: Glama",
+    "details": {
+      "name": "Glama",
+      "url": "https://glama.ai/mcp/servers"
+    },
+    "status": "executed",
+    "created": "2026-02-13T11:47:58.205135",
+    "approved_at": "2026-02-13T12:56:23.489371",
+    "executed_at": "2026-02-13T12:56:42.474130",
+    "result": "Registry Glama (https://glama.ai/mcp/servers) requires manual submission"
+  },
+  {
+    "id": "b3e71085",
+    "type": "register_registry",
+    "level": "approval",
+    "title": "Register: PulseMCP",
+    "details": {
+      "name": "PulseMCP",
+      "url": "https://pulsemcp.com"
+    },
+    "status": "executed",
+    "created": "2026-02-13T11:47:58.209709",
+    "approved_at": "2026-02-13T12:56:23.490078",
+    "executed_at": "2026-02-13T12:56:42.481196",
+    "result": "Registry PulseMCP (https://pulsemcp.com) requires manual submission"
+  },
+  {
+    "id": "6da0c041",
+    "type": "register_registry",
+    "level": "approval",
+    "title": "Register: mcp.run",
+    "details": {
+      "name": "mcp.run",
+      "url": "https://mcp.run"
+    },
+    "status": "executed",
+    "created": "2026-02-13T11:47:58.214295",
+    "approved_at": "2026-02-13T12:56:23.490790",
+    "executed_at": "2026-02-13T12:56:42.485965",
+    "result": "Registry mcp.run (https://mcp.run) requires manual submission"
+  },
+  {
+    "id": "43ce55eb",
+    "type": "register_registry",
+    "level": "approval",
+    "title": "Register: Composio MCP",
+    "details": {
+      "name": "Composio MCP",
+      "url": "https://composio.dev/mcp"
+    },
+    "status": "executed",
+    "created": "2026-02-13T11:47:58.217645",
+    "approved_at": "2026-02-13T12:56:23.491503",
+    "executed_at": "2026-02-13T12:56:42.490588",
+    "result": "Registry Composio MCP (https://composio.dev/mcp) requires manual submission"
+  },
+  {
+    "id": "dc800e0a",
+    "type": "submit_pr",
+    "level": "approval",
+    "title": "PR: awesome-ai-agents",
+    "details": {
+      "repo": "e2b-dev/awesome-ai-agents",
+      "title": "Add AgentIndex - AI agent discovery platform",
+      "body": "## AgentIndex\n\n**Discovery platform for AI agents.** Find any AI agent by capability - search 25,783+ indexed agents across 5 sources.\n\n- **API:** https://api.agentcrawl.dev\n- **MCP Server:** [Smithery](https://smithery.ai/server/agentidx/agentcrawl)\n- **SDK:** `pip install agentcrawl` | `npm install @agentidx/sdk`\n- **GitHub:** https://github.com/agentidx/agentindex\n\n### What it does\nAgentIndex crawls and indexes all publicly available AI agents (GitHub, npm, MCP, HuggingFace) so that agents can automatically discover and hire other agents.\n\n### Categories\ncoding, devops, infrastructure, finance, communication, research, agent framework, data, AI assistant, security\n\n### Usage\n```python\nfrom agentcrawl import discover\nagents = discover('code review', min_quality=0.7)\n```\n"
+    },
+    "status": "executed",
+    "created": "2026-02-13T11:48:06.125551",
+    "approved_at": "2026-02-13T12:56:23.492212",
+    "executed_at": "2026-02-13T12:56:42.907789",
+    "result": "PR bot: {'submitted': 0, 'skipped': 8, 'failed': 0}"
+  },
+  {
+    "id": "eade7393",
+    "type": "submit_pr",
+    "level": "approval",
+    "title": "PR: Awesome LLM Apps",
+    "details": {
+      "repo": "Shubhamsaboo/awesome-llm-apps",
+      "name": "Awesome LLM Apps"
+    },
+    "status": "executed",
+    "created": "2026-02-13T12:47:23.173701",
+    "approved_at": "2026-02-13T12:56:23.492875",
+    "executed_at": "2026-02-13T12:56:43.364767",
+    "result": "PR bot: {'submitted': 0, 'skipped': 8, 'failed': 0}"
+  },
+  {
+    "id": "514bd70b",
+    "type": "submit_pr",
+    "level": "approval",
+    "title": "PR: Awesome Generative AI",
+    "details": {
+      "repo": "filipecalegario/awesome-generative-ai",
+      "name": "Awesome Generative AI"
+    },
+    "status": "executed",
+    "created": "2026-02-13T12:47:23.177685",
+    "approved_at": "2026-02-13T12:56:23.493657",
+    "executed_at": "2026-02-13T12:56:43.760885",
+    "result": "PR bot: {'submitted': 0, 'skipped': 8, 'failed': 0}"
+  },
+  {
+    "id": "211d4374",
+    "type": "submit_pr",
+    "level": "approval",
+    "title": "PR: Awesome AI Tools",
+    "details": {
+      "repo": "mahseema/awesome-ai-tools",
+      "name": "Awesome AI Tools"
+    },
+    "status": "executed",
+    "created": "2026-02-13T12:47:23.180786",
+    "approved_at": "2026-02-13T12:56:23.494256",
+    "executed_at": "2026-02-13T12:56:44.270784",
+    "result": "PR bot: {'submitted': 0, 'skipped': 8, 'failed': 0}"
+  },
+  {
+    "id": "97ad17f5",
+    "type": "submit_pr",
+    "level": "approval",
+    "title": "PR: awesome-mcp-clients",
+    "details": {
+      "repo": "punkpeye/awesome-mcp-clients",
+      "name": "awesome-mcp-clients"
+    },
+    "status": "executed",
+    "created": "2026-02-13T12:47:23.183006",
+    "approved_at": "2026-02-13T12:56:23.494737",
+    "executed_at": "2026-02-13T12:56:44.667411",
+    "result": "PR bot: {'submitted': 0, 'skipped': 8, 'failed': 0}"
+  },
+  {
+    "id": "753acf94",
+    "type": "submit_pr",
+    "level": "approval",
+    "title": "PR: awesome-ai-sdks",
+    "details": {
+      "repo": "e2b-dev/awesome-ai-sdks",
+      "name": "awesome-ai-sdks"
+    },
+    "status": "executed",
+    "created": "2026-02-13T12:47:23.185440",
+    "approved_at": "2026-02-13T12:56:23.495192",
+    "executed_at": "2026-02-13T12:56:45.135502",
+    "result": "PR bot: {'submitted': 0, 'skipped': 8, 'failed': 0}"
+  },
+  {
+    "id": "e44e5013",
+    "type": "submit_pr",
+    "level": "approval",
+    "title": "PR: Awesome-Context-Engineering",
+    "details": {
+      "repo": "Meirtz/Awesome-Context-Engineering",
+      "name": "Awesome-Context-Engineering"
+    },
+    "status": "executed",
+    "created": "2026-02-13T12:47:23.187319",
+    "approved_at": "2026-02-13T12:56:23.495739",
+    "executed_at": "2026-02-13T12:56:45.626298",
+    "result": "PR bot: {'submitted': 0, 'skipped': 8, 'failed': 0}"
   }
 ]

@@ -2,21 +2,40 @@
 Action Executor
 
 Runs approved actions from the action queue.
-Called periodically by the orchestrator.
+REFACTOR v3: Updates missionary_state.json when actions complete.
 """
 
+import json
 import logging
 import os
 import re
+from datetime import datetime
+
 import httpx
 
 from agentindex.agents.action_queue import (
-    get_approved_actions, mark_executed, ActionLevel
+    get_approved_actions, get_auto_actions, mark_executed, ActionLevel
 )
 
 logger = logging.getLogger("agentindex.executor")
 
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "")
+STATE_PATH = os.path.expanduser("~/agentindex/missionary_state.json")
+
+
+def _update_missionary_state(callback):
+    if not os.path.exists(STATE_PATH):
+        return
+    try:
+        with open(STATE_PATH) as f:
+            state = json.load(f)
+        callback(state)
+        tmp = STATE_PATH + ".tmp"
+        with open(tmp, "w") as f:
+            json.dump(state, f, indent=2, default=str)
+        os.replace(tmp, STATE_PATH)
+    except Exception as e:
+        logger.error(f"Failed to update missionary state: {e}")
 
 
 class Executor:
@@ -28,11 +47,11 @@ class Executor:
         }
 
     def run_approved(self) -> dict:
-        """Execute all approved actions."""
         approved = get_approved_actions()
-        stats = {"executed": 0, "failed": 0}
-
-        for action in approved:
+        auto = get_auto_actions()
+        all_actions = approved + auto
+        stats = {"executed": 0, "failed": 0, "auto": 0}
+        for action in all_actions:
             try:
                 result = self._execute(action)
                 mark_executed(action["id"], result=result or "success")
@@ -42,11 +61,9 @@ class Executor:
                 mark_executed(action["id"], result=f"error: {e}")
                 stats["failed"] += 1
                 logger.error(f"Failed: {action['title']} -> {e}")
-
         return stats
 
     def _execute(self, action: dict) -> str:
-        """Route action to appropriate handler."""
         handlers = {
             "update_agent_md": self._update_agent_md,
             "add_search_term": self._add_search_term,
@@ -62,9 +79,8 @@ class Executor:
             "spy_a2a_outreach": self._acknowledge,
             "spy_feature_done": self._acknowledge,
             "spy_feature_reminder": self._acknowledge,
-            "endpoint_down": self._acknowledge,
+            "endpoint_down": self._handle_endpoint_down,
         }
-
         handler = handlers.get(action["type"])
         if handler:
             return handler(action["details"])
@@ -91,33 +107,37 @@ class Executor:
         term = details.get("term", "")
         if not term:
             return "no term provided"
-        # For now, just log it — manual addition to spider
         logger.info(f"New search term suggested: {term}")
         return f"logged term: {term}"
 
     def _submit_pr(self, details: dict) -> str:
-        """Submit PR via pr_bot."""
         from agentindex.agents.pr_bot import submit_prs
         result = submit_prs()
+        repo = details.get("repo", "")
+        if repo:
+            def _update(state):
+                if repo in state.get("awesome_lists", {}):
+                    state["awesome_lists"][repo]["pr_status"] = "submitted"
+                    logger.info(f"State updated: {repo} -> submitted")
+            _update_missionary_state(_update)
         return f"PR bot: {result}"
 
     def _register_registry(self, details: dict) -> str:
-        """Auto-register on MCP registries where possible."""
         registry = details.get("registry", details.get("name", ""))
+        registry_key = details.get("registry_key", registry.lower().replace(" ", ""))
         url = details.get("url", "")
-        
-        # Registries that accept GitHub-based submissions
+
         github_registries = {
             "mcphub": "mcphub-io/mcphub",
-            "glama": None,
-            "pulsemcp": None,
-            "mcp.run": None,
-            "composio": None,
+            "mcp hub": "mcphub-io/mcphub",
+            "glama": None, "pulsemcp": None, "mcp.run": None,
+            "composio": None, "composio mcp": None,
         }
-        
-        repo = github_registries.get(registry)
+
+        repo = github_registries.get(registry.lower())
+        result_msg = ""
+
         if repo:
-            # Submit via GitHub Issue
             try:
                 token = os.getenv("GITHUB_TOKEN")
                 headers = {"Authorization": f"token {token}", "Accept": "application/vnd.github.v3+json"}
@@ -140,30 +160,54 @@ class Executor:
                     timeout=15,
                 )
                 if resp.status_code == 201:
-                    return f"Issue created on {repo}: {resp.json()['html_url']}"
-                return f"Issue failed on {repo}: {resp.status_code}"
+                    result_msg = f"Issue created on {repo}: {resp.json()['html_url']}"
+                else:
+                    result_msg = f"Issue failed on {repo}: {resp.status_code}"
             except Exception as e:
-                return f"Issue failed: {e}"
-        
-        return f"Registry {registry} ({url}) requires manual submission — no API available"
+                result_msg = f"Issue failed: {e}"
+        else:
+            result_msg = f"Registry {registry} ({url}) requires manual submission"
+
+        def _update(state):
+            if registry_key in state.get("registries", {}):
+                state["registries"][registry_key]["status"] = "pending" if repo else "manual_required"
+                logger.info(f"State updated: registry {registry_key}")
+        _update_missionary_state(_update)
+
+        return result_msg
 
     def _add_awesome_list(self, details: dict) -> str:
-        """Track awesome list and submit PR if not already submitted."""
+        repo = details.get("repo", "")
+        name = details.get("name", "unknown")
+
+        def _update(state):
+            if "awesome_lists" not in state:
+                state["awesome_lists"] = {}
+            if repo not in state["awesome_lists"]:
+                state["awesome_lists"][repo] = {
+                    "name": name,
+                    "stars": details.get("stars", 0),
+                    "pr_status": "not_submitted",
+                    "tracked_at": datetime.utcnow().isoformat(),
+                }
+                logger.info(f"State updated: tracking {repo}")
+        _update_missionary_state(_update)
+
         from agentindex.agents.pr_bot import submit_prs
         result = submit_prs()
-        return f"Awesome list PR bot: {result}"
+        return f"Added {name} ({repo}) to tracking list"
 
+    def _handle_endpoint_down(self, details: dict) -> str:
+        endpoint = details.get("endpoint", "unknown")
+        logger.warning(f"Endpoint down acknowledged: {endpoint}")
+        return f"acknowledged: {endpoint} down"
 
     def _acknowledge(self, details: dict) -> str:
-        """Acknowledge notify-only actions — no execution needed."""
         return "acknowledged"
 
     def _spy_implement_feature(self, details: dict) -> str:
-        """Log approved feature implementation to prioritized backlog."""
         feature = details.get("feature", "unknown")
         backlog_path = os.path.expanduser("~/agentindex/spionen_backlog.json")
-        import json
-        from datetime import datetime
         backlog = []
         if os.path.exists(backlog_path):
             try:
@@ -171,7 +215,6 @@ class Executor:
                     backlog = json.load(f)
             except Exception:
                 pass
-        # Check for duplicates
         if not any(b["feature"] == feature for b in backlog):
             backlog.append({
                 "feature": feature,

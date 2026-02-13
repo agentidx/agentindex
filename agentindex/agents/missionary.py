@@ -1,19 +1,11 @@
 """
-AgentIndex Missionary 2.0 (Missionären)
+AgentIndex Missionary 2.0 (Missionaren) - Refactored
 
-Proactive agent that spreads AgentIndex presence through machine-native
-and human-discoverable channels. Runs daily as a scheduled job.
-
-Capabilities:
-1. Scans for new registries/awesome-lists to register on
-2. Generates PR texts with live stats from API
-3. Monitors API + Smithery traffic
-4. Finds new distribution channels
-5. Suggests new search terms for spiders
-6. Tracks where we're listed vs not
-7. Generates daily action report
-8. Auto-updates agent.md/README with live stats
-9. Monitors competitors/similar services
+REFACTOR v3: Full idempotency via missionary_state.json
+- All awesome lists, registries, and channel state persisted to disk
+- run_daily() checks state before creating ANY action
+- No duplicate actions even after restart
+- State updated by Executor when actions complete
 """
 
 import json
@@ -26,12 +18,172 @@ from typing import Optional
 import httpx
 from agentindex.db.models import Agent, get_session
 from sqlalchemy import select, func, text
-from agentindex.agents.action_queue import add_action, ActionLevel
+from agentindex.agents.action_queue import add_action, ActionLevel, load_queue, load_history
 
 logger = logging.getLogger("agentindex.missionary")
 
 API_ENDPOINT = os.getenv("API_PUBLIC_ENDPOINT", "https://api.agentcrawl.dev")
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "")
+STATE_PATH = os.path.expanduser("~/agentindex/missionary_state.json")
+
+DEFAULT_STATE = {
+    "awesome_lists": {
+        "punkpeye/awesome-mcp-servers": {"name": "Awesome MCP Servers", "stars": 30000, "pr_status": "submitted"},
+        "e2b-dev/awesome-ai-agents": {"name": "Awesome AI Agents", "stars": 10000, "pr_status": "submitted"},
+        "kyrolabs/awesome-langchain": {"name": "Awesome LangChain", "stars": 7000, "pr_status": "blocked"},
+        "f/awesome-chatgpt-prompts": {"name": "Awesome ChatGPT Prompts", "stars": 100000, "pr_status": "not_relevant"},
+        "Shubhamsaboo/awesome-llm-apps": {"name": "Awesome LLM Apps", "stars": 5000, "pr_status": "not_submitted"},
+        "filipecalegario/awesome-generative-ai": {"name": "Awesome Generative AI", "stars": 5000, "pr_status": "not_submitted"},
+        "aimerou/awesome-ai-papers": {"name": "Awesome AI Papers", "stars": 3000, "pr_status": "not_relevant"},
+        "mahseema/awesome-ai-tools": {"name": "Awesome AI Tools", "stars": 3000, "pr_status": "not_submitted"},
+        "appcypher/awesome-mcp-servers": {"name": "Awesome MCP Servers (appcypher)", "stars": 5100, "pr_status": "submitted"},
+        "kaushikb11/awesome-llm-agents": {"name": "Awesome LLM Agents", "stars": 1300, "pr_status": "submitted"},
+        "Arindam200/awesome-ai-apps": {"name": "Awesome AI Apps", "stars": 8900, "pr_status": "submitted"},
+        "sickn33/antigravity-awesome-skills": {"name": "Antigravity Awesome Skills", "stars": 8700, "pr_status": "submitted"},
+    },
+    "registries": {
+        "smithery": {"name": "Smithery", "url": "https://smithery.ai/server/agentidx/agentcrawl", "status": "listed"},
+        "mcphub": {"name": "MCP Hub", "url": "https://mcphub.io", "status": "not_registered"},
+        "glama": {"name": "Glama", "url": "https://glama.ai/mcp/servers", "status": "not_registered"},
+        "pulsemcp": {"name": "PulseMCP", "url": "https://pulsemcp.com", "status": "not_registered"},
+        "mcp.run": {"name": "mcp.run", "url": "https://mcp.run", "status": "not_registered"},
+        "composio": {"name": "Composio MCP", "url": "https://composio.dev/mcp", "status": "not_registered"},
+    },
+    "discovered_channels": {},
+    "search_terms_suggested": [],
+    "competitors_seen": [],
+    "endpoints_alerted": {},
+    "last_run": None,
+}
+
+
+class MissionaryState:
+    def __init__(self, path: str = STATE_PATH):
+        self.path = path
+        self.data = self._load()
+
+    def _load(self) -> dict:
+        if os.path.exists(self.path):
+            try:
+                with open(self.path) as f:
+                    loaded = json.load(f)
+                merged = json.loads(json.dumps(DEFAULT_STATE))
+                for key in merged:
+                    if key in loaded:
+                        if isinstance(merged[key], dict) and isinstance(loaded[key], dict):
+                            merged[key].update(loaded[key])
+                        else:
+                            merged[key] = loaded[key]
+                return merged
+            except Exception as e:
+                logger.error(f"Failed to load state, using defaults: {e}")
+                return json.loads(json.dumps(DEFAULT_STATE))
+        return json.loads(json.dumps(DEFAULT_STATE))
+
+    def save(self):
+        self.data["last_run"] = datetime.utcnow().isoformat()
+        tmp = self.path + ".tmp"
+        with open(tmp, "w") as f:
+            json.dump(self.data, f, indent=2, default=str)
+        os.replace(tmp, self.path)
+
+    def awesome_list_needs_tracking(self, repo: str) -> bool:
+        return repo not in self.data["awesome_lists"]
+
+    def set_awesome_list(self, repo: str, info: dict):
+        self.data["awesome_lists"][repo] = info
+
+    def registry_needs_action(self, key: str) -> bool:
+        info = self.data["registries"].get(key)
+        if not info:
+            return True
+        return info.get("status") == "not_registered"
+
+    def channel_already_discovered(self, repo: str) -> bool:
+        return repo in self.data["discovered_channels"]
+
+    def add_discovered_channel(self, repo: str, info: dict):
+        self.data["discovered_channels"][repo] = {**info, "discovered_at": datetime.utcnow().isoformat()}
+
+    def term_already_suggested(self, term: str) -> bool:
+        return term in self.data["search_terms_suggested"]
+
+    def mark_term_suggested(self, term: str):
+        if term not in self.data["search_terms_suggested"]:
+            self.data["search_terms_suggested"].append(term)
+
+    def competitor_already_seen(self, repo: str) -> bool:
+        return repo in self.data["competitors_seen"]
+
+    def mark_competitor_seen(self, repo: str):
+        if repo not in self.data["competitors_seen"]:
+            self.data["competitors_seen"].append(repo)
+
+    def endpoint_alerted_today(self, endpoint: str) -> bool:
+        today = datetime.utcnow().strftime("%Y-%m-%d")
+        return self.data["endpoints_alerted"].get(endpoint) == today
+
+    def mark_endpoint_alerted(self, endpoint: str):
+        self.data["endpoints_alerted"][endpoint] = datetime.utcnow().strftime("%Y-%m-%d")
+
+    def clear_endpoint_alert(self, endpoint: str):
+        self.data["endpoints_alerted"].pop(endpoint, None)
+
+
+IRRELEVANT_KEYWORDS = [
+    "chinese", "leetcode", "interview", "tutorial",
+    "shop", "mall", "blog", "cms", "admin",
+    "wechat", "android", "ios",
+    "spring", "springboot", "springcloud", "mybatis", "thinkphp",
+    "laravel", "django", "flask", "crawler", "spider",
+    "game", "music", "video",
+    "php", "java", "golang", "rust", "ruby", "swift",
+    "vpn", "proxy", "shadowsocks", "v2ray", "trojan",
+    "docker", "kubernetes", "k8s", "devops", "linux",
+    "blockchain", "bitcoin", "crypto", "stock",
+    "awesome-go", "awesome-python", "awesome-java", "awesome-rust",
+    "finance", "trading", "compression", "security", "json",
+    "nacos", "consul", "eureka", "pageindex", "service-mesh",
+]
+
+RELEVANT_KEYWORDS = [
+    "agent", "mcp", "autonomous agent",
+    "discovery", "registry", "directory",
+    "langchain", "crewai", "autogen",
+    "function-calling", "tool-use", "a2a", "agent2agent",
+    "agentic", "multi-agent", "agent framework",
+]
+
+EXISTING_SEARCH_TERMS = [
+    "ai-agent", "ai agent framework", "autonomous agent", "llm agent",
+    "mcp-server", "mcp server", "model context protocol", "mcp tool",
+    "langchain agent", "crewai agent", "autogen agent", "llamaindex agent",
+    "coding agent", "research agent", "agent framework python",
+    "agent orchestration", "multi-agent system", "agent2agent", "a2a protocol",
+]
+
+
+def _is_relevant(repo: dict) -> bool:
+    name = (repo.get("name", "") or "").lower()
+    desc = (repo.get("description", "") or "").lower()
+    full = name + " " + desc
+    has_relevant = any(kw in full for kw in RELEVANT_KEYWORDS)
+    if not has_relevant:
+        return False
+    irrelevant_count = sum(1 for kw in IRRELEVANT_KEYWORDS if kw in full)
+    if irrelevant_count >= 2:
+        return False
+    return True
+
+
+def _is_english(text: str) -> bool:
+    if not text:
+        return False
+    cjk_count = sum(1 for c in text if 0x4E00 <= ord(c) <= 0x9FFF)
+    if cjk_count > 2:
+        return False
+    ascii_count = sum(1 for c in text if ord(c) < 128)
+    return (ascii_count / len(text)) > 0.85
 
 
 class Missionary:
@@ -42,9 +194,12 @@ class Missionary:
             "Authorization": f"token {GITHUB_TOKEN}",
             "Accept": "application/vnd.github.v3+json",
         }
+        self.state = MissionaryState()
         self.report = {
             "timestamp": datetime.utcnow().isoformat(),
             "actions": [],
+            "actions_created": 0,
+            "actions_skipped": 0,
             "stats": {},
             "new_channels": [],
             "new_sources": [],
@@ -53,122 +208,18 @@ class Missionary:
             "presence_tracker": {},
         }
 
-    # --- Filters ---
-
-    IRRELEVANT_KEYWORDS = [
-        "chinese", "中文", "leetcode", "interview", "面试", "课程",
-        "tutorial", "学习", "笔记", "shop", "mall", "商城", "电商",
-        "blog", "博客", "cms", "admin", "后台", "管理系统",
-        "wechat", "微信", "weixin", "小程序", "android", "ios",
-        "spring", "springboot", "springcloud", "mybatis", "thinkphp",
-        "laravel", "django", "flask", "爬虫", "crawler", "spider",
-        "game", "游戏", "music", "音乐", "video", "视频",
-        "php", "java", "golang", "rust", "ruby", "swift",
-        "vpn", "proxy", "shadowsocks", "v2ray", "trojan",
-        "docker", "kubernetes", "k8s", "devops", "linux",
-        "blockchain", "bitcoin", "crypto", "stock", "量化",
-        "awesome-go", "awesome-python", "awesome-java", "awesome-rust",
-        "finance", "trading", "compression", "security", "json",
-        "nacos", "consul", "eureka", "pageindex", "service-mesh",
-        "kubernetes", "操作", "数据", "算法", "编程",
-    ]
-
-    RELEVANT_KEYWORDS = [
-        "agent", "mcp", "autonomous agent",
-        "discovery", "registry", "directory",
-        "langchain", "crewai", "autogen",
-        "function-calling", "tool-use", "a2a", "agent2agent",
-        "agentic", "multi-agent", "agent framework",
-    ]
-
-    def _is_relevant(self, repo: dict) -> bool:
-        """Check if a repo is relevant to agent/MCP ecosystem."""
-        name = (repo.get("name", "") or "").lower()
-        desc = (repo.get("description", "") or "").lower()
-        full = name + " " + desc
-
-        # Must have at least one relevant keyword
-        has_relevant = any(kw in full for kw in self.RELEVANT_KEYWORDS)
-        if not has_relevant:
-            return False
-
-        # Must not be dominated by irrelevant keywords
-        irrelevant_count = sum(1 for kw in self.IRRELEVANT_KEYWORDS if kw in full)
-        if irrelevant_count >= 2:
-            return False
-
-        return True
-
-    def _is_english(self, text: str) -> bool:
-        """Check if text is primarily English/ASCII."""
-        if not text:
-            return False
-        # Reject if contains CJK characters
-        cjk_count = sum(1 for c in text if 0x4E00 <= ord(c) <= 0x9FFF)
-        if cjk_count > 2:
-            return False
-        ascii_count = sum(1 for c in text if ord(c) < 128)
-        return (ascii_count / len(text)) > 0.85
-
-    # --- Filters ---
-
-    IRRELEVANT_KEYWORDS = [
-        "chinese", "中文", "leetcode", "interview", "面试", "课程",
-        "tutorial", "学习", "笔记", "shop", "mall", "商城", "电商",
-        "blog", "博客", "cms", "admin", "后台", "管理系统",
-        "wechat", "微信", "weixin", "小程序", "android", "ios",
-        "spring", "springboot", "springcloud", "mybatis", "thinkphp",
-        "laravel", "django", "flask", "爬虫", "crawler", "spider",
-        "game", "游戏", "music", "音乐", "video", "视频",
-        "php", "java", "golang", "rust", "ruby", "swift",
-        "vpn", "proxy", "shadowsocks", "v2ray", "trojan",
-        "docker", "kubernetes", "k8s", "devops", "linux",
-        "blockchain", "bitcoin", "crypto", "stock", "量化",
-        "awesome-go", "awesome-python", "awesome-java", "awesome-rust",
-        "finance", "trading", "compression", "security", "json",
-        "nacos", "consul", "eureka", "pageindex", "service-mesh",
-        "kubernetes", "操作", "数据", "算法", "编程",
-    ]
-
-    RELEVANT_KEYWORDS = [
-        "agent", "mcp", "autonomous agent",
-        "discovery", "registry", "directory",
-        "langchain", "crewai", "autogen",
-        "function-calling", "tool-use", "a2a", "agent2agent",
-        "agentic", "multi-agent", "agent framework",
-    ]
-
-    def _is_relevant(self, repo: dict) -> bool:
-        """Check if a repo is relevant to agent/MCP ecosystem."""
-        name = (repo.get("name", "") or "").lower()
-        desc = (repo.get("description", "") or "").lower()
-        full = name + " " + desc
-
-        # Must have at least one relevant keyword
-        has_relevant = any(kw in full for kw in self.RELEVANT_KEYWORDS)
-        if not has_relevant:
-            return False
-
-        # Must not be dominated by irrelevant keywords
-        irrelevant_count = sum(1 for kw in self.IRRELEVANT_KEYWORDS if kw in full)
-        if irrelevant_count >= 2:
-            return False
-
-        return True
-
-    def _is_english(self, text: str) -> bool:
-        """Check if text is primarily English/ASCII."""
-        if not text:
-            return False
-        # Reject if contains CJK characters
-        cjk_count = sum(1 for c in text if 0x4E00 <= ord(c) <= 0x9FFF)
-        if cjk_count > 2:
-            return False
-        ascii_count = sum(1 for c in text if ord(c) < 128)
-        return (ascii_count / len(text)) > 0.85
+    def _add_action_if_new(self, action_type: str, title: str, details: dict = None) -> bool:
+        before_count = len(load_queue())
+        add_action(action_type, title, details)
+        after_count = len(load_queue())
+        if after_count > before_count:
+            self.report['actions_created'] += 1
+            return True
+        self.report['actions_skipped'] += 1
+        return False
 
     def run_daily(self) -> dict:
-        logger.info("Missionary 2.0 daily run starting...")
+        logger.info("Missionary 2.0 daily run starting (idempotent mode)...")
         self._collect_stats()
         self._scan_awesome_lists()
         self._scan_registries()
@@ -178,8 +229,11 @@ class Missionary:
         self._track_presence()
         self._generate_pr_texts()
         self._auto_update_repo_stats()
+        self.state.save()
         self._save_report()
-        logger.info(f"Missionary 2.0 complete. Actions: {len(self.report['actions'])}")
+        created = self.report["actions_created"]
+        skipped = self.report["actions_skipped"]
+        logger.info(f"Missionary 2.0 complete. Actions created: {created}, skipped (dedup): {skipped}")
         return self.report
 
     def _collect_stats(self):
@@ -187,7 +241,7 @@ class Missionary:
             response = self.client.get(f"{API_ENDPOINT}/v1/stats")
             if response.status_code == 200:
                 self.report["stats"] = response.json()
-                logger.info(f"Stats collected")
+                logger.info("Stats collected")
         except Exception as e:
             logger.error(f"Failed to collect stats: {e}")
         try:
@@ -210,27 +264,12 @@ class Missionary:
         except Exception as e:
             logger.error(f"DB stats error: {e}")
 
-    AWESOME_LISTS = [
-        {"repo": "punkpeye/awesome-mcp-servers", "name": "Awesome MCP Servers", "stars": 30000, "pr_status": "submitted"},
-        {"repo": "e2b-dev/awesome-ai-agents", "name": "Awesome AI Agents", "stars": 10000, "pr_status": "not_submitted"},
-        {"repo": "kyrolabs/awesome-langchain", "name": "Awesome LangChain", "stars": 7000, "pr_status": "not_submitted"},
-        {"repo": "f/awesome-chatgpt-prompts", "name": "Awesome ChatGPT Prompts", "stars": 100000, "pr_status": "not_relevant"},
-        {"repo": "Shubhamsaboo/awesome-llm-apps", "name": "Awesome LLM Apps", "stars": 5000, "pr_status": "not_submitted"},
-        {"repo": "filipecalegario/awesome-generative-ai", "name": "Awesome Generative AI", "stars": 5000, "pr_status": "not_submitted"},
-        {"repo": "aimerou/awesome-ai-papers", "name": "Awesome AI Papers", "stars": 3000, "pr_status": "not_relevant"},
-        {"repo": "mahseema/awesome-ai-tools", "name": "Awesome AI Tools", "stars": 3000, "pr_status": "not_submitted"},
-    ]
-
     def _scan_awesome_lists(self):
         logger.info("Scanning for awesome lists...")
         search_queries = [
-            "awesome ai agents",
-            "awesome mcp",
-            "awesome llm tools",
-            "awesome autonomous agents",
-            "awesome agent framework",
+            "awesome ai agents", "awesome mcp",
+            "awesome llm tools", "awesome autonomous agents", "awesome agent framework",
         ]
-        found_lists = []
         for query in search_queries:
             try:
                 response = self.client.get(
@@ -242,74 +281,67 @@ class Missionary:
                     for repo in response.json().get("items", []):
                         repo_full = repo["full_name"]
                         stars = repo.get("stargazers_count", 0)
-                        if stars > 1000 and repo_full not in [a["repo"] for a in self.AWESOME_LISTS]:
-                            desc = repo.get("description", "") or ""
-                            if self._is_english(desc) and self._is_relevant(repo):
-                                found_lists.append({
-                                    "repo": repo_full,
-                                    "name": repo["name"],
-                                    "stars": stars,
-                                    "description": desc,
-                                    "url": repo["html_url"],
-                                })
+                        desc = repo.get("description", "") or ""
+                        if not self.state.awesome_list_needs_tracking(repo_full):
+                            continue
+                        if stars > 1000 and _is_english(desc) and _is_relevant(repo):
+                            info = {
+                                "name": repo["name"], "stars": stars,
+                                "pr_status": "not_submitted",
+                                "discovered_at": datetime.utcnow().isoformat(),
+                            }
+                            self.state.set_awesome_list(repo_full, info)
+                            self.report["actions"].append(f"NEW AWESOME LIST: {repo['name']} ({stars}*)")
+                            self._add_action_if_new(
+                                "add_awesome_list", f"Track: {repo['name']}",
+                                {"repo": repo_full, "name": repo["name"], "stars": stars, "url": repo["html_url"]},
+                            )
+                            self.report["new_channels"].append({
+                                "repo": repo_full, "name": repo["name"],
+                                "stars": stars, "description": desc, "url": repo["html_url"],
+                            })
             except Exception as e:
                 logger.error(f"GitHub search error for '{query}': {e}")
-        if found_lists:
-            seen = set()
-            unique = []
-            for lst in found_lists:
-                if lst["repo"] not in seen:
-                    seen.add(lst["repo"])
-                    unique.append(lst)
-                    self.report["actions"].append(
-                        f"NEW AWESOME LIST: {lst['name']} ({lst['stars']}*) - {lst['url']}"
-                    )
-                    add_action("add_awesome_list", f"Track: {lst['name']}",
-                              {"repo": lst["repo"], "name": lst["name"], "stars": lst["stars"], "url": lst["url"]})
-            self.report["new_channels"].extend(unique)
-            logger.info(f"Found {len(unique)} new awesome lists")
-        for lst in self.AWESOME_LISTS:
-            if lst["pr_status"] == "submitted":
-                self._check_pr_status(lst)
 
-    def _check_pr_status(self, awesome_list):
+        for repo, info in self.state.data["awesome_lists"].items():
+            if info.get("pr_status") == "submitted":
+                self._check_pr_status(repo, info)
+
+    def _check_pr_status(self, repo: str, info: dict):
         try:
             response = self.client.get(
-                f"https://api.github.com/repos/{awesome_list['repo']}/pulls",
+                f"https://api.github.com/repos/{repo}/pulls",
                 params={"state": "all", "per_page": 20},
                 headers=self.github_headers,
             )
             if response.status_code == 200:
                 for pr in response.json():
-                    if "agentindex" in pr.get("title", "").lower() or "agentcrawl" in pr.get("title", "").lower():
+                    title = pr.get("title", "").lower()
+                    if "agentindex" in title or "agentcrawl" in title:
                         state = pr["state"]
                         merged = pr.get("merged_at") is not None
                         if merged:
-                            self.report["actions"].append(f"PR MERGED: {awesome_list['name']}")
+                            info["pr_status"] = "merged"
+                            self.report["actions"].append(f"PR MERGED: {info['name']}")
                         elif state == "closed":
-                            self.report["actions"].append(f"PR CLOSED: {awesome_list['name']} - consider resubmitting")
+                            info["pr_status"] = "closed"
+                            self.report["actions"].append(f"PR CLOSED: {info['name']} - consider resubmitting")
                         else:
-                            self.report["actions"].append(f"PR PENDING: {awesome_list['name']} - waiting for review")
+                            self.report["actions"].append(f"PR PENDING: {info['name']} - waiting for review")
                         return
         except Exception as e:
-            logger.error(f"PR status check error: {e}")
-
-    REGISTRIES = [
-        {"name": "Smithery", "url": "https://smithery.ai/server/agentidx/agentcrawl", "status": "listed"},
-        {"name": "MCP Hub", "url": "https://mcphub.io", "status": "not_registered"},
-        {"name": "Glama", "url": "https://glama.ai/mcp/servers", "status": "not_registered"},
-        {"name": "PulseMCP", "url": "https://pulsemcp.com", "status": "not_registered"},
-        {"name": "mcp.run", "url": "https://mcp.run", "status": "not_registered"},
-        {"name": "Composio MCP", "url": "https://composio.dev/mcp", "status": "not_registered"},
-    ]
+            logger.error(f"PR status check error for {repo}: {e}")
 
     def _scan_registries(self):
         logger.info("Scanning MCP registries...")
-        for registry in self.REGISTRIES:
-            if registry["status"] == "not_registered":
-                self.report["actions"].append(f"REGISTER: {registry['name']} at {registry['url']}")
-                add_action("register_registry", f"Register: {registry['name']}",
-                          {"name": registry["name"], "url": registry["url"]})
+        for key, info in self.state.data["registries"].items():
+            if self.state.registry_needs_action(key):
+                self._add_action_if_new(
+                    "register_registry", f"Register: {info['name']}",
+                    {"name": info["name"], "url": info["url"], "registry_key": key},
+                )
+                self.report["actions"].append(f"REGISTER: {info['name']} at {info['url']}")
+
         try:
             response = self.client.get(
                 "https://api.github.com/search/repositories",
@@ -319,14 +351,17 @@ class Missionary:
             if response.status_code == 200:
                 for repo in response.json().get("items", []):
                     name = repo["full_name"]
-                    if name not in [r.get("repo", "") for r in self.REGISTRIES]:
-                        stars = repo.get("stargazers_count", 0)
-                        if stars > 500 and self._is_relevant(repo) and self._is_english(repo.get("description", "") or ""):
+                    stars = repo.get("stargazers_count", 0)
+                    if stars > 500 and _is_relevant(repo) and _is_english(repo.get("description", "") or ""):
+                        if not self.state.channel_already_discovered(name):
+                            self.state.add_discovered_channel(name, {
+                                "type": "registry", "name": repo["name"], "stars": stars,
+                            })
                             self.report["new_channels"].append({
                                 "type": "registry", "name": repo["name"],
                                 "repo": name, "stars": stars, "url": repo["html_url"],
                             })
-                            self.report["actions"].append(f"NEW REGISTRY: {repo['name']} ({stars}*) - {repo['html_url']}")
+                            self.report["actions"].append(f"NEW REGISTRY: {repo['name']} ({stars}*)")
         except Exception as e:
             logger.error(f"Registry scan error: {e}")
 
@@ -345,13 +380,18 @@ class Missionary:
                 )
                 if response.status_code == 200:
                     for repo in response.json().get("items", []):
+                        repo_full = repo["full_name"]
                         stars = repo.get("stargazers_count", 0)
-                        if stars > 1000 and self._is_relevant(repo) and self._is_english(repo.get("description", "") or ""):
-                            self.report["new_channels"].append({
-                                "type": "directory", "name": repo["name"],
-                                "stars": stars, "url": repo["html_url"],
-                                "description": repo.get("description", ""),
-                            })
+                        if stars > 1000 and _is_relevant(repo) and _is_english(repo.get("description", "") or ""):
+                            if not self.state.channel_already_discovered(repo_full):
+                                self.state.add_discovered_channel(repo_full, {
+                                    "type": "directory", "name": repo["name"], "stars": stars,
+                                })
+                                self.report["new_channels"].append({
+                                    "type": "directory", "name": repo["name"],
+                                    "stars": stars, "url": repo["html_url"],
+                                    "description": repo.get("description", ""),
+                                })
             except Exception as e:
                 logger.error(f"Channel search error: {e}")
 
@@ -368,27 +408,21 @@ class Missionary:
                 )
                 if response.status_code == 200:
                     for repo in response.json().get("items", []):
-                        topics = repo.get("topics", [])
-                        for topic in topics:
-                            if topic not in self._get_existing_search_terms() and "agent" in topic:
+                        for topic in repo.get("topics", []):
+                            if (topic not in EXISTING_SEARCH_TERMS
+                                and "agent" in topic
+                                and not self.state.term_already_suggested(topic)):
                                 new_terms.append(topic)
             except Exception as e:
                 logger.error(f"Search term suggestion error: {e}")
+
         unique_terms = list(set(new_terms))[:10]
         if unique_terms:
             self.report["new_search_terms"] = unique_terms
-            self.report["actions"].append(f"NEW SEARCH TERMS: Consider adding: {', '.join(unique_terms)}")
+            self.report["actions"].append(f"NEW SEARCH TERMS: {', '.join(unique_terms)}")
             for term in unique_terms[:5]:
-                add_action("add_search_term", f"Add search term: {term}", {"term": term})
-
-    def _get_existing_search_terms(self):
-        return [
-            "ai-agent", "ai agent framework", "autonomous agent", "llm agent",
-            "mcp-server", "mcp server", "model context protocol", "mcp tool",
-            "langchain agent", "crewai agent", "autogen agent", "llamaindex agent",
-            "coding agent", "research agent", "agent framework python",
-            "agent orchestration", "multi-agent system", "agent2agent", "a2a protocol",
-        ]
+                self.state.mark_term_suggested(term)
+                self._add_action_if_new("add_search_term", f"Add search term: {term}", {"term": term})
 
     def _monitor_competitors(self):
         logger.info("Monitoring competitors...")
@@ -396,6 +430,7 @@ class Missionary:
             "agent discovery service", "agent registry api",
             "mcp server discovery", "ai agent index", "agent directory api",
         ]
+        skip_names = ["nacos", "pageindex", "consul", "eureka", "etcd", "zookeeper"]
         for query in competitor_queries:
             try:
                 response = self.client.get(
@@ -406,16 +441,20 @@ class Missionary:
                 if response.status_code == 200:
                     for repo in response.json().get("items", []):
                         name = repo["full_name"]
-                        if "agentidx" not in name and "agentindex" not in name.lower():
-                            stars = repo.get("stargazers_count", 0)
-                            if stars > 200 and self._is_relevant(repo) and self._is_english(repo.get("description", "") or "") and repo["name"].lower() not in ["nacos", "pageindex", "consul", "eureka", "etcd", "zookeeper"]:
-                                self.report["competitors"].append({
-                                    "name": repo["name"], "repo": name, "stars": stars,
-                                    "description": repo.get("description", ""),
-                                    "url": repo["html_url"], "updated": repo.get("updated_at", ""),
-                                })
+                        if "agentidx" in name or "agentindex" in name.lower():
+                            continue
+                        stars = repo.get("stargazers_count", 0)
+                        if (stars > 200 and _is_relevant(repo)
+                            and _is_english(repo.get("description", "") or "")
+                            and repo["name"].lower() not in skip_names):
+                            self.report["competitors"].append({
+                                "name": repo["name"], "repo": name, "stars": stars,
+                                "description": repo.get("description", ""),
+                                "url": repo["html_url"], "updated": repo.get("updated_at", ""),
+                            })
             except Exception as e:
                 logger.error(f"Competitor search error: {e}")
+
         if self.report["competitors"]:
             top = sorted(self.report["competitors"], key=lambda x: x["stars"], reverse=True)[:5]
             self.report["actions"].append(
@@ -423,19 +462,23 @@ class Missionary:
                 ", ".join(f"{c['name']} ({c['stars']}*)" for c in top)
             )
             for c in top:
-                add_action("new_competitor", f"Competitor: {c['name']}",
-                          {"name": c["name"], "stars": c["stars"], "url": c["url"]})
+                if not self.state.competitor_already_seen(c["repo"]):
+                    self.state.mark_competitor_seen(c["repo"])
+                    self._add_action_if_new(
+                        "new_competitor", f"Competitor: {c['name']}",
+                        {"name": c["name"], "stars": c["stars"], "url": c["url"]},
+                    )
 
     def _track_presence(self):
         logger.info("Tracking presence...")
         presence = {
-            "api": {"url": "https://api.agentcrawl.dev", "status": "unknown"},
-            "dashboard": {"url": "https://dash.agentcrawl.dev", "status": "unknown"},
-            "mcp_sse": {"url": "https://mcp.agentcrawl.dev", "status": "unknown"},
-            "github": {"url": "https://github.com/agentidx/agentindex", "status": "unknown"},
-            "pypi": {"url": "https://pypi.org/project/agentcrawl/", "status": "unknown", "version": "0.3.1"},
-            "npm": {"url": "https://www.npmjs.com/package/@agentidx/sdk", "status": "unknown", "version": "0.3.0", "needs_update": True},
-            "smithery": {"url": "https://smithery.ai/server/agentidx/agentcrawl", "status": "unknown"},
+            "api": {"url": "https://api.agentcrawl.dev"},
+            "dashboard": {"url": "https://dash.agentcrawl.dev"},
+            "mcp_sse": {"url": "https://mcp.agentcrawl.dev"},
+            "github": {"url": "https://github.com/agentidx/agentindex"},
+            "pypi": {"url": "https://pypi.org/project/agentcrawl/"},
+            "npm": {"url": "https://www.npmjs.com/package/@agentidx/sdk"},
+            "smithery": {"url": "https://smithery.ai/server/agentidx/agentcrawl"},
         }
         for name, info in presence.items():
             try:
@@ -444,35 +487,55 @@ class Missionary:
                 info["status"] = "live" if response.status_code < 400 else "down"
             except Exception:
                 info["status"] = "unreachable"
+
         self.report["presence_tracker"] = presence
         down = [k for k, v in presence.items() if v["status"] != "live"]
         if down:
             self.report["actions"].append(f"ALERT: Endpoints down: {', '.join(down)}")
             for ep in down:
-                add_action("endpoint_down", f"Endpoint down: {ep}",
-                          {"endpoint": ep, "url": presence[ep].get("url", "")})
+                if not self.state.endpoint_alerted_today(ep):
+                    self.state.mark_endpoint_alerted(ep)
+                    self._add_action_if_new(
+                        "endpoint_down", f"Endpoint down: {ep}",
+                        {"endpoint": ep, "url": presence[ep].get("url", "")},
+                    )
+        for ep in list(self.state.data["endpoints_alerted"].keys()):
+            if ep not in down:
+                self.state.clear_endpoint_alert(ep)
 
     def _generate_pr_texts(self):
         stats = self.report.get("stats", {})
         total = stats.get("total_active", 20000)
         sources = stats.get("sources", {})
         categories = list(stats.get("top_categories", {}).keys())[:10]
+
         pr_texts = {}
         pr_texts["awesome-ai-agents"] = {
             "title": "Add AgentIndex - AI agent discovery platform",
-            "body": f"## AgentIndex\n\n**Discovery platform for AI agents.** Find any AI agent by capability - search {total:,}+ indexed agents across {len(sources)} sources.\n\n- **API:** https://api.agentcrawl.dev\n- **MCP Server:** [Smithery](https://smithery.ai/server/agentidx/agentcrawl)\n- **SDK:** `pip install agentcrawl` | `npm install @agentidx/sdk`\n- **GitHub:** https://github.com/agentidx/agentindex\n\n### What it does\nAgentIndex crawls and indexes all publicly available AI agents (GitHub, npm, MCP, HuggingFace) so that agents can automatically discover and hire other agents.\n\n### Categories\n{', '.join(categories)}\n\n### Usage\n```python\nfrom agentcrawl import discover\nagents = discover('code review', min_quality=0.7)\n```\n",
-        }
-        pr_texts["awesome-langchain"] = {
-            "title": "Add AgentIndex - agent discovery for LangChain projects",
-            "body": f"## AgentIndex\n\nDiscovery API for finding AI agents by capability. Index of {total:,}+ agents.\n\n- **API:** https://api.agentcrawl.dev\n- **SDK:** `pip install agentcrawl`\n- **MCP Server:** [Smithery](https://smithery.ai/server/agentidx/agentcrawl)\n- **GitHub:** https://github.com/agentidx/agentindex\n\n```python\nfrom agentcrawl import discover\nagents = discover('data analysis agent', protocols=['rest'])\n```\n",
+            "body": (
+                f"## AgentIndex\n\n"
+                f"**Discovery platform for AI agents.** Find any AI agent by capability - "
+                f"search {total:,}+ indexed agents across {len(sources)} sources.\n\n"
+                f"- **API:** https://api.agentcrawl.dev\n"
+                f"- **MCP Server:** [Smithery](https://smithery.ai/server/agentidx/agentcrawl)\n"
+                f"- **SDK:** `pip install agentcrawl` | `npm install @agentidx/sdk`\n"
+                f"- **GitHub:** https://github.com/agentidx/agentindex\n\n"
+                f"### What it does\n"
+                f"AgentIndex crawls and indexes all publicly available AI agents so that agents "
+                f"can automatically discover and hire other agents.\n\n"
+                f"### Categories\n{', '.join(categories)}\n\n"
+                f"### Usage\n```python\nfrom agentcrawl import discover\n"
+                f"agents = discover('code review', min_quality=0.7)\n```\n"
+            ),
         }
         self.report["pr_texts"] = pr_texts
-        for name in ["awesome-ai-agents", "awesome-langchain"]:
-            lst = next((a for a in self.AWESOME_LISTS if name.replace("-", " ") in a["name"].lower()), None)
-            if lst and lst.get("pr_status") == "not_submitted":
-                self.report["actions"].append(f"SUBMIT PR: {name} - PR text ready in report")
-                add_action("submit_pr", f"PR: {name}",
-                          {"repo": lst["repo"], "title": pr_texts[name]["title"], "body": pr_texts[name]["body"]})
+
+        for repo, info in self.state.data["awesome_lists"].items():
+            if info.get("pr_status") == "not_submitted":
+                self._add_action_if_new(
+                    "submit_pr", f"PR: {info['name']}",
+                    {"repo": repo, "name": info["name"]},
+                )
 
     def _auto_update_repo_stats(self):
         stats = self.report.get("stats", {})
@@ -484,16 +547,14 @@ class Missionary:
             if os.path.exists(agent_md_path):
                 with open(agent_md_path, "r") as f:
                     content = f.read()
-                content = re.sub(
-                    r'description:.*',
-                    f'description: Discovery service for AI agents. {total:,}+ agents indexed across GitHub, npm, MCP, HuggingFace.',
-                    content, count=1,
-                )
-                with open(agent_md_path, "w") as f:
-                    f.write(content)
-                self.report["actions"].append(f"UPDATED: agent.md with {total:,} agents")
-                add_action("update_agent_md", "Update agent.md", {"total": total})
-                logger.info(f"Updated agent.md with {total:,} agents")
+                new_desc = f'description: Discovery service for AI agents. {total:,}+ agents indexed across GitHub, npm, MCP, HuggingFace.'
+                if new_desc not in content:
+                    content = re.sub(r'description:.*', new_desc, content, count=1)
+                    with open(agent_md_path, "w") as f:
+                        f.write(content)
+                    self.report["actions"].append(f"UPDATED: agent.md with {total:,} agents")
+                    self._add_action_if_new("update_agent_md", "Update agent.md", {"total": total})
+                    logger.info(f"Updated agent.md with {total:,} agents")
         except Exception as e:
             logger.error(f"Failed to update agent.md: {e}")
 
@@ -517,11 +578,14 @@ class Missionary:
         summary += f"## Index Stats\n- **Total active agents:** {stats.get('total_active', 'N/A')}\n"
         summary += f"- **Sources:** {json.dumps(stats.get('sources', {}))}\n"
         summary += f"- **Pipeline:** {json.dumps(stats.get('pipeline', {}))}\n\n"
+        summary += f"## Idempotency Stats\n"
+        summary += f"- Actions created: {self.report['actions_created']}\n"
+        summary += f"- Actions skipped (dedup): {self.report['actions_skipped']}\n\n"
         summary += "## Presence Status\n"
         for name, info in presence.items():
             emoji = "+" if info.get("status") == "live" else "X"
             summary += f"- [{emoji}] **{name}**: {info.get('url', 'N/A')} ({info.get('status', 'unknown')})\n"
-        summary += f"\n## Actions Required ({len(actions)})\n"
+        summary += f"\n## Actions ({len(actions)})\n"
         for i, action in enumerate(actions, 1):
             summary += f"{i}. {action}\n"
         if self.report.get("new_search_terms"):
@@ -532,13 +596,8 @@ class Missionary:
             for c in top_competitors:
                 desc = (c.get("description", "N/A") or "N/A")[:100]
                 summary += f"- **{c['name']}** ({c['stars']}*): {desc}\n"
-        if self.report.get("pr_texts"):
-            summary += "\n## Ready PR Texts\n"
-            for name, pr in self.report["pr_texts"].items():
-                summary += f"### {name}\n**Title:** {pr['title']}\n\n"
         return summary
 
-    # Legacy compatibility
     def generate_all_artifacts(self, output_dir="./missionary_output"):
         self.run_daily()
 
@@ -552,6 +611,6 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(name)s] %(levelname)s: %(message)s")
     missionary = Missionary()
     report = missionary.run_daily()
-    print(f"\nActions: {len(report['actions'])}")
+    print(f"\nActions created: {report['actions_created']}, skipped: {report['actions_skipped']}")
     for action in report["actions"]:
         print(f"  -> {action}")

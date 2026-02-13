@@ -6,14 +6,15 @@ Manages pending actions with approval workflow:
 - APPROVAL: shown in dashboard, waits for approve/reject
 - NOTIFY: shown in dashboard, no action needed
 
-Actions are stored in ~/agentindex/action_queue.json
+REFACTOR v3: Stronger dedup, atomic writes, normalized keys.
 """
 
 import json
 import logging
 import os
+import re
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Optional
 
 logger = logging.getLogger("agentindex.action_queue")
@@ -28,25 +29,17 @@ class ActionLevel:
     NOTIFY = "notify"
 
 
-# Define which action types map to which level
 ACTION_LEVELS = {
-    # Auto-execute
     "update_agent_md": ActionLevel.AUTO,
     "add_search_term": ActionLevel.AUTO,
     "check_endpoint": ActionLevel.AUTO,
-
-    # Needs approval
     "submit_pr": ActionLevel.APPROVAL,
     "register_registry": ActionLevel.APPROVAL,
     "add_awesome_list": ActionLevel.APPROVAL,
     "add_spider_source": ActionLevel.APPROVAL,
-
-    # Notify only
     "new_competitor": ActionLevel.NOTIFY,
     "endpoint_down": ActionLevel.NOTIFY,
     "pr_status_update": ActionLevel.NOTIFY,
-
-    # Spionen (Competitor Intelligence)
     "spy_new_competitor": ActionLevel.NOTIFY,
     "spy_implement_feature": ActionLevel.APPROVAL,
     "spy_improve_visibility": ActionLevel.NOTIFY,
@@ -58,33 +51,87 @@ ACTION_LEVELS = {
 }
 
 
+def _safe_load_json(path: str) -> list:
+    if not os.path.exists(path):
+        return []
+    try:
+        with open(path) as f:
+            data = json.load(f)
+        if isinstance(data, list):
+            return data
+        logger.warning(f"JSON at {path} is not a list, resetting")
+        return []
+    except (json.JSONDecodeError, Exception) as e:
+        logger.error(f"Failed to load {path}: {e}")
+        try:
+            with open(path) as f:
+                raw = f.read().strip()
+            if raw.startswith("["):
+                last_brace = raw.rfind("}")
+                if last_brace > 0:
+                    candidate = raw[:last_brace + 1] + "]"
+                    data = json.loads(candidate)
+                    logger.info(f"Recovered {len(data)} items from corrupt {path}")
+                    return data
+        except Exception:
+            pass
+        return []
+
+
+def _safe_save_json(path: str, data: list):
+    tmp_path = path + ".tmp"
+    try:
+        with open(tmp_path, "w") as f:
+            json.dump(data, f, indent=2, default=str)
+        os.replace(tmp_path, path)
+    except Exception as e:
+        logger.error(f"Failed to save {path}: {e}")
+        try:
+            with open(path, "w") as f:
+                json.dump(data, f, indent=2, default=str)
+        except Exception as e2:
+            logger.error(f"Fallback save also failed for {path}: {e2}")
+
+
+def _dedup_key(action_type: str, title: str) -> str:
+    normalized = re.sub(r'\s*\(\d+\*?\)\s*', '', title).strip()
+    return f"{action_type}::{normalized}"
+
+
 def load_queue() -> list:
-    if os.path.exists(QUEUE_PATH):
-        with open(QUEUE_PATH) as f:
-            return json.load(f)
-    return []
+    return _safe_load_json(QUEUE_PATH)
 
 
 def save_queue(queue: list):
-    with open(QUEUE_PATH, "w") as f:
-        json.dump(queue, f, indent=2, default=str)
+    _safe_save_json(QUEUE_PATH, queue)
 
 
 def load_history() -> list:
-    if os.path.exists(HISTORY_PATH):
-        with open(HISTORY_PATH) as f:
-            return json.load(f)
-    return []
+    return _safe_load_json(HISTORY_PATH)
 
 
 def save_history(history: list):
-    with open(HISTORY_PATH, "w") as f:
-        json.dump(history, f, indent=2, default=str)
+    _safe_save_json(HISTORY_PATH, history)
 
 
 def add_action(action_type: str, title: str, details: dict = None) -> dict:
-    """Add an action to the queue."""
     level = ACTION_LEVELS.get(action_type, ActionLevel.NOTIFY)
+    queue = load_queue()
+    history = load_history()
+    key = _dedup_key(action_type, title)
+
+    for a in queue:
+        existing_key = _dedup_key(a.get("type", ""), a.get("title", ""))
+        if existing_key == key and a.get("status") not in ("rejected",):
+            logger.debug(f"Duplicate action skipped (in queue): {title}")
+            return a
+
+    for a in history:
+        existing_key = _dedup_key(a.get("type", ""), a.get("title", ""))
+        if existing_key == key:
+            logger.debug(f"Duplicate action skipped (in history): {title}")
+            return a
+
     action = {
         "id": str(uuid.uuid4())[:8],
         "type": action_type,
@@ -95,27 +142,6 @@ def add_action(action_type: str, title: str, details: dict = None) -> dict:
         "created": datetime.utcnow().isoformat(),
     }
 
-    queue = load_queue()
-
-    # Check for duplicates (same type + title) in ANY non-rejected status
-    existing = [a for a in queue if a["type"] == action_type and a["title"] == title and a["status"] in ("pending", "approved", "done")]
-    if existing:
-        logger.debug(f"Duplicate action skipped: {title}")
-        return existing[0]
-
-    # Also check history for recently completed actions (prevent re-generation)
-    try:
-        history = []
-        if os.path.exists(HISTORY_PATH):
-            with open(HISTORY_PATH) as f:
-                history = json.load(f)
-        hist_match = [a for a in history if a.get("type") == action_type and a.get("title") == title]
-        if hist_match:
-            logger.debug(f"Action already in history, skipped: {title}")
-            return hist_match[-1]
-    except Exception:
-        pass
-
     queue.append(action)
     save_queue(queue)
     logger.info(f"Action queued [{level}]: {title}")
@@ -123,7 +149,6 @@ def add_action(action_type: str, title: str, details: dict = None) -> dict:
 
 
 def approve_action(action_id: str) -> Optional[dict]:
-    """Approve a pending action."""
     queue = load_queue()
     for action in queue:
         if action["id"] == action_id and action["status"] == "pending":
@@ -136,7 +161,6 @@ def approve_action(action_id: str) -> Optional[dict]:
 
 
 def reject_action(action_id: str) -> Optional[dict]:
-    """Reject a pending action."""
     queue = load_queue()
     for action in queue:
         if action["id"] == action_id and action["status"] == "pending":
@@ -149,28 +173,29 @@ def reject_action(action_id: str) -> Optional[dict]:
 
 
 def get_pending_actions() -> list:
-    """Get all pending actions needing approval."""
     queue = load_queue()
     return [a for a in queue if a["status"] == "pending" and a["level"] == ActionLevel.APPROVAL]
 
 
 def get_approved_actions() -> list:
-    """Get approved actions ready for execution."""
     queue = load_queue()
     return [a for a in queue if a["status"] == "approved"]
 
 
-def get_all_actions() -> list:
-    """Get all actions grouped by status."""
+
+
+def get_auto_actions() -> list:
+    """Get pending auto-level actions ready for immediate execution."""
     queue = load_queue()
-    return queue
+    return [a for a in queue if a["status"] == "pending" and a["level"] == ActionLevel.AUTO]
+
+def get_all_actions() -> list:
+    return load_queue()
 
 
 def mark_executed(action_id: str, result: str = "success"):
-    """Mark an approved action as executed and move to history."""
     queue = load_queue()
     history = load_history()
-
     for i, action in enumerate(queue):
         if action["id"] == action_id:
             action["status"] = "executed"
@@ -179,40 +204,40 @@ def mark_executed(action_id: str, result: str = "success"):
             history.append(action)
             queue.pop(i)
             break
-
     save_queue(queue)
     save_history(history)
 
 
 def mark_dismissed(action_id: str):
-    """Dismiss a notify-only action."""
     queue = load_queue()
+    history = load_history()
     for i, action in enumerate(queue):
         if action["id"] == action_id:
             action["status"] = "dismissed"
+            action["dismissed_at"] = datetime.utcnow().isoformat()
+            history.append(action)
             queue.pop(i)
             break
     save_queue(queue)
+    save_history(history)
 
 
 def cleanup_old(days: int = 7):
-    """Remove old completed actions from queue."""
     queue = load_queue()
-    cutoff = datetime.utcnow().isoformat()[:10]
-    queue = [a for a in queue if a["status"] == "pending" or a.get("created", "")[:10] >= cutoff]
-    save_queue(queue)
+    cutoff = (datetime.utcnow() - timedelta(days=days)).strftime("%Y-%m-%d")
+    cleaned = [a for a in queue if a["status"] == "pending" or a.get("created", "")[:10] >= cutoff]
+    if len(cleaned) < len(queue):
+        logger.info(f"Cleanup: {len(queue)} -> {len(cleaned)}")
+        save_queue(cleaned)
 
 
 def cleanup_queue(max_age_days: int = 7):
-    """Remove old notify actions and duplicates."""
-    from datetime import timedelta
     queue = load_queue()
     cutoff = (datetime.utcnow() - timedelta(days=max_age_days)).isoformat()
-    
     cleaned = []
     seen = set()
     for a in queue:
-        key = (a.get("type", ""), a.get("title", ""))
+        key = _dedup_key(a.get("type", ""), a.get("title", ""))
         if key in seen:
             continue
         seen.add(key)
@@ -220,7 +245,6 @@ def cleanup_queue(max_age_days: int = 7):
             if a.get("created", "") < cutoff:
                 continue
         cleaned.append(a)
-    
     if len(cleaned) < len(queue):
         logger.info(f"Queue cleanup: {len(queue)} -> {len(cleaned)} actions")
         save_queue(cleaned)
