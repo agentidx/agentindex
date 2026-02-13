@@ -1301,5 +1301,282 @@
     "approved_at": "2026-02-12T15:30:10.266730",
     "executed_at": "2026-02-12T15:35:45.519139",
     "result": "PR text saved to /Users/anstudio/agentindex/missionary_reports/pr-kyrolabs-awesome-langchain.md \u2014 submit manually via GitHub"
+  },
+  {
+    "id": "83596ba8",
+    "type": "add_awesome_list",
+    "level": "approval",
+    "title": "Track: awesome-ai-apps (8903*)",
+    "details": {
+      "repo": "Arindam200/awesome-ai-apps",
+      "name": "awesome-ai-apps",
+      "stars": 8903,
+      "url": "https://github.com/Arindam200/awesome-ai-apps"
+    },
+    "status": "executed",
+    "created": "2026-02-12T15:33:34.597461",
+    "approved_at": "2026-02-12T16:11:10.355448",
+    "executed_at": "2026-02-12T16:20:41.682009",
+    "result": "Added awesome-ai-apps (Arindam200/awesome-ai-apps) to tracking list"
+  },
+  {
+    "id": "1fbd58e3",
+    "type": "add_awesome_list",
+    "level": "approval",
+    "title": "Track: antigravity-awesome-skills (8587*)",
+    "details": {
+      "repo": "sickn33/antigravity-awesome-skills",
+      "name": "antigravity-awesome-skills",
+      "stars": 8587,
+      "url": "https://github.com/sickn33/antigravity-awesome-skills"
+    },
+    "status": "executed",
+    "created": "2026-02-12T15:33:34.600285",
+    "approved_at": "2026-02-12T16:11:11.920616",
+    "executed_at": "2026-02-12T16:20:41.687886",
+    "result": "Added antigravity-awesome-skills (sickn33/antigravity-awesome-skills) to tracking list"
+  },
+  {
+    "id": "beb166da",
+    "type": "add_awesome_list",
+    "level": "approval",
+    "title": "Track: awesome-mcp-clients (6276*)",
+    "details": {
+      "repo": "punkpeye/awesome-mcp-clients",
+      "name": "awesome-mcp-clients",
+      "stars": 6276,
+      "url": "https://github.com/punkpeye/awesome-mcp-clients"
+    },
+    "status": "executed",
+    "created": "2026-02-12T15:33:34.602655",
+    "approved_at": "2026-02-12T16:11:12.918764",
+    "executed_at": "2026-02-12T16:20:41.692435",
+    "result": "Added awesome-mcp-clients (punkpeye/awesome-mcp-clients) to tracking list"
+  },
+  {
+    "id": "a6371537",
+    "type": "add_awesome_list",
+    "level": "approval",
+    "title": "Track: awesome-mcp-servers (5140*)",
+    "details": {
+      "repo": "appcypher/awesome-mcp-servers",
+      "name": "awesome-mcp-servers",
+      "stars": 5140,
+      "url": "https://github.com/appcypher/awesome-mcp-servers"
+    },
+    "status": "executed",
+    "created": "2026-02-12T15:33:34.604571",
+    "approved_at": "2026-02-12T16:11:13.471298",
+    "executed_at": "2026-02-12T16:20:41.696593",
+    "result": "Added awesome-mcp-servers (appcypher/awesome-mcp-servers) to tracking list"
+  },
+  {
+    "id": "e46d4760",
+    "type": "add_awesome_list",
+    "level": "approval",
+    "title": "Track: awesome-ai-sdks (1129*)",
+    "details": {
+      "repo": "e2b-dev/awesome-ai-sdks",
+      "name": "awesome-ai-sdks",
+      "stars": 1129,
+      "url": "https://github.com/e2b-dev/awesome-ai-sdks"
+    },
+    "status": "executed",
+    "created": "2026-02-12T15:33:34.606497",
+    "approved_at": "2026-02-12T16:11:14.335843",
+    "executed_at": "2026-02-12T16:20:41.700229",
+    "result": "Added awesome-ai-sdks (e2b-dev/awesome-ai-sdks) to tracking list"
+  },
+  {
+    "id": "b0003c06",
+    "type": "add_awesome_list",
+    "level": "approval",
+    "title": "Track: Awesome-Context-Engineering (2893*)",
+    "details": {
+      "repo": "Meirtz/Awesome-Context-Engineering",
+      "name": "Awesome-Context-Engineering",
+      "stars": 2893,
+      "url": "https://github.com/Meirtz/Awesome-Context-Engineering"
+    },
+    "status": "executed",
+    "created": "2026-02-12T15:33:34.609098",
+    "approved_at": "2026-02-12T16:11:15.903329",
+    "executed_at": "2026-02-12T16:20:41.703668",
+    "result": "Added Awesome-Context-Engineering (Meirtz/Awesome-Context-Engineering) to tracking list"
+  },
+  {
+    "id": "2d6f1826",
+    "type": "add_awesome_list",
+    "level": "approval",
+    "title": "Track: awesome-llm-agents (1312*)",
+    "details": {
+      "repo": "kaushikb11/awesome-llm-agents",
+      "name": "awesome-llm-agents",
+      "stars": 1312,
+      "url": "https://github.com/kaushikb11/awesome-llm-agents"
+    },
+    "status": "executed",
+    "created": "2026-02-12T15:33:34.611519",
+    "approved_at": "2026-02-12T16:11:16.945626",
+    "executed_at": "2026-02-12T16:20:41.706903",
+    "result": "Added awesome-llm-agents (kaushikb11/awesome-llm-agents) to tracking list"
+  },
+  {
+    "id": "4ba7c803",
+    "type": "add_awesome_list",
+    "level": "approval",
+    "title": "Track: awesome-web-agents (1219*)",
+    "details": {
+      "repo": "steel-dev/awesome-web-agents",
+      "name": "awesome-web-agents",
+      "stars": 1219,
+      "url": "https://github.com/steel-dev/awesome-web-agents"
+    },
+    "status": "executed",
+    "created": "2026-02-12T15:33:34.614249",
+    "approved_at": "2026-02-12T16:11:17.542915",
+    "executed_at": "2026-02-12T16:20:41.709907",
+    "result": "Added awesome-web-agents (steel-dev/awesome-web-agents) to tracking list"
+  },
+  {
+    "id": "d55f68b4",
+    "type": "register_registry",
+    "level": "approval",
+    "title": "Register on MCP Hub",
+    "details": {
+      "name": "MCP Hub",
+      "url": "https://mcphub.io"
+    },
+    "status": "executed",
+    "created": "2026-02-12T15:33:35.340761",
+    "approved_at": "2026-02-12T16:11:18.184489",
+    "executed_at": "2026-02-12T16:20:41.712971",
+    "result": "Visit https://mcphub.io to register manually \u2014 MCP Hub"
+  },
+  {
+    "id": "d8142cf7",
+    "type": "register_registry",
+    "level": "approval",
+    "title": "Register on Glama",
+    "details": {
+      "name": "Glama",
+      "url": "https://glama.ai/mcp/servers"
+    },
+    "status": "executed",
+    "created": "2026-02-12T15:33:35.349043",
+    "approved_at": "2026-02-12T16:11:18.836789",
+    "executed_at": "2026-02-12T16:20:41.715723",
+    "result": "Visit https://glama.ai/mcp/servers to register manually \u2014 Glama"
+  },
+  {
+    "id": "861187ff",
+    "type": "register_registry",
+    "level": "approval",
+    "title": "Register on PulseMCP",
+    "details": {
+      "name": "PulseMCP",
+      "url": "https://pulsemcp.com"
+    },
+    "status": "executed",
+    "created": "2026-02-12T15:33:35.353622",
+    "approved_at": "2026-02-12T16:11:19.421648",
+    "executed_at": "2026-02-12T16:20:41.718389",
+    "result": "Visit https://pulsemcp.com to register manually \u2014 PulseMCP"
+  },
+  {
+    "id": "8785bf30",
+    "type": "register_registry",
+    "level": "approval",
+    "title": "Register on mcp.run",
+    "details": {
+      "name": "mcp.run",
+      "url": "https://mcp.run"
+    },
+    "status": "executed",
+    "created": "2026-02-12T15:33:35.357473",
+    "approved_at": "2026-02-12T16:11:20.096836",
+    "executed_at": "2026-02-12T16:20:41.721054",
+    "result": "Visit https://mcp.run to register manually \u2014 mcp.run"
+  },
+  {
+    "id": "ff6c2d77",
+    "type": "register_registry",
+    "level": "approval",
+    "title": "Register on Composio MCP",
+    "details": {
+      "name": "Composio MCP",
+      "url": "https://composio.dev/mcp"
+    },
+    "status": "executed",
+    "created": "2026-02-12T15:33:35.360902",
+    "approved_at": "2026-02-12T16:11:20.956154",
+    "executed_at": "2026-02-12T16:20:41.723499",
+    "result": "Visit https://composio.dev/mcp to register manually \u2014 Composio MCP"
+  },
+  {
+    "id": "a0f52581",
+    "type": "submit_pr",
+    "level": "approval",
+    "title": "Submit PR to awesome-ai-agents",
+    "details": {
+      "repo": "e2b-dev/awesome-ai-agents",
+      "title": "Add AgentIndex - AI agent discovery platform",
+      "body": "## AgentIndex\n\n**Discovery platform for AI agents.** Find any AI agent by capability - search 23,273+ indexed agents across 5 sources.\n\n- **API:** https://api.agentcrawl.dev\n- **MCP Server:** [Smithery](https://smithery.ai/server/agentidx/agentcrawl)\n- **SDK:** `pip install agentcrawl` | `npm install @agentidx/sdk`\n- **GitHub:** https://github.com/agentidx/agentindex\n\n### What it does\nAgentIndex crawls and indexes all publicly available AI agents (GitHub, npm, MCP, HuggingFace) so that agents can automatically discover and hire other agents.\n\n### Categories\ncoding, devops, infrastructure, finance, communication, research, agent framework, data, security, AI assistant\n\n### Usage\n```python\nfrom agentcrawl import discover\nagents = discover('code review', min_quality=0.7)\n```\n"
+    },
+    "status": "executed",
+    "created": "2026-02-12T15:33:42.476270",
+    "approved_at": "2026-02-12T16:11:21.673780",
+    "executed_at": "2026-02-12T16:20:42.108440",
+    "result": "PR text saved to /Users/anstudio/agentindex/missionary_reports/pr-e2b-dev-awesome-ai-agents.md \u2014 submit manually via GitHub"
+  },
+  {
+    "id": "4847ae28",
+    "type": "submit_pr",
+    "level": "approval",
+    "title": "Submit PR to awesome-langchain",
+    "details": {
+      "repo": "kyrolabs/awesome-langchain",
+      "title": "Add AgentIndex - agent discovery for LangChain projects",
+      "body": "## AgentIndex\n\nDiscovery API for finding AI agents by capability. Index of 23,273+ agents.\n\n- **API:** https://api.agentcrawl.dev\n- **SDK:** `pip install agentcrawl`\n- **MCP Server:** [Smithery](https://smithery.ai/server/agentidx/agentcrawl)\n- **GitHub:** https://github.com/agentidx/agentindex\n\n```python\nfrom agentcrawl import discover\nagents = discover('data analysis agent', protocols=['rest'])\n```\n"
+    },
+    "status": "executed",
+    "created": "2026-02-12T15:33:42.481528",
+    "approved_at": "2026-02-12T16:11:22.254809",
+    "executed_at": "2026-02-12T16:20:42.414933",
+    "result": "PR text saved to /Users/anstudio/agentindex/missionary_reports/pr-kyrolabs-awesome-langchain.md \u2014 submit manually via GitHub"
+  },
+  {
+    "id": "9baebef2",
+    "type": "add_awesome_list",
+    "level": "approval",
+    "title": "Track: antigravity-awesome-skills (8591*)",
+    "details": {
+      "repo": "sickn33/antigravity-awesome-skills",
+      "name": "antigravity-awesome-skills",
+      "stars": 8591,
+      "url": "https://github.com/sickn33/antigravity-awesome-skills"
+    },
+    "status": "executed",
+    "created": "2026-02-12T15:48:28.742973",
+    "approved_at": "2026-02-12T16:11:23.031970",
+    "executed_at": "2026-02-12T16:20:42.428741",
+    "result": "Added antigravity-awesome-skills (sickn33/antigravity-awesome-skills) to tracking list"
+  },
+  {
+    "id": "cc24ce51",
+    "type": "add_awesome_list",
+    "level": "approval",
+    "title": "Track: antigravity-awesome-skills (8596*)",
+    "details": {
+      "repo": "sickn33/antigravity-awesome-skills",
+      "name": "antigravity-awesome-skills",
+      "stars": 8596,
+      "url": "https://github.com/sickn33/antigravity-awesome-skills"
+    },
+    "status": "executed",
+    "created": "2026-02-12T16:18:28.998661",
+    "approved_at": "2026-02-12T16:20:19.982696",
+    "executed_at": "2026-02-12T16:20:42.436644",
+    "result": "Added antigravity-awesome-skills (sickn33/antigravity-awesome-skills) to tracking list"
   }
 ]

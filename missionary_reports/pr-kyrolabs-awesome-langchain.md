@@ -4,7 +4,7 @@
 
 ## AgentIndex
 
-Discovery API for finding AI agents by capability. Index of 23,080+ agents.
+Discovery API for finding AI agents by capability. Index of 23,273+ agents.
 
 - **API:** https://api.agentcrawl.dev
 - **SDK:** `pip install agentcrawl`

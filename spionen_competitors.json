@@ -1,0 +1,32 @@
+{
+  "registry": {
+    "url": "https://github.com/modelcontextprotocol/registry",
+    "stars": 6401,
+    "threat": "high"
+  },
+  "archestra": {
+    "url": "https://github.com/archestra-ai/archestra",
+    "stars": 3511,
+    "threat": "high"
+  },
+  "mcp-gateway-registry": {
+    "url": "https://github.com/mcp-gateway/mcp-gateway",
+    "stars": 436,
+    "threat": "high"
+  },
+  "mcp-context-forge": {
+    "url": "https://github.com/mcp-context-forge/gateway",
+    "stars": 3276,
+    "threat": "medium"
+  },
+  "claude-plugins-official": {
+    "url": "https://github.com/anthropics/claude-plugins",
+    "stars": 7288,
+    "threat": "medium"
+  },
+  "mcp-compass": {
+    "url": "https://github.com/mcp-compass/mcp-compass",
+    "stars": 223,
+    "threat": "medium"
+  }
+}

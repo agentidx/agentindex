@@ -22,14 +22,17 @@ from apscheduler.schedulers.background import BackgroundScheduler
 
 load_dotenv()
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(name)s] %(levelname)s: %(message)s",
-    handlers=[
-        logging.StreamHandler(),
-        logging.FileHandler("agentindex.log"),
-    ]
-)
+# Configure logging ONCE at root level — prevents all duplicates
+root = logging.getLogger()
+root.handlers.clear()
+root.setLevel(logging.INFO)
+fmt = logging.Formatter("%(asctime)s [%(name)s] %(levelname)s: %(message)s")
+sh = logging.StreamHandler()
+sh.setFormatter(fmt)
+fh = logging.FileHandler("agentindex.log")
+fh.setFormatter(fmt)
+root.addHandler(sh)
+root.addHandler(fh)
 logger = logging.getLogger("agentindex")
 
 

@@ -1,8 +1,8 @@
 {
-  "timestamp": "2026-02-12T15:48:27.529194",
+  "timestamp": "2026-02-12T16:18:27.022492",
   "actions": [
     "NEW AWESOME LIST: awesome-ai-apps (8903*) - https://github.com/Arindam200/awesome-ai-apps",
-    "NEW AWESOME LIST: antigravity-awesome-skills (8591*) - https://github.com/sickn33/antigravity-awesome-skills",
+    "NEW AWESOME LIST: antigravity-awesome-skills (8596*) - https://github.com/sickn33/antigravity-awesome-skills",
     "NEW AWESOME LIST: awesome-mcp-clients (6276*) - https://github.com/punkpeye/awesome-mcp-clients",
     "NEW AWESOME LIST: awesome-mcp-servers (5140*) - https://github.com/appcypher/awesome-mcp-servers",
     "NEW AWESOME LIST: awesome-ai-sdks (1129*) - https://github.com/e2b-dev/awesome-ai-sdks",
@@ -16,7 +16,7 @@
     "REGISTER: Composio MCP at https://composio.dev/mcp",
     "NEW REGISTRY: claude-plugins-official (7292*) - https://github.com/anthropics/claude-plugins-official",
     "NEW REGISTRY: mcpso (1966*) - https://github.com/chatmcp/mcpso",
-    "NEW SEARCH TERMS: Consider adding: multi-agent-systems, agent-frameworks, agent, aiagents, aiagentsframework, agent-based-framework, agents, multi-agent, agentic-ai, ai-agents",
+    "NEW SEARCH TERMS: Consider adding: ai-agents-framework, agents, agent, agent-framework, agentframework, agentforce, autonomous-agents, multi-agent, ai-agents, open-policy-agent",
     "ALERT: Endpoints down: api, mcp_sse, npm, smithery",
     "SUBMIT PR: awesome-ai-agents - PR text ready in report",
     "SUBMIT PR: awesome-langchain - PR text ready in report",
@@ -70,7 +70,7 @@
     {
       "repo": "sickn33/antigravity-awesome-skills",
       "name": "antigravity-awesome-skills",
-      "stars": 8591,
+      "stars": 8596,
       "description": "The Ultimate Collection of 800+ Agentic Skills for Claude Code/Antigravity/Cursor. Battle-tested, high-performance skills for AI agents including official skills from Anthropic and Vercel.",
       "url": "https://github.com/sickn33/antigravity-awesome-skills"
     },
@@ -175,16 +175,16 @@
   ],
   "new_sources": [],
   "new_search_terms": [
-    "multi-agent-systems",
-    "agent-frameworks",
-    "agent",
-    "aiagents",
-    "aiagentsframework",
-    "agent-based-framework",
+    "ai-agents-framework",
     "agents",
+    "agent",
+    "agent-framework",
+    "agentframework",
+    "agentforce",
+    "autonomous-agents",
     "multi-agent",
-    "agentic-ai",
-    "ai-agents"
+    "ai-agents",
+    "open-policy-agent"
   ],
   "competitors": [],
   "presence_tracker": {

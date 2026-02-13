@@ -591,191 +591,6 @@
     "created": "2026-02-12T15:12:47.742879"
   },
   {
-    "id": "83596ba8",
-    "type": "add_awesome_list",
-    "level": "approval",
-    "title": "Track: awesome-ai-apps (8903*)",
-    "details": {
-      "repo": "Arindam200/awesome-ai-apps",
-      "name": "awesome-ai-apps",
-      "stars": 8903,
-      "url": "https://github.com/Arindam200/awesome-ai-apps"
-    },
-    "status": "approved",
-    "created": "2026-02-12T15:33:34.597461",
-    "approved_at": "2026-02-12T16:11:10.355448"
-  },
-  {
-    "id": "1fbd58e3",
-    "type": "add_awesome_list",
-    "level": "approval",
-    "title": "Track: antigravity-awesome-skills (8587*)",
-    "details": {
-      "repo": "sickn33/antigravity-awesome-skills",
-      "name": "antigravity-awesome-skills",
-      "stars": 8587,
-      "url": "https://github.com/sickn33/antigravity-awesome-skills"
-    },
-    "status": "approved",
-    "created": "2026-02-12T15:33:34.600285",
-    "approved_at": "2026-02-12T16:11:11.920616"
-  },
-  {
-    "id": "beb166da",
-    "type": "add_awesome_list",
-    "level": "approval",
-    "title": "Track: awesome-mcp-clients (6276*)",
-    "details": {
-      "repo": "punkpeye/awesome-mcp-clients",
-      "name": "awesome-mcp-clients",
-      "stars": 6276,
-      "url": "https://github.com/punkpeye/awesome-mcp-clients"
-    },
-    "status": "approved",
-    "created": "2026-02-12T15:33:34.602655",
-    "approved_at": "2026-02-12T16:11:12.918764"
-  },
-  {
-    "id": "a6371537",
-    "type": "add_awesome_list",
-    "level": "approval",
-    "title": "Track: awesome-mcp-servers (5140*)",
-    "details": {
-      "repo": "appcypher/awesome-mcp-servers",
-      "name": "awesome-mcp-servers",
-      "stars": 5140,
-      "url": "https://github.com/appcypher/awesome-mcp-servers"
-    },
-    "status": "approved",
-    "created": "2026-02-12T15:33:34.604571",
-    "approved_at": "2026-02-12T16:11:13.471298"
-  },
-  {
-    "id": "e46d4760",
-    "type": "add_awesome_list",
-    "level": "approval",
-    "title": "Track: awesome-ai-sdks (1129*)",
-    "details": {
-      "repo": "e2b-dev/awesome-ai-sdks",
-      "name": "awesome-ai-sdks",
-      "stars": 1129,
-      "url": "https://github.com/e2b-dev/awesome-ai-sdks"
-    },
-    "status": "approved",
-    "created": "2026-02-12T15:33:34.606497",
-    "approved_at": "2026-02-12T16:11:14.335843"
-  },
-  {
-    "id": "b0003c06",
-    "type": "add_awesome_list",
-    "level": "approval",
-    "title": "Track: Awesome-Context-Engineering (2893*)",
-    "details": {
-      "repo": "Meirtz/Awesome-Context-Engineering",
-      "name": "Awesome-Context-Engineering",
-      "stars": 2893,
-      "url": "https://github.com/Meirtz/Awesome-Context-Engineering"
-    },
-    "status": "approved",
-    "created": "2026-02-12T15:33:34.609098",
-    "approved_at": "2026-02-12T16:11:15.903329"
-  },
-  {
-    "id": "2d6f1826",
-    "type": "add_awesome_list",
-    "level": "approval",
-    "title": "Track: awesome-llm-agents (1312*)",
-    "details": {
-      "repo": "kaushikb11/awesome-llm-agents",
-      "name": "awesome-llm-agents",
-      "stars": 1312,
-      "url": "https://github.com/kaushikb11/awesome-llm-agents"
-    },
-    "status": "approved",
-    "created": "2026-02-12T15:33:34.611519",
-    "approved_at": "2026-02-12T16:11:16.945626"
-  },
-  {
-    "id": "4ba7c803",
-    "type": "add_awesome_list",
-    "level": "approval",
-    "title": "Track: awesome-web-agents (1219*)",
-    "details": {
-      "repo": "steel-dev/awesome-web-agents",
-      "name": "awesome-web-agents",
-      "stars": 1219,
-      "url": "https://github.com/steel-dev/awesome-web-agents"
-    },
-    "status": "approved",
-    "created": "2026-02-12T15:33:34.614249",
-    "approved_at": "2026-02-12T16:11:17.542915"
-  },
-  {
-    "id": "d55f68b4",
-    "type": "register_registry",
-    "level": "approval",
-    "title": "Register on MCP Hub",
-    "details": {
-      "name": "MCP Hub",
-      "url": "https://mcphub.io"
-    },
-    "status": "approved",
-    "created": "2026-02-12T15:33:35.340761",
-    "approved_at": "2026-02-12T16:11:18.184489"
-  },
-  {
-    "id": "d8142cf7",
-    "type": "register_registry",
-    "level": "approval",
-    "title": "Register on Glama",
-    "details": {
-      "name": "Glama",
-      "url": "https://glama.ai/mcp/servers"
-    },
-    "status": "approved",
-    "created": "2026-02-12T15:33:35.349043",
-    "approved_at": "2026-02-12T16:11:18.836789"
-  },
-  {
-    "id": "861187ff",
-    "type": "register_registry",
-    "level": "approval",
-    "title": "Register on PulseMCP",
-    "details": {
-      "name": "PulseMCP",
-      "url": "https://pulsemcp.com"
-    },
-    "status": "approved",
-    "created": "2026-02-12T15:33:35.353622",
-    "approved_at": "2026-02-12T16:11:19.421648"
-  },
-  {
-    "id": "8785bf30",
-    "type": "register_registry",
-    "level": "approval",
-    "title": "Register on mcp.run",
-    "details": {
-      "name": "mcp.run",
-      "url": "https://mcp.run"
-    },
-    "status": "approved",
-    "created": "2026-02-12T15:33:35.357473",
-    "approved_at": "2026-02-12T16:11:20.096836"
-  },
-  {
-    "id": "ff6c2d77",
-    "type": "register_registry",
-    "level": "approval",
-    "title": "Register on Composio MCP",
-    "details": {
-      "name": "Composio MCP",
-      "url": "https://composio.dev/mcp"
-    },
-    "status": "approved",
-    "created": "2026-02-12T15:33:35.360902",
-    "approved_at": "2026-02-12T16:11:20.956154"
-  },
-  {
     "id": "61d50967",
     "type": "add_search_term",
     "level": "auto",
@@ -798,34 +613,6 @@
     "created": "2026-02-12T15:33:40.159367"
   },
   {
-    "id": "a0f52581",
-    "type": "submit_pr",
-    "level": "approval",
-    "title": "Submit PR to awesome-ai-agents",
-    "details": {
-      "repo": "e2b-dev/awesome-ai-agents",
-      "title": "Add AgentIndex - AI agent discovery platform",
-      "body": "## AgentIndex\n\n**Discovery platform for AI agents.** Find any AI agent by capability - search 23,273+ indexed agents across 5 sources.\n\n- **API:** https://api.agentcrawl.dev\n- **MCP Server:** [Smithery](https://smithery.ai/server/agentidx/agentcrawl)\n- **SDK:** `pip install agentcrawl` | `npm install @agentidx/sdk`\n- **GitHub:** https://github.com/agentidx/agentindex\n\n### What it does\nAgentIndex crawls and indexes all publicly available AI agents (GitHub, npm, MCP, HuggingFace) so that agents can automatically discover and hire other agents.\n\n### Categories\ncoding, devops, infrastructure, finance, communication, research, agent framework, data, security, AI assistant\n\n### Usage\n```python\nfrom agentcrawl import discover\nagents = discover('code review', min_quality=0.7)\n```\n"
-    },
-    "status": "approved",
-    "created": "2026-02-12T15:33:42.476270",
-    "approved_at": "2026-02-12T16:11:21.673780"
-  },
-  {
-    "id": "4847ae28",
-    "type": "submit_pr",
-    "level": "approval",
-    "title": "Submit PR to awesome-langchain",
-    "details": {
-      "repo": "kyrolabs/awesome-langchain",
-      "title": "Add AgentIndex - agent discovery for LangChain projects",
-      "body": "## AgentIndex\n\nDiscovery API for finding AI agents by capability. Index of 23,273+ agents.\n\n- **API:** https://api.agentcrawl.dev\n- **SDK:** `pip install agentcrawl`\n- **MCP Server:** [Smithery](https://smithery.ai/server/agentidx/agentcrawl)\n- **GitHub:** https://github.com/agentidx/agentindex\n\n```python\nfrom agentcrawl import discover\nagents = discover('data analysis agent', protocols=['rest'])\n```\n"
-    },
-    "status": "approved",
-    "created": "2026-02-12T15:33:42.481528",
-    "approved_at": "2026-02-12T16:11:22.254809"
-  },
-  {
     "id": "7e0e8751",
     "type": "spy_a2a_outreach",
     "level": "notify",
@@ -836,21 +623,6 @@
     },
     "status": "pending",
     "created": "2026-02-12T15:47:40.138828"
-  },
-  {
-    "id": "9baebef2",
-    "type": "add_awesome_list",
-    "level": "approval",
-    "title": "Track: antigravity-awesome-skills (8591*)",
-    "details": {
-      "repo": "sickn33/antigravity-awesome-skills",
-      "name": "antigravity-awesome-skills",
-      "stars": 8591,
-      "url": "https://github.com/sickn33/antigravity-awesome-skills"
-    },
-    "status": "approved",
-    "created": "2026-02-12T15:48:28.742973",
-    "approved_at": "2026-02-12T16:11:23.031970"
   },
   {
     "id": "a7022281",
@@ -906,5 +678,435 @@
     },
     "status": "pending",
     "created": "2026-02-12T09:52:50.827848"
+  },
+  {
+    "id": "51c9253a",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: ai-agents-framework",
+    "details": {
+      "term": "ai-agents-framework"
+    },
+    "status": "pending",
+    "created": "2026-02-12T16:18:36.281364"
+  },
+  {
+    "id": "922a4bd4",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: agentforce",
+    "details": {
+      "term": "agentforce"
+    },
+    "status": "pending",
+    "created": "2026-02-12T16:18:36.286923"
+  },
+  {
+    "id": "b07774cc",
+    "type": "update_agent_md",
+    "level": "auto",
+    "title": "Update agent.md with 23,353 agents",
+    "details": {
+      "total": 23353
+    },
+    "status": "pending",
+    "created": "2026-02-12T16:18:39.264685"
+  },
+  {
+    "id": "78b8481a",
+    "type": "add_awesome_list",
+    "level": "approval",
+    "title": "Track: awesome-ai-apps (8913*)",
+    "details": {
+      "repo": "Arindam200/awesome-ai-apps",
+      "name": "awesome-ai-apps",
+      "stars": 8913,
+      "url": "https://github.com/Arindam200/awesome-ai-apps"
+    },
+    "status": "approved",
+    "created": "2026-02-13T06:00:03.602599"
+  },
+  {
+    "id": "55dee3be",
+    "type": "add_awesome_list",
+    "level": "approval",
+    "title": "Track: antigravity-awesome-skills (8669*)",
+    "details": {
+      "repo": "sickn33/antigravity-awesome-skills",
+      "name": "antigravity-awesome-skills",
+      "stars": 8669,
+      "url": "https://github.com/sickn33/antigravity-awesome-skills"
+    },
+    "status": "approved",
+    "created": "2026-02-13T06:00:03.606625"
+  },
+  {
+    "id": "e2d5a369",
+    "type": "add_awesome_list",
+    "level": "approval",
+    "title": "Track: awesome-mcp-clients (6278*)",
+    "details": {
+      "repo": "punkpeye/awesome-mcp-clients",
+      "name": "awesome-mcp-clients",
+      "stars": 6278,
+      "url": "https://github.com/punkpeye/awesome-mcp-clients"
+    },
+    "status": "approved",
+    "created": "2026-02-13T06:00:03.608741"
+  },
+  {
+    "id": "bebcbc5f",
+    "type": "add_awesome_list",
+    "level": "approval",
+    "title": "Track: Awesome-Context-Engineering (2895*)",
+    "details": {
+      "repo": "Meirtz/Awesome-Context-Engineering",
+      "name": "Awesome-Context-Engineering",
+      "stars": 2895,
+      "url": "https://github.com/Meirtz/Awesome-Context-Engineering"
+    },
+    "status": "approved",
+    "created": "2026-02-13T06:00:03.612289"
+  },
+  {
+    "id": "0822d295",
+    "type": "add_awesome_list",
+    "level": "approval",
+    "title": "Track: awesome-llm-agents (1313*)",
+    "details": {
+      "repo": "kaushikb11/awesome-llm-agents",
+      "name": "awesome-llm-agents",
+      "stars": 1313,
+      "url": "https://github.com/kaushikb11/awesome-llm-agents"
+    },
+    "status": "approved",
+    "created": "2026-02-13T06:00:03.614424"
+  },
+  {
+    "id": "e45a60a8",
+    "type": "add_awesome_list",
+    "level": "approval",
+    "title": "Track: awesome-web-agents (1221*)",
+    "details": {
+      "repo": "steel-dev/awesome-web-agents",
+      "name": "awesome-web-agents",
+      "stars": 1221,
+      "url": "https://github.com/steel-dev/awesome-web-agents"
+    },
+    "status": "approved",
+    "created": "2026-02-13T06:00:03.616783"
+  },
+  {
+    "id": "55f65c64",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: agent-skills",
+    "details": {
+      "term": "agent-skills"
+    },
+    "status": "pending",
+    "created": "2026-02-13T06:00:09.094263"
+  },
+  {
+    "id": "ff2372cb",
+    "type": "register_registry",
+    "level": "approval",
+    "title": "Register on MCP Hub",
+    "details": {
+      "registry": "mcphub"
+    },
+    "status": "approved",
+    "created": "2026-02-13T07:48:46.157310"
+  },
+  {
+    "id": "75c49203",
+    "type": "register_registry",
+    "level": "approval",
+    "title": "Register on Glama",
+    "details": {
+      "registry": "glama"
+    },
+    "status": "approved",
+    "created": "2026-02-13T07:48:46.157592"
+  },
+  {
+    "id": "b7d9a368",
+    "type": "register_registry",
+    "level": "approval",
+    "title": "Register on PulseMCP",
+    "details": {
+      "registry": "pulsemcp"
+    },
+    "status": "approved",
+    "created": "2026-02-13T07:48:46.157607"
+  },
+  {
+    "id": "189721a9",
+    "type": "register_registry",
+    "level": "approval",
+    "title": "Register on mcp.run",
+    "details": {
+      "registry": "mcp.run"
+    },
+    "status": "approved",
+    "created": "2026-02-13T07:48:46.157617"
+  },
+  {
+    "id": "7b43b365",
+    "type": "register_registry",
+    "level": "approval",
+    "title": "Register on Composio MCP",
+    "details": {
+      "registry": "composio"
+    },
+    "status": "approved",
+    "created": "2026-02-13T07:48:46.157627"
+  },
+  {
+    "id": "edaca0a9",
+    "type": "submit_pr",
+    "level": "approval",
+    "title": "Submit PR to awesome-ai-agents",
+    "details": {
+      "repo": "e2b-dev/awesome-ai-agents"
+    },
+    "status": "approved",
+    "created": "2026-02-13T07:48:46.157636"
+  },
+  {
+    "id": "1b0f300a",
+    "type": "submit_pr",
+    "level": "approval",
+    "title": "Submit PR to awesome-langchain",
+    "details": {
+      "repo": "kyrolabs/awesome-langchain"
+    },
+    "status": "approved",
+    "created": "2026-02-13T07:48:46.157645"
+  },
+  {
+    "id": "bc6e2586",
+    "type": "add_awesome_list",
+    "level": "approval",
+    "title": "Track: awesome-mcp-servers (5140*)",
+    "details": {
+      "repo": "punkpeye/awesome-mcp-servers"
+    },
+    "status": "approved",
+    "created": "2026-02-13T07:48:46.157653"
+  },
+  {
+    "id": "7557d5b3",
+    "type": "add_awesome_list",
+    "level": "approval",
+    "title": "Track: awesome-ai-sdks (1129*)",
+    "details": {
+      "repo": "anthropics/awesome-ai-sdks"
+    },
+    "status": "approved",
+    "created": "2026-02-13T07:48:46.157662"
+  },
+  {
+    "id": "2be6f153",
+    "type": "add_awesome_list",
+    "level": "approval",
+    "title": "Track: antigravity-awesome-skills (8681*)",
+    "details": {
+      "repo": "sickn33/antigravity-awesome-skills",
+      "name": "antigravity-awesome-skills",
+      "stars": 8681,
+      "url": "https://github.com/sickn33/antigravity-awesome-skills"
+    },
+    "status": "pending",
+    "created": "2026-02-13T07:50:08.705743"
+  },
+  {
+    "id": "f9a82552",
+    "type": "add_awesome_list",
+    "level": "approval",
+    "title": "Track: awesome-llm-agents (1315*)",
+    "details": {
+      "repo": "kaushikb11/awesome-llm-agents",
+      "name": "awesome-llm-agents",
+      "stars": 1315,
+      "url": "https://github.com/kaushikb11/awesome-llm-agents"
+    },
+    "status": "pending",
+    "created": "2026-02-13T07:50:08.711220"
+  },
+  {
+    "id": "77803903",
+    "type": "add_awesome_list",
+    "level": "approval",
+    "title": "Track: awesome-web-agents (1222*)",
+    "details": {
+      "repo": "steel-dev/awesome-web-agents",
+      "name": "awesome-web-agents",
+      "stars": 1222,
+      "url": "https://github.com/steel-dev/awesome-web-agents"
+    },
+    "status": "pending",
+    "created": "2026-02-13T07:50:08.713990"
+  },
+  {
+    "id": "470fb14c",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: ai-agent-monitoring",
+    "details": {
+      "term": "ai-agent-monitoring"
+    },
+    "status": "pending",
+    "created": "2026-02-13T07:50:14.392320"
+  },
+  {
+    "id": "7e0583b1",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: multiagent-systems",
+    "details": {
+      "term": "multiagent-systems"
+    },
+    "status": "pending",
+    "created": "2026-02-13T07:50:14.400247"
+  },
+  {
+    "id": "7cb11475",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: rl-agents",
+    "details": {
+      "term": "rl-agents"
+    },
+    "status": "pending",
+    "created": "2026-02-13T07:50:14.405539"
+  },
+  {
+    "id": "c04195b1",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: autonomous-agent",
+    "details": {
+      "term": "autonomous-agent"
+    },
+    "status": "pending",
+    "created": "2026-02-13T07:50:14.410489"
+  },
+  {
+    "id": "80b6b6c8",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: sales-agents",
+    "details": {
+      "term": "sales-agents"
+    },
+    "status": "pending",
+    "created": "2026-02-13T07:50:15.766586"
+  },
+  {
+    "id": "c6d26f6a",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: agent-evaluation",
+    "details": {
+      "term": "agent-evaluation"
+    },
+    "status": "pending",
+    "created": "2026-02-13T07:50:15.772580"
+  },
+  {
+    "id": "cc37e701",
+    "type": "update_agent_md",
+    "level": "auto",
+    "title": "Update agent.md with 25,628 agents",
+    "details": {
+      "total": 25628
+    },
+    "status": "pending",
+    "created": "2026-02-13T07:50:17.906802"
+  },
+  {
+    "id": "166f3a59",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: ssh-agent",
+    "details": {
+      "term": "ssh-agent"
+    },
+    "status": "pending",
+    "created": "2026-02-13T07:51:33.020956"
+  },
+  {
+    "id": "43efdaba",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: agent-simulations",
+    "details": {
+      "term": "agent-simulations"
+    },
+    "status": "pending",
+    "created": "2026-02-13T07:51:33.028408"
+  },
+  {
+    "id": "c712cb70",
+    "type": "new_competitor",
+    "level": "notify",
+    "title": "Competitor: hexstrike-ai (6789*)",
+    "details": {
+      "name": "hexstrike-ai",
+      "stars": 6789,
+      "url": "https://github.com/0x4m4/hexstrike-ai"
+    },
+    "status": "pending",
+    "created": "2026-02-13T07:51:36.010766"
+  },
+  {
+    "id": "9950b672",
+    "type": "new_competitor",
+    "level": "notify",
+    "title": "Competitor: mcp-gateway-registry (440*)",
+    "details": {
+      "name": "mcp-gateway-registry",
+      "stars": 440,
+      "url": "https://github.com/agentic-community/mcp-gateway-registry"
+    },
+    "status": "pending",
+    "created": "2026-02-13T07:51:36.014698"
+  },
+  {
+    "id": "03bb0aac",
+    "type": "update_agent_md",
+    "level": "auto",
+    "title": "Update agent.md with 25,630 agents",
+    "details": {
+      "total": 25630
+    },
+    "status": "pending",
+    "created": "2026-02-13T07:51:37.324466"
+  },
+  {
+    "id": "5ab43636",
+    "type": "add_awesome_list",
+    "level": "approval",
+    "title": "Track: antigravity-awesome-skills (8682*)",
+    "details": {
+      "repo": "sickn33/antigravity-awesome-skills",
+      "name": "antigravity-awesome-skills",
+      "stars": 8682,
+      "url": "https://github.com/sickn33/antigravity-awesome-skills"
+    },
+    "status": "pending",
+    "created": "2026-02-13T07:52:58.458453"
+  },
+  {
+    "id": "e4e12127",
+    "type": "update_agent_md",
+    "level": "auto",
+    "title": "Update agent.md with 25,634 agents",
+    "details": {
+      "total": 25634
+    },
+    "status": "pending",
+    "created": "2026-02-13T07:53:47.591807"
   }
 ]

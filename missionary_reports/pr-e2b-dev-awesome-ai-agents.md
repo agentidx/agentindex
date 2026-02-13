@@ -4,7 +4,7 @@
 
 ## AgentIndex
 
-**Discovery platform for AI agents.** Find any AI agent by capability - search 23,080+ indexed agents across 4 sources.
+**Discovery platform for AI agents.** Find any AI agent by capability - search 23,273+ indexed agents across 5 sources.
 
 - **API:** https://api.agentcrawl.dev
 - **MCP Server:** [Smithery](https://smithery.ai/server/agentidx/agentcrawl)

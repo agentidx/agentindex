@@ -1,0 +1,105 @@
+{
+  "timestamp": "2026-02-13T07:53:41.999124",
+  "actions": [
+    "REGISTER: MCP Hub at https://mcphub.io",
+    "REGISTER: Glama at https://glama.ai/mcp/servers",
+    "REGISTER: PulseMCP at https://pulsemcp.com",
+    "REGISTER: mcp.run at https://mcp.run",
+    "REGISTER: Composio MCP at https://composio.dev/mcp",
+    "ALERT: Endpoints down: api, mcp_sse, npm, smithery",
+    "SUBMIT PR: awesome-ai-agents - PR text ready in report",
+    "SUBMIT PR: awesome-langchain - PR text ready in report",
+    "UPDATED: agent.md with 25,634 agents"
+  ],
+  "stats": {
+    "pipeline": {
+      "indexed": 11250,
+      "not_agent": 10021,
+      "classified": 231,
+      "low_confidence": 33,
+      "ranked": 94,
+      "parse_failed": 1,
+      "duplicate": 10,
+      "parsed": 17447
+    },
+    "total_active": 25634,
+    "sources": {
+      "mcp": 2384,
+      "github": 31633,
+      "huggingface": 1436,
+      "npm": 3631,
+      "a2a": 3
+    },
+    "top_categories": {
+      "coding": 2986,
+      "devops": 1653,
+      "infrastructure": 1256,
+      "finance": 1189,
+      "communication": 1017,
+      "research": 983,
+      "agent framework": 754,
+      "data": 568,
+      "AI assistant": 550,
+      "security": 529,
+      "other": 517,
+      "agent platform": 501,
+      "marketing": 496,
+      "AI tool": 479,
+      "content": 455
+    }
+  },
+  "new_channels": [],
+  "new_sources": [],
+  "new_search_terms": [],
+  "competitors": [],
+  "presence_tracker": {
+    "api": {
+      "url": "https://api.agentcrawl.dev",
+      "status": "down",
+      "http_status": 502
+    },
+    "dashboard": {
+      "url": "https://dash.agentcrawl.dev",
+      "status": "live",
+      "http_status": 200
+    },
+    "mcp_sse": {
+      "url": "https://mcp.agentcrawl.dev",
+      "status": "down",
+      "http_status": 404
+    },
+    "github": {
+      "url": "https://github.com/agentidx/agentindex",
+      "status": "live",
+      "http_status": 200
+    },
+    "pypi": {
+      "url": "https://pypi.org/project/agentcrawl/",
+      "status": "live",
+      "version": "0.3.1",
+      "http_status": 200
+    },
+    "npm": {
+      "url": "https://www.npmjs.com/package/@agentidx/sdk",
+      "status": "down",
+      "version": "0.3.0",
+      "needs_update": true,
+      "http_status": 403
+    },
+    "smithery": {
+      "url": "https://smithery.ai/server/agentidx/agentcrawl",
+      "status": "down",
+      "http_status": 429
+    }
+  },
+  "pr_texts": {
+    "awesome-ai-agents": {
+      "title": "Add AgentIndex - AI agent discovery platform",
+      "body": "## AgentIndex\n\n**Discovery platform for AI agents.** Find any AI agent by capability - search 25,634+ indexed agents across 5 sources.\n\n- **API:** https://api.agentcrawl.dev\n- **MCP Server:** [Smithery](https://smithery.ai/server/agentidx/agentcrawl)\n- **SDK:** `pip install agentcrawl` | `npm install @agentidx/sdk`\n- **GitHub:** https://github.com/agentidx/agentindex\n\n### What it does\nAgentIndex crawls and indexes all publicly available AI agents (GitHub, npm, MCP, HuggingFace) so that agents can automatically discover and hire other agents.\n\n### Categories\ncoding, devops, infrastructure, finance, communication, research, agent framework, data, AI assistant, security\n\n### Usage\n```python\nfrom agentcrawl import discover\nagents = discover('code review', min_quality=0.7)\n```\n"
+    },
+    "awesome-langchain": {
+      "title": "Add AgentIndex - agent discovery for LangChain projects",
+      "body": "## AgentIndex\n\nDiscovery API for finding AI agents by capability. Index of 25,634+ agents.\n\n- **API:** https://api.agentcrawl.dev\n- **SDK:** `pip install agentcrawl`\n- **MCP Server:** [Smithery](https://smithery.ai/server/agentidx/agentcrawl)\n- **GitHub:** https://github.com/agentidx/agentindex\n\n```python\nfrom agentcrawl import discover\nagents = discover('data analysis agent', protocols=['rest'])\n```\n"
+    }
+  }
+}
