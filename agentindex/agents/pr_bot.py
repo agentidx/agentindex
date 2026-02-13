@@ -66,6 +66,14 @@ def submit_prs():
         "Accept": "application/vnd.github.v3+json",
     }
 
+    # Get authenticated user
+    try:
+        user_resp = httpx.get("https://api.github.com/user", headers=headers, timeout=10)
+        gh_user = user_resp.json()["login"]
+    except Exception:
+        gh_user = "agentidx"
+    logger.info(f"GitHub user: {gh_user}")
+
     # Check rate limit first
     remaining = check_rate_limit(headers)
     if remaining < 50:
@@ -82,7 +90,7 @@ def submit_prs():
             continue
 
         try:
-            result = _submit_pr(repo, info, headers)
+            result = _submit_pr(repo, info, headers, gh_user)
             if result == "created":
                 state["submitted"].append(repo)
                 stats["submitted"] += 1
@@ -101,7 +109,7 @@ def submit_prs():
     return stats
 
 
-def _submit_pr(repo, info, headers):
+def _submit_pr(repo, info, headers, gh_user="agentidx"):
     """Submit a single PR. Returns 'created', 'exists', or 'failed'."""
     logger.info(f"Processing {repo}...")
 
@@ -111,7 +119,7 @@ def _submit_pr(repo, info, headers):
         headers=headers, timeout=15,
     )
     if resp.status_code == 200:
-        existing = [p for p in resp.json() if "agentindex" in p.get("title", "").lower() or "agentindex" in p.get("body", "").lower()]
+        existing = [p for p in resp.json() if "agentindex" in (p.get("title") or "").lower() or "agentindex" in (p.get("body") or "").lower()]
         if existing:
             logger.info(f"PR already exists for {repo}: {existing[0]['html_url']}")
             return "exists"
@@ -121,11 +129,11 @@ def _submit_pr(repo, info, headers):
     if resp.status_code not in (200, 202):
         logger.error(f"Fork failed for {repo}: {resp.status_code}")
         return "failed"
-    time.sleep(5)
+    time.sleep(15)
 
     # 3. Get fork info
     repo_name = repo.split("/")[-1]
-    fork = f"agentidx/{repo_name}"
+    fork = f"{gh_user}/{repo_name}"
     resp = httpx.get(f"https://api.github.com/repos/{fork}", headers=headers, timeout=15)
     if resp.status_code != 200:
         logger.error(f"Can't access fork {fork}")
@@ -209,7 +217,7 @@ def _submit_pr(repo, info, headers):
         json={
             "title": "Add AgentIndex - AI agent discovery service (36K+ agents)",
             "body": pr_body,
-            "head": f"agentidx:{branch}",
+            "head": f"{gh_user}:{branch}",
             "base": default_branch,
         },
     )

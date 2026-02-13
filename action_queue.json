@@ -925,5 +925,129 @@
     },
     "status": "pending",
     "created": "2026-02-13T07:53:47.591807"
+  },
+  {
+    "id": "c4565c90",
+    "type": "add_awesome_list",
+    "level": "approval",
+    "title": "Track: awesome-ai-apps (8914*)",
+    "details": {
+      "repo": "Arindam200/awesome-ai-apps",
+      "name": "awesome-ai-apps",
+      "stars": 8914,
+      "url": "https://github.com/Arindam200/awesome-ai-apps"
+    },
+    "status": "pending",
+    "created": "2026-02-13T08:20:02.047817"
+  },
+  {
+    "id": "abffd245",
+    "type": "add_awesome_list",
+    "level": "approval",
+    "title": "Track: antigravity-awesome-skills (8683*)",
+    "details": {
+      "repo": "sickn33/antigravity-awesome-skills",
+      "name": "antigravity-awesome-skills",
+      "stars": 8683,
+      "url": "https://github.com/sickn33/antigravity-awesome-skills"
+    },
+    "status": "pending",
+    "created": "2026-02-13T08:20:02.053482"
+  },
+  {
+    "id": "ccbf2000",
+    "type": "add_awesome_list",
+    "level": "approval",
+    "title": "Track: awesome-mcp-servers (5141*)",
+    "details": {
+      "repo": "appcypher/awesome-mcp-servers",
+      "name": "awesome-mcp-servers",
+      "stars": 5141,
+      "url": "https://github.com/appcypher/awesome-mcp-servers"
+    },
+    "status": "pending",
+    "created": "2026-02-13T08:20:02.057699"
+  },
+  {
+    "id": "cf72479b",
+    "type": "add_awesome_list",
+    "level": "approval",
+    "title": "Track: awesome-llm-agents (1316*)",
+    "details": {
+      "repo": "kaushikb11/awesome-llm-agents",
+      "name": "awesome-llm-agents",
+      "stars": 1316,
+      "url": "https://github.com/kaushikb11/awesome-llm-agents"
+    },
+    "status": "pending",
+    "created": "2026-02-13T08:20:02.061909"
+  },
+  {
+    "id": "ec3d4ab1",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: agent-orchestration",
+    "details": {
+      "term": "agent-orchestration"
+    },
+    "status": "pending",
+    "created": "2026-02-13T08:20:07.903459"
+  },
+  {
+    "id": "e2d1a76e",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: sentra-agent",
+    "details": {
+      "term": "sentra-agent"
+    },
+    "status": "pending",
+    "created": "2026-02-13T08:20:07.912314"
+  },
+  {
+    "id": "c67852e4",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: claude-subagents",
+    "details": {
+      "term": "claude-subagents"
+    },
+    "status": "pending",
+    "created": "2026-02-13T08:20:07.919734"
+  },
+  {
+    "id": "9f23d4c2",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: coding-agent",
+    "details": {
+      "term": "coding-agent"
+    },
+    "status": "pending",
+    "created": "2026-02-13T08:20:07.924926"
+  },
+  {
+    "id": "f0aaf894",
+    "type": "new_competitor",
+    "level": "notify",
+    "title": "Competitor: hexstrike-ai (6790*)",
+    "details": {
+      "name": "hexstrike-ai",
+      "stars": 6790,
+      "url": "https://github.com/0x4m4/hexstrike-ai"
+    },
+    "status": "pending",
+    "created": "2026-02-13T08:20:11.100622"
+  },
+  {
+    "id": "541a0fad",
+    "type": "update_agent_md",
+    "level": "auto",
+    "title": "Update agent.md with 25,659 agents",
+    "details": {
+      "total": 25659
+    },
+    "status": "pending",
+    "created": "2026-02-13T08:20:12.476255"
   }
 ]
