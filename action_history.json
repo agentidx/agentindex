@@ -2922,5 +2922,18 @@
     "created": "2026-02-13T13:22:04.990316",
     "executed_at": "2026-02-13T13:24:11.348019",
     "result": "logged term: sqlagent"
+  },
+  {
+    "id": "6a59b95d",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: llmagents",
+    "details": {
+      "term": "llmagents"
+    },
+    "status": "executed",
+    "created": "2026-02-13T13:58:28.494928",
+    "executed_at": "2026-02-13T14:00:33.914175",
+    "result": "logged term: llmagents"
   }
 ]

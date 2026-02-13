@@ -25,53 +25,25 @@ logger = logging.getLogger("agentindex.classifier")
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
 OLLAMA_MODEL_LARGE = os.getenv("OLLAMA_MODEL_LARGE", "qwen2.5:7b")
 
-CLASSIFY_PROMPT = """You are an expert AI agent evaluator. Analyze this agent deeply.
+CLASSIFY_PROMPT = """Classify this AI agent. Respond with ONLY valid JSON, no other text.
 
-Agent name: {name}
+Name: {name}
 Source: {source}
-Category (from parser): {category}
-Capabilities (from parser): {capabilities}
+Category hint: {category}
+Capabilities hint: {capabilities}
 Description: {description}
-Author: {author}
 Stars: {stars}
 Frameworks: {frameworks}
 Protocols: {protocols}
-Language: {language}
-Last updated: {last_updated}
+README: {readme}
 
-README excerpt:
-{readme}
-
-Respond with ONLY valid JSON:
+JSON response:
 {{
-  "category_refined": "best category from: coding, research, content, legal, data, finance, marketing, design, devops, security, education, health, communication, productivity, infrastructure, other",
-  "capabilities_refined": ["list", "of", "validated", "specific", "capabilities"],
-  "tags_refined": ["specific", "searchable", "tags"],
-  "trust_signals": {{
-    "has_tests": true/false,
-    "has_ci": true/false,
-    "has_license": true/false,
-    "has_examples": true/false,
-    "active_maintenance": true/false,
-    "clear_documentation": true/false,
-    "known_author": true/false
-  }},
-  "security_assessment": {{
-    "score": 0.0 to 1.0,
-    "concerns": ["list any security concerns"],
-    "requires_api_keys": true/false,
-    "data_access_level": "none|read|write|admin"
-  }},
-  "duplicate_risk": {{
-    "is_fork_or_clone": true/false,
-    "similar_to": "name of similar agent if any, or null"
-  }},
-  "quality_override": null or 0.0-1.0,
+  "category_refined": "one of: coding, research, content, legal, data, finance, marketing, design, devops, security, education, health, communication, productivity, infrastructure, other",
+  "capabilities_refined": ["3-5 specific validated capabilities"],
+  "tags_refined": ["3-5 searchable tags"],
   "recommendation": "index|deprioritize|remove"
 }}
-
-Be strict. Only validate capabilities that the README actually supports.
-Remove vague capabilities. Be specific.
 """
 
 DEDUP_PROMPT = """Compare these two agents and determine if they are duplicates.
@@ -162,14 +134,14 @@ class Classifier:
             protocols=", ".join(agent.protocols or []),
             language=agent.language or "unknown",
             last_updated=agent.last_source_update.isoformat() if agent.last_source_update else "unknown",
-            readme=(metadata.get("readme") or "N/A")[:3000],
+            readme=(metadata.get("readme") or "N/A")[:500],
         )
 
         try:
             response = self.client.chat(
                 model=self.model,
                 messages=[{"role": "user", "content": prompt}],
-                options={"temperature": 0.1},
+                options={"temperature": 0.1, "num_ctx": 2048, "num_predict": 512},
             )
         except Exception as e:
             logger.error(f"Ollama error for {agent.name}: {e}")
@@ -340,7 +312,7 @@ class Classifier:
             response = self.client.chat(
                 model=self.model,
                 messages=[{"role": "user", "content": prompt}],
-                options={"temperature": 0.1},
+                options={"temperature": 0.1, "num_ctx": 2048, "num_predict": 512},
             )
             text = response["message"]["content"].strip()
             parsed = self._extract_json(text)

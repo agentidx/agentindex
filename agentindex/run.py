@@ -109,7 +109,7 @@ def run_classifier():
     try:
         from agentindex.agents.classifier import Classifier
         classifier = Classifier()
-        stats = classifier.classify_pending(batch_size=50)
+        stats = classifier.classify_pending(batch_size=200)
         logger.info(f"Classification complete: {stats}")
         dedup = classifier.deduplicate(batch_size=100)
         logger.info(f"Dedup complete: {dedup}")

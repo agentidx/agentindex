@@ -58,7 +58,7 @@
     "sickn33/antigravity-awesome-skills": {
       "name": "Antigravity Awesome Skills",
       "stars": 8700,
-      "pr_status": "submitted"
+      "pr_status": "closed"
     },
     "punkpeye/awesome-mcp-clients": {
       "name": "awesome-mcp-clients",
@@ -260,5 +260,5 @@
     "npm": "2026-02-13",
     "smithery": "2026-02-13"
   },
-  "last_run": "2026-02-13T13:58:31.613617"
+  "last_run": "2026-02-13T14:07:12.738526"
 }
