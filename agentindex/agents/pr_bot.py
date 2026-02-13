@@ -13,6 +13,7 @@ logger = logging.getLogger("agentindex.pr_bot")
 
 # Target repos and entries
 PR_TARGETS = {
+    # Already submitted
     "e2b-dev/awesome-ai-agents": {
         "section": "## Open Source",
         "entry": "- [AgentIndex](https://github.com/agentidx/agentindex) - Discovery service for AI agents. Indexes 36,000+ agents from GitHub, npm, PyPI, HuggingFace, and MCP registries. Supports A2A protocol and semantic search.",
@@ -23,7 +24,32 @@ PR_TARGETS = {
     },
     "punkpeye/awesome-mcp-servers": {
         "section": "## Search",
-        "entry": "- [AgentIndex](https://github.com/agentidx/agentindex) <a href='https://smithery.ai/server/agentidx/agentcrawl'><img alt='Smithery' src='https://smithery.ai/badge/agentidx/agentcrawl'></a> - Discovery service for 36,000+ AI agents. MCP server, REST API, and A2A protocol support.",
+        "entry": "- [AgentIndex](https://github.com/agentidx/agentindex) <a href=\'https://smithery.ai/server/agentidx/agentcrawl\'><img alt=\'Smithery\' src=\'https://smithery.ai/badge/agentidx/agentcrawl\'></a> - Discovery service for 36,000+ AI agents. MCP server, REST API, and A2A protocol support.",
+    },
+    # New targets
+    "appcypher/awesome-mcp-servers": {
+        "section": "## Search",
+        "entry": "- [AgentIndex](https://github.com/agentidx/agentindex) - Discovery service for 36,000+ AI agents across GitHub, npm, PyPI, HuggingFace, and MCP registries. REST API, MCP server, and A2A protocol.",
+    },
+    "kaushikb11/awesome-llm-agents": {
+        "section": "## Agent Platforms",
+        "entry": "- [AgentIndex](https://github.com/agentidx/agentindex) - Discovery and indexing service for AI agents. Semantic search across 36,000+ agents. A2A protocol, REST API, and MCP server.",
+        "fallback_section": "## Tools",
+    },
+    "steel-dev/awesome-web-agents": {
+        "section": "## Agent Infrastructure",
+        "entry": "- [AgentIndex](https://github.com/agentidx/agentindex) - Agent discovery service. Find any AI agent by capability. 36,000+ agents indexed with semantic search, A2A protocol, and MCP support.",
+        "fallback_section": "## Other",
+    },
+    "Arindam200/awesome-ai-apps": {
+        "section": "## AI Tools",
+        "entry": "- [AgentIndex](https://github.com/agentidx/agentindex) - Discovery service for AI agents. Search 36,000+ agents by capability. Supports A2A protocol, REST API, and MCP.",
+        "fallback_section": "## Other",
+    },
+    "sickn33/antigravity-awesome-skills": {
+        "section": "## Discovery",
+        "entry": "- [AgentIndex](https://github.com/agentidx/agentindex) - AI agent discovery and indexing. 36,000+ agents searchable by capability via REST API, A2A protocol, and MCP server.",
+        "fallback_section": "## Other",
     },
 }
 
@@ -158,8 +184,13 @@ def _submit_pr(repo, info, headers, gh_user="agentidx"):
     # 6. Insert entry
     section = info["section"]
     entry = info["entry"]
+    fallback = info.get("fallback_section")
     if section in readme_content:
         idx = readme_content.index(section) + len(section)
+        next_nl = readme_content.index("\n", idx)
+        new_content = readme_content[:next_nl + 1] + entry + "\n" + readme_content[next_nl + 1:]
+    elif fallback and fallback in readme_content:
+        idx = readme_content.index(fallback) + len(fallback)
         next_nl = readme_content.index("\n", idx)
         new_content = readme_content[:next_nl + 1] + entry + "\n" + readme_content[next_nl + 1:]
     else:
