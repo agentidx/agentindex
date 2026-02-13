@@ -54,6 +54,15 @@ class Executor:
             "register_registry": self._register_registry,
             "add_awesome_list": self._add_awesome_list,
             "spy_implement_feature": self._spy_implement_feature,
+            "new_competitor": self._acknowledge,
+            "spy_new_competitor": self._acknowledge,
+            "spy_improve_visibility": self._acknowledge,
+            "spy_competitor_active": self._acknowledge,
+            "spy_daily_summary": self._acknowledge,
+            "spy_a2a_outreach": self._acknowledge,
+            "spy_feature_done": self._acknowledge,
+            "spy_feature_reminder": self._acknowledge,
+            "endpoint_down": self._acknowledge,
         }
 
         handler = handlers.get(action["type"])
@@ -144,6 +153,10 @@ class Executor:
         result = submit_prs()
         return f"Awesome list PR bot: {result}"
 
+
+    def _acknowledge(self, details: dict) -> str:
+        """Acknowledge notify-only actions — no execution needed."""
+        return "acknowledged"
 
     def _spy_implement_feature(self, details: dict) -> str:
         """Log approved feature implementation to prioritized backlog."""

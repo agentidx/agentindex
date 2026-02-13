@@ -55,71 +55,6 @@
     "created": "2026-02-12T09:52:46.754842"
   },
   {
-    "id": "0dfd5ee3",
-    "type": "new_competitor",
-    "level": "notify",
-    "title": "Competitor: hexstrike-ai (6771*)",
-    "details": {
-      "name": "hexstrike-ai",
-      "stars": 6771,
-      "url": "https://github.com/0x4m4/hexstrike-ai"
-    },
-    "status": "pending",
-    "created": "2026-02-12T09:52:49.383399"
-  },
-  {
-    "id": "c07f5a1d",
-    "type": "new_competitor",
-    "level": "notify",
-    "title": "Competitor: index (2334*)",
-    "details": {
-      "name": "index",
-      "stars": 2334,
-      "url": "https://github.com/lmnr-ai/index"
-    },
-    "status": "pending",
-    "created": "2026-02-12T09:52:49.384059"
-  },
-  {
-    "id": "6d91ede4",
-    "type": "new_competitor",
-    "level": "notify",
-    "title": "Competitor: awesome-LangGraph (1500*)",
-    "details": {
-      "name": "awesome-LangGraph",
-      "stars": 1500,
-      "url": "https://github.com/von-development/awesome-LangGraph"
-    },
-    "status": "pending",
-    "created": "2026-02-12T09:52:49.384849"
-  },
-  {
-    "id": "b71515dc",
-    "type": "new_competitor",
-    "level": "notify",
-    "title": "Competitor: mcp-gateway-registry (436*)",
-    "details": {
-      "name": "mcp-gateway-registry",
-      "stars": 436,
-      "url": "https://github.com/agentic-community/mcp-gateway-registry"
-    },
-    "status": "pending",
-    "created": "2026-02-12T09:52:49.385272"
-  },
-  {
-    "id": "c59b6680",
-    "type": "new_competitor",
-    "level": "notify",
-    "title": "Competitor: mcp-compass (223*)",
-    "details": {
-      "name": "mcp-compass",
-      "stars": 223,
-      "url": "https://github.com/liuyoshio/mcp-compass"
-    },
-    "status": "pending",
-    "created": "2026-02-12T09:52:49.385654"
-  },
-  {
     "id": "92ab2414",
     "type": "add_search_term",
     "level": "auto",
@@ -217,154 +152,6 @@
     },
     "status": "pending",
     "created": "2026-02-12T14:20:33.704822"
-  },
-  {
-    "id": "eb836122",
-    "type": "new_competitor",
-    "level": "notify",
-    "title": "Competitor: hexstrike-ai (6774*)",
-    "details": {
-      "name": "hexstrike-ai",
-      "stars": 6774,
-      "url": "https://github.com/0x4m4/hexstrike-ai"
-    },
-    "status": "pending",
-    "created": "2026-02-12T14:20:36.728987"
-  },
-  {
-    "id": "67c8887f",
-    "type": "new_competitor",
-    "level": "notify",
-    "title": "Competitor: awesome-LangGraph (1499*)",
-    "details": {
-      "name": "awesome-LangGraph",
-      "stars": 1499,
-      "url": "https://github.com/von-development/awesome-LangGraph"
-    },
-    "status": "pending",
-    "created": "2026-02-12T14:20:36.730432"
-  },
-  {
-    "id": "0e6a739e",
-    "type": "spy_new_competitor",
-    "level": "notify",
-    "title": "New competitor: registry (6401\u2605)",
-    "details": {
-      "repo": "modelcontextprotocol/registry",
-      "name": "registry",
-      "stars": 6401,
-      "url": "https://github.com/modelcontextprotocol/registry",
-      "description": "A community driven registry service for Model Context Protocol (MCP) servers."
-    },
-    "status": "pending",
-    "created": "2026-02-12T14:38:58.348915"
-  },
-  {
-    "id": "ee412518",
-    "type": "spy_new_competitor",
-    "level": "notify",
-    "title": "New competitor: archestra (3511\u2605)",
-    "details": {
-      "repo": "archestra-ai/archestra",
-      "name": "archestra",
-      "stars": 3511,
-      "url": "https://github.com/archestra-ai/archestra",
-      "description": "Secure cloud-native MCP registry, gateway & orchestrator"
-    },
-    "status": "pending",
-    "created": "2026-02-12T14:38:58.349948"
-  },
-  {
-    "id": "2fa615a5",
-    "type": "spy_new_competitor",
-    "level": "notify",
-    "title": "New competitor: mcp-context-forge (3276\u2605)",
-    "details": {
-      "repo": "IBM/mcp-context-forge",
-      "name": "mcp-context-forge",
-      "stars": 3276,
-      "url": "https://github.com/IBM/mcp-context-forge",
-      "description": "A Model Context Protocol (MCP) Gateway & Registry. Serves as a central management point for tools, resources, and prompts that can be accessed by MCP-compatible LLM applications. Converts REST API end"
-    },
-    "status": "pending",
-    "created": "2026-02-12T14:38:58.350936"
-  },
-  {
-    "id": "021d8052",
-    "type": "spy_improve_visibility",
-    "level": "notify",
-    "title": "\ud83d\udcc8 Stars gap: mcp-gateway-registry has 436 vs our 0",
-    "details": {
-      "competitor": "mcp-gateway-registry",
-      "their_stars": 436,
-      "our_stars": 0,
-      "suggestion": "mcp-gateway-registry has 436 stars vs our 0. Need better README, more examples, community engagement."
-    },
-    "status": "pending",
-    "created": "2026-02-12T14:39:04.212769"
-  },
-  {
-    "id": "90fe2e00",
-    "type": "spy_improve_visibility",
-    "level": "notify",
-    "title": "\ud83d\udcc8 Stars gap: mcp-compass has 223 vs our 0",
-    "details": {
-      "competitor": "mcp-compass",
-      "their_stars": 223,
-      "our_stars": 0,
-      "suggestion": "mcp-compass has 223 stars vs our 0. Need better README, more examples, community engagement."
-    },
-    "status": "pending",
-    "created": "2026-02-12T14:39:04.215418"
-  },
-  {
-    "id": "bc5a3c4d",
-    "type": "spy_improve_visibility",
-    "level": "notify",
-    "title": "\ud83d\udcc8 Stars gap: claude-plugins-official has 7288 vs our 0",
-    "details": {
-      "competitor": "claude-plugins-official",
-      "their_stars": 7288,
-      "our_stars": 0,
-      "suggestion": "claude-plugins-official has 7288 stars vs our 0. Need better README, more examples, community engagement."
-    },
-    "status": "pending",
-    "created": "2026-02-12T14:39:04.216676"
-  },
-  {
-    "id": "eb37bece",
-    "type": "spy_competitor_active",
-    "level": "notify",
-    "title": "\u26a1 Active competitor: mcp-gateway-registry (100 commits/30d)",
-    "details": {
-      "competitor": "mcp-gateway-registry",
-      "commits_30d": 100
-    },
-    "status": "pending",
-    "created": "2026-02-12T14:39:04.217726"
-  },
-  {
-    "id": "1edce42e",
-    "type": "spy_daily_summary",
-    "level": "notify",
-    "title": "\ud83d\udd75\ufe0f Spionen: 3 critical, 4 high gaps found",
-    "details": {
-      "critical_gaps": [
-        "feature:a2a_support",
-        "feature:semantic_search",
-        "feature:semantic_search"
-      ],
-      "high_gaps": [
-        "github_stars",
-        "feature:enterprise_auth",
-        "github_stars",
-        "github_stars"
-      ],
-      "total_competitors": 3,
-      "new_competitors": 34
-    },
-    "status": "pending",
-    "created": "2026-02-12T14:39:04.218834"
   },
   {
     "id": "5a87dfa7",
@@ -466,54 +253,6 @@
     "created": "2026-02-12T14:42:50.051628"
   },
   {
-    "id": "ae547f27",
-    "type": "endpoint_down",
-    "level": "notify",
-    "title": "Endpoint down: api",
-    "details": {
-      "endpoint": "api",
-      "url": "https://api.agentcrawl.dev"
-    },
-    "status": "pending",
-    "created": "2026-02-12T14:42:52.218754"
-  },
-  {
-    "id": "d81ffbd8",
-    "type": "endpoint_down",
-    "level": "notify",
-    "title": "Endpoint down: mcp_sse",
-    "details": {
-      "endpoint": "mcp_sse",
-      "url": "https://mcp.agentcrawl.dev"
-    },
-    "status": "pending",
-    "created": "2026-02-12T14:42:52.224843"
-  },
-  {
-    "id": "c1235260",
-    "type": "endpoint_down",
-    "level": "notify",
-    "title": "Endpoint down: npm",
-    "details": {
-      "endpoint": "npm",
-      "url": "https://www.npmjs.com/package/@agentidx/sdk"
-    },
-    "status": "pending",
-    "created": "2026-02-12T14:42:52.228762"
-  },
-  {
-    "id": "2bbfb7fa",
-    "type": "endpoint_down",
-    "level": "notify",
-    "title": "Endpoint down: smithery",
-    "details": {
-      "endpoint": "smithery",
-      "url": "https://smithery.ai/server/agentidx/agentcrawl"
-    },
-    "status": "pending",
-    "created": "2026-02-12T14:42:52.231692"
-  },
-  {
     "id": "1ea9e5ce",
     "type": "add_search_term",
     "level": "auto",
@@ -611,18 +350,6 @@
     },
     "status": "pending",
     "created": "2026-02-12T15:33:40.159367"
-  },
-  {
-    "id": "7e0e8751",
-    "type": "spy_a2a_outreach",
-    "level": "notify",
-    "title": "Outreach sent to OpSpawn AI Agent",
-    "details": {
-      "agent_id": "6fcbaa36-ffbb-4044-bccc-a9d0b5a8f8b9",
-      "name": "OpSpawn AI Agent"
-    },
-    "status": "pending",
-    "created": "2026-02-12T15:47:40.138828"
   },
   {
     "id": "a7022281",
@@ -823,32 +550,6 @@
     "created": "2026-02-13T07:51:33.028408"
   },
   {
-    "id": "c712cb70",
-    "type": "new_competitor",
-    "level": "notify",
-    "title": "Competitor: hexstrike-ai (6789*)",
-    "details": {
-      "name": "hexstrike-ai",
-      "stars": 6789,
-      "url": "https://github.com/0x4m4/hexstrike-ai"
-    },
-    "status": "pending",
-    "created": "2026-02-13T07:51:36.010766"
-  },
-  {
-    "id": "9950b672",
-    "type": "new_competitor",
-    "level": "notify",
-    "title": "Competitor: mcp-gateway-registry (440*)",
-    "details": {
-      "name": "mcp-gateway-registry",
-      "stars": 440,
-      "url": "https://github.com/agentic-community/mcp-gateway-registry"
-    },
-    "status": "pending",
-    "created": "2026-02-13T07:51:36.014698"
-  },
-  {
     "id": "03bb0aac",
     "type": "update_agent_md",
     "level": "auto",
@@ -913,19 +614,6 @@
     },
     "status": "pending",
     "created": "2026-02-13T08:20:07.924926"
-  },
-  {
-    "id": "f0aaf894",
-    "type": "new_competitor",
-    "level": "notify",
-    "title": "Competitor: hexstrike-ai (6790*)",
-    "details": {
-      "name": "hexstrike-ai",
-      "stars": 6790,
-      "url": "https://github.com/0x4m4/hexstrike-ai"
-    },
-    "status": "pending",
-    "created": "2026-02-13T08:20:11.100622"
   },
   {
     "id": "541a0fad",
