@@ -1,56 +1,56 @@
 {
-  "timestamp": "2026-02-13T08:37:09.372211",
+  "timestamp": "2026-02-13T11:47:56.489058",
   "actions": [
-    "NEW AWESOME LIST: awesome-ai-apps (8914*) - https://github.com/Arindam200/awesome-ai-apps",
-    "NEW AWESOME LIST: antigravity-awesome-skills (8686*) - https://github.com/sickn33/antigravity-awesome-skills",
+    "NEW AWESOME LIST: awesome-ai-apps (8917*) - https://github.com/Arindam200/awesome-ai-apps",
+    "NEW AWESOME LIST: antigravity-awesome-skills (8703*) - https://github.com/sickn33/antigravity-awesome-skills",
     "NEW AWESOME LIST: awesome-mcp-clients (6278*) - https://github.com/punkpeye/awesome-mcp-clients",
     "NEW AWESOME LIST: awesome-mcp-servers (5141*) - https://github.com/appcypher/awesome-mcp-servers",
     "NEW AWESOME LIST: awesome-ai-sdks (1129*) - https://github.com/e2b-dev/awesome-ai-sdks",
     "NEW AWESOME LIST: Awesome-Context-Engineering (2895*) - https://github.com/Meirtz/Awesome-Context-Engineering",
     "NEW AWESOME LIST: awesome-llm-agents (1316*) - https://github.com/kaushikb11/awesome-llm-agents",
-    "NEW AWESOME LIST: awesome-web-agents (1222*) - https://github.com/steel-dev/awesome-web-agents",
+    "NEW AWESOME LIST: awesome-web-agents (1223*) - https://github.com/steel-dev/awesome-web-agents",
     "PR PENDING: Awesome MCP Servers - waiting for review",
     "REGISTER: MCP Hub at https://mcphub.io",
     "REGISTER: Glama at https://glama.ai/mcp/servers",
     "REGISTER: PulseMCP at https://pulsemcp.com",
     "REGISTER: mcp.run at https://mcp.run",
     "REGISTER: Composio MCP at https://composio.dev/mcp",
-    "NEW REGISTRY: claude-plugins-official (7333*) - https://github.com/anthropics/claude-plugins-official",
+    "NEW REGISTRY: claude-plugins-official (7344*) - https://github.com/anthropics/claude-plugins-official",
     "NEW REGISTRY: mcpso (1966*) - https://github.com/chatmcp/mcpso",
-    "NEW SEARCH TERMS: Consider adding: aiagentsframework, agent-communication, llm-agents, web-search-agent, agent, ai-agent-tools, agents, agentnet, multi-agent-reinforcement-learning, sub-agents",
+    "NEW SEARCH TERMS: Consider adding: agentic-ai, agent-memory, agentmemory, agentic, aiagentframework, multi-agent-systems, ai-agent-framework, ai-agents, ai-agents-framework, llm-agents",
     "ALERT: Endpoints down: api, mcp_sse, npm, smithery",
     "SUBMIT PR: awesome-ai-agents - PR text ready in report",
     "SUBMIT PR: awesome-langchain - PR text ready in report",
-    "UPDATED: agent.md with 25,737 agents"
+    "UPDATED: agent.md with 25,783 agents"
   ],
   "stats": {
     "pipeline": {
-      "classified": 227,
+      "classified": 224,
       "duplicate": 10,
-      "indexed": 11388,
+      "indexed": 11385,
       "low_confidence": 33,
-      "not_agent": 10012,
+      "not_agent": 10019,
       "parse_failed": 1,
-      "parsed": 17425,
+      "parsed": 17471,
       "ranked": 94
     },
-    "total_active": 25737,
+    "total_active": 25783,
     "sources": {
       "a2a": 3,
-      "github": 31736,
-      "huggingface": 1436,
-      "mcp": 2384,
-      "npm": 3631
+      "github": 31758,
+      "huggingface": 1450,
+      "mcp": 2389,
+      "npm": 3637
     },
     "top_categories": {
-      "coding": 2980,
+      "coding": 2990,
       "devops": 1649,
-      "infrastructure": 1252,
-      "finance": 1189,
-      "communication": 1015,
-      "research": 984,
-      "agent framework": 754,
-      "data": 568,
+      "infrastructure": 1265,
+      "finance": 1192,
+      "communication": 1017,
+      "research": 985,
+      "agent framework": 755,
+      "data": 570,
       "AI assistant": 550,
       "security": 528,
       "other": 517,
@@ -64,14 +64,14 @@
     {
       "repo": "Arindam200/awesome-ai-apps",
       "name": "awesome-ai-apps",
-      "stars": 8914,
+      "stars": 8917,
       "description": "A collection of projects showcasing RAG, agents, workflows, and other AI use cases",
       "url": "https://github.com/Arindam200/awesome-ai-apps"
     },
     {
       "repo": "sickn33/antigravity-awesome-skills",
       "name": "antigravity-awesome-skills",
-      "stars": 8686,
+      "stars": 8703,
       "description": "The Ultimate Collection of 800+ Agentic Skills for Claude Code/Antigravity/Cursor. Battle-tested, high-performance skills for AI agents including official skills from Anthropic and Vercel.",
       "url": "https://github.com/sickn33/antigravity-awesome-skills"
     },
@@ -113,7 +113,7 @@
     {
       "repo": "steel-dev/awesome-web-agents",
       "name": "awesome-web-agents",
-      "stars": 1222,
+      "stars": 1223,
       "description": "\ud83d\udd25 A list of tools, frameworks, and resources for building AI web agents",
       "url": "https://github.com/steel-dev/awesome-web-agents"
     },
@@ -121,7 +121,7 @@
       "type": "registry",
       "name": "claude-plugins-official",
       "repo": "anthropics/claude-plugins-official",
-      "stars": 7333,
+      "stars": 7344,
       "url": "https://github.com/anthropics/claude-plugins-official"
     },
     {
@@ -134,7 +134,7 @@
     {
       "type": "directory",
       "name": "buildwithclaude",
-      "stars": 2415,
+      "stars": 2416,
       "url": "https://github.com/davepoon/buildwithclaude",
       "description": "A single hub to find Claude Skills, Agents, Commands, Hooks, Plugins, and Marketplace collections to extend Claude Code, Claude Desktop, Agent SDK and OpenClaw"
     },
@@ -148,14 +148,14 @@
     {
       "type": "directory",
       "name": "awesome-mcp-servers",
-      "stars": 3572,
+      "stars": 3573,
       "url": "https://github.com/wong2/awesome-mcp-servers",
       "description": "A curated list of Model Context Protocol (MCP) servers"
     },
     {
       "type": "directory",
       "name": "awesome-claude-plugins",
-      "stars": 1456,
+      "stars": 1453,
       "url": "https://github.com/ComposioHQ/awesome-claude-plugins",
       "description": "A curated list of Plugins that let you extend Claude Code with custom commands, agents, hooks, and MCP servers through the plugin system."
     },
@@ -169,23 +169,23 @@
     {
       "type": "directory",
       "name": "mcp-context-forge",
-      "stars": 3280,
+      "stars": 3281,
       "url": "https://github.com/IBM/mcp-context-forge",
       "description": "A Model Context Protocol (MCP) Gateway & Registry. Serves as a central management point for tools, resources, and prompts that can be accessed by MCP-compatible LLM applications. Converts REST API endpoints to MCP, composes virtual MCP servers with added security and observability, and converts between protocols (stdio, SSE, Streamable HTTP)."
     }
   ],
   "new_sources": [],
   "new_search_terms": [
-    "aiagentsframework",
-    "agent-communication",
-    "llm-agents",
-    "web-search-agent",
-    "agent",
-    "ai-agent-tools",
-    "agents",
-    "agentnet",
-    "multi-agent-reinforcement-learning",
-    "sub-agents"
+    "agentic-ai",
+    "agent-memory",
+    "agentmemory",
+    "agentic",
+    "aiagentframework",
+    "multi-agent-systems",
+    "ai-agent-framework",
+    "ai-agents",
+    "ai-agents-framework",
+    "llm-agents"
   ],
   "competitors": [],
   "presence_tracker": {
@@ -231,11 +231,11 @@
   "pr_texts": {
     "awesome-ai-agents": {
       "title": "Add AgentIndex - AI agent discovery platform",
-      "body": "## AgentIndex\n\n**Discovery platform for AI agents.** Find any AI agent by capability - search 25,737+ indexed agents across 5 sources.\n\n- **API:** https://api.agentcrawl.dev\n- **MCP Server:** [Smithery](https://smithery.ai/server/agentidx/agentcrawl)\n- **SDK:** `pip install agentcrawl` | `npm install @agentidx/sdk`\n- **GitHub:** https://github.com/agentidx/agentindex\n\n### What it does\nAgentIndex crawls and indexes all publicly available AI agents (GitHub, npm, MCP, HuggingFace) so that agents can automatically discover and hire other agents.\n\n### Categories\ncoding, devops, infrastructure, finance, communication, research, agent framework, data, AI assistant, security\n\n### Usage\n```python\nfrom agentcrawl import discover\nagents = discover('code review', min_quality=0.7)\n```\n"
+      "body": "## AgentIndex\n\n**Discovery platform for AI agents.** Find any AI agent by capability - search 25,783+ indexed agents across 5 sources.\n\n- **API:** https://api.agentcrawl.dev\n- **MCP Server:** [Smithery](https://smithery.ai/server/agentidx/agentcrawl)\n- **SDK:** `pip install agentcrawl` | `npm install @agentidx/sdk`\n- **GitHub:** https://github.com/agentidx/agentindex\n\n### What it does\nAgentIndex crawls and indexes all publicly available AI agents (GitHub, npm, MCP, HuggingFace) so that agents can automatically discover and hire other agents.\n\n### Categories\ncoding, devops, infrastructure, finance, communication, research, agent framework, data, AI assistant, security\n\n### Usage\n```python\nfrom agentcrawl import discover\nagents = discover('code review', min_quality=0.7)\n```\n"
     },
     "awesome-langchain": {
       "title": "Add AgentIndex - agent discovery for LangChain projects",
-      "body": "## AgentIndex\n\nDiscovery API for finding AI agents by capability. Index of 25,737+ agents.\n\n- **API:** https://api.agentcrawl.dev\n- **SDK:** `pip install agentcrawl`\n- **MCP Server:** [Smithery](https://smithery.ai/server/agentidx/agentcrawl)\n- **GitHub:** https://github.com/agentidx/agentindex\n\n```python\nfrom agentcrawl import discover\nagents = discover('data analysis agent', protocols=['rest'])\n```\n"
+      "body": "## AgentIndex\n\nDiscovery API for finding AI agents by capability. Index of 25,783+ agents.\n\n- **API:** https://api.agentcrawl.dev\n- **SDK:** `pip install agentcrawl`\n- **MCP Server:** [Smithery](https://smithery.ai/server/agentidx/agentcrawl)\n- **GitHub:** https://github.com/agentidx/agentindex\n\n```python\nfrom agentcrawl import discover\nagents = discover('data analysis agent', protocols=['rest'])\n```\n"
     }
   }
 }
