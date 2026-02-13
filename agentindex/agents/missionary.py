@@ -264,7 +264,7 @@ class Missionary:
                     self.report["actions"].append(
                         f"NEW AWESOME LIST: {lst['name']} ({lst['stars']}*) - {lst['url']}"
                     )
-                    add_action("add_awesome_list", f"Track: {lst['name']} ({lst['stars']}*)",
+                    add_action("add_awesome_list", f"Track: {lst['name']}",
                               {"repo": lst["repo"], "name": lst["name"], "stars": lst["stars"], "url": lst["url"]})
             self.report["new_channels"].extend(unique)
             logger.info(f"Found {len(unique)} new awesome lists")
@@ -308,7 +308,7 @@ class Missionary:
         for registry in self.REGISTRIES:
             if registry["status"] == "not_registered":
                 self.report["actions"].append(f"REGISTER: {registry['name']} at {registry['url']}")
-                add_action("register_registry", f"Register on {registry['name']}",
+                add_action("register_registry", f"Register: {registry['name']}",
                           {"name": registry["name"], "url": registry["url"]})
         try:
             response = self.client.get(
@@ -423,7 +423,7 @@ class Missionary:
                 ", ".join(f"{c['name']} ({c['stars']}*)" for c in top)
             )
             for c in top:
-                add_action("new_competitor", f"Competitor: {c['name']} ({c['stars']}*)",
+                add_action("new_competitor", f"Competitor: {c['name']}",
                           {"name": c["name"], "stars": c["stars"], "url": c["url"]})
 
     def _track_presence(self):
@@ -471,7 +471,7 @@ class Missionary:
             lst = next((a for a in self.AWESOME_LISTS if name.replace("-", " ") in a["name"].lower()), None)
             if lst and lst.get("pr_status") == "not_submitted":
                 self.report["actions"].append(f"SUBMIT PR: {name} - PR text ready in report")
-                add_action("submit_pr", f"Submit PR to {name}",
+                add_action("submit_pr", f"PR: {name}",
                           {"repo": lst["repo"], "title": pr_texts[name]["title"], "body": pr_texts[name]["body"]})
 
     def _auto_update_repo_stats(self):
@@ -492,7 +492,7 @@ class Missionary:
                 with open(agent_md_path, "w") as f:
                     f.write(content)
                 self.report["actions"].append(f"UPDATED: agent.md with {total:,} agents")
-                add_action("update_agent_md", f"Update agent.md with {total:,} agents", {"total": total})
+                add_action("update_agent_md", "Update agent.md", {"total": total})
                 logger.info(f"Updated agent.md with {total:,} agents")
         except Exception as e:
             logger.error(f"Failed to update agent.md: {e}")

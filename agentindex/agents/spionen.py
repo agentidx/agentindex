@@ -299,7 +299,7 @@ class Spionen:
             logger.info(f"Found {len(unique)} new potential competitors")
             for c in unique[:10]:
                 logger.info(f"  NEW: {c['name']} ({c['stars']}★) — {c['description'][:80]}")
-                add_action("spy_new_competitor", f"New competitor: {c['name']} ({c['stars']}★)",
+                add_action("spy_new_competitor", f"New competitor: {c['name']}",
                            {"repo": c["repo"], "name": c["name"], "stars": c["stars"], "url": c["url"], "description": c["description"]})
 
     def _monitor_all_competitors(self):
@@ -510,11 +510,11 @@ class Spionen:
                                {"feature": feature_name, "competitor": gap["competitor"], "suggestion": gap["suggestion"]})
                     actions.append(f"Feature gap: {feature_name} (from {gap['competitor']})")
             elif kpi == "github_stars":
-                add_action("spy_improve_visibility", f"📈 Stars gap: {gap['competitor']} has {gap['theirs']} vs our {gap['ours']}",
+                add_action("spy_improve_visibility", f"Stars gap: {gap['competitor']}",
                            {"competitor": gap["competitor"], "their_stars": gap["theirs"], "our_stars": gap["ours"], "suggestion": gap["suggestion"]})
                 actions.append(f"Stars gap vs {gap['competitor']}")
             elif kpi == "development_velocity":
-                add_action("spy_competitor_active", f"⚡ Active competitor: {gap['competitor']} ({gap['theirs']} commits/30d)",
+                add_action("spy_competitor_active", f"Active competitor: {gap['competitor']}",
                            {"competitor": gap["competitor"], "commits_30d": gap["theirs"]})
                 actions.append(f"Active competitor: {gap['competitor']}")
         for nc in self.report.get("new_competitors", [])[:5]:
@@ -522,7 +522,7 @@ class Spionen:
         if self.report["gaps"]:
             critical = [g for g in self.report["gaps"] if g["severity"] == "critical"]
             high = [g for g in self.report["gaps"] if g["severity"] == "high"]
-            add_action("spy_daily_summary", f"🕵️ Spionen: {len(critical)} critical, {len(high)} high gaps found",
+            add_action("spy_daily_summary", "Spionen daily summary",
                        {"critical_gaps": [g["kpi"] for g in critical], "high_gaps": [g["kpi"] for g in high],
                         "total_competitors": len(self.report["competitors"]), "new_competitors": len(self.report["new_competitors"])})
         self.report["actions"] = actions
@@ -626,7 +626,7 @@ class Spionen:
                     f"{urgency}: {feature} approved {days_waiting}d ago — still not implemented. "
                     f"Approach: {item.get('approach', 'N/A')[:100]}"
                 )
-                add_action("spy_feature_reminder", f"{urgency} Implement {feature} ({days_waiting}d waiting)",
+                add_action("spy_feature_reminder", f"Implement {feature}",
                            {"feature": feature, "days_waiting": days_waiting,
                             "approach": item.get("approach", ""), "effort": item.get("effort", "")})
 
