@@ -493,9 +493,9 @@
       const name = agent.name || agent.repo_name || agent.title || 'Unknown';
       const desc = agent.description || agent.summary || '';
       const source = agent.source || agent.registry || '';
-      const url = agent.url || agent.repo_url || agent.homepage || '#';
+      const url = agent.source_url || agent.url || agent.repo_url || agent.homepage || '#';
       const stars = agent.stars || agent.github_stars || 0;
-      const score = agent.score || agent.similarity || agent.relevance || 0;
+      const score = agent.quality_score || agent.score || agent.similarity || 0;
       const agentType = agent.agent_type || agent.type || agent.category || '';
       const isA2A = agent.a2a || agent.supports_a2a || false;
       const isMCP = agent.mcp || agent.is_mcp || (source && source.toLowerCase().indexOf('mcp') >= 0) || false;

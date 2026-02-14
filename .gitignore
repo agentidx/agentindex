@@ -12,3 +12,4 @@ alerts.log
 missionary_output/
 .DS_Store
 *.sql
+agentindex.db
