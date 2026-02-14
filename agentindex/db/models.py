@@ -116,6 +116,10 @@ class Agent(Base):
             "protocols": self.protocols,
             "pricing": self.pricing,
             "is_verified": self.is_verified,
+            "source_url": self.source_url,
+            "stars": self.stars or 0,
+            "author": self.author,
+            "source": self.source,
         }
 
     def to_detail_response(self) -> dict:

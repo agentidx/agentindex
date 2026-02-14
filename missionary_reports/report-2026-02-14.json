@@ -1,0 +1,148 @@
+{
+  "timestamp": "2026-02-14T09:48:27.777109",
+  "actions": [
+    "PR PENDING: Awesome AI Agents - waiting for review",
+    "PR PENDING: Awesome LLM Apps - waiting for review",
+    "PR PENDING: Awesome Generative AI - waiting for review",
+    "PR PENDING: Awesome AI Tools - waiting for review",
+    "PR PENDING: Awesome LLM Agents - waiting for review",
+    "PR PENDING: Awesome MCP Clients - waiting for review",
+    "PR PENDING: awesome-ai-sdks - waiting for review",
+    "PR PENDING: Awesome-Context-Engineering - waiting for review",
+    "REGISTER: Composio MCP at https://composio.dev/mcp",
+    "NEW SEARCH TERMS: planner-executor-agent",
+    "COMPETITORS: Top 5: hexstrike-ai (6797*), index (2331*), awesome-LangGraph (1501*), mcp-gateway-registry (443*), mcp-compass (223*)",
+    "ALERT: Endpoints down: api, mcp_sse, npm, smithery",
+    "UPDATED: agent.md with 23,766 agents"
+  ],
+  "actions_created": 1,
+  "actions_skipped": 3,
+  "stats": {
+    "pipeline": {
+      "classified": 7007,
+      "duplicate": 220,
+      "indexed": 390,
+      "low_confidence": 33,
+      "not_agent": 14895,
+      "parse_failed": 2,
+      "parsed": 11624,
+      "ranked": 5949,
+      "removed": 1
+    },
+    "total_active": 23766,
+    "sources": {
+      "a2a": 3,
+      "github": 32569,
+      "huggingface": 1451,
+      "mcp": 2450,
+      "npm": 3648
+    },
+    "top_categories": {
+      "coding": 6563,
+      "devops": 2694,
+      "finance": 1676,
+      "infrastructure": 1577,
+      "communication": 1532,
+      "research": 1397,
+      "data": 854,
+      "security": 835,
+      "other": 720,
+      "marketing": 715,
+      "content": 573,
+      "agent framework": 568,
+      "productivity": 448,
+      "education": 435,
+      "AI tool": 432
+    }
+  },
+  "new_channels": [],
+  "new_sources": [],
+  "new_search_terms": [
+    "planner-executor-agent"
+  ],
+  "competitors": [
+    {
+      "name": "hexstrike-ai",
+      "repo": "0x4m4/hexstrike-ai",
+      "stars": 6797,
+      "description": "HexStrike AI MCP Agents is an advanced MCP server that lets AI agents (Claude, GPT, Copilot, etc.) autonomously run 150+ cybersecurity tools for automated pentesting, vulnerability discovery, bug bounty automation, and security research. Seamlessly bridge LLMs with real-world offensive security capabilities.",
+      "url": "https://github.com/0x4m4/hexstrike-ai",
+      "updated": "2026-02-14T09:33:14Z"
+    },
+    {
+      "name": "mcp-gateway-registry",
+      "repo": "agentic-community/mcp-gateway-registry",
+      "stars": 443,
+      "description": "Enterprise-ready MCP Gateway & Registry that centralizes AI development tools with secure OAuth authentication, dynamic tool discovery, and unified access for both autonomous AI agents and AI coding assistants. Transform scattered MCP server chaos into governed, auditable tool access with Keycloak/Entra integration.",
+      "url": "https://github.com/agentic-community/mcp-gateway-registry",
+      "updated": "2026-02-14T03:15:55Z"
+    },
+    {
+      "name": "mcp-compass",
+      "repo": "liuyoshio/mcp-compass",
+      "stars": 223,
+      "description": "MCP Discovery & Recommendation Service - Find the right MCP server for your needs",
+      "url": "https://github.com/liuyoshio/mcp-compass",
+      "updated": "2026-02-02T10:54:28Z"
+    },
+    {
+      "name": "index",
+      "repo": "lmnr-ai/index",
+      "stars": 2331,
+      "description": "The SOTA Open-Source Browser Agent for autonomously performing complex tasks on the web",
+      "url": "https://github.com/lmnr-ai/index",
+      "updated": "2026-02-13T12:00:50Z"
+    },
+    {
+      "name": "awesome-LangGraph",
+      "repo": "von-development/awesome-LangGraph",
+      "stars": 1501,
+      "description": "An index of the LangChain + LangGraph ecosystem: concepts, projects, tools, templates, and guides for LLM & multi-agent apps.",
+      "url": "https://github.com/von-development/awesome-LangGraph",
+      "updated": "2026-02-13T17:53:55Z"
+    }
+  ],
+  "presence_tracker": {
+    "api": {
+      "url": "https://api.agentcrawl.dev",
+      "http_status": 502,
+      "status": "down"
+    },
+    "dashboard": {
+      "url": "https://dash.agentcrawl.dev",
+      "http_status": 200,
+      "status": "live"
+    },
+    "mcp_sse": {
+      "url": "https://mcp.agentcrawl.dev",
+      "http_status": 404,
+      "status": "down"
+    },
+    "github": {
+      "url": "https://github.com/agentidx/agentindex",
+      "http_status": 200,
+      "status": "live"
+    },
+    "pypi": {
+      "url": "https://pypi.org/project/agentcrawl/",
+      "http_status": 200,
+      "status": "live"
+    },
+    "npm": {
+      "url": "https://www.npmjs.com/package/@agentidx/sdk",
+      "http_status": 403,
+      "status": "down"
+    },
+    "smithery": {
+      "url": "https://smithery.ai/server/agentidx/agentcrawl",
+      "http_status": 429,
+      "status": "down"
+    }
+  },
+  "pr_texts": {
+    "awesome-ai-agents": {
+      "title": "Add AgentIndex - AI agent discovery platform",
+      "body": "## AgentIndex\n\n**Discovery platform for AI agents.** Find any AI agent by capability - search 23,766+ indexed agents across 5 sources.\n\n- **API:** https://api.agentcrawl.dev\n- **MCP Server:** [Smithery](https://smithery.ai/server/agentidx/agentcrawl)\n- **SDK:** `pip install agentcrawl` | `npm install @agentidx/sdk`\n- **GitHub:** https://github.com/agentidx/agentindex\n\n### What it does\nAgentIndex crawls and indexes all publicly available AI agents so that agents can automatically discover and hire other agents.\n\n### Categories\ncoding, devops, finance, infrastructure, communication, research, data, security, other, marketing\n\n### Usage\n```python\nfrom agentcrawl import discover\nagents = discover('code review', min_quality=0.7)\n```\n"
+    }
+  }
+}

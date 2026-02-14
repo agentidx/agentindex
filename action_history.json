@@ -2935,5 +2935,216 @@
     "created": "2026-02-13T13:58:28.494928",
     "executed_at": "2026-02-13T14:00:33.914175",
     "result": "logged term: llmagents"
+  },
+  {
+    "id": "a31677ce",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: reinforcement-learning-agent",
+    "details": {
+      "term": "reinforcement-learning-agent"
+    },
+    "status": "executed",
+    "created": "2026-02-13T14:11:28.049512",
+    "executed_at": "2026-02-13T14:13:35.396366",
+    "result": "logged term: reinforcement-learning-agent"
+  },
+  {
+    "id": "73b6dcfc",
+    "type": "submit_pr",
+    "level": "approval",
+    "title": "PR: awesome-langchain",
+    "details": {
+      "repo": "kyrolabs/awesome-langchain",
+      "title": "Add AgentIndex - agent discovery for LangChain projects",
+      "body": "## AgentIndex\n\nDiscovery API for finding AI agents by capability. Index of 25,783+ agents.\n\n- **API:** https://api.agentcrawl.dev\n- **SDK:** `pip install agentcrawl`\n- **MCP Server:** [Smithery](https://smithery.ai/server/agentidx/agentcrawl)\n- **GitHub:** https://github.com/agentidx/agentindex\n\n```python\nfrom agentcrawl import discover\nagents = discover('data analysis agent', protocols=['rest'])\n```\n"
+    },
+    "status": "dismissed",
+    "created": "2026-02-13T11:48:06.132847",
+    "rejected_at": "2026-02-13T12:56:29.242539",
+    "reason": "blocked repos"
+  },
+  {
+    "id": "d51c64b9",
+    "type": "submit_pr",
+    "level": "approval",
+    "title": "PR: awesome-web-agents",
+    "details": {
+      "repo": "steel-dev/awesome-web-agents",
+      "name": "awesome-web-agents"
+    },
+    "status": "dismissed",
+    "created": "2026-02-13T12:47:23.189457",
+    "rejected_at": "2026-02-13T12:56:29.243816",
+    "reason": "blocked repos"
+  },
+  {
+    "id": "152cde87",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: agentskills",
+    "details": {
+      "term": "agentskills"
+    },
+    "status": "executed",
+    "created": "2026-02-13T15:16:19.046880",
+    "executed_at": "2026-02-13T15:18:25.851270",
+    "result": "logged term: agentskills"
+  },
+  {
+    "id": "ed0c10ae",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: reactive-agents",
+    "details": {
+      "term": "reactive-agents"
+    },
+    "status": "executed",
+    "created": "2026-02-13T15:16:19.050925",
+    "executed_at": "2026-02-13T15:18:25.860082",
+    "result": "logged term: reactive-agents"
+  },
+  {
+    "id": "c3d62401",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: custom-agents",
+    "details": {
+      "term": "custom-agents"
+    },
+    "status": "executed",
+    "created": "2026-02-13T15:16:19.054615",
+    "executed_at": "2026-02-13T15:18:25.862785",
+    "result": "logged term: custom-agents"
+  },
+  {
+    "id": "7948a925",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: strands-agents",
+    "details": {
+      "term": "strands-agents"
+    },
+    "status": "executed",
+    "created": "2026-02-13T15:16:19.057650",
+    "executed_at": "2026-02-13T15:18:25.865490",
+    "result": "logged term: strands-agents"
+  },
+  {
+    "id": "16781ecc",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: hierarchical-agents",
+    "details": {
+      "term": "hierarchical-agents"
+    },
+    "status": "executed",
+    "created": "2026-02-14T06:00:14.007058",
+    "executed_at": "2026-02-14T06:03:25.860880",
+    "result": "logged term: hierarchical-agents"
+  },
+  {
+    "id": "2a24f508",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: agent-developer-kit",
+    "details": {
+      "term": "agent-developer-kit"
+    },
+    "status": "executed",
+    "created": "2026-02-14T06:00:14.014295",
+    "executed_at": "2026-02-14T06:03:25.869241",
+    "result": "logged term: agent-developer-kit"
+  },
+  {
+    "id": "e0f4215e",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: guiagent",
+    "details": {
+      "term": "guiagent"
+    },
+    "status": "executed",
+    "created": "2026-02-14T06:00:14.019111",
+    "executed_at": "2026-02-14T06:03:25.875898",
+    "result": "logged term: guiagent"
+  },
+  {
+    "id": "7c0ce6ff",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: adk-agent",
+    "details": {
+      "term": "adk-agent"
+    },
+    "status": "executed",
+    "created": "2026-02-14T06:00:14.023695",
+    "executed_at": "2026-02-14T06:03:25.881737",
+    "result": "logged term: adk-agent"
+  },
+  {
+    "id": "5e8eef27",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: microsoft-agent-framework",
+    "details": {
+      "term": "microsoft-agent-framework"
+    },
+    "status": "executed",
+    "created": "2026-02-14T09:22:05.000719",
+    "executed_at": "2026-02-14T09:29:06.509711",
+    "result": "logged term: microsoft-agent-framework"
+  },
+  {
+    "id": "34ffb789",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: defai-agent",
+    "details": {
+      "term": "defai-agent"
+    },
+    "status": "executed",
+    "created": "2026-02-14T09:22:05.001979",
+    "executed_at": "2026-02-14T09:29:06.515679",
+    "result": "logged term: defai-agent"
+  },
+  {
+    "id": "30e0b152",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: agentic-agi",
+    "details": {
+      "term": "agentic-agi"
+    },
+    "status": "executed",
+    "created": "2026-02-14T09:22:05.002835",
+    "executed_at": "2026-02-14T09:29:06.518303",
+    "result": "logged term: agentic-agi"
+  },
+  {
+    "id": "f5abf81b",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: local-ai-agents",
+    "details": {
+      "term": "local-ai-agents"
+    },
+    "status": "executed",
+    "created": "2026-02-14T09:25:18.154749",
+    "executed_at": "2026-02-14T09:29:06.520793",
+    "result": "logged term: local-ai-agents"
+  },
+  {
+    "id": "12386ff6",
+    "type": "add_search_term",
+    "level": "auto",
+    "title": "Add search term: planner-executor-agent",
+    "details": {
+      "term": "planner-executor-agent"
+    },
+    "status": "executed",
+    "created": "2026-02-14T09:48:40.036447",
+    "executed_at": "2026-02-14T09:48:43.388421",
+    "result": "logged term: planner-executor-agent"
   }
 ]

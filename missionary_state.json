@@ -3,12 +3,14 @@
     "punkpeye/awesome-mcp-servers": {
       "name": "Awesome MCP Servers",
       "stars": 30000,
-      "pr_status": "submitted"
+      "pr_status": "submitted",
+      "pr_number": 1971
     },
     "e2b-dev/awesome-ai-agents": {
       "name": "Awesome AI Agents",
       "stars": 10000,
-      "pr_status": "submitted"
+      "pr_status": "submitted",
+      "pr_number": 258
     },
     "kyrolabs/awesome-langchain": {
       "name": "Awesome LangChain",
@@ -22,13 +24,15 @@
     },
     "Shubhamsaboo/awesome-llm-apps": {
       "name": "Awesome LLM Apps",
-      "stars": 5000,
-      "pr_status": "submitted"
+      "stars": 94629,
+      "pr_status": "submitted",
+      "pr_number": 495
     },
     "filipecalegario/awesome-generative-ai": {
       "name": "Awesome Generative AI",
       "stars": 5000,
-      "pr_status": "submitted"
+      "pr_status": "submitted",
+      "pr_number": 310
     },
     "aimerou/awesome-ai-papers": {
       "name": "Awesome AI Papers",
@@ -37,8 +41,9 @@
     },
     "mahseema/awesome-ai-tools": {
       "name": "Awesome AI Tools",
-      "stars": 3000,
-      "pr_status": "submitted"
+      "stars": 4378,
+      "pr_status": "submitted",
+      "pr_number": 609
     },
     "appcypher/awesome-mcp-servers": {
       "name": "Awesome MCP Servers (appcypher)",
@@ -48,7 +53,8 @@
     "kaushikb11/awesome-llm-agents": {
       "name": "Awesome LLM Agents",
       "stars": 1300,
-      "pr_status": "submitted"
+      "pr_status": "submitted",
+      "pr_number": 63
     },
     "Arindam200/awesome-ai-apps": {
       "name": "Awesome AI Apps",
@@ -61,22 +67,24 @@
       "pr_status": "closed"
     },
     "punkpeye/awesome-mcp-clients": {
-      "name": "awesome-mcp-clients",
-      "stars": 6275,
+      "name": "Awesome MCP Clients",
+      "stars": 6277,
       "pr_status": "submitted",
-      "tracked_at": "2026-02-12T09:52:40.748839"
+      "pr_number": 145
     },
     "e2b-dev/awesome-ai-sdks": {
       "name": "awesome-ai-sdks",
       "stars": 1128,
       "pr_status": "submitted",
-      "tracked_at": "2026-02-12T09:52:40.749240"
+      "tracked_at": "2026-02-12T09:52:40.749240",
+      "pr_number": 48
     },
     "Meirtz/Awesome-Context-Engineering": {
       "name": "Awesome-Context-Engineering",
       "stars": 2891,
       "pr_status": "submitted",
-      "tracked_at": "2026-02-12T09:52:40.749442"
+      "tracked_at": "2026-02-12T09:52:40.749442",
+      "pr_number": 27
     },
     "steel-dev/awesome-web-agents": {
       "name": "awesome-web-agents",
@@ -245,7 +253,21 @@
     "voice-agents",
     "open-policy-agent",
     "sqlagent",
-    "llmagents"
+    "llmagents",
+    "reinforcement-learning-agent",
+    "agentskills",
+    "reactive-agents",
+    "custom-agents",
+    "strands-agents",
+    "adk-agent",
+    "hierarchical-agents",
+    "guiagent",
+    "agent-developer-kit",
+    "microsoft-agent-framework",
+    "defai-agent",
+    "agentic-agi",
+    "local-ai-agents",
+    "planner-executor-agent"
   ],
   "competitors_seen": [
     "0x4m4/hexstrike-ai",
@@ -255,10 +277,10 @@
     "liuyoshio/mcp-compass"
   ],
   "endpoints_alerted": {
-    "api": "2026-02-13",
-    "mcp_sse": "2026-02-13",
-    "npm": "2026-02-13",
-    "smithery": "2026-02-13"
+    "api": "2026-02-14",
+    "mcp_sse": "2026-02-14",
+    "npm": "2026-02-14",
+    "smithery": "2026-02-14"
   },
-  "last_run": "2026-02-13T14:07:12.738526"
+  "last_run": "2026-02-14T09:48:44.079789"
 }
