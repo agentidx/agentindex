@@ -10,6 +10,8 @@ import logging
 from datetime import datetime
 from typing import Optional
 from fastapi import FastAPI, HTTPException, Request, Depends
+from fastapi.staticfiles import StaticFiles
+import pathlib
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from sqlalchemy import select, func, text, or_, and_
@@ -387,6 +389,11 @@ def semantic_status():
         return sem.get_status()
     return {"status": "not_available"}
 
+
+import pathlib as _pl
+_sd = _pl.Path(__file__).resolve().parent.parent.parent / "static"
+if _sd.exists():
+    app.mount("/", StaticFiles(directory=str(_sd), html=True), name="static")
 
 def start_api():
     """Start the API server."""

@@ -1,0 +1,530 @@
+cat > ~/agentindex/static/index.html << 'HTMLEOF'
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgentIndex — Agent Discovery Infrastructure</title>
+<meta name="description" content="Semantic search across 39,000+ AI agents from GitHub, npm, PyPI, HuggingFace, and MCP registries. DNS for AI agents.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0b;
+    --surface: #111113;
+    --surface-2: #18181b;
+    --border: #27272a;
+    --border-hover: #3f3f46;
+    --text: #fafafa;
+    --text-muted: #a1a1aa;
+    --text-dim: #71717a;
+    --accent: #22d3ee;
+    --accent-dim: rgba(34, 211, 238, 0.1);
+    --accent-glow: rgba(34, 211, 238, 0.15);
+    --green: #4ade80;
+    --amber: #fbbf24;
+    --red: #f87171;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Instrument Sans', system-ui, sans-serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(34, 211, 238, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(34, 211, 238, 0.03) 1px, transparent 1px);
+    background-size: 64px 64px;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+  header {
+    padding: 24px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .logo {
+    font-family: var(--mono);
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--text);
+    letter-spacing: -0.02em;
+  }
+  .logo span { color: var(--accent); }
+  .nav-links {
+    display: flex;
+    gap: 24px;
+    align-items: center;
+  }
+  .nav-links a {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-dim);
+    text-decoration: none;
+    letter-spacing: 0.02em;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--text); }
+  .hero {
+    text-align: center;
+    padding: 80px 0 40px;
+  }
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    background: var(--accent-dim);
+    border: 1px solid rgba(34, 211, 238, 0.2);
+    padding: 6px 14px;
+    border-radius: 100px;
+    margin-bottom: 32px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .hero-badge .pulse {
+    width: 6px;
+    height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+  h1 {
+    font-size: clamp(32px, 5vw, 48px);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    margin-bottom: 16px;
+  }
+  h1 .dim { color: var(--text-dim); }
+  .subtitle {
+    font-size: 16px;
+    color: var(--text-muted);
+    line-height: 1.6;
+    max-width: 520px;
+    margin: 0 auto 48px;
+  }
+  .search-wrapper {
+    position: relative;
+    max-width: 640px;
+    margin: 0 auto;
+  }
+  .search-box {
+    position: relative;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .search-box:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow), 0 8px 32px rgba(0,0,0,0.4);
+  }
+  .search-input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 15px;
+    padding: 18px 120px 18px 20px;
+    letter-spacing: -0.01em;
+  }
+  .search-input::placeholder { color: var(--text-dim); }
+  .search-btn {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--accent);
+    color: var(--bg);
+    border: none;
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 10px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    letter-spacing: 0.02em;
+    transition: opacity 0.2s;
+  }
+  .search-btn:hover { opacity: 0.85; }
+  .search-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .search-hints {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 16px;
+  }
+  .hint {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 5px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .hint:hover {
+    color: var(--text-muted);
+    border-color: var(--border-hover);
+    background: var(--surface-2);
+  }
+  .results-area { margin-top: 40px; min-height: 100px; }
+  .results-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding: 0 4px;
+  }
+  .results-count { font-family: var(--mono); font-size: 12px; color: var(--text-dim); }
+  .results-time { font-family: var(--mono); font-size: 11px; color: var(--text-dim); }
+  .result-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 10px;
+    transition: border-color 0.2s;
+  }
+  .result-card:hover { border-color: var(--border-hover); }
+  .result-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+  .result-name { font-weight: 600; font-size: 15px; letter-spacing: -0.01em; }
+  .result-name a { color: var(--text); text-decoration: none; }
+  .result-name a:hover { color: var(--accent); }
+  .result-score {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--bg);
+    background: var(--accent);
+    padding: 2px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+    font-weight: 500;
+  }
+  .result-desc {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.5;
+    margin-bottom: 12px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .result-tags { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .tag {
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    letter-spacing: 0.02em;
+  }
+  .tag-source { color: var(--accent); background: var(--accent-dim); border: 1px solid rgba(34, 211, 238, 0.15); }
+  .tag-type { color: var(--text-dim); background: var(--surface-2); border: 1px solid var(--border); }
+  .tag-stars { color: var(--amber); background: rgba(251, 191, 36, 0.1); border: 1px solid rgba(251, 191, 36, 0.15); }
+  .tag-a2a { color: var(--green); background: rgba(74, 222, 128, 0.1); border: 1px solid rgba(74, 222, 128, 0.15); }
+  .loading { text-align: center; padding: 40px; }
+  .loading-dots { display: inline-flex; gap: 6px; }
+  .loading-dots span {
+    width: 8px; height: 8px;
+    background: var(--accent);
+    border-radius: 50%;
+    animation: bounce 1.2s ease-in-out infinite;
+  }
+  .loading-dots span:nth-child(2) { animation-delay: 0.15s; }
+  .loading-dots span:nth-child(3) { animation-delay: 0.3s; }
+  @keyframes bounce {
+    0%, 80%, 100% { transform: scale(0.6); opacity: 0.3; }
+    40% { transform: scale(1); opacity: 1; }
+  }
+  .loading-text { font-family: var(--mono); font-size: 12px; color: var(--text-dim); margin-top: 12px; }
+  .error-msg {
+    text-align: center;
+    padding: 24px;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--red);
+    background: rgba(248, 113, 113, 0.05);
+    border: 1px solid rgba(248, 113, 113, 0.15);
+    border-radius: 8px;
+  }
+  .cta-section {
+    margin-top: 64px;
+    padding: 48px 0;
+    border-top: 1px solid var(--border);
+    text-align: center;
+  }
+  .cta-title {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 24px;
+    letter-spacing: 0.02em;
+  }
+  .code-blocks {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 12px;
+    max-width: 640px;
+    margin: 0 auto 32px;
+  }
+  .code-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    text-align: left;
+    position: relative;
+  }
+  .code-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 8px;
+  }
+  .code-content { font-family: var(--mono); font-size: 13px; color: var(--accent); word-break: break-all; }
+  .copy-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .copy-btn:hover { color: var(--text); border-color: var(--border-hover); }
+  .stats {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    padding: 32px 0;
+    flex-wrap: wrap;
+  }
+  .stat { text-align: center; }
+  .stat-value {
+    font-family: var(--mono);
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -0.02em;
+  }
+  .stat-label { font-family: var(--mono); font-size: 11px; color: var(--text-dim); margin-top: 4px; letter-spacing: 0.02em; }
+  .protocols {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 24px;
+    flex-wrap: wrap;
+  }
+  .protocol { font-family: var(--mono); font-size: 11px; color: var(--text-dim); display: flex; align-items: center; gap: 6px; }
+  .protocol-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--green); }
+  footer {
+    padding: 32px 0;
+    text-align: center;
+    border-top: 1px solid var(--border);
+    margin-top: 48px;
+  }
+  footer p { font-family: var(--mono); font-size: 11px; color: var(--text-dim); }
+  footer a { color: var(--text-muted); text-decoration: none; }
+  footer a:hover { color: var(--accent); }
+  @media (max-width: 600px) {
+    .hero { padding: 48px 0 24px; }
+    .search-input { font-size: 14px; padding: 16px 100px 16px 16px; }
+    .stats { gap: 20px; }
+    .stat-value { font-size: 20px; }
+    .nav-links { gap: 16px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="logo">agent<span>index</span></div>
+    <nav class="nav-links">
+      <a href="https://api.agentcrawl.dev/docs" target="_blank">API</a>
+      <a href="https://mcp.agentcrawl.dev/sse" target="_blank">MCP</a>
+      <a href="https://github.com/agentidx/agentindex" target="_blank">GitHub</a>
+      <a href="https://pypi.org/project/agentcrawl/" target="_blank">PyPI</a>
+      <a href="https://www.npmjs.com/package/@agentidx/sdk" target="_blank">npm</a>
+    </nav>
+  </header>
+  <section class="hero">
+    <div class="hero-badge">
+      <span class="pulse"></span>
+      Agent Discovery Infrastructure
+    </div>
+    <h1>Find any AI agent.<br><span class="dim">Instantly.</span></h1>
+    <p class="subtitle">Semantic search across 39,000+ agents from GitHub, npm, PyPI, HuggingFace, and MCP registries. For humans and machines.</p>
+  </section>
+  <div class="search-wrapper">
+    <div class="search-box">
+      <input type="text" class="search-input" id="searchInput" placeholder="Search agents... e.g. 'postgres MCP server'" autocomplete="off" spellcheck="false">
+      <button class="search-btn" id="searchBtn" onclick="doSearch()">SEARCH</button>
+    </div>
+    <div class="search-hints">
+      <span class="hint" onclick="trySearch('MCP server for PostgreSQL')">MCP server for PostgreSQL</span>
+      <span class="hint" onclick="trySearch('code review AI agent')">code review AI agent</span>
+      <span class="hint" onclick="trySearch('web scraping tool')">web scraping tool</span>
+      <span class="hint" onclick="trySearch('A2A agent-to-agent')">A2A protocol</span>
+    </div>
+  </div>
+  <div class="results-area" id="resultsArea"></div>
+  <div class="stats">
+    <div class="stat"><div class="stat-value">39,424</div><div class="stat-label">Agents indexed</div></div>
+    <div class="stat"><div class="stat-value">17,198</div><div class="stat-label">Semantic vectors</div></div>
+    <div class="stat"><div class="stat-value">5</div><div class="stat-label">Source registries</div></div>
+    <div class="stat"><div class="stat-value">3</div><div class="stat-label">Verified A2A agents</div></div>
+  </div>
+  <div class="protocols">
+    <span class="protocol"><span class="protocol-dot"></span>REST API</span>
+    <span class="protocol"><span class="protocol-dot"></span>MCP Server (SSE)</span>
+    <span class="protocol"><span class="protocol-dot"></span>A2A Protocol</span>
+    <span class="protocol"><span class="protocol-dot"></span>Python SDK</span>
+    <span class="protocol"><span class="protocol-dot"></span>Node.js SDK</span>
+  </div>
+  <section class="cta-section">
+    <p class="cta-title">Start building in 30 seconds</p>
+    <div class="code-blocks">
+      <div class="code-block">
+        <div class="code-label">Python</div>
+        <div class="code-content">pip install agentcrawl</div>
+        <button class="copy-btn" onclick="copyText('pip install agentcrawl', this)">copy</button>
+      </div>
+      <div class="code-block">
+        <div class="code-label">Node.js</div>
+        <div class="code-content">npm i @agentidx/sdk</div>
+        <button class="copy-btn" onclick="copyText('npm i @agentidx/sdk', this)">copy</button>
+      </div>
+    </div>
+    <div class="code-blocks">
+      <div class="code-block" style="grid-column: 1 / -1;">
+        <div class="code-label">curl</div>
+        <div class="code-content">curl "https://api.agentcrawl.dev/v1/search?q=postgres+mcp&limit=5"</div>
+        <button class="copy-btn" onclick="copyText('curl &quot;https://api.agentcrawl.dev/v1/search?q=postgres+mcp&amp;limit=5&quot;', this)">copy</button>
+      </div>
+    </div>
+  </section>
+  <footer>
+    <p>AgentIndex — Agent Discovery Infrastructure &middot; <a href="https://api.agentcrawl.dev" target="_blank">api.agentcrawl.dev</a> &middot; <a href="https://mcp.agentcrawl.dev" target="_blank">mcp.agentcrawl.dev</a></p>
+  </footer>
+</div>
+<script>
+  const API_BASE = 'https://api.agentcrawl.dev';
+  const searchInput = document.getElementById('searchInput');
+  const searchBtn = document.getElementById('searchBtn');
+  const resultsArea = document.getElementById('resultsArea');
+  searchInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') doSearch(); });
+  function trySearch(query) { searchInput.value = query; doSearch(); }
+  async function doSearch() {
+    const query = searchInput.value.trim();
+    if (!query) return;
+    searchBtn.disabled = true;
+    searchBtn.textContent = '...';
+    resultsArea.innerHTML = '<div class="loading"><div class="loading-dots"><span></span><span></span><span></span></div><div class="loading-text">Searching 39,424 agents...</div></div>';
+    const startTime = performance.now();
+    try {
+      const res = await fetch(API_BASE + '/v1/discover', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ need: query, max_results: 10 }),
+        signal: AbortSignal.timeout(10000)
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      let data = await res.json();
+      const elapsed = ((performance.now() - startTime) / 1000).toFixed(2);
+      const results = data.results || data.agents || data || [];
+      if (Array.isArray(results) && results.length > 0) {
+        renderResults(results, elapsed);
+      } else {
+        resultsArea.innerHTML = '<div class="error-msg">No agents found for "' + escapeHtml(query) + '". Try a broader search.</div>';
+      }
+    } catch (err) {
+      const elapsed = ((performance.now() - startTime) / 1000).toFixed(2);
+      resultsArea.innerHTML = '<div class="error-msg">API request failed (' + elapsed + 's). Make sure api.agentcrawl.dev is running.<br><span style="color:var(--text-dim);font-size:11px;">' + escapeHtml(err.message) + '</span></div>';
+    } finally {
+      searchBtn.disabled = false;
+      searchBtn.textContent = 'SEARCH';
+    }
+  }
+  function renderResults(results, elapsed) {
+    let html = '<div class="results-meta"><span class="results-count">' + results.length + ' agents found</span><span class="results-time">' + elapsed + 's</span></div>';
+    results.forEach(function(agent) {
+      const name = agent.name || agent.repo_name || agent.title || 'Unknown';
+      const desc = agent.description || agent.summary || '';
+      const source = agent.source || agent.registry || '';
+      const url = agent.url || agent.repo_url || agent.homepage || '#';
+      const stars = agent.stars || agent.github_stars || 0;
+      const score = agent.score || agent.similarity || agent.relevance || 0;
+      const agentType = agent.agent_type || agent.type || agent.category || '';
+      const isA2A = agent.a2a || agent.supports_a2a || false;
+      const isMCP = agent.mcp || agent.is_mcp || (source && source.toLowerCase().indexOf('mcp') >= 0) || false;
+      let tags = '';
+      if (source) tags += '<span class="tag tag-source">' + escapeHtml(source) + '</span>';
+      if (agentType) tags += '<span class="tag tag-type">' + escapeHtml(agentType) + '</span>';
+      if (stars > 0) tags += '<span class="tag tag-stars">\u2605 ' + stars.toLocaleString() + '</span>';
+      if (isA2A) tags += '<span class="tag tag-a2a">A2A</span>';
+      if (isMCP) tags += '<span class="tag tag-a2a">MCP</span>';
+      const scoreHtml = score > 0 ? '<span class="result-score">' + (score * 100).toFixed(0) + '%</span>' : '';
+      html += '<div class="result-card"><div class="result-header"><div class="result-name"><a href="' + escapeHtml(url) + '" target="_blank" rel="noopener">' + escapeHtml(name) + '</a></div>' + scoreHtml + '</div>';
+      if (desc) html += '<div class="result-desc">' + escapeHtml(desc) + '</div>';
+      html += '<div class="result-tags">' + tags + '</div></div>';
+    });
+    resultsArea.innerHTML = html;
+  }
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  function copyText(text, btn) {
+    navigator.clipboard.writeText(text).then(function() {
+      btn.textContent = '\u2713';
+      setTimeout(function() { btn.textContent = 'copy'; }, 1500);
+    });
+  }
+</script>
+</body>
+</html>
+HTMLEOF
+echo "Done! File: ~/agentindex/static/index.html"
