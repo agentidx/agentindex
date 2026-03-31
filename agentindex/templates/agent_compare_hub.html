@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Compare Software — {{ total }} Side-by-Side Trust Comparisons — Nerq</title>
+<meta name="description" content="Compare {{ total }} software pairs side-by-side on trust scores, security, and maintenance. Apps, packages, tools, and services. Updated daily.">
+<link rel="canonical" href="https://nerq.ai/compare">
+<meta property="og:title" content="Compare Software — {{ total }} Side-by-Side Trust Comparisons — Nerq">
+<meta property="og:description" content="Compare {{ total }} software pairs side-by-side on trust, security, and maintenance.">
+<meta property="og:url" content="https://nerq.ai/compare">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Nerq">
+<meta name="robots" content="index, follow">
+<script type="application/ld+json">{{ itemlist_jsonld }}</script>
+<style>
+{{ nerq_css }}
+.search-filter{width:100%;padding:10px 14px;border:1px solid #e5e7eb;font-size:14px;font-family:system-ui,-apple-system,sans-serif;outline:none;margin:16px 0}
+.search-filter:focus{border-color:#0d9488}
+.search-filter::placeholder{color:#9ca3af}
+.cat-group{margin:24px 0}
+.cat-group h2{font-size:1.1rem;margin:0 0 12px;padding-top:16px;border-top:1px solid #e5e7eb}
+.compare-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.compare-card{border:1px solid #e5e7eb;padding:16px;text-decoration:none;color:inherit;transition:border-color 0.2s;display:block}
+.compare-card:hover{border-color:#0d9488;text-decoration:none}
+.compare-card .cc-title{font-weight:700;font-size:15px;color:#1a1a1a;margin-bottom:6px}
+.compare-card .cc-scores{font-family:ui-monospace,'SF Mono',monospace;font-size:13px;color:#0d9488;margin-bottom:4px}
+.compare-card .cc-cat{font-size:12px;color:#6b7280}
+</style>
+</head>
+<body>
+{{ nerq_nav }}
+
+<main class="container" style="padding-top:20px;padding-bottom:40px">
+  <div class="breadcrumb"><a href="/">nerq</a> &rsaquo; comparisons</div>
+  <h1>Compare Software — {{ total }} Side-by-Side Trust Comparisons</h1>
+  <p class="desc">Compare software head-to-head on trust scores, security, maintenance, and community metrics. All comparisons based on independent Nerq assessments, updated daily.</p>
+
+  <input type="text" class="search-filter" id="searchInput" placeholder="Search comparisons (e.g. express, react, signal, nordvpn)...">
+
+  {{ category_sections }}
+
+  <p style="margin-top:24px;font-size:12px;color:#6b7280">
+    <strong>Disclaimer:</strong> Nerq trust scores are automated assessments. They are not endorsements. Always do your own research.
+  </p>
+</main>
+
+{{ nerq_footer }}
+
+<script>
+(function(){
+var input=document.getElementById('searchInput');
+var cards=Array.from(document.querySelectorAll('.compare-card'));
+var groups=Array.from(document.querySelectorAll('.cat-group'));
+input.addEventListener('input',function(){
+  var q=this.value.toLowerCase();
+  cards.forEach(function(c){c.style.display=c.textContent.toLowerCase().indexOf(q)>-1?'':'none'});
+  groups.forEach(function(g){
+    var visible=g.querySelectorAll('.compare-card[style=""], .compare-card:not([style])');
+    var hidden=g.querySelectorAll('.compare-card[style*="none"]');
+    g.style.display=(visible.length===0&&hidden.length>0)?'none':'';
+  });
+});
+})();
+</script>
+</body>
+</html>

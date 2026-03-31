@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="{{ html_lang }}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ page_title }}</title>
+<meta name="description" content="{{ display_name }} has a Nerq Trust Score of {{ score }}/100 ({{ grade }}). {{ cve_text }} License: {{ license_text }}. Independent security analysis of {{ display_name }} — trust signals, vulnerabilities, compliance, and safer alternatives.">
+<link rel="canonical" href="{{ canonical_url }}">
+{{ hreflang_tags }}
+<meta property="og:title" content="{{ og_title }}">
+<meta property="og:description" content="{{ display_name }} — {{ grade }} trust grade, {{ score }}/100. Independent safety assessment by Nerq.">
+<meta property="og:url" content="{{ canonical_url }}">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Nerq">
+<meta name="twitter:card" content="summary">
+{{ robots_meta }}
+<meta name="nerq:type" content="{{ category }}">
+<meta name="nerq:entity" content="{{ slug }}">
+<meta name="nerq:score" content="{{ score }}">
+<meta name="nerq:grade" content="{{ grade }}">
+<meta name="nerq:verdict" content="{{ vb_text }}">
+<meta name="nerq:category" content="{{ category }}">
+<meta name="nerq:source" content="{{ source }}">
+<meta name="nerq:verified" content="{{ is_verified }}">
+<meta name="nerq:updated" content="{{ last_updated }}">
+<meta name="nerq:api" content="https://nerq.ai/v1/preflight?target={{ name }}">
+<meta name="nerq:question" content="{{ h1_text }}">
+<meta name="nerq:answer" content="{{ nerq_answer }}">
+<meta name="citation_title" content="{{ h1_text }} Trust Analysis 2026">
+<meta name="citation_author" content="{{ t_meta_citation_author }}">
+<meta name="citation_date" content="{{ last_updated }}">
+<meta property="article:modified_time" content="{{ last_updated }}T12:00:00Z">
+<meta name="nerq:data-version" content="3.2">
+<script type="application/ld+json">{{ webpage_jsonld }}</script>
+<script type="application/ld+json">{{ faq_jsonld }}</script>
+<script type="application/ld+json">{{ breadcrumb_jsonld }}</script>
+<script type="application/ld+json">{{ software_jsonld }}</script>
+{{ king_jsonld_block }}
+<style>
+/* Critical inline CSS — nav + verdict only */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0f172a;line-height:1.6;background:#fff;font-size:15px}
+a{color:#2563eb;text-decoration:none}a:hover{color:#1d4ed8;text-decoration:underline}
+.nav{border-bottom:1px solid #e2e8f0;padding:10px 0;position:sticky;top:0;background:#fff;z-index:100}
+.nav-inner{max-width:1100px;margin:0 auto;padding:0 20px;display:flex;align-items:center;gap:16px}
+.nav-logo{font-size:20px;font-weight:700;color:#0f172a;text-decoration:none}
+.nav-logo:hover{text-decoration:none}
+.nav-logo span{font-weight:400;color:#64748b;font-size:13px;margin-left:6px}
+.nav-links{display:flex;gap:16px;font-size:13px;margin-left:auto}
+.nav-links a{color:#64748b;text-decoration:none}
+.nav-links a:hover{color:#0f172a}
+.container{max-width:780px;margin:0 auto;padding:0 20px}
+.verdict{border:1px solid #e2e8f0;border-radius:12px;padding:24px 28px;margin:8px 0 20px;display:flex;align-items:center;gap:24px}
+.verdict-num{font-size:38px;font-weight:700;line-height:1}
+.sc-high{color:#16a34a}.sc-good{color:#22c55e}.sc-mid{color:#f59e0b}.sc-low{color:#ef4444}.sc-crit{color:#991b1b}
+.bg-high{background:#f0fdf4;color:#16a34a}.bg-good{background:#f0fdf4;color:#22c55e}.bg-mid{background:#fffbeb;color:#d97706}.bg-low{background:#fef2f2;color:#ef4444}.bg-crit{background:#fef2f2;color:#991b1b}
+</style>
+<link rel="stylesheet" href="/static/nerq.css?v=13">
+</head>
+<body>
+{{ nerq_nav }}
+
+<main class="container" style="padding-top:16px;padding-bottom:40px">
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <a href="/">{{ t_breadcrumb_home }}</a><span class="sep">&rsaquo;</span>
+    <a href="/safe">{{ t_breadcrumb_safety }}</a><span class="sep">&rsaquo;</span>
+    <span>{{ display_name }}</span>
+  </nav>
+
+  <h1 style="font-size:1.5rem;font-weight:700;margin-bottom:4px">{{ h1_text }}</h1>
+
+  <!-- PERPLEXITY-OPTIMIZED VERDICT — self-contained, extractable answer block -->
+  <p class="pplx-verdict" style="font-size:1.05em;line-height:1.65;margin:12px 0 16px;padding:14px 18px;background:#f0fdf4;border-left:4px solid #16a34a;border-radius:4px">{{ pplx_verdict }}</p>
+
+  <!-- VERDICT BOX — visual score display (aria-hidden, info duplicated in first paragraph) -->
+  <div class="verdict" aria-hidden="true">
+    <div style="min-width:80px;text-align:center">
+      <div class="verdict-num {{ score_color_class }}">{{ score_int }}</div>
+      <div style="font-size:12px;color:#64748b;margin-top:2px">/100</div>
+      <span class="verdict-grade {{ grade_bg_class }}" style="font-size:13px;font-weight:600;padding:2px 10px;border-radius:6px;display:inline-block;margin-top:6px">{{ grade }}</span>
+    </div>
+    <div style="flex:1">
+      <div style="font-size:18px;font-weight:600">{{ display_name }}</div>
+      <div style="font-size:13px;color:#64748b;margin-top:2px">{{ category }}</div>
+      <div style="font-size:15px;font-weight:600;margin-top:8px" class="{{ score_color_class }}">{{ vb_icon }} {{ vb_text }}</div>
+      <div style="font-size:12px;color:#94a3b8;margin-top:4px">{{ t_last_analyzed }} {{ last_updated }}</div>
+    </div>
+  </div>
+
+  <!-- FIRST PARAGRAPH — Definition Lead (GEO-optimized). Self-contained, AI-citable. -->
+  <p class="ai-summary">{{ definition_lead }} {{ citation_detail }} {{ t_data_sourced }} <a href="https://nerq.ai/v1/preflight?target={{ name }}">{{ t_machine_readable }}</a>.</p>
+
+  <!-- SHORT ANSWER — featured snippet -->
+  <div style="border:1px solid {{ vb_border }};border-radius:8px;padding:20px 24px;margin:0 0 24px;background:{{ vb_bg }}">
+    <h2 style="font-size:1.1rem;margin:0 0 8px;color:{{ vb_color }}">{{ h1_text_lower }}</h2>
+    <p style="font-size:15px;line-height:1.7;margin:0"><strong>{{ safety_verdict }}</strong> — {{ display_name }} has a Nerq Trust Score of {{ score }}/100 ({{ grade }}). {{ verdict_detail }}. {{ verdict_recommendation }}.</p>
+  </div>
+
+  <!-- CTA: Security & Privacy deep-dive -->
+  {{ cta_buttons }}
+
+  <!-- TRUST SCORE BREAKDOWN -->
+  <div class="section">
+    <h2 class="section-title">{{ h2_trust_score }}</h2>
+    <p class="answer-summary" style="font-weight:500;margin-bottom:1em">{{ answer_trust_score }}</p>
+    {{ signals_breakdown_html }}
+  </div>
+
+  <!-- WHY THIS SCORE -->
+  <div class="section">
+    <h2 class="section-title">{{ h2_key_findings }}</h2>
+    <p class="answer-summary" style="font-weight:500;margin-bottom:1em">{{ answer_key_findings }}</p>
+    {{ why_this_score_findings }}
+  </div>
+
+  <!-- DETAILS -->
+  <div class="section">
+    <h2 class="section-title">{{ h2_details }}</h2>
+    <table>
+      <tr><td style="color:#64748b;width:140px">{{ t_author_label }}</td><td>{{ author }}</td></tr>
+      <tr><td style="color:#64748b">{{ t_category_label }}</td><td>{{ category }}</td></tr>
+      {{ stars_row }}
+      <tr><td style="color:#64748b">{{ t_source_label }}</td><td>{{ source_link }}</td></tr>
+      {{ frameworks_row }}
+      {{ protocols_row }}
+    </table>
+  </div>
+
+  {{ compliance_section }}
+
+  <!-- ALTERNATIVES -->
+  {{ alternatives_section }}
+
+  <!-- CROSS-PRODUCT TRUST MAP -->
+  {{ cross_product_html }}
+
+  <!-- SIMILAR ENTITIES + BEST CATEGORY LINK -->
+  {{ similar_entities }}
+
+  {{ deep_analysis }}
+
+  <!-- SAFETY GUIDE -->
+  {{ safety_guide }}
+
+  <!-- KING SECTIONS (only for high-yield entities) -->
+  {{ king_sections }}
+
+  <!-- FAQ — registry-specific, prompt-aligned questions -->
+  {{ faq_section_html }}
+
+  <!-- CROSS-LINKS — pill buttons to all patterns for this entity -->
+  <nav class="cross-links" aria-label="Related analyses" style="margin-top:24px;padding-top:16px;border-top:1px solid #e2e8f0">
+    {{ cross_links_html }}
+  </nav>
+
+  <!-- API & BADGE -->
+  <div class="section" style="margin-top:16px">
+    <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:13px">
+      <a href="/v1/preflight?target={{ slug }}" class="cross-link" style="background:#f8fafc">API: /v1/preflight</a>
+      <a href="/badge/{{ name }}" class="cross-link">Trust Badge</a>
+      <a href="/nerq/docs" class="cross-link">API Docs</a>
+    </div>
+  </div>
+
+  {{ discovery_links }}
+
+  <p style="margin-top:24px;font-size:12px;color:#94a3b8">
+    <strong>Disclaimer:</strong> {{ t_disclaimer }}
+  </p>
+</main>
+
+{{ nerq_footer }}
+<script>document.querySelectorAll('.container a[href^="/"]').forEach(a=>{a.addEventListener('click',function(){new Image().src='/v1/track?event=cta_click&source=safe&target='+encodeURIComponent(this.getAttribute('href'));})});</script>
+</body>
+</html>

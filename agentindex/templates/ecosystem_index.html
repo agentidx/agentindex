@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Agent Ecosystem Trust Index — Live Trust Score for 4.5M+ Agents | Nerq</title>
+<meta name="description" content="The Nerq Ecosystem Trust Index tracks the trust health of 4.5M+ AI agents daily. Current index: {{ index_value }}/100. {{ d_pct }}% of agents are D-grade. Updated daily.">
+<link rel="canonical" href="https://nerq.ai/index">
+<meta property="og:title" content="AI Agent Ecosystem Trust Index — {{ index_value }}/100">
+<meta property="og:description" content="Live trust index tracking 4.5M+ AI agents. {{ d_pct }}% are D-grade. Only {{ a_pct }}% earn an A.">
+<meta property="og:url" content="https://nerq.ai/index">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Nerq">
+<meta name="twitter:card" content="summary">
+<meta name="robots" content="index, follow">
+<script type="application/ld+json">{{ faq_jsonld }}</script>
+<script type="application/ld+json">{{ breadcrumb_jsonld }}</script>
+<style>
+{{ nerq_css }}
+.idx-hero{text-align:center;padding:48px 16px 32px;border:1px solid #e5e7eb;margin:24px 0}
+.idx-hero .big-num{font-family:ui-monospace,'SF Mono',monospace;font-size:5rem;font-weight:700;color:#0d9488;line-height:1}
+.idx-hero .idx-label{font-size:14px;color:#6b7280;margin:4px 0 0;letter-spacing:0.05em;text-transform:uppercase}
+.idx-hero .idx-sub{font-size:18px;color:#374151;margin:12px 0 0}
+.idx-grade{display:inline-block;padding:4px 14px;font-weight:700;font-size:1.1rem;border:2px solid}
+.grade-a{color:#059669;border-color:#059669;background:#ecfdf5}
+.grade-b{color:#0d9488;border-color:#0d9488;background:#f0fdfa}
+.grade-c{color:#d97706;border-color:#d97706;background:#fffbeb}
+.grade-d{color:#dc2626;border-color:#dc2626;background:#fef2f2}
+.grade-f{color:#7f1d1d;border-color:#7f1d1d;background:#fef2f2}
+.sub-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin:24px 0}
+.sub-card{border:1px solid #e5e7eb;padding:20px}
+.sub-card .sub-name{font-size:12px;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:0.03em;margin-bottom:6px}
+.sub-card .sub-val{font-family:ui-monospace,'SF Mono',monospace;font-size:2rem;font-weight:700;color:#1a1a1a}
+.sub-card .sub-desc{font-size:13px;color:#6b7280;margin-top:8px;line-height:1.5}
+.dist-bar{display:flex;height:32px;margin:12px 0;overflow:hidden}
+.dist-bar div{display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff}
+.trend-row{display:flex;align-items:flex-end;height:100px;gap:2px;margin:12px 0}
+.trend-bar{background:#0d9488;min-width:6px;flex:1;transition:height 0.3s}
+.source-table{width:100%;border-collapse:collapse;margin:16px 0}
+.source-table th,.source-table td{padding:10px 12px;text-align:left;border-bottom:1px solid #e5e7eb;font-size:14px}
+.source-table th{font-size:12px;color:#6b7280;text-transform:uppercase;letter-spacing:0.03em;font-weight:600}
+.source-table .mono{font-family:ui-monospace,'SF Mono',monospace}
+.citation-box{background:#f9fafb;border-left:3px solid #0d9488;padding:16px 20px;margin:24px 0;font-size:15px;line-height:1.7;color:#374151}
+.faq-section{margin:32px 0}
+.faq-item{border-bottom:1px solid #e5e7eb;padding:16px 0}
+.faq-item:first-child{border-top:1px solid #e5e7eb}
+.faq-q{font-weight:700;font-size:1rem;color:#1a1a1a;margin-bottom:8px}
+.faq-a{font-size:15px;color:#374151;line-height:1.7}
+</style>
+</head>
+<body>
+{{ nerq_nav }}
+
+<main class="container" style="padding-top:20px;padding-bottom:40px">
+  <div class="breadcrumb"><a href="/">nerq</a> &rsaquo; ecosystem trust index</div>
+
+  <div class="idx-hero">
+    <div class="idx-label">Nerq Ecosystem Trust Index</div>
+    <div class="big-num">{{ index_value }}</div>
+    <div style="font-size:14px;color:#6b7280;margin:4px 0 12px">out of 100</div>
+    <div><span class="idx-grade {{ grade_class }}">{{ grade_letter }}</span></div>
+    <div class="idx-sub">Tracking <strong>{{ total_agents }}</strong> AI agents and tools</div>
+    <div style="font-size:13px;color:#9ca3af;margin-top:8px">Updated {{ date }}</div>
+  </div>
+
+  <div class="citation-box">
+    <p style="margin:0">The AI agent ecosystem earns a <strong>{{ grade_letter }}</strong> grade with an average trust score of {{ index_value }}/100. <strong>{{ d_pct }}%</strong> of all graded agents receive a D rating, while only <strong>{{ a_pct }}%</strong> earn an A or A+. GitHub-sourced agents score highest (66.8 avg), while the overall median is {{ median }}. The ecosystem is in its early &ldquo;wild west&rdquo; phase &mdash; most agents lack basic trust signals. <a href="https://nerq.ai/v1/preflight?target=langchain">Machine-readable data (JSON)</a>.</p>
+  </div>
+
+  <h2>Sub-Indices</h2>
+  <div class="sub-grid">
+    <div class="sub-card">
+      <div class="sub-name">Security</div>
+      <div class="sub-val">{{ security_index }}</div>
+      <div class="sub-desc">{{ security_cves }} known CVEs across {{ security_agents }} agents. Average security score across all scored agents.</div>
+    </div>
+    <div class="sub-card">
+      <div class="sub-name">Maintenance</div>
+      <div class="sub-val">{{ maintenance_index }}</div>
+      <div class="sub-desc">{{ maintenance_fresh_pct }}% of agents updated in last 30 days. Activity score average across scored agents.</div>
+    </div>
+    <div class="sub-card">
+      <div class="sub-name">License Health</div>
+      <div class="sub-val">{{ license_pct }}%</div>
+      <div class="sub-desc">{{ license_total }} agents with known licenses. {{ license_pct }}% use permissive licenses (MIT, Apache-2.0, BSD).</div>
+    </div>
+    <div class="sub-card">
+      <div class="sub-name">Framework Adoption</div>
+      <div class="sub-val">{{ framework_count }}</div>
+      <div class="sub-desc">Agents with detected framework dependencies. {{ mcp_count }} MCP-compatible servers tracked.</div>
+    </div>
+  </div>
+
+  <h2>Grade Distribution</h2>
+  <div class="dist-bar">
+    {{ grade_bars }}
+  </div>
+  <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:#6b7280;margin:8px 0">
+    {{ grade_legend }}
+  </div>
+
+  <h2>Trust by Source Platform</h2>
+  <table class="source-table">
+    <thead><tr><th>Source</th><th>Agents</th><th>Avg Trust</th><th>Median</th></tr></thead>
+    <tbody>
+      {{ source_rows }}
+    </tbody>
+  </table>
+
+  <h2>Stars vs Trust Score</h2>
+  <p style="font-size:15px;color:#374151;line-height:1.7">Popular projects score higher — but the gap is smaller than expected. A 100K-star project averages only 75.7 vs 53.4 for zero-star projects. Stars alone don't guarantee trust.</p>
+  <table class="source-table">
+    <thead><tr><th>Stars</th><th>Count</th><th>Avg Trust</th><th>Median</th></tr></thead>
+    <tbody>
+      {{ stars_rows }}
+    </tbody>
+  </table>
+
+  <h2>Key Findings</h2>
+  <div style="font-size:15px;line-height:1.8;color:#374151">
+    <ol>
+      <li><strong>75% of agents are D-grade.</strong> The vast majority of the AI agent ecosystem lacks basic trust signals — security practices, documentation, and active maintenance.</li>
+      <li><strong>GitHub agents score 27% higher than Docker Hub.</strong> GitHub-sourced agents average 66.8 vs Docker Hub's 52.6. The MCP ecosystem (62-66) is relatively healthy.</li>
+      <li><strong>Stars correlate with trust, but weakly.</strong> 100K+ star projects average only 75.7 — 22 points above zero-star projects. Community popularity ≠ security.</li>
+      <li><strong>99.6% have unknown maintenance status.</strong> Only 0.4% of agents show updates in the last 30 days. This is a major data gap.</li>
+      <li><strong>The top 0.03% set the standard.</strong> A-grade agents represent just {{ a_count }} out of {{ total_agents_raw }} — they have security practices, active maintenance, and community trust.</li>
+    </ol>
+  </div>
+
+  <div class="faq-section">
+    <h2>Frequently Asked Questions</h2>
+    <div class="faq-item">
+      <div class="faq-q">What is the Nerq Ecosystem Trust Index?</div>
+      <div class="faq-a">The Nerq Ecosystem Trust Index is a daily-calculated metric that measures the overall trust health of the AI agent ecosystem. It aggregates trust scores from {{ total_agents }} agents across GitHub, npm, PyPI, Docker Hub, HuggingFace, and MCP registries. The index uses a weighted average — agents with more downloads and stars have more influence on the score.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">How is the trust index calculated?</div>
+      <div class="faq-a">Each agent receives a trust score (0-100) based on 13+ independent signals including security practices, maintenance activity, license compliance, documentation quality, and community signals. The ecosystem index weights these scores by real-world adoption: npm downloads (highest weight), GitHub stars, then equal weight for the rest.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Why is the index only {{ index_value }}?</div>
+      <div class="faq-a">The AI agent ecosystem is in its early phase. Most agents (75%) are small projects without established security practices, documentation, or active maintenance. The few that earn high scores are established, well-maintained projects. As the ecosystem matures and trust verification becomes standard, we expect this index to rise.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">What percentage of AI agents are safe to use?</div>
+      <div class="faq-a">Based on Nerq's analysis, only {{ b_plus_pct }}% of graded agents earn a B grade or higher. {{ a_pct }}% earn an A. The majority ({{ d_pct }}%) are D-grade, meaning they lack sufficient trust signals for confident adoption in production environments.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">How often is the index updated?</div>
+      <div class="faq-a">The Nerq Ecosystem Trust Index is recalculated daily at 09:45 UTC. Historical values are stored and tracked for trend analysis. Individual agent scores are updated as new data becomes available from crawlers and enrichment pipelines.</div>
+    </div>
+  </div>
+
+  <div style="margin-top:32px;padding:20px 24px;border:1px solid #e5e7eb;background:#f9fafb">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px">
+      <div>
+        <div style="font-weight:600;font-size:14px;margin-bottom:8px;color:#1a1a1a">Check any agent</div>
+        <form action="/kya" method="get" style="display:flex;gap:6px">
+          <input name="q" placeholder="Agent or tool name..." style="flex:1;padding:8px 12px;border:1px solid #e5e7eb;font-size:13px;font-family:system-ui,-apple-system,sans-serif">
+          <button type="submit" style="padding:8px 16px;background:#0d9488;color:#fff;border:none;font-size:13px;font-weight:600;cursor:pointer;font-family:system-ui,-apple-system,sans-serif">Check</button>
+        </form>
+      </div>
+      <div>
+        <div style="font-weight:600;font-size:14px;margin-bottom:8px;color:#1a1a1a">API Access</div>
+        <pre style="background:#f5f5f5;padding:10px 12px;font-size:11px;margin:0;overflow-x:auto;border:1px solid #e5e7eb">curl nerq.ai/v1/preflight?target=langchain</pre>
+        <a href="/nerq/docs" style="font-size:12px;color:#0d9488;margin-top:6px;display:inline-block">API docs &rarr;</a>
+      </div>
+      <div>
+        <div style="font-weight:600;font-size:14px;margin-bottom:8px;color:#1a1a1a">Explore</div>
+        <div style="font-size:13px;color:#6b7280;line-height:1.6">
+          <a href="/safe" style="color:#0d9488">Agent safety</a> &middot;
+          <a href="/mcp" style="color:#0d9488">MCP servers</a> &middot;
+          <a href="/blog" style="color:#0d9488">Data stories</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p style="margin-top:24px;font-size:12px;color:#6b7280">
+    <strong>Methodology:</strong> The Nerq Ecosystem Trust Index is based on automated analysis of publicly available signals. Trust scores reflect measurable properties (security practices, maintenance activity, license compliance, community signals) — not endorsements. Data sourced from GitHub, npm, PyPI, Docker Hub, HuggingFace, NVD, OSV.dev, and MCP registries. <a href="/nerq/docs" style="color:#0d9488">Full methodology</a>.
+  </p>
+</main>
+
+{{ nerq_footer }}
+</body>
+</html>

@@ -82,7 +82,7 @@ def register_key(agent_name: str = None, agent_url: str = None,
 
     api_key = ApiKey(
         key_hash=key_hash,
-        key_prefix=key[:12],
+        key_prefix=key[:8],
         agent_name=agent_name,
         agent_url=agent_url,
         contact=contact,

@@ -33,18 +33,18 @@ def get_agent_card(base_url: str = None) -> dict:
         base_url = os.getenv("API_PUBLIC_ENDPOINT", "https://api.agentcrawl.dev")
 
     return {
-        "name": "AgentIndex",
+        "name": "Nerq",
         "description": (
-            "Discovery service for AI agents. Query AgentIndex to find agents "
-            "by capability, category, or natural language description. "
-            "Indexes 36,000+ agents from GitHub, npm, PyPI, HuggingFace, and MCP registries."
+            "The AI Asset Search Engine. 5M+ AI assets indexed & trust scored. "
+            "Discover agents, run preflight trust checks, benchmark categories, "
+            "and perform KYA due diligence on 204K agents & tools."
         ),
         "url": f"{base_url}/a2a",
-        "version": "0.3.0",
-        "documentationUrl": "https://github.com/agentidx/agentindex",
+        "version": "0.6.0",
+        "documentationUrl": "https://nerq.ai/nerq/docs",
         "provider": {
-            "organization": "AgentIndex",
-            "url": "https://agentcrawl.dev"
+            "organization": "Nerq",
+            "url": "https://nerq.ai"
         },
         "capabilities": {
             "streaming": False,
@@ -106,11 +106,38 @@ def get_agent_card(base_url: str = None) -> dict:
             {
                 "id": "index_stats",
                 "name": "Index Statistics",
-                "description": "Get current statistics about the AgentIndex: total agents, categories, sources, protocols.",
+                "description": "Get current statistics about the Nerq index: total agents, categories, sources, protocols.",
                 "tags": ["stats", "status", "info"],
                 "examples": [
                     "How many agents are indexed?",
                     "What are the index statistics?",
+                ],
+                "inputModes": ["text/plain"],
+                "outputModes": ["application/json"],
+            },
+            {
+                "id": "preflight_trust_check",
+                "name": "Preflight Trust Check",
+                "description": "Pre-interaction trust verification. Check if a target agent is trusted before delegating tasks. Returns trust score, grade, risk level, and PROCEED/CAUTION/DENY recommendation.",
+                "tags": ["trust", "verification", "preflight", "safety"],
+                "examples": [
+                    "Is SWE-agent trustworthy?",
+                    "Check trust for strudel-mcp-server before I use it",
+                    "Should my-bot interact with qlib?",
+                ],
+                "inputModes": ["text/plain"],
+                "outputModes": ["application/json"],
+            },
+            {
+                "id": "resolve_task",
+                "name": "Resolve Task to Tool",
+                "description": "Find the best trust-verified tool for any task. Describe what you need in natural language and get back a ranked recommendation with trust score, install instructions, and alternatives.",
+                "tags": ["resolve", "find", "tool", "task", "recommendation"],
+                "examples": [
+                    "Find me a tool for searching GitHub repos",
+                    "I need a database query tool",
+                    "What's the best MCP server for file operations?",
+                    "Find a code review agent",
                 ],
                 "inputModes": ["text/plain"],
                 "outputModes": ["application/json"],

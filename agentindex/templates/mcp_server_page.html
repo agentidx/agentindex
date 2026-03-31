@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ title }}</title>
+<meta name="description" content="{{ meta_description }}">
+<link rel="canonical" href="https://nerq.ai/mcp/{{ slug }}">
+<meta property="og:title" content="{{ title }}">
+<meta property="og:description" content="{{ og_description }}">
+<meta property="og:url" content="https://nerq.ai/mcp/{{ slug }}">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Nerq">
+<meta name="twitter:card" content="summary">
+<meta name="robots" content="index, follow">
+<script type="application/ld+json">{{ webpage_jsonld }}</script>
+<script type="application/ld+json">{{ faq_jsonld }}</script>
+<script type="application/ld+json">{{ breadcrumb_jsonld }}</script>
+<script type="application/ld+json">{{ software_jsonld }}</script>
+<style>
+{{ nerq_css }}
+.ai-summary{background:#f9fafb;border-left:3px solid #0d9488;padding:16px 20px;margin:16px 0;font-size:15px;line-height:1.7;color:#374151}
+.score-hero{text-align:center;padding:32px 16px;border:1px solid #e5e7eb;margin:16px 0}
+.score-hero .big-score{font-family:ui-monospace,'SF Mono',monospace;font-size:3.5rem;font-weight:700;color:#0d9488;line-height:1}
+.score-hero .score-sub{font-size:14px;color:#6b7280;margin:4px 0 12px}
+.badges{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.signals-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:16px 0}
+.signal-card{border:1px solid #e5e7eb;padding:16px}
+.signal-card .sig-name{font-size:12px;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:0.03em;margin-bottom:4px}
+.signal-card .sig-val{font-family:ui-monospace,'SF Mono',monospace;font-size:1.5rem;font-weight:700;color:#1a1a1a}
+.signal-card .sig-desc{font-size:13px;color:#6b7280;margin-top:6px}
+.caps-list{list-style:none;padding:0;margin:12px 0}
+.caps-list li{padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:14px}
+.caps-list li::before{content:"→ ";color:#0d9488;font-weight:700}
+.alt-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:16px 0}
+.alt-card{border:1px solid #e5e7eb;padding:16px;text-decoration:none;color:inherit;transition:border-color 0.2s}
+.alt-card:hover{border-color:#0d9488;text-decoration:none}
+.alt-card .alt-name{font-weight:700;font-size:15px;color:#1a1a1a;margin-bottom:4px}
+.alt-card .alt-score{font-family:ui-monospace,'SF Mono',monospace;font-size:13px;color:#0d9488}
+.alt-card .alt-cat{font-size:12px;color:#6b7280}
+.faq-section{margin:24px 0}
+.faq-item{border-bottom:1px solid #e5e7eb;padding:16px 0}
+.faq-item:first-child{border-top:1px solid #e5e7eb}
+.faq-q{font-weight:700;font-size:1rem;color:#1a1a1a;margin-bottom:8px}
+.faq-a{font-size:15px;color:#374151;line-height:1.7}
+.badge-embed{background:#f5f5f5;padding:16px;margin:12px 0}
+.badge-embed pre{user-select:all;cursor:pointer;font-size:12px;margin:8px 0 0}
+</style>
+</head>
+<body>
+{{ nerq_nav }}
+
+<main class="container" style="padding-top:20px;padding-bottom:40px">
+  <nav class="breadcrumb"><a href="/">nerq</a> &rsaquo; <a href="/mcp">MCP Servers</a> &rsaquo; {{ name }}</nav>
+
+  <h1>Is {{ name }} MCP Server Safe? Trust Score: {{ score }}/100</h1>
+  <p class="desc">Independent trust assessment for the {{ name }} MCP server. Category: {{ category }}. Source: {{ source }}.</p>
+
+  <div class="ai-summary">{{ ai_summary }}</div>
+
+  <section class="score-hero">
+    <div class="big-score">{{ score }}</div>
+    <div class="score-sub">out of 100 — Nerq MCP Server Trust Score</div>
+    <div class="badges">
+      <span class="pill {{ grade_pill }}">{{ grade }}</span>
+      <span class="pill pill-gray">MCP Server</span>
+      <span class="pill pill-gray">{{ category }}</span>
+      {{ verified_badge }}
+    </div>
+  </section>
+
+  <article class="card" style="margin:16px 0;padding:20px">
+    <h3 style="margin:0 0 8px">Trust Assessment</h3>
+    <p style="font-size:15px;line-height:1.7;margin:0">{{ assessment }}</p>
+  </article>
+
+  <section>
+    <h2>Trust Signal Breakdown</h2>
+    <div class="signals-grid">
+      {{ signals_html }}
+    </div>
+  </section>
+
+  {{ capabilities_section }}
+
+  <section>
+    <h2>Details</h2>
+    <table>
+      <tbody>
+        <tr><td style="color:#6b7280;width:140px">Author</td><td>{{ author }}</td></tr>
+        <tr><td style="color:#6b7280">Category</td><td>{{ category }}</td></tr>
+        <tr><td style="color:#6b7280">Stars</td><td>{{ stars_fmt }}</td></tr>
+        <tr><td style="color:#6b7280">Source</td><td>{{ source_link }}</td></tr>
+        <tr><td style="color:#6b7280">Protocol</td><td>MCP (Model Context Protocol)</td></tr>
+        {{ popularity_rank_row }}
+        {{ frameworks_row }}
+      </tbody>
+    </table>
+  </section>
+
+  {{ alternatives_section }}
+
+  <section class="faq-section">
+    <h2>Frequently Asked Questions</h2>
+    {{ faq_html }}
+  </section>
+
+  <section>
+    <h2>Badge Embed</h2>
+    <div class="badge-embed">
+      <p><img src="https://nerq.ai/badge/{{ name_raw }}" alt="Nerq Trust Score for {{ name }}" style="height:20px"></p>
+      <p style="font-size:13px;color:#6b7280;margin:8px 0 0">Add this trust badge to your README:</p>
+      <pre>{{ badge_markdown }}</pre>
+    </div>
+  </section>
+
+  <!-- Conversion CTA -->
+  <div style="margin-top:32px;padding:20px 24px;border:1px solid #e5e7eb;background:#f9fafb">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+      <div>
+        <div style="font-weight:600;font-size:14px;margin-bottom:8px;color:#1a1a1a">Check MCP server trust</div>
+        <form action="/kya" method="get" style="display:flex;gap:6px">
+          <input name="q" placeholder="MCP server name..." style="flex:1;padding:8px 12px;border:1px solid #e5e7eb;font-size:13px;font-family:system-ui,-apple-system,sans-serif">
+          <button type="submit" style="padding:8px 16px;background:#0d9488;color:#fff;border:none;font-size:13px;font-weight:600;cursor:pointer;font-family:system-ui,-apple-system,sans-serif">Check</button>
+        </form>
+        <div style="margin-top:8px">
+          <a href="/kya/{{ name_raw }}" style="font-size:12px;color:#0d9488">Full KYA report for {{ name }}</a> &middot;
+          <a href="/v1/preflight?target={{ name_raw }}" style="font-size:12px;color:#0d9488">Preflight API</a>
+          {{ safe_link }}
+        </div>
+      </div>
+      <div>
+        <div style="font-weight:600;font-size:14px;margin-bottom:8px;color:#1a1a1a">Explore MCP ecosystem</div>
+        <div style="font-size:13px;color:#6b7280;line-height:1.8">
+          <a href="/mcp" style="color:#0d9488;font-weight:500">All MCP servers</a> &middot;
+          <a href="/safe" style="color:#0d9488">Agent safety</a> &middot;
+          <a href="/compare" style="color:#0d9488">Compare</a><br>
+          <a href="/nerq/docs" style="color:#0d9488">API docs</a> &middot;
+          <a href="/oracle" style="color:#0d9488">Trust Oracle</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p style="margin-top:24px;font-size:12px;color:#6b7280">
+    <strong>Disclaimer:</strong> Nerq trust scores are automated assessments based on publicly available signals. They are not endorsements or guarantees. Always conduct your own due diligence before integrating any MCP server.
+  </p>
+</main>
+
+{{ nerq_footer }}
+<script>document.querySelectorAll('.container a[href^="/"]').forEach(a=>{a.addEventListener('click',function(){new Image().src='/v1/track?event=cta_click&source=mcp&target='+encodeURIComponent(this.getAttribute('href'));})});</script>
+</body>
+</html>

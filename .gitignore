@@ -12,4 +12,35 @@ alerts.log
 missionary_output/
 .DS_Store
 *.sql
-agentindex.db
+
+# Databases
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Large data files
+*.faiss
+*.npy
+*.sql.gz
+crash_analysis_*.json
+hf_agents_*.log
+
+# Backups
+backups/
+*.bak.*
+*.bak
+backup_pre_*/
+
+# State files (change frequently)
+*_state.json
+*_state.json.bak*
+action_history.json
+action_queue.json
+missionary_state.json
+spionen_history.json
+a2a_*.json
+
+# Generated/temp
+5s
+.claude/

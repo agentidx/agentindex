@@ -88,8 +88,20 @@ class Agent(Base):
     is_active = Column(Boolean, default=True)
     crawl_status = Column(String(20), default="indexed")  # indexed, parsed, classified, ranked
 
+    # Trust scoring (computed by trust_scoring.py)
+    trust_score = Column(Float)                           # Comprehensive trust score 0-100
+    trust_explanation = Column(Text)                      # Human-readable explanation
+    trust_components = Column(JSONB)                      # Component scores breakdown
+    trust_calculated_at = Column(DateTime)               # When trust score was calculated
+
     # Raw data from crawling (for reprocessing)
     raw_metadata = Column(JSONB, default=dict)
+
+    # EU AI Act compliance (computed by batch_scanner.py)
+    eu_risk_class = Column(String(20))                    # unacceptable, high, limited, minimal
+    eu_risk_confidence = Column(Float)                    # 0.0-1.0
+    compliance_score = Column(Float)                      # 0-100
+    last_compliance_check = Column(DateTime)              # When compliance was last checked
 
     # Indexes for fast discovery queries
     __table_args__ = (
@@ -105,13 +117,12 @@ class Agent(Base):
 
     def to_discovery_response(self) -> dict:
         """Minimal response for discovery queries. Never expose everything."""
-        return {
+        response = {
             "id": str(self.id),
             "name": self.name,
             "description": self.description,
             "capabilities": self.capabilities,
             "category": self.category,
-            "quality_score": self.quality_score,
             "invocation": self.invocation,
             "protocols": self.protocols,
             "pricing": self.pricing,
@@ -121,6 +132,28 @@ class Agent(Base):
             "author": self.author,
             "source": self.source,
         }
+        
+        # Add trust score as primary quality indicator
+        if hasattr(self, 'trust_score') and self.trust_score is not None:
+            response["trust_score"] = self.trust_score
+            response["quality_score"] = self.trust_score  # For backwards compatibility
+        else:
+            # Fallback to old quality score if no trust score available
+            response["quality_score"] = (self.quality_score * 100) if self.quality_score else 0
+            
+        if hasattr(self, 'trust_explanation') and self.trust_explanation:
+            response["trust_explanation"] = self.trust_explanation
+
+        # EU AI Act compliance data
+        if hasattr(self, 'eu_risk_class') and self.eu_risk_class:
+            response["eu_compliance"] = {
+                "risk_class": self.eu_risk_class,
+                "confidence": self.eu_risk_confidence,
+                "score": self.compliance_score,
+                "badge_url": f"https://nerq.ai/compliance/badge/agent/{self.id}",
+            }
+            
+        return response
 
     def to_detail_response(self) -> dict:
         """Detailed response for single agent lookup."""
@@ -200,16 +233,32 @@ class SystemStatus(Base):
 
 # Database initialization
 
-def get_engine():
-    database_url = os.getenv("DATABASE_URL", "postgresql://localhost/agentindex")
-    return create_engine(database_url, pool_size=10, max_overflow=20)
+# Global engine and session factory (singleton pattern)
+_engine = None
+_Session = None
 
+def get_engine():
+    global _engine
+    if _engine is None:
+        database_url = os.getenv("DATABASE_URL", "postgresql://localhost/agentindex")
+        _engine = create_engine(
+            database_url,
+            pool_size=5,            # Per worker: 5 base + 5 overflow = 10 max
+            max_overflow=5,
+            pool_pre_ping=True,     # Validate connections before use
+            pool_recycle=300,       # Recycle every 5 min (was 1h — prevents stale heavy connections)
+            pool_timeout=5,         # Fail fast — don't wait 30s for a connection
+            echo=False,
+            connect_args={"options": "-c statement_timeout=5000"},  # 5s max per query
+        )
+    return _engine
 
 def get_session():
-    engine = get_engine()
-    Session = sessionmaker(bind=engine)
-    session = Session()
-    return session
+    global _Session
+    if _Session is None:
+        engine = get_engine()
+        _Session = sessionmaker(bind=engine, expire_on_commit=False)
+    return _Session()
 
 def safe_commit(session):
     try:
@@ -217,6 +266,21 @@ def safe_commit(session):
     except Exception:
         session.rollback()
         raise
+
+from contextlib import contextmanager
+
+@contextmanager
+def get_db_session():
+    """Context manager for safe database session handling."""
+    session = get_session()
+    try:
+        yield session
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
+    finally:
+        session.close()
 
 
 def init_db():

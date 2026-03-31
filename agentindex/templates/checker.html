@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nerq — Free AI Compliance Checker | 52 Jurisdictions</title>
+<meta name="description" content="Free AI compliance check against 52 global AI regulations including EU AI Act, Colorado AI Act, and South Korea AI Act. Risk classification in 5 seconds. No account needed.">
+<link rel="canonical" href="https://nerq.ai/checker">
+<meta name="keywords" content="AI compliance checker, EU AI Act check, Colorado AI Act compliance, AI risk classification, multi-jurisdiction AI compliance">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Free AI Compliance Checker — 52 Jurisdictions | Nerq">
+<meta property="og:description" content="Check your AI system against 52 global jurisdictions. Free, instant, no signup.">
+<meta property="og:url" content="https://nerq.ai/checker">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Free AI Compliance Checker — 52 Jurisdictions | Nerq">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"Nerq AI Compliance Checker","url":"https://nerq.ai/checker","applicationCategory":"BusinessApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Free AI compliance checker against 52 global jurisdictions."}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0f;--bg2:#12121a;--bg3:#1a1a26;--surface:#22222e;--border:#2a2a3a;--text:#e8e8f0;--text2:#9898b0;--accent:#4af0c0;--accent2:#2ad0a0;--red:#ff4d6a;--orange:#ffaa33;--yellow:#ffe066;--blue:#4d8aff}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;line-height:1.6}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:1rem 2rem;background:rgba(10,10,15,0.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
+.nav-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between}
+nav a.logo{font-family:'DM Serif Display',serif;font-size:1.5rem;color:var(--accent);text-decoration:none}
+nav a.logo span{color:var(--text2);font-size:0.55em;margin-left:2px;vertical-align:super}
+.nav-links{display:flex;gap:1.8rem;align-items:center}
+.nav-links a{color:var(--text2);text-decoration:none;font-size:0.9rem;font-weight:500}
+.nav-links a:hover{color:var(--accent)}
+.nav-links a.cta{background:var(--accent);color:var(--bg);padding:0.45rem 1.1rem;border-radius:6px;font-weight:600}
+
+/* CONTAINER */
+.container{max-width:820px;margin:0 auto;padding:5.5rem 1.5rem 2rem}
+
+/* HEADER */
+header{text-align:center;padding:1rem 0 1.5rem}
+header h1{font-family:'DM Serif Display',serif;font-size:clamp(2rem,4vw,2.6rem);letter-spacing:-0.02em;margin-bottom:0.4rem}
+header h1 em{font-style:normal;color:var(--accent)}
+header .sub{color:var(--text2);font-size:1.05rem;margin-bottom:0.8rem}
+.badge-row{display:flex;gap:0.6rem;justify-content:center;flex-wrap:wrap}
+.badge-pill{background:var(--bg3);border:1px solid var(--border);color:var(--text2);padding:4px 12px;border-radius:100px;font-size:0.8rem;font-family:'JetBrains Mono',monospace}
+.badge-pill strong{color:var(--accent)}
+
+/* CARDS */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:16px;transition:border-color .3s}
+.card:hover{border-color:rgba(74,240,192,0.15)}
+.card h2{font-family:'DM Serif Display',serif;font-size:1.3rem;letter-spacing:-0.01em;margin-bottom:14px}
+
+/* SEARCH BAR */
+.search-card{padding:20px 24px;border:1.5px solid var(--accent);background:var(--bg2)}
+.search-card:hover{border-color:var(--accent)}
+.search-row{display:flex;gap:10px}
+.search-input{flex:1;padding:14px 18px;border:none;border-radius:8px;font-size:1.05rem;background:var(--bg3);color:var(--text);font-family:'DM Sans',sans-serif;outline:none}
+.search-input::placeholder{color:var(--text2);opacity:0.5}
+.search-input:focus{box-shadow:0 0 0 2px rgba(74,240,192,0.15)}
+.search-hints{color:var(--text2);font-size:0.8rem;margin-top:8px}
+.search-hints b{color:var(--accent);cursor:pointer}
+.search-hints b:hover{text-decoration:underline}
+
+/* PERSONA TABS */
+.persona-tabs{display:flex;gap:8px;margin-bottom:16px}
+.persona-tab{flex:1;padding:10px 8px;text-align:center;background:var(--bg3);border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:0.85rem;color:var(--text2);transition:all .2s}
+.persona-tab:hover{border-color:var(--accent);color:var(--text)}
+.persona-tab.active{border-color:var(--accent);background:rgba(74,240,192,0.06);color:var(--accent)}
+.persona-tab .emoji{font-size:1.1rem;display:block;margin-bottom:3px}
+
+/* JURISDICTION PICKER */
+.jur-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.jur-header h2{margin-bottom:0}
+.jur-toggle{color:var(--accent);font-size:0.82rem;cursor:pointer}
+.jur-toggle:hover{text-decoration:underline}
+.jur-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.jur-item{display:flex;align-items:center;gap:8px;padding:7px 11px;background:var(--bg3);border:1px solid var(--border);border-radius:7px;cursor:pointer;transition:all .15s;font-size:0.85rem;user-select:none}
+.jur-item:hover{border-color:rgba(74,240,192,0.4)}
+.jur-item.selected{border-color:var(--accent);background:rgba(74,240,192,0.06)}
+.jur-check{width:15px;height:15px;border-radius:3px;border:2px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.jur-item.selected .jur-check{background:var(--accent);border-color:var(--accent)}
+.jur-item.selected .jur-check::after{content:'✓';color:var(--bg);font-size:0.65rem;font-weight:700}
+.jur-name{color:var(--text);font-weight:500}
+.jur-date{color:var(--text2);font-size:0.72rem;font-family:'JetBrains Mono',monospace;margin-left:auto;white-space:nowrap}
+
+/* BTN */
+.btn{display:inline-block;background:var(--accent);color:var(--bg);padding:14px 32px;border:none;border-radius:8px;font-size:1.05rem;font-weight:600;cursor:pointer;width:100%;transition:all .2s;font-family:'DM Sans',sans-serif}
+.btn:hover{background:var(--accent2);transform:translateY(-1px);box-shadow:0 8px 30px rgba(74,240,192,0.2)}
+.btn:disabled{background:var(--surface);color:var(--text2);cursor:not-allowed;transform:none;box-shadow:none}
+.btn-sm{padding:10px 22px;font-size:0.92rem;width:auto}
+.btn-outline{background:transparent;color:var(--accent);border:1.5px solid var(--accent)}
+.btn-outline:hover{background:rgba(74,240,192,0.08)}
+.btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border);font-weight:500}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
+.btn-check{padding:14px 28px;width:auto;white-space:nowrap;font-size:1.05rem}
+
+/* SPINNER */
+.spinner{display:none;text-align:center;padding:80px}
+.spinner-text{margin-top:16px;color:var(--text2);font-size:0.95rem}
+.spinner::before{content:"";display:inline-block;width:44px;height:44px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ============ RESULTS ============ */
+.result{display:none}
+.ai-badge{background:rgba(74,240,192,0.08);color:var(--accent);padding:5px 12px;border-radius:6px;font-size:0.78rem;display:inline-block;margin-bottom:16px;font-family:'JetBrains Mono',monospace;border:1px solid rgba(74,240,192,0.15)}
+
+/* Hero result */
+.result-hero{text-align:center;padding:32px 24px;margin-bottom:16px}
+.result-hero .risk-label{font-size:0.8rem;color:var(--text2);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px}
+.risk-badge-lg{display:inline-block;padding:10px 32px;border-radius:10px;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:1.5rem;text-transform:uppercase;letter-spacing:0.05em}
+.risk-minimal-lg{background:rgba(74,240,192,0.12);color:var(--accent);border:2px solid rgba(74,240,192,0.3)}
+.risk-limited-lg{background:rgba(255,170,51,0.12);color:var(--orange);border:2px solid rgba(255,170,51,0.3)}
+.risk-high-lg{background:rgba(255,77,106,0.12);color:var(--red);border:2px solid rgba(255,77,106,0.3)}
+.result-hero .score{font-family:'JetBrains Mono',monospace;font-size:2.8rem;font-weight:700;margin:16px 0 4px}
+.result-hero .score-label{font-size:0.85rem;color:var(--text2)}
+.result-hero .explanation{color:var(--text2);font-size:0.95rem;margin-top:12px;max-width:560px;margin-left:auto;margin-right:auto;line-height:1.5}
+.result-hero .confidence{font-family:'JetBrains Mono',monospace;font-size:0.8rem;color:var(--text2);margin-top:6px}
+
+/* Score bar */
+.score-bar{background:var(--bg3);border-radius:12px;height:8px;margin:16px auto 0;overflow:hidden;border:1px solid var(--border);max-width:400px}
+.score-fill{height:100%;border-radius:12px;transition:width 0.8s ease}
+
+/* CTA row after hero */
+.result-cta-row{display:flex;gap:10px;justify-content:center;margin:20px 0 24px;flex-wrap:wrap}
+
+/* Summary pills */
+.summary-pills{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:20px}
+.summary-pill{padding:6px 16px;border-radius:100px;font-size:0.82rem;font-family:'JetBrains Mono',monospace;font-weight:600;border:1px solid var(--border);background:var(--bg3)}
+
+/* Priority actions */
+.actions-card{margin-bottom:16px}
+.action-item{display:flex;gap:10px;padding:11px 14px;margin-bottom:6px;background:var(--bg3);border-radius:8px;border:1px solid var(--border);align-items:center}
+.action-tag{font-family:'JetBrains Mono',monospace;font-size:0.68rem;font-weight:700;padding:3px 8px;border-radius:4px;white-space:nowrap;flex-shrink:0}
+.action-tag.critical{background:rgba(255,77,106,0.15);color:var(--red)}
+.action-tag.high{background:rgba(255,170,51,0.15);color:var(--orange)}
+.action-tag.medium{background:rgba(255,224,102,0.15);color:var(--yellow)}
+.action-text{font-size:0.88rem;color:var(--text2)}
+.action-text strong{color:var(--text)}
+
+/* Jurisdiction result cards */
+.jur-result{border:1px solid var(--border);border-radius:10px;margin-bottom:10px;background:var(--bg2);overflow:hidden;transition:border-color .2s}
+.jur-result:hover{border-color:rgba(74,240,192,0.2)}
+.jur-result-head{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;cursor:pointer}
+.jur-result-left{display:flex;align-items:center;gap:10px}
+.jur-result-name{font-weight:600;font-size:0.95rem}
+.risk-badge-sm{padding:3px 10px;border-radius:5px;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:0.72rem;text-transform:uppercase}
+.risk-minimal-sm{background:rgba(74,240,192,0.15);color:var(--accent)}
+.risk-limited-sm{background:rgba(255,170,51,0.15);color:var(--orange)}
+.risk-high-sm{background:rgba(255,77,106,0.15);color:var(--red)}
+.risk-pending-sm{background:var(--bg3);color:var(--text2)}
+.jur-result-right{display:flex;align-items:center;gap:12px}
+.jur-days{font-family:'JetBrains Mono',monospace;font-size:0.78rem}
+.jur-days.imminent{color:var(--red)}
+.jur-days.upcoming{color:var(--orange)}
+.jur-days.effective{color:var(--yellow)}
+.jur-expand{color:var(--text2);font-size:0.8rem;transition:transform .2s}
+.jur-result.open .jur-expand{transform:rotate(180deg)}
+.jur-result-body{display:none;padding:0 18px 16px;border-top:1px solid var(--border)}
+.jur-result.open .jur-result-body{display:block;padding-top:14px}
+
+/* Gaps inside jurisdiction */
+.gap-item{border-left:3px solid var(--red);padding:8px 12px;margin:6px 0;background:var(--bg3);border-radius:0 6px 6px 0;font-size:0.85rem}
+.gap-item.medium{border-left-color:var(--orange)}
+.gap-title{font-weight:600;color:var(--text);font-size:0.88rem}
+.gap-article{color:var(--accent);font-size:0.75rem;font-family:'JetBrains Mono',monospace}
+.gap-remedy{color:var(--text2);font-size:0.82rem;margin-top:3px}
+
+/* Coming soon note */
+.coming-soon-note{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:14px 18px;font-size:0.88rem;color:var(--text2);margin-bottom:16px;text-align:center}
+.coming-soon-note strong{color:var(--accent)}
+
+/* Monitoring CTA */
+.monitor-cta{background:linear-gradient(135deg,rgba(74,240,192,0.06),rgba(74,240,192,0.02));border:1.5px solid rgba(74,240,192,0.2);padding:28px 24px;border-radius:12px;text-align:center;margin:20px 0}
+.monitor-cta h3{font-family:'DM Serif Display',serif;font-size:1.2rem;margin-bottom:6px}
+.monitor-cta p{color:var(--text2);font-size:0.9rem;margin-bottom:14px}
+.monitor-features{display:flex;gap:16px;justify-content:center;margin-bottom:16px;flex-wrap:wrap}
+.monitor-feat{font-size:0.82rem;color:var(--text2)}
+.monitor-feat::before{content:"✓ ";color:var(--accent);font-weight:700}
+
+
+/* Contextual CTA */
+.cta-capture{background:linear-gradient(135deg,rgba(74,240,192,0.08),rgba(74,240,192,0.02));border:2px solid rgba(74,240,192,0.25);border-radius:12px;padding:28px;text-align:center;margin:20px 0}
+.cta-capture.urgent{border-color:rgba(255,77,106,0.3);background:linear-gradient(135deg,rgba(255,77,106,0.06),rgba(255,77,106,0.02))}
+.cta-capture h3{font-family:'DM Serif Display',serif;font-size:1.35rem;margin-bottom:8px;color:#ffffff}
+.cta-capture p{color:#c8c8d8;font-size:0.95rem;margin-bottom:16px}
+.cta-capture .email-row{display:flex;gap:8px;max-width:440px;margin:0 auto}
+.cta-capture .email-input{flex:1;padding:12px 16px;border:1px solid var(--border);border-radius:8px;font-size:0.95rem;background:var(--bg3);color:var(--text);font-family:'DM Sans',sans-serif}
+.cta-capture .email-input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(74,240,192,0.1)}
+.cta-capture .email-input::placeholder{color:var(--text2);opacity:0.5}
+.cta-capture .email-btn{padding:12px 24px;white-space:nowrap}
+.cta-capture .fine-print{font-size:0.75rem;color:var(--text2);margin-top:10px}
+.cta-success{display:none;padding:20px;text-align:center}
+.cta-success .check-icon{font-size:2rem;margin-bottom:8px}
+.cta-success p{color:var(--accent);font-weight:600}
+.cta-success .sub{color:var(--text2);font-weight:400;font-size:0.9rem}
+.result-actions{display:flex;gap:8px;justify-content:center;margin:12px 0 20px;flex-wrap:wrap}
+
+
+/* Classifier confidence */
+.conf-badge{display:inline-flex;align-items:center;gap:4px;font-size:0.7rem;font-family:'JetBrains Mono',monospace;padding:2px 8px;border-radius:4px;margin-left:8px}
+.conf-native{background:rgba(74,240,192,0.1);color:var(--accent)}
+.conf-approximate{background:rgba(255,170,51,0.1);color:var(--orange)}
+.conf-dot{width:6px;height:6px;border-radius:50%}
+.conf-native .conf-dot{background:var(--accent)}
+.conf-approximate .conf-dot{background:var(--orange)}
+.hero-disclaimer{font-size:0.78rem;color:var(--orange);margin-top:10px;padding:6px 14px;background:rgba(255,170,51,0.06);border-radius:6px;display:inline-block}
+
+
+/* Badge embed section */
+.embed-section{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:24px;margin:20px 0}
+.embed-section h3{font-family:'DM Serif Display',serif;font-size:1.1rem;margin-bottom:12px}
+.embed-section .embed-desc{color:var(--text2);font-size:0.88rem;margin-bottom:14px}
+.embed-tabs{display:flex;gap:6px;margin-bottom:12px}
+.embed-tab{padding:6px 14px;border-radius:6px;font-size:0.8rem;font-family:'JetBrains Mono',monospace;cursor:pointer;background:var(--bg3);border:1px solid var(--border);color:var(--text2);transition:all .15s}
+.embed-tab.active{border-color:var(--accent);color:var(--accent);background:rgba(74,240,192,0.06)}
+.embed-code{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:var(--text2);overflow-x:auto;white-space:pre;position:relative;line-height:1.5}
+.embed-copy{position:absolute;top:8px;right:8px;background:var(--bg3);border:1px solid var(--border);color:var(--text2);padding:4px 10px;border-radius:4px;font-size:0.72rem;cursor:pointer;font-family:'JetBrains Mono',monospace;transition:all .15s}
+.embed-copy:hover{border-color:var(--accent);color:var(--accent)}
+.embed-copy.copied{background:rgba(74,240,192,0.1);border-color:var(--accent);color:var(--accent)}
+.embed-preview{margin-top:12px;display:flex;align-items:center;gap:12px}
+.embed-preview span{font-size:0.8rem;color:var(--text2)}
+
+/* FOOTER */
+footer{border-top:1px solid var(--border);padding:2.5rem 2rem;margin-top:3rem}
+.ft-inner{max-width:1200px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem}
+footer .fl{color:var(--text2);font-size:0.85rem}
+footer .fr{display:flex;gap:1.5rem}
+footer .fr a{color:var(--text2);text-decoration:none;font-size:0.85rem}
+footer .fr a:hover{color:var(--accent)}
+
+@media(max-width:768px){
+.jur-grid{grid-template-columns:1fr}
+header h1{font-size:1.8rem}
+.nav-links{gap:1rem;font-size:0.8rem}
+.persona-tabs{flex-direction:column}
+.result-cta-row{flex-direction:column;align-items:center}
+.summary-pills{flex-direction:column;align-items:center}
+.search-row{flex-direction:column}
+.btn-check{width:100%}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav><div class="nav-inner">
+<a href="/" class="logo">Nerq<span>ai</span></a>
+<div class="nav-links">
+<a href="/discover">Discover</a>
+<a href="/comply">Comply</a>
+<a href="/blog">Blog</a>
+<a href="/docs">API</a>
+<a href="/checker" class="cta">Free Checker</a>
+</div>
+</div></nav>
+
+<div class="container">
+
+<!-- HEADER -->
+<header>
+<h1>Is your AI system <em>compliant?</em></h1>
+<p class="sub">Check against 52 global AI regulations — free, instant, no signup.</p>
+<div class="badge-row">
+<span class="badge-pill"><strong>14</strong> jurisdictions</span>
+<span class="badge-pill"><strong>5s</strong> analysis</span>
+<span class="badge-pill"><strong>204K</strong> agents & tools</span>
+</div>
+</header>
+
+<!-- FORM -->
+<div id="formCard">
+
+<!-- Persona tabs -->
+<div class="persona-tabs">
+<div class="persona-tab active" onclick="setPersona('developer',this)">
+<span class="emoji">&#128736;</span>I build AI agents
+</div>
+<div class="persona-tab" onclick="setPersona('company',this)">
+<span class="emoji">&#127970;</span>My company uses AI
+</div>
+<div class="persona-tab" onclick="setPersona('compliance',this)">
+<span class="emoji">&#128203;</span>I manage compliance
+</div>
+</div>
+
+<!-- Search -->
+<div class="card search-card">
+<div class="search-row">
+<input type="text" id="systemQuery" class="search-input" placeholder="Describe your AI system or paste a repo URL..." onkeydown="if(event.key==='Enter')runCheck()">
+<button class="btn btn-check" onclick="runCheck()" id="checkBtn">Check &#8594;</button>
+</div>
+<div class="search-hints">Try: <b onclick="fillExample('MCP server for stock market data and trading signals')">stock trading MCP</b> · <b onclick="fillExample('CV screening tool that automatically ranks and filters job applicants')">AI hiring tool</b> · <b onclick="fillExample('Chatbot that triages patient symptoms and recommends treatment')">healthcare chatbot</b></div>
+</div>
+
+<!-- Jurisdictions -->
+<div class="card">
+<div class="jur-header">
+<h2>Check against</h2>
+<span class="jur-toggle" onclick="toggleAllJur()">Select all</span>
+</div>
+<div class="jur-grid" id="jurGrid">
+<div class="jur-item selected" onclick="toggleJur(this)" data-jur="eu_ai_act"><span class="jur-check"></span><span class="jur-name">EU AI Act</span><span class="jur-date">Aug 2026</span></div>
+<div class="jur-item selected" onclick="toggleJur(this)" data-jur="us_co_sb205"><span class="jur-check"></span><span class="jur-name">Colorado AI Act</span><span class="jur-date">Jun 2026</span></div>
+<div class="jur-item selected" onclick="toggleJur(this)" data-jur="kr_ai_basic_act"><span class="jur-check"></span><span class="jur-name">South Korea AI Act</span><span class="jur-date">Jan 2026</span></div>
+<div class="jur-item" onclick="toggleJur(this)" data-jur="us_ca_sb53"><span class="jur-check"></span><span class="jur-name">California SB 53</span><span class="jur-date">Effective</span></div>
+<div class="jur-item" onclick="toggleJur(this)" data-jur="us_ca_sb942"><span class="jur-check"></span><span class="jur-name">California SB 942</span><span class="jur-date">Aug 2026</span></div>
+<div class="jur-item" onclick="toggleJur(this)" data-jur="us_tx_traiga"><span class="jur-check"></span><span class="jur-name">Texas RAIGA</span><span class="jur-date">Effective</span></div>
+<div class="jur-item" onclick="toggleJur(this)" data-jur="us_il_aivi"><span class="jur-check"></span><span class="jur-name">Illinois AI Interview</span><span class="jur-date">Effective</span></div>
+<div class="jur-item" onclick="toggleJur(this)" data-jur="cn_cybersecurity"><span class="jur-check"></span><span class="jur-name">China Cybersecurity</span><span class="jur-date">Effective</span></div>
+<div class="jur-item" onclick="toggleJur(this)" data-jur="vn_ai_law"><span class="jur-check"></span><span class="jur-name">Vietnam AI Law</span><span class="jur-date">2026</span></div>
+<div class="jur-item" onclick="toggleJur(this)" data-jur="br_ai_bill"><span class="jur-check"></span><span class="jur-name">Brazil AI Bill</span><span class="jur-date">Proposed</span></div>
+<div class="jur-item" onclick="toggleJur(this)" data-jur="ca_aida"><span class="jur-check"></span><span class="jur-name">Canada AIDA</span><span class="jur-date">Proposed</span></div>
+<div class="jur-item" onclick="toggleJur(this)" data-jur="sg_ai_governance"><span class="jur-check"></span><span class="jur-name">Singapore Framework</span><span class="jur-date">Voluntary</span></div>
+<div class="jur-item" onclick="toggleJur(this)" data-jur="uk_ai_regulation"><span class="jur-check"></span><span class="jur-name">UK AI Regulation</span><span class="jur-date">Proposed</span></div>
+<div class="jur-item" onclick="toggleJur(this)" data-jur="jp_ai_bill"><span class="jur-check"></span><span class="jur-name">Japan AI Bill</span><span class="jur-date">Effective</span></div>
+</div>
+</div>
+
+</div>
+
+<!-- SPINNER -->
+<div class="spinner" id="spinner"><div class="spinner-text">Analyzing compliance across jurisdictions...</div></div>
+
+<!-- ============ RESULTS ============ -->
+<div class="result" id="results">
+
+<div style="text-align:center"><div class="ai-badge">AI-powered analysis · Informational only · Not legal advice</div></div>
+
+<!-- HERO RESULT -->
+<div class="card result-hero" id="resultHero"></div>
+
+<!-- CONTEXTUAL CTA -->
+<div id="ctaBlock"></div>
+
+<!-- SUMMARY PILLS -->
+<div class="summary-pills" id="summaryPills"></div>
+
+<!-- PRIORITY ACTIONS -->
+<div class="card actions-card" id="actionsCard" style="display:none">
+<h2>&#9888;&#65039; Priority Actions</h2>
+<div id="actionsList"></div>
+</div>
+
+<!-- PER-JURISDICTION RESULTS (accordion) -->
+<div id="jurResults"></div>
+
+
+<!-- BADGE EMBED -->
+<div class="embed-section" id="embedSection" style="display:none">
+<h3>Embed this badge in your README</h3>
+<p class="embed-desc">Show your compliance status. Badge updates automatically when regulations change.</p>
+<div class="embed-preview"><span>Preview:</span> <img id="embedPreview" height="20" alt="Nerq Comply badge"></div>
+<div class="embed-tabs">
+<div class="embed-tab active" onclick="setEmbedTab('md',this)">Markdown</div>
+<div class="embed-tab" onclick="setEmbedTab('html',this)">HTML</div>
+<div class="embed-tab" onclick="setEmbedTab('url',this)">URL</div>
+</div>
+<div class="embed-code" id="embedCode"><button class="embed-copy" onclick="copyEmbed()">Copy</button><span id="embedText"></span></div>
+</div>
+
+<!-- COMING SOON NOTE -->
+<div class="coming-soon-note" id="comingSoonNote" style="display:none">
+<strong id="comingSoonCount">0</strong> additional jurisdictions selected are coming soon. We're building classifiers for all 14 — <strong>get notified when they launch.</strong>
+</div>
+
+
+
+</div><!-- /results -->
+
+</div><!-- /container -->
+
+<!-- FOOTER -->
+<footer><div class="ft-inner">
+<div class="fl">&copy; 2026 Nerq. Built with AI, for AI.</div>
+<div class="fr">
+<a href="/discover">Discover</a>
+<a href="/comply">Comply</a>
+<a href="/docs">API</a>
+<a href="/blog">Blog</a>
+<a href="/terms">Terms</a>
+<a href="/privacy">Privacy</a>
+</div>
+</div></footer>
+
+<script>
+const API = window.location.origin;
+let currentPersona = 'developer';
+
+// ---- FORM LOGIC ----
+function setPersona(p, el) {
+  currentPersona = p;
+  document.querySelectorAll('.persona-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function fillExample(text) {
+  document.getElementById('systemQuery').value = text;
+  document.getElementById('systemQuery').focus();
+}
+
+function toggleJur(el) { el.classList.toggle('selected'); }
+
+function toggleAllJur() {
+  const items = document.querySelectorAll('.jur-item');
+  const allSelected = [...items].every(i => i.classList.contains('selected'));
+  items.forEach(i => { allSelected ? i.classList.remove('selected') : i.classList.add('selected'); });
+  document.querySelector('.jur-toggle').textContent = allSelected ? 'Select all' : 'Deselect all';
+}
+
+function getSelectedJur() {
+  return [...document.querySelectorAll('.jur-item.selected')].map(i => i.dataset.jur);
+}
+
+// ---- API CALL ----
+async function runCheck() {
+  const query = document.getElementById('systemQuery').value.trim();
+  const jurs = getSelectedJur();
+  if (!query) { document.getElementById('systemQuery').focus(); return; }
+  if (jurs.length === 0) { alert('Select at least one jurisdiction.'); return; }
+
+  document.getElementById('formCard').style.display = 'none';
+  document.getElementById('spinner').style.display = 'block';
+  document.getElementById('results').style.display = 'none';
+
+  try {
+    const res = await fetch(API + '/compliance/check', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        system_name: query.split(' ').slice(0, 6).join(' '),
+        system_description: query,
+        system_category: null,
+        jurisdictions: jurs,
+        persona: currentPersona
+      })
+    });
+    if (!res.ok) throw new Error('Server error (' + res.status + ')');
+    displayResults(await res.json(), jurs);
+  } catch (err) {
+    alert('Something went wrong: ' + err.message);
+    document.getElementById('formCard').style.display = 'block';
+  } finally {
+    document.getElementById('spinner').style.display = 'none';
+  }
+}
+
+// ---- JURISDICTION METADATA ----
+let JUR = {};
+
+const COUNTRY_FLAGS = {
+  'EU':'🇪🇺','US':'🇺🇸','KR':'🇰🇷','CN':'🇨🇳','VN':'🇻🇳','BR':'🇧🇷','CA':'🇨🇦',
+  'SG':'🇸🇬','UK':'🇬🇧','JP':'🇯🇵','AU':'🇦🇺','IN':'🇮🇳','TW':'🇹🇼','DE':'🇩🇪',
+  'FR':'🇫🇷','IT':'🇮🇹','ES':'🇪🇸','NL':'🇳🇱','SE':'🇸🇪','IE':'🇮🇪','PL':'🇵🇱',
+  'TH':'🇹🇭','PH':'🇵🇭','MX':'🇲🇽','CL':'🇨🇱','CO':'🇨🇴','PE':'🇵🇪','ZA':'🇿🇦',
+  'KE':'🇰🇪','NG':'🇳🇬','SA':'🇸🇦','AE':'🇦🇪','NZ':'🇳🇿','INTL':'🌐'
+};
+
+async function loadJurisdictions() {
+  try {
+    const res = await fetch('/compliance/jurisdictions');
+    const data = await res.json();
+    const jurs = data.jurisdictions || [];
+    jurs.forEach(j => {
+      JUR[j.id] = {
+        name: j.name,
+        deadline: j.effective_date || '2027-01-01',
+        flag: COUNTRY_FLAGS[j.country] || '🏳️'
+      };
+    });
+    // Rebuild jurisdiction picker
+    const grid = document.querySelector('.jur-grid');
+    if (grid) {
+      grid.innerHTML = jurs.map(j => {
+        const flag = COUNTRY_FLAGS[j.country] || '🏳️';
+        const dl = j.effective_date ? j.effective_date.substring(0,7) : 'TBD';
+        return '<div class="jur-item selected" data-jur="' + j.id + '">' +
+          '<div class="jur-check"></div>' +
+          '<span class="jur-name">' + flag + ' ' + j.name + '</span>' +
+          '<span class="jur-date">' + dl + '</span></div>';
+      }).join('');
+      // Re-attach click handlers
+      grid.querySelectorAll('.jur-item').forEach(el => {
+        el.addEventListener('click', () => el.classList.toggle('selected'));
+      });
+      // Update badge count
+      document.querySelectorAll('.badge-pill strong').forEach(el => {
+        if (el.textContent.includes('14')) el.textContent = jurs.length.toString();
+      });
+    }
+  } catch(e) {
+    console.error('Failed to load jurisdictions:', e);
+  }
+}
+
+loadJurisdictions();
+
+function daysUntil(d) { return Math.max(0, Math.ceil((new Date(d) - new Date()) / 864e5)); }
+function dlClass(days) { return days === 0 ? 'effective' : days < 120 ? 'imminent' : 'upcoming'; }
+function scoreColor(s) { return s >= 70 ? 'var(--accent)' : s >= 40 ? 'var(--orange)' : 'var(--red)'; }
+
+// ---- DISPLAY RESULTS ----
+function displayResults(data, requestedJurs) {
+  document.getElementById('results').style.display = 'block';
+
+  // Normalize: wrap legacy single-jurisdiction response
+  let results = {};
+  if (data.results) {
+    results = data.results;
+  } else {
+    results.eu_ai_act = {
+      risk_class: data.risk_class,
+      score: data.compliance_score,
+      confidence: data.risk_class_confidence,
+      explanation: data.explanation,
+      gaps: data.gaps || [],
+      deadlines: data.deadlines || {}
+    };
+  }
+
+  // Mark pending jurisdictions
+  const pendingJurs = [];
+  requestedJurs.forEach(j => {
+    if (!results[j]) { pendingJurs.push(j); }
+  });
+
+  // Find primary result (first non-pending with lowest score)
+  // Normalize risk classes to high/limited/minimal
+  const RISK_MAP = {
+    'high': 'high', 'high_risk': 'high', 'unacceptable': 'high',
+    'limited': 'limited', 'low_impact': 'limited', 'not_high_risk': 'limited',
+    'general': 'limited', 'transparency': 'limited',
+    'minimal': 'minimal', 'not_covered': 'minimal', 'exempt': 'minimal'
+  };
+  const RISK_ORDER = {'high': 0, 'limited': 1, 'minimal': 2};
+
+  const assessed = Object.entries(results).filter(([_,r]) => r.risk_class && r.risk_class !== 'pending');
+
+  // Normalize risk_class for all results
+  assessed.forEach(([jur, r]) => {
+    r.native_risk_class = r.risk_class;
+    r.risk_class = RISK_MAP[r.risk_class.toLowerCase()] || 'minimal';
+  });
+
+  // Pick primary = most risky. Tiebreaker: EU first, then by deadline proximity
+  const JUR_PRIORITY = {'eu_ai_act': 0, 'us_co_sb205': 1, 'kr_ai_basic_act': 2};
+  const primary = assessed.sort((a,b) => {
+    const rA = RISK_ORDER[a[1].risk_class] ?? 2;
+    const rB = RISK_ORDER[b[1].risk_class] ?? 2;
+    if (rA !== rB) return rA - rB;
+    if ((a[1].score||0) !== (b[1].score||0)) return (a[1].score||0) - (b[1].score||0);
+    const pA = JUR_PRIORITY[a[0]] ?? 10;
+    const pB = JUR_PRIORITY[b[0]] ?? 10;
+    return pA - pB;
+  })[0];
+
+  // ---- HERO ----
+  const hero = document.getElementById('resultHero');
+  if (primary) {
+    const [pJur, pData] = primary;
+    const rc = pData.risk_class;
+    const sc = pData.score;
+    const conf = pData.confidence ? Math.round(pData.confidence * 100) + '%' : '';
+    hero.innerHTML = `
+      <div class="risk-label">${(JUR[pJur]||{}).name||pJur} Risk Classification</div>
+      <div class="risk-badge-lg risk-${rc}-lg">${rc.replace('_',' ')}</div>
+      <div class="score" style="color:${scoreColor(sc)}">${sc}<span style="font-size:1rem;color:var(--text2)">/100</span></div>
+      <div class="score-label">Compliance Score</div>
+      <div class="score-bar"><div class="score-fill" style="width:${sc}%;background:${scoreColor(sc)}"></div></div>
+      ${pData.explanation ? `<div class="explanation">${pData.explanation}</div>` : ''}
+      ${conf ? `<div class="confidence">Confidence: ${conf}</div>` : ''}
+      ${pData.classifier_confidence === 'approximate' ? `<div class="hero-disclaimer">⚠ Approximate classifier — this jurisdiction lacks specific high-risk criteria. Result is conservative.</div>` : ''}
+    `;
+  }
+
+  // ---- CONTEXTUAL CTA ----
+  const ctaBlock = document.getElementById('ctaBlock');
+  const isCompliant = primary && primary[1].risk_class === 'minimal';
+  let gapCount = 0;
+  assessed.forEach(([_, r]) => { gapCount += (r.gaps || []).length; });
+
+  if (isCompliant) {
+    ctaBlock.innerHTML = `
+      <div class="cta-capture">
+        <h3>You're compliant — stay that way</h3>
+        <p>Laws change fast. Get notified when new regulations affect your system.</p>
+        <div class="email-row">
+          <input type="email" class="email-input" id="ctaEmail" placeholder="your@email.com">
+          <button class="btn btn-sm email-btn" onclick="submitEmail('monitor')">Get Alerts</button>
+        </div>
+        <div class="fine-print">We'll only email regulatory alerts relevant to your system. No spam. Unsubscribe anytime. <a href="/privacy" style="color:var(--accent)">Privacy Policy</a></div>
+      </div>
+      <div class="cta-success" id="ctaSuccess">
+        <div class="check-icon">✓</div>
+        <p>You're on the list!</p>
+        <p class="sub">We'll alert you when regulations change.</p>
+      </div>
+      <div class="result-actions">
+        <button class="btn btn-sm btn-ghost" onclick="resetForm()">&#8592; Check Another System</button>
+      </div>
+    `;
+  } else {
+    ctaBlock.innerHTML = `
+      <div class="cta-capture urgent">
+        <h3>${gapCount} compliance gap${gapCount !== 1 ? 's' : ''} found — get your fix-it checklist</h3>
+        <p>We'll send a step-by-step remediation plan tailored to your system. Free.</p>
+        <div class="email-row">
+          <input type="email" class="email-input" id="ctaEmail" placeholder="your@email.com">
+          <button class="btn btn-sm email-btn" onclick="submitEmail('checklist')">Send My Checklist &#8594;</button>
+        </div>
+        <div class="fine-print">We'll send your checklist and relevant regulatory updates. No spam. Unsubscribe anytime. <a href="/privacy" style="color:var(--accent)">Privacy Policy</a></div>
+      </div>
+      <div class="cta-success" id="ctaSuccess">
+        <div class="check-icon">✓</div>
+        <p>Checklist is on its way!</p>
+        <p class="sub">Check your inbox in the next 2 minutes.</p>
+      </div>
+      <div class="result-actions">
+        <button class="btn btn-sm btn-ghost" onclick="resetForm()">&#8592; Check Another System</button>
+      </div>
+    `;
+  }
+
+  // ---- SETUP EMBED ----
+  if (primary) { setupEmbed(primary[1].risk_class, assessed.length); }
+
+  // ---- SUMMARY PILLS ----
+  const pills = document.getElementById('summaryPills');
+  const totalChecked = assessed.length;
+  const compliant = assessed.filter(([_,r]) => r.risk_class === 'minimal').length;
+  const withGaps = totalChecked - compliant;
+  const critical = assessed.filter(([_,r]) => r.risk_class === 'high').length;
+  pills.innerHTML = `
+    <span class="summary-pill" style="color:var(--accent)">${totalChecked} checked</span>
+    <span class="summary-pill" style="color:${compliant > 0 ? 'var(--accent)' : 'var(--text2)'}">${compliant} compliant</span>
+    <span class="summary-pill" style="color:${withGaps > 0 ? 'var(--orange)' : 'var(--text2)'}">${withGaps} with gaps</span>
+    <span class="summary-pill" style="color:${critical > 0 ? 'var(--red)' : 'var(--text2)'}">${critical} critical</span>
+  `;
+
+  // ---- PRIORITY ACTIONS ----
+  const actions = [];
+  assessed.forEach(([jur, r]) => {
+    const meta = JUR[jur] || {name:jur, deadline:'2027-01-01'};
+    const days = daysUntil(meta.deadline);
+    if (r.risk_class === 'high') {
+      actions.push({u: days < 120 ? 'critical' : 'high', t: `<strong>${meta.name}</strong>: Classified as ${r.risk_class}. ${days > 0 ? days + ' days to deadline.' : 'Already in effect.'}`, d: days});
+    } else if (r.gaps && r.gaps.length > 0) {
+      actions.push({u:'medium', t: `<strong>${meta.name}</strong>: ${r.gaps.length} compliance gap${r.gaps.length>1?'s':''} to address.`, d: days});
+    }
+  });
+  actions.sort((a,b) => a.d - b.d);
+  const ac = document.getElementById('actionsCard');
+  const al = document.getElementById('actionsList');
+  al.innerHTML = '';
+  if (actions.length) {
+    ac.style.display = 'block';
+    actions.forEach(a => {
+      al.innerHTML += `<div class="action-item"><span class="action-tag ${a.u}">${a.u.toUpperCase()}</span><div class="action-text">${a.t}</div></div>`;
+    });
+  } else { ac.style.display = 'none'; }
+
+  // ---- PER-JURISDICTION ACCORDIONS ----
+  const jr = document.getElementById('jurResults');
+  jr.innerHTML = '';
+
+  assessed.sort((a,b) => {
+    const dA = daysUntil((JUR[a[0]]||{}).deadline||'2027-01-01');
+    const dB = daysUntil((JUR[b[0]]||{}).deadline||'2027-01-01');
+    return dA - dB;
+  }).forEach(([jur, r]) => {
+    const meta = JUR[jur] || {name:jur, deadline:'2027-01-01', flag:''};
+    const days = daysUntil(meta.deadline);
+    const dc = dlClass(days);
+    const daysText = days > 0 ? days + 'd' : 'In effect';
+
+    let gapsHTML = '';
+    if (r.gaps && r.gaps.length > 0) {
+      r.gaps.forEach(g => {
+        const sev = g.severity === 'critical' ? '' : ' medium';
+        gapsHTML += `<div class="gap-item${sev}"><div class="gap-title">${g.title}</div>`;
+        if (g.article) gapsHTML += `<div class="gap-article">${g.article} · ${g.severity}</div>`;
+        if (g.remediation) gapsHTML += `<div class="gap-remedy">${g.remediation}</div>`;
+        gapsHTML += `</div>`;
+      });
+    }
+
+    jr.innerHTML += `
+      <div class="jur-result" onclick="this.classList.toggle('open')">
+        <div class="jur-result-head">
+          <div class="jur-result-left">
+            <span>${meta.flag}</span>
+            <span class="jur-result-name">${meta.name}</span>
+            <span class="risk-badge-sm risk-${r.risk_class}-sm">${r.risk_class}</span>
+            ${r.classifier_confidence ? `<span class="conf-badge conf-${r.classifier_confidence}"><span class="conf-dot"></span>${r.classifier_confidence}</span>` : ''}
+            ${r.score != null ? `<span style="font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:${scoreColor(r.score)}">${r.score}/100</span>` : ''}
+          </div>
+          <div class="jur-result-right">
+            <span class="jur-days ${dc}">${daysText}</span>
+            <span class="jur-expand">▼</span>
+          </div>
+        </div>
+        <div class="jur-result-body">
+          ${r.classifier_confidence === 'approximate' ? `<div style="background:rgba(255,170,51,0.06);border:1px solid rgba(255,170,51,0.15);border-radius:6px;padding:8px 12px;margin-bottom:10px;font-size:0.8rem;color:var(--orange)">⚠ Approximate classification — this jurisdiction does not yet have specific high-risk criteria in our system. Default: minimal risk.</div>` : ''}
+          ${r.explanation ? `<p style="color:var(--text2);font-size:0.9rem;margin-bottom:10px">${r.explanation}</p>` : ''}
+          ${gapsHTML || '<p style="color:var(--text2);font-size:0.9rem">No specific gaps identified for this jurisdiction.</p>'}
+        </div>
+      </div>
+    `;
+  });
+
+  // ---- COMING SOON ----
+  const csNote = document.getElementById('comingSoonNote');
+  if (pendingJurs.length > 0) {
+    csNote.style.display = 'block';
+    document.getElementById('comingSoonCount').textContent = pendingJurs.length;
+  } else { csNote.style.display = 'none'; }
+}
+
+// ---- ACTIONS ----
+function resetForm() {
+  document.getElementById('formCard').style.display = 'block';
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('actionsCard').style.display = 'none';
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+
+
+function submitEmail(type) {
+  const email = document.getElementById('ctaEmail').value.trim();
+  if (!email || !email.includes('@')) {
+    document.getElementById('ctaEmail').style.borderColor = 'var(--red)';
+    document.getElementById('ctaEmail').focus();
+    return;
+  }
+  // Send to backend
+  fetch(API + '/compliance/subscribe', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({email: email, type: type, persona: currentPersona})
+  }).catch(() => {});
+  // Show success
+  document.querySelector('.cta-capture').style.display = 'none';
+  document.getElementById('ctaSuccess').style.display = 'block';
+}
+
+
+// ---- BADGE EMBED ----
+let embedData = {};
+function setupEmbed(overallRisk, jurCount) {
+  var section = document.getElementById('embedSection');
+  section.style.display = 'block';
+  var badgeUrl = 'https://nerq.ai/compliance/badge/multi/' + overallRisk + '/' + jurCount;
+  var checkerUrl = 'https://nerq.ai/checker';
+  embedData = {
+    md: '[![Nerq Comply](' + badgeUrl + ')](' + checkerUrl + ')',
+    html: '<a href="' + checkerUrl + '"><img src="' + badgeUrl + '" alt="Nerq Comply"></a>',
+    url: badgeUrl
+  };
+  document.getElementById('embedPreview').src = badgeUrl;
+  setEmbedTab('md', document.querySelector('.embed-tab.active'));
+}
+function setEmbedTab(format, el) {
+  document.querySelectorAll('.embed-tab').forEach(function(t) { t.classList.remove('active'); });
+  el.classList.add('active');
+  document.getElementById('embedText').textContent = embedData[format] || '';
+  var btn = document.querySelector('.embed-copy');
+  btn.textContent = 'Copy';
+  btn.classList.remove('copied');
+}
+function copyEmbed() {
+  var text = document.getElementById('embedText').textContent;
+  navigator.clipboard.writeText(text).then(function() {
+    var btn = document.querySelector('.embed-copy');
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(function() { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+function trackUpgradeClick() {
+  fetch(API + '/compliance/track-upgrade', {method:'POST'}).catch(()=>{});
+}
+</script>
+</body>
+</html>

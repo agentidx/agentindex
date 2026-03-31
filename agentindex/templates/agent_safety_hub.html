@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Agent Safety Ratings — {{ total }} Agents Assessed — Nerq</title>
+<meta name="description" content="Independent safety assessments for {{ total }} AI agents, tools, and MCP servers. Trust scores, security analysis, and compliance ratings. Updated daily by Nerq.">
+<link rel="canonical" href="https://nerq.ai/safe">
+<meta property="og:title" content="AI Agent Safety Ratings — {{ total }} Agents Assessed — Nerq">
+<meta property="og:description" content="Independent trust scores for {{ total }} AI agents. Security, compliance, and ecosystem analysis.">
+<meta property="og:url" content="https://nerq.ai/safe">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Nerq">
+<meta name="robots" content="index, follow">
+<script type="application/ld+json">{{ itemlist_jsonld }}</script>
+<style>
+{{ nerq_css }}
+.search-filter{width:100%;padding:10px 14px;border:1px solid #e5e7eb;font-size:14px;font-family:system-ui,-apple-system,sans-serif;outline:none;margin:16px 0}
+.search-filter:focus{border-color:#0d9488}
+.search-filter::placeholder{color:#9ca3af}
+th{cursor:pointer;user-select:none;white-space:nowrap}
+th:hover{color:#0d9488}
+.sort-arrow{font-size:10px;margin-left:4px}
+td a{color:#1a1a1a;font-weight:600;text-decoration:none}
+td a:hover{color:#0d9488}
+.verified-dot{display:inline-block;width:8px;height:8px;background:#22c55e;border-radius:50%;margin-right:4px;vertical-align:middle}
+</style>
+</head>
+<body>
+{{ nerq_nav }}
+
+<main class="container" style="padding-top:20px;padding-bottom:40px">
+  <div class="breadcrumb"><a href="/">nerq</a> &rsaquo; agent safety</div>
+  <h1>AI Agent Safety Ratings — {{ total }} Agents Assessed</h1>
+  <p class="desc">Independent trust scores for {{ total }} AI agents, tools, and MCP servers. Scores based on security, compliance, maintenance, popularity, and ecosystem signals. Updated daily.</p>
+
+  <div style="background:#f0fdf4;border:2px solid #16a34a;padding:20px 24px;margin:16px 0 24px">
+    <h2 style="font-size:1.2rem;margin:0 0 8px;color:#15803d">Is your AI tool safe?</h2>
+    <p style="font-size:15px;margin:0 0 12px;color:#374151">Enter any AI agent, MCP server, or tool name to get an independent safety assessment with trust score, security analysis, and compliance rating.</p>
+    <form action="/kya" method="get" style="display:flex;gap:8px">
+      <input name="q" placeholder="e.g. cursor, chatgpt, langchain..." style="flex:1;padding:10px 14px;border:1px solid #e5e7eb;font-size:15px;font-family:system-ui,-apple-system,sans-serif">
+      <button type="submit" style="padding:10px 24px;background:#0d9488;color:#fff;border:none;font-size:14px;font-weight:600;cursor:pointer;font-family:system-ui,-apple-system,sans-serif">Check Safety</button>
+    </form>
+  </div>
+
+  <h2 style="font-size:1.1rem;margin:24px 0 12px">Most Searched Safety Checks</h2>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;margin-bottom:24px">
+    {{ featured_tools }}
+  </div>
+
+  <h2 style="font-size:1.1rem;margin:24px 0 8px">How Nerq Safety Scores Work</h2>
+  <p style="font-size:15px;line-height:1.7;color:#374151;margin-bottom:16px">Every AI tool in the Nerq index receives an automated Trust Score from 0 to 100, calculated from 13+ independent signals across five dimensions: <strong>Security</strong> (CVEs, dependency vulnerabilities), <strong>Maintenance</strong> (commit activity, release cadence), <strong>Documentation</strong> (README quality, API docs), <strong>Compliance</strong> (license, regulatory alignment), and <strong>Community</strong> (stars, forks, downloads). Tools scoring 70+ earn Nerq Verified status. Scores update continuously as new data becomes available.</p>
+
+  <input type="text" class="search-filter" id="searchInput" placeholder="Filter by name, category, or source...">
+
+  <table id="safetyTable">
+    <thead>
+      <tr>
+        <th data-col="0">Name <span class="sort-arrow"></span></th>
+        <th data-col="1">Category <span class="sort-arrow"></span></th>
+        <th data-col="2">Score <span class="sort-arrow"></span></th>
+        <th data-col="3">Grade <span class="sort-arrow"></span></th>
+        <th data-col="4">Verified <span class="sort-arrow"></span></th>
+        <th data-col="5">Source <span class="sort-arrow"></span></th>
+        <th data-col="6">Stars <span class="sort-arrow"></span></th>
+      </tr>
+    </thead>
+    <tbody>
+      {{ table_rows }}
+    </tbody>
+  </table>
+
+  <p style="margin-top:24px;font-size:12px;color:#6b7280">
+    <strong>Disclaimer:</strong> Nerq trust scores are automated assessments. They are not endorsements. Always do your own research.
+  </p>
+</main>
+
+{{ nerq_footer }}
+
+<script>
+(function(){
+var input=document.getElementById('searchInput');
+var tbody=document.querySelector('#safetyTable tbody');
+var rows=Array.from(tbody.querySelectorAll('tr'));
+input.addEventListener('input',function(){
+  var q=this.value.toLowerCase();
+  rows.forEach(function(r){r.style.display=r.textContent.toLowerCase().indexOf(q)>-1?'':'none'});
+});
+var sortDir={};
+document.querySelector('#safetyTable thead').addEventListener('click',function(e){
+  var th=e.target.closest('th');if(!th)return;
+  var col=parseInt(th.getAttribute('data-col'));
+  sortDir[col]=!sortDir[col];var dir=sortDir[col]?1:-1;
+  rows.sort(function(a,b){
+    var av=a.children[col].getAttribute('data-sort')||a.children[col].textContent.trim();
+    var bv=b.children[col].getAttribute('data-sort')||b.children[col].textContent.trim();
+    var an=parseFloat(av),bn=parseFloat(bv);
+    if(!isNaN(an)&&!isNaN(bn))return(an-bn)*dir;
+    return av.localeCompare(bv)*dir;
+  });
+  rows.forEach(function(r){tbody.appendChild(r)});
+});
+})();
+</script>
+</body>
+</html>

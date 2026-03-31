@@ -29,7 +29,7 @@ JSONRPC_VERSION = "2.0"
 TOOLS = [
     {
         "name": "discover_agents",
-        "description": "Find AI agents that can perform a specific task. Returns ranked list of matching agents with quality scores and invocation details. Use this when you need to find an agent for a specific capability.",
+        "description": "Search 5 million+ AI assets including agents, tools, MCP servers, models, datasets, and packages. Returns ranked list with trust scores, quality scores, and invocation details. Use when user asks 'find a tool for X', 'what tools do Y?', 'what MCP server does Z?', or needs to discover AI assets for a specific task.",
         "inputSchema": {
             "type": "object",
             "properties": {
@@ -61,7 +61,7 @@ TOOLS = [
     },
     {
         "name": "get_agent_details",
-        "description": "Get detailed information about a specific agent including full capabilities, invocation method, scores, and metadata.",
+        "description": "Get full details for a specific AI agent or tool by its UUID. Returns capabilities, invocation method, trust score, compliance data, and metadata. Use after discover_agents to get complete information about a specific result, or when user asks 'tell me more about X agent'.",
         "inputSchema": {
             "type": "object",
             "properties": {
@@ -75,10 +75,62 @@ TOOLS = [
     },
     {
         "name": "agent_index_stats",
-        "description": "Get statistics about the AgentIndex: total agents indexed, categories, protocols, sources.",
+        "description": "Get overview statistics about the Nerq/AgentIndex database: total AI assets indexed, categories, protocols, and sources. Use when user asks 'how many AI agents exist?', 'how big is the index?', or wants ecosystem-level stats.",
         "inputSchema": {
             "type": "object",
             "properties": {}
+        }
+    },
+    {
+        "name": "trust_gate",
+        "description": "Check if an AI tool, MCP server, npm package, PyPI package, HuggingFace model, or Docker container is safe to use. Returns trust score (0-100), grade (A+ to F), and approve/reject decision against a configurable threshold. Use when user asks 'is X safe?', 'should I use X?', 'is X trustworthy?', or needs to evaluate any AI asset before installing or recommending it.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "Agent or tool name to check"
+                },
+                "threshold": {
+                    "type": "number",
+                    "description": "Minimum trust score to approve",
+                    "default": 60
+                }
+            },
+            "required": ["name"]
+        }
+    },
+    {
+        "name": "trust_compare",
+        "description": "Compare two AI tools side-by-side on trust score, security, maintenance, and popularity. Returns both scores, grades, and a winner. Use when user asks 'X vs Y', 'which is better X or Y?', 'compare X and Y', or needs to choose between two AI assets.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "agent_a": {
+                    "type": "string",
+                    "description": "First agent or tool name"
+                },
+                "agent_b": {
+                    "type": "string",
+                    "description": "Second agent or tool name"
+                }
+            },
+            "required": ["agent_a", "agent_b"]
+        }
+    },
+    {
+        "name": "trust_batch",
+        "description": "Get trust scores for a batch of agents or tools in one call. Returns results sorted by trust score descending. Use when user provides a list of tools to evaluate, wants to rank multiple options, or needs to audit a set of dependencies.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "agents": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "List of agent names to check"
+                }
+            },
+            "required": ["agents"]
         }
     }
 ]
@@ -99,7 +151,7 @@ def handle_request(request: dict) -> dict:
                 "capabilities": {"tools": {}},
                 "serverInfo": {
                     "name": "agentindex",
-                    "version": "0.3.0",
+                    "version": "0.4.0",
                 },
             },
         }
@@ -168,6 +220,84 @@ def _call_tool(name: str, arguments: dict) -> Any:
             response = client.get(f"{base_url}/stats")
             response.raise_for_status()
             return response.json()
+
+        elif name == "trust_gate":
+            agent_name = arguments.get("name", "")
+            threshold = arguments.get("threshold", 60)
+            response = client.get(
+                f"http://localhost:{port}/v1/preflight",
+                params={"target": agent_name},
+            )
+            response.raise_for_status()
+            data = response.json()
+            trust_score = data.get("trust_score", 0)
+            approved = trust_score >= threshold
+            if approved:
+                recommendation = "Approved — trust score meets threshold."
+            else:
+                recommendation = f"Rejected — trust score {trust_score} is below threshold {threshold}."
+            return {
+                "agent_name": agent_name,
+                "trust_score": trust_score,
+                "trust_grade": data.get("trust_grade", "N/A"),
+                "approved": approved,
+                "recommendation": recommendation,
+            }
+
+        elif name == "trust_compare":
+            results = {}
+            for key, agent_name in [("agent_a", arguments.get("agent_a", "")),
+                                     ("agent_b", arguments.get("agent_b", ""))]:
+                response = client.get(
+                    f"http://localhost:{port}/v1/preflight",
+                    params={"target": agent_name},
+                )
+                response.raise_for_status()
+                data = response.json()
+                results[key] = {
+                    "agent_name": agent_name,
+                    "trust_score": data.get("trust_score", 0),
+                    "trust_grade": data.get("trust_grade", "N/A"),
+                }
+            score_a = results["agent_a"]["trust_score"]
+            score_b = results["agent_b"]["trust_score"]
+            if score_a > score_b:
+                winner = results["agent_a"]["agent_name"]
+            elif score_b > score_a:
+                winner = results["agent_b"]["agent_name"]
+            else:
+                winner = "tie"
+            return {
+                "agent_a": results["agent_a"],
+                "agent_b": results["agent_b"],
+                "winner": winner,
+            }
+
+        elif name == "trust_batch":
+            agent_names = arguments.get("agents", [])
+            batch_results = []
+            for agent_name in agent_names:
+                try:
+                    response = client.get(
+                        f"http://localhost:{port}/v1/preflight",
+                        params={"target": agent_name},
+                    )
+                    response.raise_for_status()
+                    data = response.json()
+                    batch_results.append({
+                        "agent_name": agent_name,
+                        "trust_score": data.get("trust_score", 0),
+                        "trust_grade": data.get("trust_grade", "N/A"),
+                    })
+                except Exception as e:
+                    batch_results.append({
+                        "agent_name": agent_name,
+                        "trust_score": 0,
+                        "trust_grade": "N/A",
+                        "error": str(e),
+                    })
+            batch_results.sort(key=lambda x: x["trust_score"], reverse=True)
+            return batch_results
 
         else:
             return {"error": f"Unknown tool: {name}"}

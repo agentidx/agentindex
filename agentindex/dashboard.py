@@ -38,6 +38,7 @@ def dashboard():
     week_ago = now - timedelta(days=7)
     total = s.execute(select(func.count(Agent.id))).scalar() or 0
     active = s.execute(select(func.count(Agent.id)).where(Agent.is_active==True)).scalar() or 0
+    trust_agents = s.execute(text("SELECT COUNT(*) FROM agents WHERE trust_score_v2 IS NOT NULL")).scalar() or 0
     new24 = s.execute(select(func.count(Agent.id)).where(Agent.first_indexed>day_ago)).scalar() or 0
     statuses = s.execute(select(Agent.crawl_status,func.count(Agent.id)).group_by(Agent.crawl_status).order_by(func.count(Agent.id).desc())).all()
     parsed = sum(c for st,c in statuses if st in("parsed","classified","ranked"))
@@ -62,7 +63,7 @@ def dashboard():
     except Exception:
         pass
     s.close()
-    dist_channels = [("API Endpoint","api.agentcrawl.dev","Live"),("Dashboard","dash.agentcrawl.dev","Live"),("PyPI","pip install agentcrawl","Published"),("npm","npm install @agentidx/sdk","Published"),("GitHub","github.com/agentidx/agentindex","Public"),("MCP Registry","Smithery / MCP Hub","Pending")]
+    dist_channels = [("API Endpoint","api.nerq.ai","Live"),("Dashboard","dash.nerq.ai","Live"),("PyPI","pip install agentcrawl","Published"),("npm","npm install @agentidx/sdk","Published"),("GitHub","github.com/agentidx/agentindex","Public"),("MCP Registry","Smithery / MCP Hub","Pending")]
     alerts_html = '<div style="color:#4ade80;font-size:13px;padding:8px">No alerts</div>'
     status_text = "HEALTHY"
     status_class = "ok"
@@ -189,7 +190,7 @@ def dashboard():
     tcolors = {"ok":"#4ade80","warn":"#fbbf24","crit":"#fca5a5"}
     bg = colors.get(status_class,"#166534")
     tc = tcolors.get(status_class,"#4ade80")
-    html = f"""<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AgentIndex Dashboard</title><meta http-equiv="refresh" content="30">
+    html = f"""<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Nerq Dashboard</title><meta http-equiv="refresh" content="30">
 <style>
 *{{margin:0;padding:0;box-sizing:border-box}}
 body{{font-family:-apple-system,sans-serif;background:#0a0a0a;color:#e0e0e0;padding:16px;max-width:1200px;margin:0 auto}}
@@ -210,8 +211,8 @@ td{{border-bottom:1px solid #1a1a1a}}
 .row{{display:grid;grid-template-columns:1fr 1fr;gap:16px}}
 @media(max-width:600px){{.row{{grid-template-columns:1fr}}}}
 </style></head><body>
-<h1>AgentIndex</h1>
-<div class="sub">AI Agent Discovery Platform | {ts}</div>
+<h1>Nerq</h1>
+<div class="sub">AI Agent Trust Database | {ts}</div>
 <span style="display:inline-block;padding:4px 12px;border-radius:12px;font-size:12px;font-weight:600;margin-bottom:14px;background:{bg};color:{tc}">{status_text}</span>
 <div class="g">
 <div class="c"><div class="l">Index Size</div><div class="v">{total:,}</div><div class="s">{active:,} active</div></div>
@@ -238,7 +239,7 @@ td{{border-bottom:1px solid #1a1a1a}}
 <div class="sec"><h2>Categories</h2><table><tr><th>Category</th><th>Count</th></tr>{cr}</table></div>
 </div>
 <div class="sec"><h2>Recent Errors</h2>{errors_html}</div>
-<div style="font-size:11px;color:#333;text-align:center;margin-top:16px">Auto-refreshes every 30s | agentcrawl.dev</div>
+<div style="font-size:11px;color:#333;text-align:center;margin-top:16px">Auto-refreshes every 30s | nerq.ai</div>
 </body></html>"""
     return HTMLResponse(content=html)
 

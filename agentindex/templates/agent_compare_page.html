@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ title }}</title>
+<meta name="description" content="{{ meta_description }}">
+<link rel="canonical" href="https://nerq.ai/compare/{{ slug }}">
+<meta property="og:title" content="{{ title }}">
+<meta property="og:description" content="{{ meta_description }}">
+<meta property="og:url" content="https://nerq.ai/compare/{{ slug }}">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Nerq">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="{{ title }}">
+<meta name="twitter:description" content="{{ meta_description }}">
+<meta name="nerq:type" content="comparison">
+<meta name="nerq:tools" content="{{ name_a_raw }},{{ name_b_raw }}">
+<meta name="nerq:verdict" content="{{ verdict_short }}">
+<meta name="nerq:updated" content="{{ today }}">
+<meta name="robots" content="index, follow">
+<script type="application/ld+json">{{ webpage_jsonld }}</script>
+<script type="application/ld+json">{{ dataset_jsonld }}</script>
+<script type="application/ld+json">{{ faq_jsonld }}</script>
+<script type="application/ld+json">{{ breadcrumb_jsonld }}</script>
+{{ nerq_css }}
+<style>
+.vs-grid{display:grid;grid-template-columns:1fr auto 1fr;gap:0;margin:20px 0;border:1px solid #e5e7eb}
+.vs-col{padding:24px 20px}
+.vs-col:first-child{border-right:1px solid #e5e7eb}
+.vs-col:last-child{border-left:1px solid #e5e7eb}
+.vs-divider{display:flex;align-items:center;justify-content:center;padding:0 12px;font-size:1.5rem;font-weight:700;color:#6b7280;background:#f9fafb}
+.vs-name{font-weight:700;font-size:1.1rem;margin-bottom:4px}
+.vs-score{font-family:ui-monospace,'SF Mono',monospace;font-size:2.5rem;font-weight:700;line-height:1;margin:8px 0}
+.vs-grade{margin-bottom:12px}
+.vs-stat{display:flex;justify-content:space-between;padding:6px 0;font-size:14px;border-bottom:1px solid #f3f4f6}
+.vs-stat-label{color:#6b7280}
+.vs-stat-val{font-family:ui-monospace,'SF Mono',monospace;font-weight:600}
+.vs-winner{color:#065f46}
+.vs-loser{color:#991b1b}
+.verdict-box{border:1px solid #e5e7eb;padding:20px;margin:20px 0}
+.verdict-box h3{margin:0 0 8px;font-size:1rem}
+.ai-summary{background:#f9fafb;border-left:3px solid #0d9488;padding:16px 20px;margin:16px 0;font-size:15px;line-height:1.7;color:#374151}
+.related-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px;margin:16px 0}
+.related-card{border:1px solid #e5e7eb;padding:16px;text-decoration:none;color:inherit;transition:border-color 0.2s}
+.related-card:hover{border-color:#0d9488;text-decoration:none}
+.related-card .rc-title{font-weight:700;font-size:15px;color:#1a1a1a;margin-bottom:4px}
+.related-card .rc-cat{font-size:12px;color:#6b7280}
+.faq-section{margin:24px 0}
+.faq-item{border-bottom:1px solid #e5e7eb;padding:16px 0}
+.faq-item:first-child{border-top:1px solid #e5e7eb}
+.faq-q{font-weight:700;font-size:1rem;color:#1a1a1a;margin-bottom:8px}
+.faq-a{font-size:15px;color:#374151;line-height:1.7}
+@media(max-width:640px){
+.vs-grid{grid-template-columns:1fr;border:none}
+.vs-col{border:1px solid #e5e7eb;margin-bottom:8px}
+.vs-col:first-child{border-right:1px solid #e5e7eb}
+.vs-col:last-child{border-left:1px solid #e5e7eb}
+.vs-divider{padding:8px 0;font-size:1.2rem}
+.vs-score{font-size:2rem}
+}
+</style>
+</head>
+<body>
+{{ nerq_nav }}
+
+<main class="container" style="padding-top:20px;padding-bottom:40px">
+  <div class="breadcrumb"><a href="/">nerq</a> &rsaquo; <a href="/compare">comparisons</a> &rsaquo; {{ name_a }} vs {{ name_b }}</div>
+
+  <h1>{{ name_a }} vs {{ name_b }} &mdash; Trust Score Comparison</h1>
+  <p class="desc">Side-by-side trust comparison of {{ name_a }} and {{ name_b }}. Scores based on security, compliance, maintenance, popularity, and ecosystem signals.</p>
+
+  <div class="ai-summary">{{ ai_summary }}</div>
+
+  <div class="vs-grid">
+    <div class="vs-col">
+      <div class="vs-name"><a href="/safe/{{ slug_a }}">{{ name_a }}</a></div>
+      <div class="vs-score {{ score_class_a }}">{{ score_a }}</div>
+      <div class="vs-grade"><span class="pill {{ pill_a }}">{{ grade_a }}</span> {{ verified_a }}</div>
+      {{ stats_a }}
+    </div>
+    <div class="vs-divider">vs</div>
+    <div class="vs-col">
+      <div class="vs-name"><a href="/safe/{{ slug_b }}">{{ name_b }}</a></div>
+      <div class="vs-score {{ score_class_b }}">{{ score_b }}</div>
+      <div class="vs-grade"><span class="pill {{ pill_b }}">{{ grade_b }}</span> {{ verified_b }}</div>
+      {{ stats_b }}
+    </div>
+  </div>
+
+  <h2>Detailed Metric Comparison</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Metric</th>
+        <th>{{ name_a }}</th>
+        <th>{{ name_b }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{ comparison_rows }}
+    </tbody>
+  </table>
+
+  <div class="verdict-box">
+    <h3>Verdict</h3>
+    <p style="font-size:15px;line-height:1.7;margin:0">{{ verdict }}</p>
+  </div>
+
+  {{ dimension_analysis }}
+
+  {{ choose_section }}
+
+  {{ migration_section }}
+
+  <div style="display:flex;gap:12px;flex-wrap:wrap;margin:16px 0">
+    <a href="/safe/{{ slug_a }}" style="display:inline-block;padding:8px 20px;background:#0d9488;color:#fff;font-size:14px;font-weight:600;text-decoration:none">{{ name_a }} Safety Report</a>
+    <a href="/safe/{{ slug_b }}" style="display:inline-block;padding:8px 20px;background:#0d9488;color:#fff;font-size:14px;font-weight:600;text-decoration:none">{{ name_b }} Safety Report</a>
+    <a href="/alternatives/{{ slug_a }}" style="display:inline-block;padding:8px 20px;border:1px solid #e5e7eb;color:#6b7280;font-size:14px;font-weight:600;text-decoration:none">{{ name_a }} Alternatives</a>
+    <a href="/alternatives/{{ slug_b }}" style="display:inline-block;padding:8px 20px;border:1px solid #e5e7eb;color:#6b7280;font-size:14px;font-weight:600;text-decoration:none">{{ name_b }} Alternatives</a>
+  </div>
+
+  <h2>Related Pages</h2>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:16px 0">
+    <div>
+      <ul>
+        <li><a href="/is-{{ slug_a }}-safe">Is {{ name_a }} Safe?</a></li>
+        <li><a href="/is-{{ slug_b }}-safe">Is {{ name_b }} Safe?</a></li>
+        <li><a href="/guide/{{ slug_a }}">{{ name_a }} Guide</a></li>
+        <li><a href="/guide/{{ slug_b }}">{{ name_b }} Guide</a></li>
+      </ul>
+    </div>
+    <div>
+      <ul>
+        <li><a href="/leaderboard">Trust Leaderboard</a></li>
+        <li><a href="/compare">All Comparisons</a></li>
+        <li><a href="/best">Best Tools by Category</a></li>
+        <li><a href="/trending">Trending Tools</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="faq-section">
+    <h2>Frequently Asked Questions</h2>
+    {{ faq_html }}
+  </div>
+
+  {{ related_section }}
+
+  <p style="margin-top:24px;font-size:12px;color:#6b7280">
+    Last updated: {{ today }} | Data refreshed weekly<br>
+    <strong>Disclaimer:</strong> Nerq trust scores are automated assessments based on publicly available signals. They are not endorsements or guarantees. Always conduct your own due diligence.
+  </p>
+</main>
+
+{{ nerq_footer }}
+</body>
+</html>

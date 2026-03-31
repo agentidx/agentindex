@@ -111,8 +111,8 @@ def run_classifier():
         classifier = Classifier()
         stats = classifier.classify_pending(batch_size=200)
         logger.info(f"Classification complete: {stats}")
-        dedup = classifier.deduplicate(batch_size=100)
-        logger.info(f"Dedup complete: {dedup}")
+        # dedup = classifier.deduplicate(batch_size=100)
+        # logger.info(f"Dedup complete: {dedup}")
     except Exception as e:
         logger.error(f"Classifier failed: {e}")
     finally:
@@ -250,6 +250,16 @@ def run_spionen_daily():
         logger.error(f"Spionen daily failed: {e}")
 
 
+
+def run_compliance_scan():
+    logger.info("Running compliance batch scanner...")
+    try:
+        from agentindex.compliance.batch_scanner import run_compliance_scan as scan
+        stats = scan()
+        logger.info(f"Compliance scan complete: {stats}")
+    except Exception as e:
+        logger.error(f"Compliance scan failed: {e}")
+
 def main():
     logger.info("=" * 60)
     logger.info("AgentIndex starting...")
@@ -259,8 +269,9 @@ def main():
     from agentindex.db.models import init_db
     init_db()
 
-    run_missionary_daily()
-    start_api_thread()
+
+    # run_missionary_daily()
+    # start_api_thread()  # API runs separately via uvicorn
     time.sleep(2)
 
     scheduler = BackgroundScheduler()
@@ -291,6 +302,7 @@ def main():
     scheduler.add_job(run_system_check, "interval", minutes=15,
                       id="status", next_run_time=datetime.now())
     scheduler.add_job(run_daily_report, "cron", hour=6, minute=0, id="daily")
+    scheduler.add_job(run_compliance_scan, "cron", hour=4, minute=0, id="compliance")  # 04:00 UTC daily
 
     scheduler.start()
 
