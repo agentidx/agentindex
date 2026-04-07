@@ -44,3 +44,44 @@ a2a_*.json
 # Generated/temp
 5s
 .claude/
+
+# ─── Säkerhetshemligheter (ALDRIG committa) ───────────────────
+.env.*
+.env.backup
+api_keys.json
+*.pem
+*.key
+secrets.json
+credentials.json
+
+# ─── Numrerade backup-filer som .bak2, .bak3 ──────────────────
+*.bak[0-9]
+*.bak[0-9].*
+*.bak.[0-9]*
+
+# ─── Process artifacts ────────────────────────────────────────
+nohup.out
+*.pid
+
+# ─── Trace files ──────────────────────────────────────────────
+.python-history
+.bash_history
+.zsh_history
+
+# ─── IDE / editor files ───────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ─── OS files ─────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ─── Python compiled / build artifacts ────────────────────────
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+htmlcov/
