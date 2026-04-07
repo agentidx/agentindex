@@ -246,7 +246,7 @@ def mount_smart_discovery(app):
                 SELECT name, COALESCE(trust_score_v2, trust_score) as trust_score,
                        trust_grade, category, description, stars, source, author,
                        is_verified, source_url
-                FROM agents
+                FROM entity_lookup
                 WHERE {where}
                 ORDER BY {order}
                 LIMIT :lim
@@ -256,7 +256,7 @@ def mount_smart_discovery(app):
             rows = session.execute(text(sql), params).fetchall()
 
             # Count total
-            count_sql = f"SELECT COUNT(*) FROM agents WHERE {where}"
+            count_sql = f"SELECT COUNT(*) FROM entity_lookup WHERE {where}"
             count_params = {k: v for k, v in params.items() if k != "lim"}
             total = session.execute(text(count_sql), count_params).scalar() or 0
 
@@ -354,6 +354,9 @@ def mount_smart_discovery(app):
             where = " AND ".join(conditions)
 
             # Fetch candidates (more than needed for ranking)
+            # last_source_update not in entity_lookup; use agents with work_mem guard
+            session.execute(text("SET LOCAL work_mem = '2MB'"))
+            session.execute(text("SET LOCAL statement_timeout = '5s'"))
             sql = f"""
                 SELECT name, COALESCE(trust_score_v2, trust_score) as trust_score,
                        trust_grade, category, description, stars, source, author,
@@ -549,13 +552,13 @@ def mount_smart_discovery(app):
                        compliance_score, documentation_score, activity_score,
                        security_score, popularity_score, is_verified,
                        eu_risk_class, source_url
-                FROM agents
-                WHERE (LOWER(name) = LOWER(:name) OR LOWER(name) LIKE :pattern)
+                FROM entity_lookup
+                WHERE (name_lower = :name_lower OR name_lower LIKE :pattern)
                   AND is_active = true
-                ORDER BY CASE WHEN LOWER(name) = LOWER(:name) THEN 0 ELSE 1 END,
+                ORDER BY CASE WHEN name_lower = :name_lower THEN 0 ELSE 1 END,
                          COALESCE(trust_score_v2, trust_score) DESC NULLS LAST
                 LIMIT 1
-            """), {"name": agent_name, "pattern": f"%{agent_name}%"}).fetchone()
+            """), {"name_lower": agent_name.lower(), "pattern": f"%{agent_name.lower()}%"}).fetchone()
 
             if not row:
                 return JSONResponse(status_code=404, content={"error": f"Agent '{agent_name}' not found"})

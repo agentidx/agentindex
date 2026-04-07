@@ -1,0 +1,63 @@
+{
+  "name": "zarq-crypto",
+  "display_name": "ZARQ Crypto Risk Intelligence",
+  "description": "Independent crypto risk intelligence: Trust Score ratings (A+ to F) for 198 tokens, Network Distress Detector (NDD) with 7 signals, structural collapse warnings (100% death recall, 98% precision OOS), crash probability, and pre-trade safety checks. Free API.",
+  "version": "1.0.0",
+  "author": "ZARQ",
+  "homepage": "https://zarq.ai",
+  "repository": "https://github.com/zarq-ai/zarq-mcp-server",
+  "tags": [
+    "crypto",
+    "risk",
+    "defi",
+    "safety",
+    "trust-score",
+    "crash-prediction",
+    "ndd",
+    "ratings",
+    "blockchain",
+    "token-analysis",
+    "portfolio-risk",
+    "early-warning"
+  ],
+  "tools": [
+    {
+      "name": "crypto_safety_check",
+      "description": "Quick pre-trade safety validation for a crypto token (<100ms). Returns risk level, trust grade, NDD, crash probability, and active flags."
+    },
+    {
+      "name": "crypto_rating",
+      "description": "Full Trust Score with 5-pillar breakdown (Security, Compliance, Maintenance, Popularity, Ecosystem). 198 tokens rated."
+    },
+    {
+      "name": "crypto_ndd",
+      "description": "Network Distress Detector: 7 signals, 0-5 scale, trend classification, crash probability, HC Alert status."
+    },
+    {
+      "name": "crypto_signals",
+      "description": "Active HC Alert and Bottlefish signals with SHA-256 hashes and running precision scoreboard."
+    },
+    {
+      "name": "crypto_compare",
+      "description": "Head-to-head token comparison: Trust Score, NDD, risk level, and key differences."
+    },
+    {
+      "name": "crypto_distress_watch",
+      "description": "All tokens with NDD < 2.0, sorted by distress severity. Watchlist of elevated crash risk."
+    },
+    {
+      "name": "crypto_alerts",
+      "description": "Structural collapse/stress warnings. OOS validated: 113/113 deaths detected, 98% precision."
+    },
+    {
+      "name": "crypto_ratings_bulk",
+      "description": "Bulk ratings for all 198 tokens. Trust Score, grade, and risk level."
+    }
+  ],
+  "transport": ["stdio", "sse"],
+  "license": "MIT",
+  "install": {
+    "pip": "pip install mcp httpx",
+    "run": "python zarq_mcp_server.py"
+  }
+}

@@ -180,7 +180,7 @@ def _sources(request: Request):
     from agentindex.db.models import get_session
     session = get_session()
     try:
-        total_agents = session.execute(text("SELECT COUNT(*) FROM agents WHERE is_active = true")).scalar() or 0
+        total_agents = session.execute(text("SELECT COUNT(*) FROM entity_lookup WHERE is_active = true")).scalar() or 0
     finally:
         session.close()
 
@@ -217,15 +217,17 @@ def _agent_signals(request: Request, agent_name: str):
     session = get_session()
 
     try:
+        session.execute(text("SET LOCAL work_mem = '2MB'"))
+        session.execute(text("SET LOCAL statement_timeout = '5s'"))
         row = session.execute(text("""
             SELECT name, COALESCE(trust_score_v2, trust_score) as ts, trust_grade,
                    stars, downloads, license, source, category,
                    last_source_update, forks
             FROM agents
-            WHERE LOWER(name) LIKE LOWER(:q) AND is_active = true
-            ORDER BY CASE WHEN LOWER(name) = LOWER(:exact) THEN 0 ELSE 1 END
+            WHERE name_lower LIKE :q AND is_active = true
+            ORDER BY CASE WHEN name_lower = :exact THEN 0 ELSE 1 END
             LIMIT 1
-        """), {"q": f"%{agent_name}%", "exact": agent_name}).fetchone()
+        """), {"q": f"%{agent_name.lower()}%", "exact": agent_name.lower()}).fetchone()
 
         if not row:
             return JSONResponse({"error": "Agent not found"}, status_code=404)

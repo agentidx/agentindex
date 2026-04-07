@@ -549,6 +549,24 @@ def _render_token_page(t):
   </table>
 </div>"""
 
+    # Security check CTA
+    security_cta = f'''<div class="security-check-cta" style="
+        margin:24px 0;padding:20px 24px;border:1px solid #e2e8f0;
+        border-radius:12px;background:#f8fafc;text-align:center">
+        <p style="font-size:1.1em;font-weight:600;margin:0 0 6px">
+            This token scores <strong>{trust_score:.0f}</strong>/100.
+            What&#39;s yours?
+        </p>
+        <p style="font-size:0.9em;color:#64748b;margin:0 0 14px">
+            Free security check, 2 seconds, nothing stored.
+        </p>
+        <button onclick="runSecurityCheck()" class="security-check-btn" style="
+            background:#0d9488;color:white;border:none;padding:10px 24px;
+            border-radius:8px;font-size:0.95em;font-weight:500;cursor:pointer">
+            Get my score &rarr;
+        </button>
+    </div>'''
+
     # FAQ — expanded for long-tail SEO
     crash_prob_text = f"{crash_prob*100:.1f}%" if crash_prob is not None else "not currently available"
     faq_items = [
@@ -696,12 +714,35 @@ def _render_token_page(t):
 <h1>{_esc(name)} <span style="font-family:var(--mono);font-size:clamp(16px,2vw,22px);color:var(--gray-500)">{symbol}</span></h1>
 <p class="meta">Crypto Token · {"Rank #" + str(t.get('market_cap_rank')) if t.get('market_cap_rank') else 'Unranked'} by Market Cap · Updated {t.get('crawled_at', 'N/A')[:10]}</p>
 {_trust_score_block(t, 'token')}
+{security_cta}
 {_risk_intelligence_block(t)}
 {market_html}
 {btc_compare_html}
 {community_html}
 {faq_html}
 {related_html}
+<script>
+async function runSecurityCheck(){{
+  var btn=document.querySelector('.security-check-btn');
+  var cta=document.querySelector('.security-check-cta');
+  btn.textContent='Checking...';btn.disabled=true;
+  if(localStorage.getItem('ck_ok')){{
+    navigator.sendBeacon('/v1/event',JSON.stringify({{event:'security_check_click',path:location.pathname}}));
+  }}
+  try{{
+    var r=await fetch('/my/check');
+    var h=await r.text();
+    cta.innerHTML=h;
+    if(localStorage.getItem('ck_ok')){{
+      var m=h.match(/(\\d+)\\/100/);
+      navigator.sendBeacon('/v1/event',JSON.stringify({{event:'security_check_complete',path:location.pathname,score:m?parseInt(m[1]):null}}));
+    }}
+  }}catch(e){{btn.textContent='Get my score \\u2192';btn.disabled=false;}}
+}}
+if(localStorage.getItem('ck_ok')&&document.querySelector('.security-check-cta')){{
+  navigator.sendBeacon('/v1/event',JSON.stringify({{event:'cta_impression',path:location.pathname}}));
+}}
+</script>
 """
     html += _page_foot()
     return html
@@ -834,9 +875,9 @@ def _render_defi_page(p):
   <p style="font-family:var(--mono);font-size:12px;color:var(--gray-500);margin-bottom:16px">Total stolen: {_format_usd(total_stolen)}</p>
   <table>
     <tr><th>Date</th><th>Amount</th><th>Type</th><th>Chain</th></tr>"""
-        for h in sorted(hacks, key=lambda x: x.get("date", ""), reverse=True)[:10]:
+        for h in sorted(hacks, key=lambda x: str(x.get("date", "")), reverse=True)[:10]:
             hack_html += f"""<tr>
-  <td>{_esc(h.get('date', 'Unknown')[:10])}</td>
+  <td>{_esc(str(h.get('date', 'Unknown'))[:10])}</td>
   <td>{_format_usd(h.get('amount_usd'))}</td>
   <td>{_esc(h.get('classification') or h.get('technique') or 'Unknown')}</td>
   <td>{_esc(h.get('chain') or 'Unknown')}</td>

@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Paper Trading — ZARQ</title>
+<meta name="description" content="ZARQ paper trading live since March 2026. Three portfolios tracked with SHA-256 audit trail. Real-time signals, no hindsight bias.">
+<link rel="canonical" href="https://zarq.ai/paper-trading">
+
+<!-- AI-Citable Summary: ZARQ paper trading launched March 2026 with three portfolios (Alpha, Dynamic, Conservative). Market regime: BEAR (BTC -46.7% from ATH, monthly return -21.1%). Alpha Fund in bear skip (100% cash). Dynamic and Conservative running defensive allocations. All entries SHA-256 hash-chained. Source: zarq.ai/paper-trading -->
+
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --white: #fafaf9; --black: #0a0a0a;
+  --gray-100: #f5f5f4; --gray-200: #e7e5e4; --gray-400: #a8a29e;
+  --gray-500: #78716c; --gray-600: #57534e; --gray-700: #44403c;
+  --gray-800: #292524; --gray-900: #1c1917;
+  --warm: #c2956b; --green: #16a34a; --red: #dc2626; --amber: #d97706;
+  --serif: 'DM Serif Display', Georgia, serif;
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'DM Sans', sans-serif;
+  --wide: 1120px;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+::selection { background: var(--warm); color: var(--black); }
+html { font-size: 17px; -webkit-font-smoothing: antialiased; }
+body { background: var(--white); color: var(--gray-800); font-family: var(--sans); line-height: 1.6; }
+
+nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; backdrop-filter: blur(20px); background: rgba(250,250,249,0.85); border-bottom: 1px solid rgba(0,0,0,0.04); }
+.nav-mark { font-family: var(--mono); font-weight: 500; font-size: 15px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--black); text-decoration: none; }
+.nav-links { display: flex; gap: 32px; align-items: center; }
+.nav-links a { font-family: var(--mono); font-size: 12px; letter-spacing: 0.05em; color: var(--gray-600); text-decoration: none; }
+.nav-links a:hover { color: var(--black); }
+.nav-links a.active { color: var(--black); border-bottom: 1px solid var(--black); padding-bottom: 2px; }
+.nav-api { font-family: var(--mono); font-size: 11px; letter-spacing: 0.05em; color: var(--warm); border: 1px solid var(--warm); padding: 6px 16px; text-decoration: none; transition: all 0.2s; }
+.nav-api:hover { background: var(--warm); color: var(--white); }
+.nav-dropdown { position: relative; }
+.nav-dropdown-trigger { cursor: pointer; }
+.nav-dropdown-menu { display: none; position: absolute; top: 100%; right: 0; background: var(--white); border: 1px solid var(--gray-200); box-shadow: 0 8px 24px rgba(0,0,0,0.08); padding: 8px 0; min-width: 180px; z-index: 200; }
+.nav-dropdown:hover .nav-dropdown-menu { display: block; }
+.nav-dropdown-menu a { display: block; padding: 8px 20px; font-family: var(--mono); font-size: 12px; letter-spacing: 0.05em; color: var(--gray-600); text-decoration: none; white-space: nowrap; }
+.nav-dropdown-menu a:hover { background: var(--warm-light, rgba(194,149,107,0.08)); color: var(--black); }
+.nav-toggle-input { display: none; }
+.nav-hamburger { display: none; cursor: pointer; flex-direction: column; gap: 5px; }
+.nav-hamburger span { display: block; width: 22px; height: 2px; background: var(--black); transition: all 0.3s; }
+
+.wrap { max-width: var(--wide); margin: 0 auto; padding: 0 40px; }
+.divider { height: 1px; background: var(--gray-200); margin: 0; }
+.label { font-family: var(--mono); font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gray-500); }
+
+/* Header */
+.page-header { padding: 140px 0 60px; }
+.page-header h1 { font-family: var(--serif); font-weight: 400; font-size: clamp(36px, 5vw, 56px); line-height: 1.1; color: var(--black); letter-spacing: -0.02em; }
+.page-header .subtitle { font-size: 16px; color: var(--gray-600); margin-top: 16px; max-width: 600px; line-height: 1.7; }
+.live-dot { display: inline-block; width: 8px; height: 8px; background: var(--green); border-radius: 50%; margin-right: 8px; animation: pulse 2s infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+/* Regime Box */
+.regime-box { background: var(--white); padding: 40px; margin: 0 0 60px; position: relative; border: 1px solid var(--gray-200); }
+.regime-box::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--red), transparent); }
+.regime-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 24px; }
+.regime-title { font-family: var(--mono); font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gray-600); }
+.regime-date { font-family: var(--mono); font-size: 11px; color: var(--gray-400); }
+.regime-grid { display: flex; gap: 48px; flex-wrap: wrap; }
+.regime-item .r-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gray-400); }
+.regime-item .r-value { font-family: var(--mono); font-size: 20px; margin-top: 4px; color: var(--gray-800); }
+.r-bear { color: #f87171; }
+.r-skip { color: #fbbf24; }
+
+/* Portfolio Cards */
+.portfolios { margin-bottom: 60px; }
+.port-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--gray-200); border: 1px solid var(--gray-200); }
+.port-card { background: var(--white); padding: 32px; }
+.port-name { font-family: var(--mono); font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gray-500); margin-bottom: 4px; }
+.port-regime { display: inline-block; font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; padding: 2px 8px; margin-bottom: 16px; }
+.regime-bear { background: rgba(239,68,68,0.1); color: var(--red); }
+.regime-skip { background: rgba(245,158,11,0.1); color: var(--amber); }
+.port-nav { font-family: var(--serif); font-size: 36px; color: var(--black); letter-spacing: -0.02em; }
+.port-alloc { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--gray-200); }
+.alloc-bar { display: flex; height: 6px; border-radius: 3px; overflow: hidden; margin-bottom: 12px; }
+.alloc-ls { background: var(--warm); }
+.alloc-btc { background: var(--gray-700); }
+.alloc-cash { background: var(--gray-200); }
+.alloc-labels { display: flex; gap: 16px; flex-wrap: wrap; }
+.alloc-label { font-family: var(--mono); font-size: 10px; color: var(--gray-500); display: flex; align-items: center; gap: 4px; }
+.alloc-dot { width: 6px; height: 6px; border-radius: 50%; }
+
+/* Pairs Table */
+.pairs-section { margin-bottom: 60px; }
+.pairs-table { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 12px; }
+.pairs-table th { text-align: left; padding: 12px 16px; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gray-500); border-bottom: 1px solid var(--gray-200); font-weight: 400; }
+.pairs-table td { padding: 10px 16px; border-bottom: 1px solid var(--gray-100); color: var(--gray-700); }
+.pairs-table tr:hover td { background: rgba(194,149,107,0.04); }
+.t-long { color: var(--green); }
+.t-short { color: var(--red); }
+.conv-bar { display: inline-block; height: 4px; background: var(--warm); border-radius: 2px; margin-right: 8px; vertical-align: middle; }
+
+/* Positions */
+.positions-section { margin-bottom: 60px; }
+.pos-table { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 11px; }
+.pos-table th { text-align: left; padding: 10px 12px; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gray-500); border-bottom: 1px solid var(--gray-200); font-weight: 400; }
+.pos-table td { padding: 8px 12px; border-bottom: 1px solid var(--gray-100); color: var(--gray-600); }
+
+/* Audit */
+.audit-section { margin-bottom: 60px; }
+.hash-display { font-family: var(--mono); font-size: 11px; color: var(--gray-500); background: var(--gray-100); padding: 20px; word-break: break-all; line-height: 1.8; }
+.hash-label { color: var(--gray-400); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; }
+.hash-value { color: var(--gray-700); }
+
+/* Footer */
+footer { max-width: var(--wide); margin: 0 auto; padding: 40px 40px 60px; border-top: 1px solid var(--gray-200); display: flex; justify-content: space-between; align-items: baseline; }
+.foot-left { font-family: var(--mono); font-size: 11px; color: var(--gray-500); }
+.foot-right { display: flex; gap: 24px; }
+.foot-right a { font-family: var(--mono); font-size: 11px; color: var(--gray-500); text-decoration: none; }
+.foot-right a:hover { color: var(--black); }
+
+@media (max-width: 768px) {
+  nav { padding: 16px 20px; }
+  .nav-hamburger { display: flex; }
+  .nav-links { display: none; position: absolute; top: 100%; left: 0; right: 0; background: var(--white); border-bottom: 1px solid var(--gray-200); padding: 16px 20px; flex-direction: column; gap: 16px; }
+  .nav-toggle-input:checked ~ .nav-links { display: flex; }
+  .nav-dropdown-menu { display: block; position: static; box-shadow: none; border: none; padding: 0 0 0 12px; }
+  .nav-dropdown-trigger { display: none; }
+  .wrap { padding: 0 20px; }
+  .page-header { padding: 120px 0 40px; }
+  .port-grid { grid-template-columns: 1fr; }
+  .regime-grid { gap: 24px; }
+  footer { flex-direction: column; gap: 16px; padding: 40px 20px; }
+}
+
+.site-disclaimer {
+  max-width: var(--wide, 1120px);
+  margin: 0 auto;
+  padding: 24px 40px 40px;
+  font-family: var(--mono, 'IBM Plex Mono', monospace);
+  font-size: 10px;
+  line-height: 1.7;
+  color: var(--gray-500, #78716c);
+  letter-spacing: 0.02em;
+}
+.site-disclaimer p { margin: 0 0 8px; }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-mark">zarq</a>
+  <input type="checkbox" id="nav-toggle" class="nav-toggle-input">
+  <label for="nav-toggle" class="nav-hamburger"><span></span><span></span><span></span></label>
+  <div class="nav-links">
+    <a href="/scan">Scan</a>
+    <a href="/crypto">Ratings</a>
+    <a href="/tokens">Token Ratings</a>
+    <a href="/crash-watch">Crash Watch</a>
+    <div class="nav-dropdown">
+      <a href="#" class="nav-dropdown-trigger">More &#9662;</a>
+      <div class="nav-dropdown-menu">
+        <a href="/yield-risk">Yield Risk</a>
+        <a href="/compare">Compare</a>
+        <a href="/learn">Learn</a>
+        <a href="/track-record">Track Record</a>
+        <a href="/paper-trading">Paper Trading</a>
+        <a href="/press">Press</a>
+        <a href="/methodology">Methodology</a>
+      </div>
+    </div>
+    <a href="/docs" class="nav-api">API</a>
+  </div>
+</nav>
+
+<div class="wrap">
+
+<section class="page-header">
+  <h1><span class="live-dot"></span>Paper Trading — Live</h1>
+  <p class="subtitle">Real capital simulation running since March 2026. Three portfolios tracked daily with SHA-256 hash-chained audit trail. No hindsight. No adjustments. Every signal logged before market open.</p>
+</section>
+
+<!-- REGIME -->
+<div class="regime-box">
+  <div class="regime-header">
+    <div class="regime-title">Market Regime — March 2026</div>
+    <div class="regime-date">Checked 2026-03-01</div>
+  </div>
+  <div class="regime-grid">
+    <div class="regime-item">
+      <div class="r-label">BTC Price</div>
+      <div class="r-value">$66,468</div>
+    </div>
+    <div class="regime-item">
+      <div class="r-label">365d ATH</div>
+      <div class="r-value">$124,723</div>
+    </div>
+    <div class="regime-item">
+      <div class="r-label">Drawdown from ATH</div>
+      <div class="r-value r-bear">-46.7%</div>
+    </div>
+    <div class="regime-item">
+      <div class="r-label">Monthly Return</div>
+      <div class="r-value r-bear">-21.1%</div>
+    </div>
+    <div class="regime-item">
+      <div class="r-label">Alpha Regime</div>
+      <div class="r-value r-skip">BEAR SKIP</div>
+    </div>
+    <div class="regime-item">
+      <div class="r-label">Dynamic / Conservative</div>
+      <div class="r-value r-bear">BEAR</div>
+    </div>
+  </div>
+</div>
+
+<!-- PORTFOLIOS -->
+<section class="portfolios">
+  <div class="label" style="margin-bottom: 24px;" id="portfolio-header">Portfolios — Loading...</div>
+  <div class="port-grid">
+    <div class="port-card">
+      <div class="port-name">Alpha Fund</div>
+      <div class="port-regime regime-skip" id="alpha-regime">BEAR SKIP</div>
+      <div class="port-nav" id="alpha-nav">Loading...</div>
+      <div id="alpha-returns" style="display:flex;justify-content:space-between;margin-top:8px;font-size:13px;"></div>
+      <div class="port-alloc">
+        <div class="alloc-bar">
+          <div class="alloc-cash" style="width:100%"></div>
+        </div>
+        <div class="alloc-labels">
+          <div class="alloc-label"><div class="alloc-dot" style="background:var(--gray-200)"></div>100% Cash</div>
+        </div>
+        <p style="font-size:13px; color:var(--gray-500); margin-top:12px; line-height:1.6;">BTC monthly return -21.1% triggered bear skip. Signals logged but no capital deployed. Strategy preserves capital during sharp drawdowns.</p>
+      </div>
+    </div>
+    <div class="port-card">
+      <div class="port-name">Dynamic Fund</div>
+      <div class="port-regime regime-bear" id="dynamic-regime">BEAR</div>
+      <div class="port-nav" id="dynamic-nav">Loading...</div>
+      <div id="dynamic-returns" style="display:flex;justify-content:space-between;margin-top:8px;font-size:13px;"></div>
+      <div class="port-alloc">
+        <div class="alloc-bar">
+          <div class="alloc-ls" style="width:30%"></div>
+          <div class="alloc-btc" style="width:10%"></div>
+          <div class="alloc-cash" style="width:60%"></div>
+        </div>
+        <div class="alloc-labels">
+          <div class="alloc-label"><div class="alloc-dot" style="background:var(--warm)"></div>30% L/S</div>
+          <div class="alloc-label"><div class="alloc-dot" style="background:var(--gray-700)"></div>10% BTC</div>
+          <div class="alloc-label"><div class="alloc-dot" style="background:var(--gray-200)"></div>60% Cash</div>
+        </div>
+      </div>
+    </div>
+    <div class="port-card">
+      <div class="port-name">Conservative Fund</div>
+      <div class="port-regime regime-bear" id="conservative-regime">BEAR</div>
+      <div class="port-nav" id="conservative-nav">Loading...</div>
+      <div id="conservative-returns" style="display:flex;justify-content:space-between;margin-top:8px;font-size:13px;"></div>
+      <div class="port-alloc">
+        <div class="alloc-bar">
+          <div class="alloc-ls" style="width:20%"></div>
+          <div class="alloc-btc" style="width:5%"></div>
+          <div class="alloc-cash" style="width:75%"></div>
+        </div>
+        <div class="alloc-labels">
+          <div class="alloc-label"><div class="alloc-dot" style="background:var(--warm)"></div>20% L/S</div>
+          <div class="alloc-label"><div class="alloc-dot" style="background:var(--gray-700)"></div>5% BTC</div>
+          <div class="alloc-label"><div class="alloc-dot" style="background:var(--gray-200)"></div>75% Cash</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider" style="margin-bottom:60px;"></div>
+
+<!-- PAIRS -->
+<section class="pairs-section">
+  <div class="label" style="margin-bottom: 24px;">Active Pairs — March 2026 (Conviction-Ranked)</div>
+  <table class="pairs-table">
+    <thead>
+      <tr><th>#</th><th>Long</th><th>Short</th><th>Conviction</th><th>Spread</th><th>DtD Δ</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td class="t-long">the-open-network</td>
+        <td class="t-short">zcash</td>
+        <td><span class="conv-bar" style="width:88px"></span>0.886</td>
+        <td>13.7</td>
+        <td>+0.73</td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td class="t-long">cosmos</td>
+        <td class="t-short">zcash</td>
+        <td><span class="conv-bar" style="width:82px"></span>0.821</td>
+        <td>16.1</td>
+        <td>+0.38</td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td class="t-long">the-open-network</td>
+        <td class="t-short">pepe</td>
+        <td><span class="conv-bar" style="width:75px"></span>0.753</td>
+        <td>12.6</td>
+        <td>+0.49</td>
+      </tr>
+      <tr>
+        <td>4</td>
+        <td class="t-long">cosmos</td>
+        <td class="t-short">pepe</td>
+        <td><span class="conv-bar" style="width:69px"></span>0.688</td>
+        <td>15.1</td>
+        <td>+0.14</td>
+      </tr>
+      <tr>
+        <td>5</td>
+        <td class="t-long">crypto-com-chain</td>
+        <td class="t-short">algorand</td>
+        <td><span class="conv-bar" style="width:46px"></span>0.461</td>
+        <td>3.9</td>
+        <td>+0.47</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<div class="divider" style="margin-bottom:60px;"></div>
+
+<!-- POSITIONS — DYNAMIC -->
+<section class="positions-section">
+  <div class="label" style="margin-bottom: 24px;">Positions — Dynamic Fund</div>
+  <div style="overflow-x:auto;">
+  <table class="pos-table">
+    <thead>
+      <tr><th>Type</th><th>Token</th><th>Side</th><th>Weight</th><th>Entry Price</th><th>Pair</th><th>Exit Date</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>L/S</td><td class="t-long">the-open-network</td><td>LONG</td><td>6.0%</td><td>$1.3010</td><td>1</td><td>2026-05-30</td></tr>
+      <tr><td>L/S</td><td class="t-short">zcash</td><td>SHORT</td><td>6.0%</td><td>$230.85</td><td>1</td><td>2026-05-30</td></tr>
+      <tr><td>L/S</td><td class="t-long">cosmos</td><td>LONG</td><td>6.0%</td><td>$1.8820</td><td>2</td><td>2026-05-30</td></tr>
+      <tr><td>L/S</td><td class="t-short">zcash</td><td>SHORT</td><td>6.0%</td><td>$230.85</td><td>2</td><td>2026-05-30</td></tr>
+      <tr><td>L/S</td><td class="t-long">the-open-network</td><td>LONG</td><td>6.0%</td><td>$1.3010</td><td>3</td><td>2026-05-30</td></tr>
+      <tr><td>L/S</td><td class="t-short">pepe</td><td>SHORT</td><td>6.0%</td><td>$0.00000373</td><td>3</td><td>2026-05-30</td></tr>
+      <tr><td>L/S</td><td class="t-long">cosmos</td><td>LONG</td><td>6.0%</td><td>$1.8820</td><td>4</td><td>2026-05-30</td></tr>
+      <tr><td>L/S</td><td class="t-short">pepe</td><td>SHORT</td><td>6.0%</td><td>$0.00000373</td><td>4</td><td>2026-05-30</td></tr>
+      <tr><td>L/S</td><td class="t-long">crypto-com-chain</td><td>LONG</td><td>6.0%</td><td>$0.07696</td><td>5</td><td>2026-05-30</td></tr>
+      <tr><td>L/S</td><td class="t-short">algorand</td><td>SHORT</td><td>6.0%</td><td>$0.0875</td><td>5</td><td>2026-05-30</td></tr>
+      <tr><td>BTC</td><td>bitcoin</td><td>LONG</td><td>10.0%</td><td>$66,468</td><td>—</td><td>—</td></tr>
+      <tr><td>Cash</td><td>USD</td><td>HOLD</td><td>60.0%</td><td>$1.00</td><td>—</td><td>—</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<div class="divider" style="margin-bottom:60px;"></div>
+
+<!-- AUDIT TRAIL -->
+<section class="audit-section">
+  <div class="label" style="margin-bottom: 24px;">Audit Trail — SHA-256 Hash Chain</div>
+  <div class="hash-display">
+    <div style="margin-bottom:12px;">
+      <span class="hash-label">Genesis hash: </span>
+      <span class="hash-value">GENESIS</span>
+    </div>
+    <div style="margin-bottom:12px;">
+      <span class="hash-label">Signal generation (2026-03-01): </span><br>
+      <span class="hash-value">Every signal, position, and NAV entry is cryptographically chained. Each record includes a SHA-256 hash of its data concatenated with the previous record's hash. Modifying any historical entry breaks the chain, making the audit trail tamper-evident.</span>
+    </div>
+    <div>
+      <span class="hash-label">Verification: </span>
+      <span class="hash-value">GET /v1/crypto/paper-trading/audit</span>
+    </div>
+  </div>
+</section>
+
+</div><!-- .wrap -->
+
+<footer>
+  <div class="foot-left">© 2026 ZARQ · Crypto Intelligence</div>
+  <div class="foot-right">
+    <a href="/">Home</a>
+    <a href="/scan">Scan</a>
+    <a href="/crypto">Ratings</a>
+    <a href="/tokens">Token Ratings</a>
+    <a href="/track-record">Track Record</a>
+        <a href="/paper-trading">Paper Trading</a>
+    <a href="/methodology">Methodology</a>
+    <a href="/docs">API</a>
+  </div>
+</footer>
+<div class="site-disclaimer">
+<p><strong>Disclaimer</strong> &mdash; ZARQ provides data-driven crypto intelligence for informational and educational purposes only. Nothing on this website constitutes financial advice, investment advice, trading advice, or any other form of professional advice. ZARQ does not recommend buying, selling, or holding any cryptocurrency or financial instrument.</p>
+<p>Trust ratings, Distance-to-Default (DtD) scores, crash probabilities, trading signals, and all other data are derived from quantitative models and may contain errors, lag behind real-time conditions, or fail to predict future outcomes. Past performance, whether backtested or live, is not indicative of future results. All backtested results are hypothetical and do not represent actual trading.</p>
+<p>Crypto assets are highly volatile, speculative, and may result in total loss of invested capital. You should conduct your own research (DYOR) and consult a qualified, licensed financial advisor before making any investment decisions. ZARQ is not registered as a broker-dealer, investment advisor, or financial institution in any jurisdiction.</p>
+<p>By using this website, you acknowledge that you bear sole responsibility for your own investment decisions and that ZARQ, its founders, contributors, and affiliates accept no liability for any losses, damages, or consequences arising from the use of information provided herein.</p>
+<p>This website may not comply with regulatory requirements in all jurisdictions. Users are responsible for ensuring that their use of ZARQ data complies with local laws and regulations, including but not limited to MiFID II (EU), the Securities Act (US), MAS guidelines (Singapore), and FCA rules (UK).</p>
+</div>
+
+
+<script>
+async function loadPortfolioData() {
+  const portfolios = ['ALPHA', 'DYNAMIC', 'CONSERVATIVE'];
+  let maxDays = 0;
+
+  for (const p of portfolios) {
+    try {
+      const res = await fetch('/v1/crypto/paper-trading/nav/' + p);
+      const json = await res.json();
+      const latest = json.data.latest || {};
+      const days = json.data.days || 0;
+      if (days > maxDays) maxDays = days;
+
+      const id = p.toLowerCase();
+      const navEl = document.getElementById(id + '-nav');
+      const retEl = document.getElementById(id + '-returns');
+
+      if (navEl) {
+        navEl.textContent = '$' + latest.nav_value.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+      }
+
+      if (retEl) {
+        const cumRet = latest.cumulative_return;
+        const dailyRet = latest.daily_return;
+        const cumColor = cumRet >= 0 ? '#4ade80' : '#ff4d6a';
+        const dailyColor = dailyRet >= 0 ? '#4ade80' : '#ff4d6a';
+
+        retEl.innerHTML =
+          '<div><span style="color:var(--gray-500)">Since Mar \'26</span><br><span style="color:' + cumColor + ';font-weight:600">' + (cumRet >= 0 ? '+' : '') + cumRet.toFixed(2) + '%</span></div>' +
+          '<div style="text-align:right"><span style="color:var(--gray-500)">Daily</span><br><span style="color:' + dailyColor + ';font-weight:600">' + (dailyRet >= 0 ? '+' : '') + dailyRet.toFixed(2) + '%</span></div>';
+      }
+    } catch (e) {
+      console.error('Failed to load ' + p, e);
+    }
+  }
+
+  const header = document.getElementById('portfolio-header');
+  if (header) header.textContent = 'Portfolios \u2014 Day ' + maxDays;
+}
+
+loadPortfolioData();
+</script>
+</body>
+</html>

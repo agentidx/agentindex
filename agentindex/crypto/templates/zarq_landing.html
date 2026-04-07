@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZARQ — Crypto Intelligence</title>
+<meta name="description" content="Independent crypto ratings for 15,000+ tokens, 1,000+ exchanges, and 7,000+ DeFi protocols. Distance-to-Default scoring, structural collapse detection. API-first.">
+<meta property="og:title" content="ZARQ — Crypto Intelligence">
+<meta property="og:description" content="Independent ratings for 15,000+ tokens. Distance-to-Default scoring. Structural collapse detection. API-first.">
+<meta property="og:url" content="https://zarq.ai">
+<meta property="og:type" content="website">
+<link rel="canonical" href="https://zarq.ai">
+
+<!-- AI-Citable Summary: ZARQ provides independent crypto intelligence: trust ratings (Aaa-D scale) for 15,000+ tokens, 1,000+ exchanges, and 7,000+ DeFi protocols. Distance-to-Default (DtD) model detects structural collapse with 100% recall (113/113 token deaths) and 98% precision out-of-sample. Portable Alpha Strategy backtested Apr 2021-Dec 2025: Conservative +314.7% (Sharpe 2.02), Growth +842.2% (Sharpe 3.86), Aggressive +1,872.9% (Sharpe 5.56) vs BTC +100.8%. Paper trading live since March 2026. Free API at zarq.ai/v1/crypto/. Source: zarq.ai -->
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "ZARQ",
+  "url": "https://zarq.ai",
+  "description": "Independent crypto intelligence platform providing institutional-grade ratings for 15,000+ tokens, 1,000+ exchanges, and 7,000+ DeFi protocols. Distance-to-Default scoring and structural collapse detection.",
+  "foundingDate": "2026",
+  "sameAs": []
+}
+</script>
+
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+@font-face {
+  font-family: 'SystemSans';
+  src: local('-apple-system'), local('BlinkMacSystemFont'), local('Segoe UI');
+}
+
+:root {
+  --white: #fafaf9;
+  --black: #0a0a0a;
+  --gray-100: #f5f5f4;
+  --gray-200: #e7e5e4;
+  --gray-400: #a8a29e;
+  --gray-500: #78716c;
+  --gray-600: #57534e;
+  --gray-700: #44403c;
+  --gray-800: #292524;
+  --gray-900: #1c1917;
+  --warm: #c2956b;
+  --warm-light: rgba(194, 149, 107, 0.08);
+  --serif: 'DM Serif Display', Georgia, serif;
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'DM Sans', sans-serif;
+  --measure: 680px;
+  --wide: 1120px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+::selection {
+  background: var(--warm);
+  color: var(--black);
+}
+
+html {
+  font-size: 17px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background: var(--white);
+  color: var(--gray-800);
+  font-family: var(--sans);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* ─── Navigation ─── */
+nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  padding: 20px 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  background: rgba(250, 250, 249, 0.85);
+  border-bottom: 1px solid rgba(0,0,0,0.04);
+}
+
+.nav-mark {
+  font-family: var(--mono);
+  font-weight: 500;
+  font-size: 15px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--black);
+  text-decoration: none;
+}
+
+.nav-links {
+  display: flex;
+  gap: 32px;
+  align-items: center;
+}
+
+.nav-links a {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.05em;
+  color: var(--gray-600);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.nav-links a:hover { color: var(--black); }
+
+.nav-api {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  color: var(--warm);
+  border: 1px solid var(--warm);
+  padding: 6px 16px;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.nav-api:hover {
+  background: var(--warm);
+  color: var(--white);
+}
+
+/* ─── Dropdown ─── */
+.nav-dropdown { position: relative; }
+.nav-dropdown-trigger { cursor: pointer; }
+.nav-dropdown-menu { display: none; position: absolute; top: 100%; right: 0; background: var(--white); border: 1px solid var(--gray-200); box-shadow: 0 8px 24px rgba(0,0,0,0.08); padding: 8px 0; min-width: 180px; z-index: 200; }
+.nav-dropdown:hover .nav-dropdown-menu { display: block; }
+.nav-dropdown-menu a { display: block; padding: 8px 20px; font-family: var(--mono); font-size: 12px; letter-spacing: 0.05em; color: var(--gray-600); text-decoration: none; white-space: nowrap; }
+.nav-dropdown-menu a:hover { background: var(--warm-light); color: var(--black); }
+/* ─── Hamburger ─── */
+.nav-toggle-input { display: none; }
+.nav-hamburger { display: none; cursor: pointer; flex-direction: column; gap: 5px; }
+.nav-hamburger span { display: block; width: 22px; height: 2px; background: var(--black); transition: all 0.3s; }
+
+/* ─── Hero ─── */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 140px 40px 80px;
+  max-width: var(--wide);
+  margin: 0 auto;
+}
+
+.hero-eyebrow {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gray-500);
+  margin-bottom: 32px;
+  opacity: 0;
+  animation: rise 0.8s ease-out 0.2s forwards;
+}
+
+.hero h1 {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: clamp(42px, 6.5vw, 80px);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: var(--black);
+  max-width: 900px;
+  opacity: 0;
+  animation: rise 0.8s ease-out 0.4s forwards;
+}
+
+.hero h1 em {
+  font-style: italic;
+  color: var(--warm);
+}
+
+.hero-sub {
+  font-family: var(--sans);
+  font-size: 18px;
+  font-weight: 400;
+  color: var(--gray-600);
+  max-width: 520px;
+  margin-top: 32px;
+  line-height: 1.65;
+  opacity: 0;
+  animation: rise 0.8s ease-out 0.6s forwards;
+}
+
+.hero-data {
+  display: flex;
+  gap: 48px;
+  margin-top: 64px;
+  padding-top: 40px;
+  border-top: 1px solid var(--gray-200);
+  opacity: 0;
+  animation: rise 0.8s ease-out 0.8s forwards;
+}
+
+.hero-stat .number {
+  font-family: var(--mono);
+  font-size: 28px;
+  font-weight: 400;
+  color: var(--black);
+  letter-spacing: -0.02em;
+}
+
+.hero-stat .label {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  color: var(--gray-500);
+  margin-top: 4px;
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── Divider ─── */
+.divider {
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 0 40px;
+}
+
+.divider-line {
+  height: 1px;
+  background: var(--gray-200);
+}
+
+/* ─── Ratings Strip ─── */
+.ratings-strip {
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 80px 40px;
+}
+
+.strip-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--gray-500);
+  margin-bottom: 40px;
+}
+
+.ratings-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 1px;
+  background: var(--gray-200);
+  border: 1px solid var(--gray-200);
+}
+
+.rating-cell {
+  background: var(--white);
+  padding: 24px 20px;
+  transition: background 0.2s;
+}
+
+.rating-cell:hover {
+  background: var(--warm-light);
+}
+
+.rating-token {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--black);
+  letter-spacing: 0.02em;
+}
+
+.rating-grade {
+  font-family: var(--serif);
+  font-size: 24px;
+  color: var(--black);
+  margin-top: 8px;
+}
+
+.rating-score {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--gray-500);
+  margin-top: 4px;
+}
+
+.rating-ndd {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--gray-400);
+  margin-top: 2px;
+}
+
+@media (max-width: 768px) {
+  .ratings-grid { grid-template-columns: repeat(3, 1fr); }
+  .hero-data { flex-wrap: wrap; gap: 32px; }
+  nav { padding: 16px 20px; }
+  .nav-hamburger { display: flex; }
+  .nav-links { display: none; position: absolute; top: 100%; left: 0; right: 0; background: var(--white); border-bottom: 1px solid var(--gray-200); padding: 16px 20px; flex-direction: column; gap: 16px; }
+  .nav-toggle-input:checked ~ .nav-links { display: flex; }
+  .nav-dropdown-menu { display: block; position: static; box-shadow: none; border: none; padding: 0 0 0 12px; }
+  .nav-dropdown-trigger { display: none; }
+  .hero { padding: 120px 20px 0; }
+  .ratings-strip { padding: 60px 20px; }
+  .capabilities { padding: 60px 20px; }
+  .signal-section { padding: 60px 20px; }
+  .cta-section { padding: 80px 20px; }
+}
+
+/* ─── Capabilities ─── */
+.capabilities {
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 80px 40px;
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 80px;
+}
+
+.cap-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--gray-500);
+  position: sticky;
+  top: 100px;
+  align-self: start;
+}
+
+.cap-list {
+  display: grid;
+  gap: 48px;
+}
+
+.cap-item {
+  display: grid;
+  grid-template-columns: 48px 1fr;
+  gap: 24px;
+  padding-bottom: 48px;
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.cap-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.cap-num {
+  font-family: var(--serif);
+  font-size: 32px;
+  color: var(--gray-400);
+  font-style: italic;
+}
+
+.cap-title {
+  font-family: var(--serif);
+  font-size: 24px;
+  color: var(--black);
+  margin-bottom: 8px;
+}
+
+.cap-text {
+  font-size: 15px;
+  color: var(--gray-600);
+  line-height: 1.7;
+  max-width: 540px;
+}
+
+.cap-tag {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--warm);
+  border: 1px solid rgba(194, 149, 107, 0.3);
+  padding: 3px 10px;
+  margin-top: 12px;
+}
+
+@media (max-width: 768px) {
+  .capabilities { grid-template-columns: 1fr; gap: 40px; }
+  .cap-label { position: static; }
+}
+
+/* ─── Live Signal ─── */
+.signal-section {
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 80px 40px;
+}
+
+.signal-box {
+  background: var(--white);
+  color: var(--gray-800);
+  padding: 48px;
+  border: 1px solid var(--gray-200);
+  position: relative;
+  overflow: hidden;
+}
+
+.signal-box::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--warm), transparent);
+}
+
+.signal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 32px;
+}
+
+.signal-title {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--gray-600);
+}
+
+.signal-date {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--gray-500);
+}
+
+.signal-regime {
+  display: flex;
+  gap: 40px;
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.regime-item .r-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gray-500);
+}
+
+.regime-item .r-value {
+  font-family: var(--mono);
+  font-size: 18px;
+  margin-top: 4px;
+}
+
+.r-bear { color: #dc2626; }
+.r-neutral { color: var(--gray-800); }
+
+.signal-pairs {
+  display: grid;
+  gap: 12px;
+}
+
+.pair-row {
+  display: grid;
+  grid-template-columns: 28px 1fr 1fr 80px;
+  gap: 16px;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  font-family: var(--mono);
+  font-size: 13px;
+}
+
+.pair-idx { color: var(--gray-600); font-size: 11px; }
+.pair-long { color: #16a34a; }
+.pair-short { color: #dc2626; }
+.pair-conv { color: var(--gray-600); text-align: right; }
+
+/* ─── API ─── */
+.api-section {
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 80px 40px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 64px;
+  align-items: center;
+}
+
+.api-text .api-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--gray-500);
+  margin-bottom: 24px;
+}
+
+.api-text h2 {
+  font-family: var(--serif);
+  font-size: 36px;
+  font-weight: 400;
+  color: var(--black);
+  line-height: 1.2;
+  margin-bottom: 16px;
+}
+
+.api-text p {
+  font-size: 15px;
+  color: var(--gray-600);
+  line-height: 1.7;
+  max-width: 440px;
+}
+
+.api-code {
+  background: var(--gray-100);
+  padding: 32px;
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.8;
+  color: var(--gray-700);
+  overflow-x: auto;
+  position: relative;
+  border: 1px solid var(--gray-200);
+}
+
+.api-code::before {
+  content: 'ENDPOINT';
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  color: var(--gray-400);
+}
+
+.api-code .method { color: #16a34a; }
+.api-code .url { color: var(--gray-800); }
+.api-code .key { color: var(--warm); }
+.api-code .val { color: var(--gray-700); }
+
+@media (max-width: 768px) {
+  .api-section { grid-template-columns: 1fr; gap: 40px; padding: 60px 20px; }
+}
+
+/* ─── CTA ─── */
+.cta-section {
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 120px 40px;
+  text-align: center;
+}
+
+.cta-section h2 {
+  font-family: var(--serif);
+  font-size: clamp(32px, 4vw, 48px);
+  font-weight: 400;
+  color: var(--black);
+  margin-bottom: 16px;
+}
+
+.cta-section p {
+  font-size: 16px;
+  color: var(--gray-500);
+  margin-bottom: 40px;
+}
+
+.cta-btn {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--white);
+  background: var(--warm);
+  padding: 14px 40px;
+  text-decoration: none;
+  transition: all 0.3s;
+}
+
+.cta-btn:hover {
+  background: var(--warm);
+}
+
+/* ─── Footer ─── */
+footer {
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 40px 40px 60px;
+  border-top: 1px solid var(--gray-200);
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.foot-left {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--gray-500);
+  letter-spacing: 0.05em;
+}
+
+.foot-right {
+  display: flex;
+  gap: 24px;
+}
+
+.foot-right a {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--gray-500);
+  text-decoration: none;
+}
+
+.foot-right a:hover { color: var(--black); }
+
+@media (max-width: 768px) {
+  footer { flex-direction: column; gap: 16px; padding: 40px 20px; }
+}
+
+.site-disclaimer {
+  max-width: var(--wide, 1120px);
+  margin: 0 auto;
+  padding: 24px 40px 40px;
+  font-family: var(--mono, 'IBM Plex Mono', monospace);
+  font-size: 10px;
+  line-height: 1.7;
+  color: var(--gray-500, #78716c);
+  letter-spacing: 0.02em;
+}
+.site-disclaimer p { margin: 0 0 8px; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="/" class="nav-mark">zarq</a>
+  <input type="checkbox" id="nav-toggle" class="nav-toggle-input">
+  <label for="nav-toggle" class="nav-hamburger"><span></span><span></span><span></span></label>
+  <div class="nav-links">
+    <a href="/scan">Scan</a>
+    <a href="/crypto">Ratings</a>
+    <a href="/tokens">Token Ratings</a>
+    <a href="/crash-watch">Crash Watch</a>
+    <div class="nav-dropdown">
+      <a href="#" class="nav-dropdown-trigger">More &#9662;</a>
+      <div class="nav-dropdown-menu">
+        <a href="/yield-risk">Yield Risk</a>
+        <a href="/compare">Compare</a>
+        <a href="/learn">Learn</a>
+        <a href="/track-record">Track Record</a>
+        <a href="/paper-trading">Paper Trading</a>
+        <a href="/press">Press</a>
+        <a href="/methodology">Methodology</a>
+      </div>
+    </div>
+    <a href="/docs" class="nav-api">API</a>
+  </div>
+</nav>
+
+<!-- "Is your crypto safe?" search -->
+<section style="text-align:center;padding:120px 20px 32px;background:linear-gradient(135deg,#0a0a0a,#1a1a2e);border-bottom:1px solid #222">
+<h1 style="font-family:'DM Serif Display',Georgia,serif;font-size:2.5rem;color:#fff;margin-bottom:0.5rem">Is your crypto safe?</h1>
+<p style="color:#9ca3af;margin-bottom:1.5rem;font-size:15px">Trust ratings for 16,300 tokens. Crash predictions. DeFi yield safety.</p>
+<div style="max-width:500px;margin:0 auto;display:flex;gap:8px">
+<input type="text" id="crypto-search" placeholder="bitcoin, solana, pepe..." style="flex:1;padding:12px 16px;border-radius:8px;border:1px solid #333;background:#111;color:#fff;font-size:16px;font-family:'DM Sans',system-ui,sans-serif">
+<button onclick="checkCrypto()" style="padding:12px 24px;border-radius:8px;background:#c2956b;color:#fff;font-weight:600;border:none;cursor:pointer;font-family:'DM Sans',system-ui,sans-serif;font-size:15px">CHECK</button>
+</div>
+<div style="display:flex;justify-content:center;gap:12px;margin-top:16px;font-size:13px">
+<a href="/best/safest-crypto-2026" style="color:#c2956b">Safest crypto</a>
+<span style="color:#333">&middot;</span>
+<a href="/crash-watch" style="color:#c2956b">Crash watch</a>
+<span style="color:#333">&middot;</span>
+<a href="/yield-risk" style="color:#c2956b">Yield safety</a>
+<span style="color:#333">&middot;</span>
+<a href="/contagion" style="color:#c2956b">Contagion map</a>
+</div>
+<p style="color:#4b5563;font-size:0.8rem;margin-top:12px">We predicted 144 crypto crashes with 98% precision &middot; 22-month avg lead time</p>
+</section>
+<script>
+function checkCrypto(){var q=document.getElementById('crypto-search').value.trim().toLowerCase();if(!q)return;if(q.includes(' dead'))window.location='/is-'+q.replace(/ dead.*/,'').replace(/\s+/g,'-')+'-dead';else if(q.includes(' scam'))window.location='/is-'+q.replace(/ scam.*/,'').replace(/\s+/g,'-')+'-a-scam';else if(q.includes(' vs ')){var p=q.split(' vs ');window.location='/compare/'+p[0].trim().replace(/\s+/g,'-')+'-vs-'+p[1].trim().replace(/\s+/g,'-')}else if(q.includes('crash'))window.location='/crash-prediction/'+q.replace(/crash.*/,'').trim().replace(/\s+/g,'-');else window.location='/token/'+q.replace(/\s+/g,'-')}
+document.getElementById('crypto-search').addEventListener('keypress',function(e){if(e.key==='Enter')checkCrypto()});
+</script>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-eyebrow">Crypto Intelligence Platform</div>
+  <h1>Independent ratings.<br>Distance-to-Default.<br><em>Before the crash.</em></h1>
+  <p class="hero-sub">Institutional-grade crypto intelligence. We rate 15,000+ tokens, 1,000+ exchanges, and 7,000+ DeFi protocols. Trust ratings on a Aaa–D scale, Distance-to-Default scoring, structural collapse detection, and conviction-ranked trading signals. API-first. Machine-readable. Free during beta.</p>
+
+  <div style="display:flex;gap:8px;max-width:480px;margin:24px auto">
+    <form action="/vitality" method="GET" style="display:contents">
+      <input name="q" placeholder="Check any token — bitcoin, ethereum, solana..." autocomplete="off" style="flex:1;padding:10px 14px;border:1px solid var(--gray-200);font-size:14px;font-family:var(--sans);outline:none;background:var(--white)">
+      <button type="submit" style="padding:10px 20px;background:var(--warm);color:#fff;border:none;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--sans)">Check Risk</button>
+    </form>
+  </div>
+
+  <div class="hero-data">
+    <div class="hero-stat">
+      <div class="number">100%</div>
+      <div class="label">Defaults Detected</div>
+    </div>
+    <div class="hero-stat">
+      <div class="number">98%</div>
+      <div class="label">Precision</div>
+    </div>
+  </div>
+  <p style="font-family:var(--mono);font-size:11px;color:var(--gray-500);margin-top:16px;margin-bottom:0;max-width:520px;line-height:1.6">Out-of-sample validation (Jan 2024 – Feb 2026): 113 of 113 token collapses detected. 98% of flagged tokens lost &gt;50% of their value. <a href="/methodology" style="color:var(--warm)">Methodology &rarr;</a></p>
+
+</section>
+
+<!-- LIVE ALERTS BOX — dynamic server-side rendering -->
+<section style="max-width:var(--wide);margin:-20px auto 0;padding:0 40px 32px;text-align:left">
+  {{ALERT_PROOF_BOX}}
+</section>
+
+<!-- TRACK RECORD — Portable Alpha Backtest -->
+<section style="max-width:var(--wide);margin:0 auto;padding:0 40px 32px">
+  <div style="font-family:var(--mono);font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:var(--gray-500);margin-bottom:20px">Portable Alpha — Backtest Track Record (Apr 2021 – Dec 2025)</div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--gray-200);border:1px solid var(--gray-200)">
+    <div style="background:var(--white);padding:28px 24px">
+      <div style="font-family:var(--mono);font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--gray-500);margin-bottom:4px">Conservative</div>
+      <div style="font-family:var(--serif);font-size:36px;color:var(--black);letter-spacing:-0.02em">+314.7%</div>
+      <div style="font-family:var(--mono);font-size:12px;color:var(--gray-500);margin-top:4px">vs BTC <span style="color:var(--warm)">+100.8%</span> · Alpha +213.9%</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px;padding-top:16px;border-top:1px solid var(--gray-200)">
+        <div><div style="font-family:var(--mono);font-size:15px;color:var(--black)">2.02</div><div style="font-family:var(--mono);font-size:10px;color:var(--gray-500);margin-top:2px">Sharpe</div></div>
+        <div><div style="font-family:var(--mono);font-size:15px;color:var(--black)">-11.0%</div><div style="font-family:var(--mono);font-size:10px;color:var(--gray-500);margin-top:2px">Max Drawdown</div></div>
+        <div><div style="font-family:var(--mono);font-size:15px;color:var(--black)">75.0%</div><div style="font-family:var(--mono);font-size:10px;color:var(--gray-500);margin-top:2px">Win Rate</div></div>
+        <div><div style="font-family:var(--mono);font-size:15px;color:var(--black)">24</div><div style="font-family:var(--mono);font-size:10px;color:var(--gray-500);margin-top:2px">Months OOS</div></div>
+      </div>
+    </div>
+    <div style="background:var(--white);padding:28px 24px">
+      <div style="font-family:var(--mono);font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--gray-500);margin-bottom:4px">Growth</div>
+      <div style="font-family:var(--serif);font-size:36px;color:var(--black);letter-spacing:-0.02em">+842.2%</div>
+      <div style="font-family:var(--mono);font-size:12px;color:var(--gray-500);margin-top:4px">vs BTC <span style="color:var(--warm)">+100.8%</span> · Alpha +741.4%</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px;padding-top:16px;border-top:1px solid var(--gray-200)">
+        <div><div style="font-family:var(--mono);font-size:15px;color:var(--black)">3.86</div><div style="font-family:var(--mono);font-size:10px;color:var(--gray-500);margin-top:2px">Sharpe</div></div>
+        <div><div style="font-family:var(--mono);font-size:15px;color:var(--black)">-12.1%</div><div style="font-family:var(--mono);font-size:10px;color:var(--gray-500);margin-top:2px">Max Drawdown</div></div>
+        <div><div style="font-family:var(--mono);font-size:15px;color:var(--black)">75.0%</div><div style="font-family:var(--mono);font-size:10px;color:var(--gray-500);margin-top:2px">Win Rate</div></div>
+        <div><div style="font-family:var(--mono);font-size:15px;color:var(--black)">24</div><div style="font-family:var(--mono);font-size:10px;color:var(--gray-500);margin-top:2px">Months OOS</div></div>
+      </div>
+    </div>
+    <div style="background:var(--white);padding:28px 24px">
+      <div style="font-family:var(--mono);font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--gray-500);margin-bottom:4px">Aggressive</div>
+      <div style="font-family:var(--serif);font-size:36px;color:var(--black);letter-spacing:-0.02em">+1,872.9%</div>
+      <div style="font-family:var(--mono);font-size:12px;color:var(--gray-500);margin-top:4px">vs BTC <span style="color:var(--warm)">+100.8%</span> · Alpha +1,772.1%</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px;padding-top:16px;border-top:1px solid var(--gray-200)">
+        <div><div style="font-family:var(--mono);font-size:15px;color:var(--black)">5.56</div><div style="font-family:var(--mono);font-size:10px;color:var(--gray-500);margin-top:2px">Sharpe</div></div>
+        <div><div style="font-family:var(--mono);font-size:15px;color:var(--black)">-18.8%</div><div style="font-family:var(--mono);font-size:10px;color:var(--gray-500);margin-top:2px">Max Drawdown</div></div>
+        <div><div style="font-family:var(--mono);font-size:15px;color:var(--black)">75.0%</div><div style="font-family:var(--mono);font-size:10px;color:var(--gray-500);margin-top:2px">Win Rate</div></div>
+        <div><div style="font-family:var(--mono);font-size:15px;color:var(--black)">24</div><div style="font-family:var(--mono);font-size:10px;color:var(--gray-500);margin-top:2px">Months OOS</div></div>
+      </div>
+    </div>
+  </div>
+  <div style="margin-top:16px;text-align:right"><a href="/track-record" style="font-family:var(--mono);font-size:11px;letter-spacing:0.05em;color:var(--warm);text-decoration:none">Full track record &rarr;</a></div>
+</section>
+
+
+
+
+<!-- AGENT INTELLIGENCE LIVE BOX -->
+<section style="max-width:var(--wide);margin:0 auto;padding:0 40px 48px">
+  <div style="border:1px solid var(--gray-200);padding:32px 36px">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;flex-wrap:wrap;gap:16px">
+      <div>
+        <div style="font-family:var(--mono);font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:var(--warm);margin-bottom:8px">Agent Intelligence — Live</div>
+        <div style="font-family:var(--serif);font-size:26px;color:var(--black);line-height:1.2" id="ai-headline">47,119 AI agents tracked across 9 chains</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;color:#16a34a;border:1px solid rgba(22,163,74,0.3);padding:4px 12px">
+        <span style="width:6px;height:6px;background:#16a34a;border-radius:50%;display:inline-block;animation:pulse 2s infinite"></span>
+        LIVE
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--gray-200);border:1px solid var(--gray-200);margin-bottom:24px" id="ai-stats-grid">
+      <div style="background:var(--white);padding:20px 24px">
+        <div style="font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray-500);margin-bottom:4px">Capital at Crash Risk</div>
+        <div style="font-family:var(--serif);font-size:32px;color:#dc2626" id="ai-crash-mcap">$517M</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--gray-400)">crash probability &gt;50%</div>
+      </div>
+      <div style="background:var(--white);padding:20px 24px">
+        <div style="font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray-500);margin-bottom:4px">Structural Collapse</div>
+        <div style="font-family:var(--serif);font-size:32px;color:#dc2626" id="ai-collapse">12 agents</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--gray-400)">$344M exposed · 90% crash prob</div>
+      </div>
+      <div style="background:var(--white);padding:20px 24px">
+        <div style="font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray-500);margin-bottom:4px">Base Chain Risk</div>
+        <div style="font-family:var(--serif);font-size:32px;color:#d97706" id="ai-base">19,442 agents</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--gray-400)">$1.92B · concentration risk 10/10</div>
+      </div>
+    </div>
+    <div style="font-family:var(--mono);font-size:12px;color:var(--gray-600);line-height:1.8;max-width:680px;margin-bottom:20px" id="ai-finding">
+      <strong style="color:var(--black)">Latest finding:</strong> Agent <em>pippin</em> (Virtuals) holds $344.6M in PIPPIN token, currently rated CRITICAL with 90% crash probability and structural_weakness=3 — the highest possible collapse signal.
+    </div>
+    <a href="/agent-intelligence" style="font-family:var(--mono);font-size:11px;letter-spacing:0.05em;color:var(--warm);text-decoration:none">Full Agent Intelligence report &rarr;</a>
+  </div>
+</section>
+
+<script>
+// Live refresh av agent intelligence data
+async function refreshAgentIntelligence() {
+  try {
+    const [collapseRes, chainRes] = await Promise.all([
+      fetch('/v1/agents/structural-collapse'),
+      fetch('/v1/agents/chain-concentration-risk')
+    ]);
+    const collapse = await collapseRes.json();
+    const chains = await chainRes.json();
+
+    const total = chains.global?.total_agents || 47119;
+    const collapseMcap = collapse.total_mcap_exposed_usd || 0;
+    const collapseCount = collapse.total_agents_in_structural_collapse || 0;
+    const baseChain = chains.chains?.find(c => c.chain === 'base');
+
+    document.getElementById('ai-headline').textContent =
+      `${total.toLocaleString()} AI agents tracked — ${collapseCount} in Structural Collapse`;
+
+    const mcapM = (collapseMcap / 1e6).toFixed(0);
+    document.getElementById('ai-collapse').textContent = `${collapseCount} agents`;
+    document.querySelector('#ai-stats-grid div:nth-child(2) div:nth-child(3)').textContent =
+      `$${mcapM}M exposed`;
+
+    if (baseChain) {
+      document.getElementById('ai-base').textContent =
+        `${baseChain.total_agents.toLocaleString()} agents`;
+    }
+  } catch(e) { /* Keep static fallback */ }
+}
+refreshAgentIntelligence();
+</script>
+
+<!-- YIELD RISK LIVE BOX -->
+<section style="max-width:var(--wide);margin:0 auto;padding:0 40px 48px">
+  <div style="border:1px solid var(--gray-200);padding:32px 36px">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;flex-wrap:wrap;gap:16px">
+      <div>
+        <div style="font-family:var(--mono);font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:var(--warm);margin-bottom:8px">Yield Risk Intelligence — Live</div>
+        <div style="font-family:var(--serif);font-size:26px;color:var(--black);line-height:1.2" id="yr-headline">59 active divergence alerts across 6,539 yield pools</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;color:#16a34a;border:1px solid rgba(22,163,74,0.3);padding:4px 12px">
+        <span style="width:6px;height:6px;background:#16a34a;border-radius:50%;display:inline-block;animation:pulse 2s infinite"></span>
+        LIVE
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--gray-200);border:1px solid var(--gray-200);margin-bottom:24px">
+      <div style="background:var(--white);padding:20px 24px">
+        <div style="font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray-500);margin-bottom:4px">Active Alerts</div>
+        <div style="font-family:var(--serif);font-size:32px;color:#dc2626" id="yr-alerts">59</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--gray-400)">TVL exodus &middot; APY spikes &middot; cliffs</div>
+      </div>
+      <div style="background:var(--white);padding:20px 24px">
+        <div style="font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray-500);margin-bottom:4px">Yield Traps</div>
+        <div style="font-family:var(--serif);font-size:32px;color:#d97706" id="yr-traps">2,553</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--gray-400)" id="yr-extreme">27 EXTREME risk</div>
+      </div>
+      <div style="background:var(--white);padding:20px 24px">
+        <div style="font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray-500);margin-bottom:4px">Pools Monitored</div>
+        <div style="font-family:var(--serif);font-size:32px;color:var(--black)" id="yr-pools">6,539</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--gray-400)">18,784 indexed &middot; 119 chains</div>
+      </div>
+      <div style="background:var(--white);padding:20px 24px">
+        <div style="font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray-500);margin-bottom:4px">TVL Covered</div>
+        <div style="font-family:var(--serif);font-size:32px;color:var(--black)">$140B</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--gray-400)">across 513 protocols</div>
+      </div>
+    </div>
+    <div id="yr-insights-list" style="display:grid;gap:8px;margin-bottom:20px"></div>
+    <a href="/yield-risk" style="font-family:var(--mono);font-size:11px;letter-spacing:0.05em;color:var(--warm);text-decoration:none">View all yield risk alerts &rarr;</a>
+  </div>
+</section>
+<script>
+async function loadYieldInsights() {
+  try {
+    const [insRes, trapRes] = await Promise.all([
+      fetch("/v1/yield/insights?limit=3"),
+      fetch("/v1/yield/traps?min_apy=5&limit=1")
+    ]);
+    const ins = await insRes.json();
+    const traps = await trapRes.json();
+    const s = traps.summary || {};
+    if (s.yield_traps_detected) document.getElementById("yr-traps").textContent = s.yield_traps_detected.toLocaleString();
+    if (s.tier_distribution?.EXTREME) document.getElementById("yr-extreme").textContent = s.tier_distribution.EXTREME + " EXTREME risk";
+    if (ins.insights_found) {
+      document.getElementById("yr-alerts").textContent = ins.insights_found;
+      document.getElementById("yr-headline").textContent = ins.insights_found + " active divergence alerts across 6,539 yield pools";
+    }
+    const list = document.getElementById("yr-insights-list");
+    (ins.insights || []).forEach(i => {
+      const color = i.wow_score >= 90 ? "#dc2626" : i.wow_score >= 65 ? "#d97706" : "#ca8a04";
+      const apyStr = i.apy ? (i.apy > 9999 ? ">9999" : i.apy.toFixed(1)) + "%" : "—";
+      list.innerHTML += `<div style="display:grid;grid-template-columns:40px 1fr auto;gap:14px;align-items:center;padding:12px 16px;border:1px solid var(--gray-200);background:var(--gray-50)">
+        <div style="font-family:var(--mono);font-size:22px;font-weight:700;color:${color}">${i.wow_score}</div>
+        <div>
+          <div style="font-family:var(--mono);font-size:12px;font-weight:600;margin-bottom:3px">${i.protocol} &middot; ${i.symbol} &middot; ${i.chain}</div>
+          <div style="font-size:12px;color:var(--gray-600)">${i.wow_text || ""}</div>
+        </div>
+        <div style="text-align:right;font-family:var(--mono)">
+          <div style="font-size:16px;font-weight:700;color:#d97706">${apyStr}</div>
+          <div style="font-size:10px;color:var(--gray-500)">APY</div>
+        </div>
+      </div>`;
+    });
+  } catch(e) {}
+}
+loadYieldInsights();
+</script>
+
+<!-- CAPABILITIES -->
+<section class="capabilities">
+  <div class="cap-label">What We Do</div>
+  <div class="cap-list">
+    <div class="cap-item">
+      <div class="cap-num">1</div>
+      <div>
+        <div class="cap-title">Crash Prediction</div>
+        <div class="cap-text">Probabilistic crash forecasting combining rating trajectories, DtD trends, TVL divergence, and DeFi protocol exposure. Our model detects &ldquo;looks healthy but dying&rdquo; scenarios that surface-level metrics miss.</div>
+        <div class="cap-tag">98% precision</div>
+      </div>
+    </div>
+    <div class="cap-item">
+      <div class="cap-num">2</div>
+      <div>
+        <div class="cap-title">Distance-to-Default</div>
+        <div class="cap-text">Our DtD model measures how far each token is from critical failure &mdash; using on-chain metrics, liquidity signals, and historical default patterns. Tokens with DtD below 2.0 are in the danger zone. Based on the same framework credit agencies use for bonds, adapted for digital assets. Average detection lead time: 22 months before default.</div>
+        <div class="cap-tag">100% recall on defaults</div>
+      </div>
+    </div>
+    <div class="cap-item">
+      <div class="cap-num">3</div>
+      <div>
+        <div class="cap-title"><a href="/risk-scanner" style="color:inherit;text-decoration:none">Portfolio Stress Testing</a></div>
+        <div class="cap-text">Stress-test any portfolio against 5 historical crises: FTX collapse, LUNA death spiral, 3AC lending contagion, Oct 2025 flash crash, and BTC bear market. Calibrated against actual price data &mdash; 82% of predictions within 10 percentage points of the real crash. SOL predicted -67.6% vs actual -67.9% during FTX. Median error: 3.4pp across 67 token-scenario pairs.</div>
+        <div class="cap-tag"><a href="/risk-scanner" style="color:inherit;text-decoration:none">3.4pp median error &rarr;</a></div>
+      </div>
+    </div>
+    <div class="cap-item">
+      <div class="cap-num">4</div>
+      <div>
+        <div class="cap-title"><a href="/contagion" style="color:inherit;text-decoration:none">Contagion Map</a></div>
+        <div class="cap-text">Interactive network graph of 198 tokens showing how ecosystems connect and where risk concentrates. Run crisis simulations to see how a failure in one token cascades through the market. Uses the same calibrated model as the stress tester &mdash; validated against FTX, LUNA, 3AC, and Oct 2025 flash crash with 96% of predictions within 15pp.</div>
+        <div class="cap-tag"><a href="/contagion" style="color:inherit;text-decoration:none">198 tokens mapped &rarr;</a></div>
+      </div>
+    </div>
+    <div class="cap-item">
+      <div class="cap-num">5</div>
+      <div>
+        <div class="cap-title">Portable Alpha Strategy</div>
+        <div class="cap-text">Conviction-ranked long/short pairs generated from rating spreads and DtD differentials within investment-grade tokens. Backtested April 2021 &mdash; December 2025: Sharpe ratio 2.82. Paper trading live since March 2026, SHA-256 audited.</div>
+        <div class="cap-tag">Paper trading live</div>
+      </div>
+    </div>
+    <div class="cap-item">
+      <div class="cap-num">6</div>
+      <div>
+        <div class="cap-title">Trust Ratings</div>
+        <div class="cap-text">Every token scored 0&ndash;100 across five pillars: Ecosystem Health, Contagion Risk, Historical Resilience, Fundamental Quality, and Rug Pull Resistance. Mapped to a Moody&rsquo;s-style letter scale from Aaa to D. Updated monthly.</div>
+        <div class="cap-tag">210 tokens rated</div>
+      </div>
+    </div>
+    <div class="cap-item">
+      <div class="cap-num">7</div>
+      <div>
+        <div class="cap-title"><a href="/cascade-risk" style="color:inherit;text-decoration:none">Cascade Risk Engine</a></div>
+        <div class="cap-text">Simulate how a token collapse propagates through the crypto ecosystem. ZARQ&rsquo;s in-memory graph maps 210+ tokens across dependency chains &mdash; ecosystem, correlation, and bridge links. Run any scenario in under 100ms: structural collapse, BTC crash, stablecoin depeg, or exchange failure. Identify systemic hotspots and stress-test your portfolio against cascade contagion.</div>
+        <div class="cap-tag"><a href="/cascade-risk" style="color:inherit;text-decoration:none">210 tokens mapped &rarr;</a></div>
+      </div>
+    </div>
+    <div class="cap-item">
+      <div class="cap-num">8</div>
+      <div>
+        <div class="cap-title">Machine-First API</div>
+        <div class="cap-text">Every data point accessible via REST API. Structured for LLM consumption, AI agent integration, and automated decision pipelines. Rate-limited to 1,000 calls/day during beta. No API key required.</div>
+        <div class="cap-tag">Free during beta</div>
+      </div>
+    </div>
+    <div class="cap-item">
+      <div class="cap-num">9</div>
+      <div>
+        <div class="cap-title"><a href="/agent-intelligence" style="color:inherit;text-decoration:none">Agent Intelligence</a></div>
+        <div class="cap-text">The only platform that crosses 47,119 AI agents with institutional crypto risk data. We track which agents hold which tokens, flag exposure to Structural Collapse and CRITICAL-rated assets, and rank chains by AI-agent concentration risk. $517M in agent capital currently exposed to tokens with &gt;50% crash probability. Agent Exodus Index — detecting when agents leave before TVL collapses — launching Q3 2026.</div>
+        <div class="cap-tag"><a href="/agent-intelligence" style="color:inherit;text-decoration:none">47,119 agents tracked &rarr;</a></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"><div class="divider-line"></div></div>
+
+
+
+<!-- API -->
+<section class="api-section">
+  <div class="api-text">
+    <div class="api-label">API</div>
+    <h2>Built for machines.<br>Used by humans.</h2>
+    <p>Every rating, signal, and prediction available via REST. Structured JSON responses designed for LLM context windows, trading bots, and risk dashboards. No authentication required during beta.</p>
+  </div>
+  <div class="api-code">
+<span class="method">GET</span> <span class="url">/v1/crypto/rating/bitcoin</span>
+
+{
+  <span class="key">"token"</span>: <span class="val">"bitcoin"</span>,
+  <span class="key">"rating"</span>: <span class="val">"A2"</span>,
+  <span class="key">"score"</span>: <span class="val">74.52</span>,
+  <span class="key">"pillars"</span>: {
+    <span class="key">"ecosystem"</span>: <span class="val">99.20</span>,
+    <span class="key">"contagion"</span>: <span class="val">32.84</span>,
+    <span class="key">"resilience"</span>: <span class="val">71.59</span>,
+    <span class="key">"fundamental"</span>: <span class="val">86.50</span>,
+    <span class="key">"rug_pull"</span>: <span class="val">94.75</span>
+  },
+  <span class="key">"dtd"</span>: <span class="val">3.03</span>,
+  <span class="key">"risk_level"</span>: <span class="val">"WARNING"</span>
+}
+  </div>
+</section>
+
+<!-- PRODUCT SUITE -->
+<section style="max-width:var(--wide);margin:0 auto;padding:48px 20px 0">
+  <div style="font-family:var(--mono);font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--warm);margin-bottom:12px">Product Suite</div>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px">
+    <a href="/signal" style="text-decoration:none;padding:24px;background:var(--white);border:1px solid var(--gray-200);transition:border-color 0.2s">
+      <div style="font-family:var(--serif);font-size:18px;color:var(--black);margin-bottom:8px">ZARQ Signal</div>
+      <div style="font-family:var(--sans);font-size:13px;color:var(--gray-600);line-height:1.5">Live risk feed for 205 tokens. Filterable by severity. Auto-refreshes every 60s.</div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--warm);margin-top:12px">/signal &rarr;</div>
+    </a>
+    <a href="/kya" style="text-decoration:none;padding:24px;background:var(--white);border:1px solid var(--gray-200);transition:border-color 0.2s">
+      <div style="font-family:var(--serif);font-size:18px;color:var(--black);margin-bottom:8px">Know Your Agent</div>
+      <div style="font-family:var(--sans);font-size:13px;color:var(--gray-600);line-height:1.5">Due diligence on 204K AI agents & tools. Trust score, risk level, compliance status.</div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--warm);margin-top:12px">/kya &rarr;</div>
+    </a>
+    <a href="/demo/save-simulator" style="text-decoration:none;padding:24px;background:var(--white);border:1px solid var(--gray-200);transition:border-color 0.2s">
+      <div style="font-family:var(--serif);font-size:18px;color:var(--black);margin-bottom:8px">Save Simulator</div>
+      <div style="font-family:var(--sans);font-size:13px;color:var(--gray-600);line-height:1.5">See the crashes ZARQ predicted. Real out-of-sample saves an agent would have made.</div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--warm);margin-top:12px">/demo/save-simulator &rarr;</div>
+    </a>
+    <a href="/docs" style="text-decoration:none;padding:24px;background:var(--white);border:1px solid var(--gray-200);transition:border-color 0.2s">
+      <div style="font-family:var(--serif);font-size:18px;color:var(--black);margin-bottom:8px">API Documentation</div>
+      <div style="font-family:var(--sans);font-size:13px;color:var(--gray-600);line-height:1.5">Full endpoint reference. Python, JS, and cURL examples. Free during beta.</div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--warm);margin-top:12px">/docs &rarr;</div>
+    </a>
+  </div>
+</section>
+
+<!-- For Developers -->
+<section style="max-width:var(--wide);margin:0 auto;padding:40px 40px 0;text-align:left">
+  <div style="font-family:var(--mono);font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:var(--gray-500);margin-bottom:16px">For Developers</div>
+  <p style="font-family:var(--sans);font-size:14px;color:var(--gray-600);margin-bottom:12px">Add crypto risk checks to your pipeline. Free, no auth required.</p>
+  <pre style="background:var(--gray-50);border:1px solid var(--gray-200);padding:16px;font-family:var(--mono);font-size:12px;line-height:1.6;overflow-x:auto;margin-bottom:12px">curl https://zarq.ai/v1/check?token=bitcoin
+
+# {"rating": "A2", "trust_score": 85, "crash_probability": 12.3, ...}</pre>
+  <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <a href="/zarq/docs" style="font-family:var(--mono);font-size:12px;padding:6px 14px;background:var(--warm);color:#fff;text-decoration:none;font-weight:600">API docs</a>
+    <a href="/v1/check?token=bitcoin" style="font-family:var(--mono);font-size:12px;padding:6px 14px;border:1px solid var(--gray-200);color:var(--gray-600);text-decoration:none">try check API</a>
+    <a href="/v1/preflight?target=bitcoin" style="font-family:var(--mono);font-size:12px;padding:6px 14px;border:1px solid var(--gray-200);color:var(--gray-600);text-decoration:none">try preflight</a>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <h2>Free during founding period.</h2>
+  <p>All endpoints open. 1,000 calls/day. No API key required.</p>
+  <a href="/zarq/docs" class="cta-btn">Explore the API</a>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="foot-left">© 2026 ZARQ · Crypto Intelligence</div>
+  <div class="foot-right">
+    <a href="/scan">Scan</a>
+    <a href="/crypto">Ratings</a>
+    <a href="/tokens">Token Ratings</a>
+    <a href="/crypto/alerts">Alerts</a>
+    <a href="/track-record">Track Record</a>
+        <a href="/paper-trading">Paper Trading</a>
+    <a href="/risk-scanner">Risk Scanner</a>
+    <a href="/contagion">Contagion</a>
+    <a href="/paper-trading">Portable Alpha</a>
+    <a href="/methodology">Methodology</a>
+    <a href="/signal">ZARQ Signal</a>
+    <a href="/kya">Know Your Agent</a>
+    <a href="/demo/save-simulator">Save Simulator</a>
+    <a href="/docs">API Docs</a>
+    <a href="https://nerq.ai">NERQ (AI Agents)</a>
+  </div>
+</footer>
+<div class="site-disclaimer">
+<p><strong>Disclaimer</strong> &mdash; ZARQ provides data-driven crypto intelligence for informational and educational purposes only. Nothing on this website constitutes financial advice, investment advice, trading advice, or any other form of professional advice. ZARQ does not recommend buying, selling, or holding any cryptocurrency or financial instrument.</p>
+<p>Trust ratings, Distance-to-Default (DtD) scores, crash probabilities, trading signals, and all other data are derived from quantitative models and may contain errors, lag behind real-time conditions, or fail to predict future outcomes. Past performance, whether backtested or live, is not indicative of future results. All backtested results are hypothetical and do not represent actual trading.</p>
+<p>Crypto assets are highly volatile, speculative, and may result in total loss of invested capital. You should conduct your own research (DYOR) and consult a qualified, licensed financial advisor before making any investment decisions. ZARQ is not registered as a broker-dealer, investment advisor, or financial institution in any jurisdiction.</p>
+<p>By using this website, you acknowledge that you bear sole responsibility for your own investment decisions and that ZARQ, its founders, contributors, and affiliates accept no liability for any losses, damages, or consequences arising from the use of information provided herein.</p>
+</div>
+
+</body>
+</html>

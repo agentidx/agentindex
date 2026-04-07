@@ -30,7 +30,7 @@ def _query_verified() -> list[dict]:
     try:
         rows = session.execute(text("""
             SELECT name, trust_score_v2, trust_grade, agent_type, category, stars, source_url, first_indexed
-            FROM agents
+            FROM entity_lookup
             WHERE is_active = true
             AND trust_score_v2 >= :threshold
             AND agent_type IN ('agent', 'mcp_server', 'tool')
@@ -60,7 +60,7 @@ def _count_verified() -> int:
     session = get_session()
     try:
         return session.execute(text("""
-            SELECT COUNT(*) FROM agents
+            SELECT COUNT(*) FROM entity_lookup
             WHERE is_active = true
             AND trust_score_v2 >= :threshold
             AND agent_type IN ('agent', 'mcp_server', 'tool')

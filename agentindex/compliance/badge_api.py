@@ -36,7 +36,7 @@ async def badge_by_agent(agent_id: str):
         from agentindex.db.models import get_session
         session = get_session()
         try:
-            row = session.execute(text("SELECT eu_risk_class FROM agents WHERE id = :id OR name = :name LIMIT 1"), {"id": agent_id, "name": agent_id}).fetchone()
+            row = session.execute(text("SELECT eu_risk_class FROM entity_lookup WHERE id = :id OR name = :name LIMIT 1"), {"id": agent_id, "name": agent_id}).fetchone()
             if row and row[0]: rc = row[0]
         finally: session.close()
     except: pass
@@ -73,7 +73,7 @@ async def trust_badge_by_agent(agent_id: str):
         session = get_session()
         try:
             row = session.execute(
-                text("SELECT trust_grade, trust_score_v2 FROM agents WHERE id = :id OR name = :name LIMIT 1"),
+                text("SELECT trust_grade, trust_score_v2 FROM entity_lookup WHERE id = :id OR name = :name LIMIT 1"),
                 {"id": agent_id, "name": agent_id}
             ).fetchone()
             if row and row[0]:

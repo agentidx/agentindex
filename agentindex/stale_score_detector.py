@@ -151,7 +151,7 @@ def find_stale_agents(session, limit=MAX_RESCORE_PER_RUN):
                is_active, is_verified,
                COALESCE(trust_score_v2, trust_score) as current_score,
                trust_calculated_at
-        FROM agents
+        FROM entity_lookup
         WHERE is_active = true
           AND (trust_calculated_at IS NULL OR trust_calculated_at < :cutoff)
         ORDER BY stars DESC NULLS LAST
@@ -200,7 +200,7 @@ def find_agents_with_new_enrichment(session, limit=500):
                    is_active, is_verified,
                    COALESCE(trust_score_v2, trust_score) as current_score,
                    trust_calculated_at
-            FROM agents
+            FROM entity_lookup
             WHERE name IN ({placeholders})
               AND is_active = true
               AND (trust_calculated_at IS NULL OR trust_calculated_at < :cutoff)

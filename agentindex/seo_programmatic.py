@@ -222,7 +222,8 @@ def _find_agent(session, slug: str) -> dict | None:
     except Exception:
         pass
 
-    # Fallback: agents table exact name match
+    # Fallback: agents table exact name match (language column needed, not in entity_lookup)
+    session.execute(text("SET LOCAL work_mem = '2MB'; SET LOCAL statement_timeout = '5s'"))
     row = session.execute(text(
         f"SELECT {_AGENT_COLS} FROM agents WHERE LOWER(name) = :s AND is_active = true LIMIT 1"
     ), {"s": slug.lower()}).fetchone()
@@ -331,7 +332,7 @@ BEST_CATEGORIES = {
     "safest-vpns": ("Safest VPNs", ["vpn"], ["vpn", "virtual private"]),
     "safest-messaging-apps": ("Safest Messaging Apps", ["messaging"], ["messaging", "chat", "signal", "whatsapp"]),
     "safest-browsers": ("Safest Browsers", ["browser"], ["browser", "chrome", "firefox"]),
-    "safest-password-managers": ("Safest Password Managers", ["password"], ["password manager", "vault"]),
+    "safest-password-managers": ("Safest Password Managers", ["password_manager"], ["password manager", "vault"]),
     "safest-email-providers": ("Safest Email Providers", ["email"], ["email", "mail"]),
     # ── Developer Ecosystem ────
     "best-npm-packages": ("Best npm Packages", ["npm"], ["javascript", "node"]),
@@ -397,7 +398,7 @@ BEST_CATEGORIES = {
     "safest-games": ("Safest Games", ["steam"], ["game", "safe", "kids"]),
     "safest-games-for-kids": ("Safest Games for Kids", ["steam"], ["game", "kids", "safe"]),
     "safest-browsers": ("Safest Browsers", ["chrome", "firefox"], ["browser", "safe"]),
-    "safest-vpns": ("Safest VPNs", ["vpn"], ["vpn", "safe", "private"]),
+    # safest-vpns: defined above as vpn registry
     "safest-messaging-apps": ("Safest Messaging Apps", ["ios", "android"], ["messaging", "chat", "signal"]),
     # Travel & countries
     "safest-countries": ("Safest Countries to Visit", ["country"], ["country", "safe", "travel"]),
@@ -637,6 +638,25 @@ BEST_CATEGORIES = {
     "vpns-no-logs": ("Best No-Log VPNs", ["vpn"], ["no log", "zero log", "audit", "verified"]),
     "cheapest-vpns": ("Cheapest VPNs", ["vpn"], ["cheap", "free", "budget", "affordable"]),
     "fastest-vpns": ("Fastest VPNs", ["vpn"], ["fast", "speed", "performance", "bandwidth"]),
+    "best-vpns-for-torrenting": ("Best VPNs for Torrenting", ["vpn"], ["torrent", "p2p", "download", "peer"]),
+    "best-vpns-for-china": ("Best VPNs for China", ["vpn"], ["china", "censorship", "firewall", "bypass"]),
+    "best-vpns-for-gaming": ("Best VPNs for Gaming", ["vpn"], ["gaming", "latency", "ping", "speed"]),
+    "best-free-vpns": ("Best Free VPNs", ["vpn"], ["free", "no cost", "gratis", "trial"]),
+    "best-vpns-for-mac": ("Best VPNs for Mac", ["vpn"], ["mac", "macos", "apple", "desktop"]),
+    "best-vpns-for-android": ("Best VPNs for Android", ["vpn"], ["android", "mobile", "phone", "tablet"]),
+    "best-vpns-for-iphone": ("Best VPNs for iPhone", ["vpn"], ["iphone", "ios", "apple", "mobile"]),
+    "best-vpns-for-router": ("Best VPNs for Router", ["vpn"], ["router", "firmware", "openwrt", "home"]),
+    "best-vpns-for-business": ("Best Business VPNs", ["vpn"], ["business", "enterprise", "team", "corporate"]),
+    "best-vpns-for-linux": ("Best VPNs for Linux", ["vpn"], ["linux", "ubuntu", "open source", "terminal"]),
+    # ── Password Manager subcategories ──
+    "safest-password-managers": ("Safest Password Managers", ["password_manager"], ["password manager", "password vault", "credential"]),
+    "best-free-password-managers": ("Best Free Password Managers", ["password_manager"], ["free", "open source", "no cost"]),
+    "best-password-managers-for-business": ("Best Password Managers for Business", ["password_manager"], ["enterprise", "team", "business", "sso"]),
+    "best-password-managers-for-families": ("Best Password Managers for Families", ["password_manager"], ["family", "sharing", "kids"]),
+    "best-open-source-password-managers": ("Best Open Source Password Managers", ["password_manager"], ["open source", "github", "self-host"]),
+    "best-password-managers-for-mac": ("Best Password Managers for Mac", ["password_manager"], ["mac", "macos", "apple"]),
+    "best-password-managers-for-android": ("Best Password Managers for Android", ["password_manager"], ["android", "mobile"]),
+    "best-password-managers-with-2fa": ("Best Password Managers with 2FA", ["password_manager"], ["2fa", "two-factor", "mfa", "authenticator"]),
     # ── Crypto subcategories ──
     "safest-crypto-exchanges": ("Safest Crypto Exchanges", ["crypto"], ["exchange", "binance", "coinbase", "kraken"]),
     "safest-defi-protocols": ("Safest DeFi Protocols", ["crypto"], ["defi", "protocol", "lending", "yield"]),
@@ -805,7 +825,7 @@ BEST_CATEGORIES = {
     "safest-homebrew-networking-tools": ("Safest Homebrew Networking Tools", ["homebrew"], ["network", "dns", "curl", "ssh"]),
     # ── Cross-registry vertikaler ──
     "highest-rated-charities": ("Highest Rated Charities", ["charity"], []),
-    "safest-password-managers": ("Safest Password Managers", ["chrome", "firefox", "ios", "android"], ["password", "vault", "bitwarden", "1password", "lastpass"]),
+    # safest-password-managers: defined above as password_manager registry
     "safest-cities-for-families": ("Safest Cities for Families", ["city"], ["family", "families", "children"]),
     "safest-cities-in-north-america": ("Safest Cities in North America", ["city"], ["america", "canada", "us"]),
     "safest-island-countries": ("Safest Island Nations", ["country"], ["island", "caribbean", "pacific"]),
@@ -834,6 +854,65 @@ BEST_CATEGORIES = {
     "safest-steam-kids-games": ("Safest Steam Games for Kids", ["steam"], ["kids", "family", "children", "educational", "everyone"]),
     "safest-android-kids-apps": ("Safest Android Apps for Kids", ["android"], ["kids", "children", "family", "parental", "educational"]),
     "safest-ios-kids-apps": ("Safest iOS Apps for Kids", ["ios"], ["kids", "children", "family", "parental", "educational"]),
+    # ── Web Hosting ──
+    "safest-web-hosting": ("Safest Web Hosting Providers", ["hosting"], ["web hosting", "hosting provider", "best hosting"]),
+    "best-wordpress-hosting": ("Best WordPress Hosting", ["hosting"], ["wordpress hosting", "managed wordpress", "wp engine", "kinsta"]),
+    "best-vps-hosting": ("Best VPS Hosting", ["hosting"], ["vps", "virtual private server", "cloud server"]),
+    "best-cloud-hosting": ("Best Cloud Hosting", ["hosting"], ["cloud hosting", "cloud server", "IaaS", "digitalocean", "hetzner"]),
+    "best-cheapest-hosting": ("Cheapest Web Hosting", ["hosting"], ["cheap hosting", "budget hosting", "affordable", "$1.99"]),
+    "best-fastest-hosting": ("Fastest Web Hosting", ["hosting"], ["fast hosting", "speed", "performance", "turbo", "litespeed"]),
+    "best-ecommerce-hosting": ("Best Ecommerce Hosting", ["hosting"], ["ecommerce", "online store", "shopify hosting", "woocommerce"]),
+    "best-managed-hosting": ("Best Managed Hosting", ["hosting"], ["managed hosting", "fully managed", "managed wordpress"]),
+    "best-static-site-hosting": ("Best Static Site Hosting", ["hosting"], ["static site", "jamstack", "netlify", "vercel", "cloudflare pages"]),
+    "best-dedicated-server-hosting": ("Best Dedicated Server Hosting", ["hosting"], ["dedicated server", "bare metal", "own hardware"]),
+    "best-hosting-for-developers": ("Best Hosting for Developers", ["hosting"], ["developer hosting", "git deploy", "paas", "heroku", "railway"]),
+    "best-european-hosting": ("Best European Web Hosting", ["hosting"], ["european hosting", "gdpr", "eu hosting", "german hosting", "hetzner"]),
+    # ── Antivirus & Cybersecurity ──
+    "safest-antivirus-software": ("Safest Antivirus Software", ["antivirus"], ["antivirus", "anti-virus", "virus protection", "security software"]),
+    "best-free-antivirus": ("Best Free Antivirus", ["antivirus"], ["free antivirus", "free virus protection"]),
+    "best-antivirus-for-mac": ("Best Antivirus for Mac", ["antivirus"], ["mac antivirus", "macos security"]),
+    "best-antivirus-for-windows": ("Best Antivirus for Windows", ["antivirus"], ["windows antivirus", "windows security", "windows defender"]),
+    "best-antivirus-for-android": ("Best Antivirus for Android", ["antivirus"], ["android antivirus", "mobile security"]),
+    "best-antivirus-for-business": ("Best Antivirus for Business", ["antivirus"], ["business antivirus", "enterprise endpoint", "edr", "xdr"]),
+    "best-malware-removal-tools": ("Best Malware Removal Tools", ["antivirus"], ["malware removal", "malware scanner", "anti-malware"]),
+    "best-internet-security-suites": ("Best Internet Security Suites", ["antivirus"], ["internet security", "security suite", "total protection"]),
+    # ── SaaS Platforms ──
+    "safest-saas-platforms": ("Safest SaaS Platforms", ["saas"], ["saas", "software as a service", "cloud software"]),
+    "best-crm-software": ("Best CRM Software", ["saas"], ["crm", "customer relationship", "sales platform", "hubspot", "salesforce"]),
+    "best-project-management-tools": ("Best Project Management Tools", ["saas"], ["project management", "task management", "asana", "monday", "clickup"]),
+    "best-email-marketing-platforms": ("Best Email Marketing Platforms", ["saas"], ["email marketing", "newsletter", "email automation", "mailchimp"]),
+    "best-helpdesk-software": ("Best Helpdesk Software", ["saas"], ["helpdesk", "customer support", "ticketing", "zendesk"]),
+    "best-accounting-software": ("Best Accounting Software", ["saas"], ["accounting", "bookkeeping", "invoicing", "xero", "freshbooks"]),
+    "best-video-conferencing": ("Best Video Conferencing Tools", ["saas"], ["video conferencing", "video call", "meeting", "zoom"]),
+    "best-design-tools": ("Best Design Tools", ["saas"], ["design tool", "graphic design", "ui design", "prototyping", "figma"]),
+    "best-hr-software": ("Best HR Software", ["saas"], ["hr software", "human resources", "payroll", "people management"]),
+    "best-team-communication": ("Best Team Communication Tools", ["saas"], ["team chat", "messaging", "collaboration", "slack"]),
+    "best-cloud-storage": ("Best Cloud Storage", ["saas"], ["cloud storage", "file sharing", "file sync"]),
+    "best-free-saas-tools": ("Best Free SaaS Tools", ["saas"], ["free saas", "free software", "freemium"]),
+    "best-saas-for-startups": ("Best SaaS for Startups", ["saas"], ["startup tools", "startup stack"]),
+    "best-open-source-saas": ("Best Open Source SaaS Alternatives", ["saas"], ["open source saas", "self-hosted", "open source alternative"]),
+    "best-ai-writing-tools": ("Best AI Writing Tools", ["saas"], ["ai writing", "ai content", "copywriting ai"]),
+    # ── Website Builders ──
+    "safest-website-builders": ("Safest Website Builders", ["website_builder"], ["website builder", "site builder", "create website"]),
+    "best-ecommerce-website-builders": ("Best Ecommerce Website Builders", ["website_builder"], ["ecommerce builder", "online store builder", "shopify alternative"]),
+    "best-free-website-builders": ("Best Free Website Builders", ["website_builder"], ["free website builder", "free site builder"]),
+    "best-website-builders-for-small-business": ("Best Website Builders for Small Business", ["website_builder"], ["small business website", "business site builder"]),
+    "best-website-builders-for-portfolios": ("Best Website Builders for Portfolios", ["website_builder"], ["portfolio builder", "portfolio site", "designer portfolio"]),
+    "best-website-builders-for-blogs": ("Best Website Builders for Blogs", ["website_builder"], ["blog builder", "blogging platform", "start a blog"]),
+    "best-no-code-platforms": ("Best No-Code Platforms", ["website_builder"], ["no-code", "nocode", "no code builder", "build without code"]),
+    "best-website-builders-for-seo": ("Best Website Builders for SEO", ["website_builder"], ["seo website builder", "seo friendly builder"]),
+    # ── Crypto Exchanges ──
+    "safest-crypto-exchanges": ("Safest Crypto Exchanges", ["crypto"], ["crypto exchange", "bitcoin exchange", "cryptocurrency exchange"]),
+    "best-crypto-exchanges-for-beginners": ("Best Crypto Exchanges for Beginners", ["crypto"], ["beginner crypto", "first crypto", "easy exchange"]),
+    "best-decentralized-exchanges": ("Best Decentralized Exchanges (DEX)", ["crypto"], ["dex", "decentralized exchange", "uniswap", "defi exchange"]),
+    "best-crypto-exchanges-low-fees": ("Cheapest Crypto Exchanges", ["crypto"], ["low fees", "cheap exchange", "cheapest crypto"]),
+    "best-crypto-exchanges-for-trading": ("Best Crypto Exchanges for Trading", ["crypto"], ["trading", "futures", "margin", "derivatives"]),
+    "safest-crypto-wallets": ("Safest Crypto Wallets", ["crypto"], ["crypto wallet", "bitcoin wallet", "hardware wallet", "cold storage"]),
+    # ── Package registries ──
+    "best-php-packages": ("Best PHP Packages", ["packagist"], ["php", "composer", "packagist"]),
+    "best-ruby-gems": ("Best Ruby Gems", ["gems"], ["ruby", "gem", "rails"]),
+    "best-homebrew-packages": ("Best Homebrew Packages", ["homebrew"], ["homebrew", "brew", "macos"]),
+    "best-vscode-extensions": ("Best VS Code Extensions", ["vscode"], ["vscode", "visual studio code", "extension"]),
 }
 
 
@@ -859,7 +938,8 @@ async def _render_best_page(category_slug: str):
             _sr_registries = {"vpn", "npm", "pypi", "crates", "go", "gems", "packagist", "nuget",
                               "homebrew", "wordpress", "vscode", "chrome", "firefox", "steam", "ios", "android",
                               "country", "city", "charity", "website", "saas", "ai_tool", "crypto",
-                              "ingredient", "supplement", "cosmetic_ingredient"}
+                              "ingredient", "supplement", "cosmetic_ingredient",
+                              "hosting", "password_manager", "antivirus", "website_builder"}
             _has_sr = any(c in _sr_registries for c in db_cats)
             agents = []
 
@@ -871,7 +951,8 @@ async def _render_best_page(category_slug: str):
                     # Skip keyword filtering for small registries (<500 entities) — just show top by trust
                     _kw_filter = ""
                     _SMALL_REGISTRIES = {"vpn", "country", "city", "charity", "crypto",
-                                         "ingredient", "supplement", "cosmetic_ingredient"}
+                                         "ingredient", "supplement", "cosmetic_ingredient",
+                                         "hosting", "password_manager", "antivirus", "website_builder"}
                     _skip_kw = any(c in _SMALL_REGISTRIES for c in db_cats)
                     if keywords and not _skip_kw:
                         _kw_parts = []
@@ -892,10 +973,10 @@ async def _render_best_page(category_slug: str):
                     agents = [dict(zip(["name", "score", "grade", "stars", "desc", "category"], r)) for r in sr_rows]
 
             if len(agents) < 15:
-                # Use category-only matching for agents (LIKE on 5M rows is too slow)
+                # Try category matching on agents table
                 q = f"""
                     SELECT name, trust_score_v2, trust_grade, stars, description, category
-                    FROM agents
+                    FROM entity_lookup
                     WHERE is_active = true AND category IN ({cat_placeholders})
                         AND trust_score_v2 > 0
                     ORDER BY trust_score_v2 DESC, COALESCE(stars, 0) DESC
@@ -904,6 +985,27 @@ async def _render_best_page(category_slug: str):
                 rows = session.execute(text(q), {k: v for k, v in params.items() if k.startswith("c")}).fetchall()
                 _existing_names = {a["name"].lower() for a in agents}
                 for r in rows:
+                    d = dict(zip(["name", "score", "grade", "stars", "desc", "category"], r))
+                    if d["name"].lower() not in _existing_names:
+                        agents.append(d)
+
+            # Keyword fallback: if still <10 results and keywords exist, search by name/description
+            if len(agents) < 10 and keywords:
+                session.execute(text("SET LOCAL statement_timeout = '3s'"))
+                session.execute(text("SET LOCAL work_mem = '2MB'"))
+                _kw_or = " OR ".join(f"LOWER(COALESCE(name,'')) LIKE :_fk{i} OR LOWER(COALESCE(description,'')) LIKE :_fk{i}" for i in range(len(keywords)))
+                _fk_params = {f"_fk{i}": f"%{kw.lower()}%" for i, kw in enumerate(keywords)}
+                # Try software_registry with keyword search (broader than category match)
+                _fallback_rows = session.execute(text(f"""
+                    SELECT name, trust_score, trust_grade, downloads, description, registry
+                    FROM software_registry
+                    WHERE trust_score IS NOT NULL AND trust_score >= 30
+                      AND description IS NOT NULL AND LENGTH(description) > 20
+                      AND ({_kw_or})
+                    ORDER BY trust_score DESC LIMIT 50
+                """), _fk_params).fetchall()
+                _existing_names = {a["name"].lower() for a in agents}
+                for r in _fallback_rows:
                     d = dict(zip(["name", "score", "grade", "stars", "desc", "category"], r))
                     if d["name"].lower() not in _existing_names:
                         agents.append(d)
@@ -930,7 +1032,7 @@ async def _render_best_page(category_slug: str):
     ld_items = []
     for i, ag in enumerate(agents, 1):
         slug = _safe_slug(ag["name"])
-        _link = f"/safe/{slug}" if _use_safe_link else f"/is-{slug}-safe"
+        _link = f"/safe/{slug}"
         _stars_col = "" if _hide_stars else f"<td>{_stars_fmt(ag['stars'])}</td>"
         trows += f'<tr><td>{i}</td><td><a href="{_link}">{html.escape(ag["name"])}</a></td><td>{_score_fmt(ag["score"])}</td><td>{_grade_pill(ag["grade"])}</td>{_stars_col}<td>{html.escape(_trunc(ag["desc"]))}</td></tr>'
         ld_items.append({"@type": "ListItem", "position": i, "name": ag["name"], "url": f"{SITE}{_link}"})
@@ -995,18 +1097,73 @@ async def _render_best_page(category_slug: str):
         "url": _canonical,
         "dateModified": TODAY,
         "publisher": {"@type": "Organization", "name": "Nerq", "url": f"{SITE}/"},
-        "speakable": {"@type": "SpeakableSpecification", "cssSelector": ["h1", "meta[name=description]"]},
+        "speakable": {"@type": "SpeakableSpecification", "cssSelector": [".pplx-verdict", ".ai-summary", "h1"]},
     }
     item_list_ld = {"@type": "ItemList", "name": f"Best {display_name} {YEAR}", "numberOfItems": len(agents), "itemListElement": ld_items}
     jsonld_str = json.dumps({"@context": "https://schema.org", "@graph": [item_list_ld, faq_ld, breadcrumb_ld, webpage_ld]})
 
+    # ── pplx-verdict + ai-summary ──
+    _top = agents[0] if agents else {}
+    _top_name = html.escape(_top.get("name", ""))
+    _top_score = f"{float(_top.get('score', 0)):.0f}" if _top.get("score") else "?"
+    _top_grade = _top.get("grade", "?")
+    _enriched_count = len(agents)
+
+    # Top 5 list
+    _top5 = ", ".join(f"{i+1}. {html.escape(a.get('name',''))} ({float(a.get('score',0)):.0f}/100)" for i, a in enumerate(agents[:5]))
+
+    # Data-driven insight
+    _downloads = [a.get("stars", 0) or 0 for a in agents[:20] if (a.get("stars") or 0) > 0]
+    _insight = f"Nerq Trust Scores range from {float(agents[-1].get('score',0)):.0f} to {float(agents[0].get('score',0)):.0f} among the top {len(agents)}." if len(agents) > 1 else ""
+
+    _verdict_html = (
+        f'<p class="pplx-verdict" style="font-size:1.05em;line-height:1.65;margin:12px 0 16px;'
+        f'padding:14px 18px;background:#f0fdf4;border-left:4px solid #16a34a;border-radius:4px">'
+        f'The #1 {html.escape(display_name.lower())} in {YEAR} is <strong>{_top_name}</strong> '
+        f'with a Nerq Trust Score of <strong>{_top_score}/100 ({html.escape(_top_grade)})</strong>, '
+        f'based on Nerq\'s independent analysis of {_enriched_count} {html.escape(display_name.lower())} '
+        f'across 5 trust dimensions. Rankings update daily — last updated: {TODAY}.</p>'
+    )
+
+    _summary_html = (
+        f'<p class="ai-summary" style="font-size:15px;line-height:1.7;color:#374151;margin-bottom:20px">'
+        f'According to Nerq\'s analysis, the top 5 {html.escape(display_name.lower())} by trust score are: '
+        f'{_top5}. {_insight} '
+        f'Scores are based on 5 independent trust dimensions including security, maintenance, and community adoption. '
+        f'Updated daily.</p>'
+    )
+
+    # ── Top 10 summary table ──
+    _top10_rows = ""
+    for i, ag in enumerate(agents[:10], 1):
+        _t10_slug = _safe_slug(ag["name"])
+        _t10_sc = _score_fmt(ag["score"])
+        _t10_gr = _grade_pill(ag["grade"])
+        _top10_rows += f'<tr><td>{i}</td><td><a href="/safe/{_t10_slug}">{html.escape(ag["name"])}</a></td><td>{_t10_sc}</td><td>{_t10_gr}</td></tr>'
+    _top10_table = (
+        f'<table class="best-table" style="width:100%;border-collapse:collapse;margin:20px 0;font-size:14px">'
+        f'<caption style="caption-side:top;text-align:left;font-size:15px;font-weight:600;color:#1e293b;padding:0 0 8px">Top 10 {_dn_esc} by Nerq Trust Score ({YEAR})</caption>'
+        f'<thead><tr style="background:#f1f5f9;text-align:left">'
+        f'<th style="padding:8px 10px;border-bottom:2px solid #cbd5e1;width:40px">#</th>'
+        f'<th style="padding:8px 10px;border-bottom:2px solid #cbd5e1">Name</th>'
+        f'<th style="padding:8px 10px;border-bottom:2px solid #cbd5e1;width:60px">Trust</th>'
+        f'<th style="padding:8px 10px;border-bottom:2px solid #cbd5e1;width:60px">Grade</th>'
+        f'</tr></thead><tbody>{_top10_rows}</tbody></table>'
+        f'<style>.best-table tbody tr:nth-child(even){{background:#f8fafc}}'
+        f'.best-table tbody tr:hover{{background:#e0f2fe}}'
+        f'.best-table td{{padding:6px 10px;border-bottom:1px solid #e2e8f0}}'
+        f'.best-table a{{color:#2563eb;text-decoration:none}}.best-table a:hover{{text-decoration:underline}}</style>'
+    )
+
     # ── Render body ──
     body = f"""{_breadcrumb(("/best", "best"), ("", display_name))}
 <h1>{h1_text}</h1>
-<p class="desc">Ranked by Nerq Trust Score. Last updated {TODAY}.</p>
+{_verdict_html}
+{_summary_html}
+{_top10_table}
 <meta property="og:url" content="{_canonical}">
 
-<h2>Top {len(agents)} {_dn_esc} by Trust Score</h2>
+<h2>Top {len(agents)} {_dn_esc} by Nerq Trust Score</h2>
 {table}
 
 <h2>How We Rank {_dn_esc}</h2>
@@ -1014,7 +1171,37 @@ async def _render_best_page(category_slug: str):
 
 {faq_html}"""
 
-    return HTMLResponse(_page(title, body, desc=desc, canonical=_canonical, jsonld=jsonld_str))
+    # Security Stack block for VPN, PM, AV best pages
+    _SEC_STACK_REGS = {"vpn", "password_manager", "antivirus"}
+    if any(c in _SEC_STACK_REGS for c in db_cats):
+        _ss_links = ""
+        _ss_items = [
+            ("&#128274;", "Best VPNs", "/best/safest-vpns", "vpn"),
+            ("&#128272;", "Best Password Managers", "/best/safest-password-managers", "password_manager"),
+            ("&#128737;", "Best Antivirus", "/best/safest-antivirus-software", "antivirus"),
+        ]
+        for _ico, _txt, _url, _reg in _ss_items:
+            if _reg not in db_cats:
+                _ss_links += (f'<a href="{_url}" style="display:flex;align-items:center;gap:8px;'
+                    f'padding:10px 14px;border-radius:8px;background:#f8fafc;border:1px solid #e2e8f0;'
+                    f'text-decoration:none;color:#1e293b;font-size:14px">'
+                    f'<span style="font-size:20px">{_ico}</span>'
+                    f'<span style="font-weight:500">{_txt}</span></a>')
+        body += (f'\n<div style="margin:24px 0;padding:18px;border:1px solid #d1d5db;border-radius:10px;background:#fafafa">'
+            f'<h3 style="margin:0 0 12px;font-size:15px;font-weight:600;color:#334155">Build Your Security Stack</h3>'
+            f'<p style="font-size:13px;color:#64748b;margin:0 0 12px">Combine these tools for comprehensive protection:</p>'
+            f'<div style="display:flex;flex-wrap:wrap;gap:10px">{_ss_links}</div></div>')
+
+    # Noindex if all db_cats registries are hidden (quality gate)
+    try:
+        from agentindex.quality_gate import get_publishable_registries
+        _pub = get_publishable_registries()
+        _has_published = any(c in _pub for c in db_cats)
+    except Exception:
+        _has_published = True  # Default to index on error
+    _robots = "index, follow" if _has_published else "noindex, follow"
+
+    return HTMLResponse(_page(title, body, desc=desc, canonical=_canonical, jsonld=jsonld_str, robots=_robots))
 
 
 # ── Mount all routes ────────────────────────────────────────
@@ -1334,7 +1521,7 @@ def mount_seo_programmatic(app):
         with get_db_session() as session:
             rows = session.execute(text("""
                 SELECT name, trust_score_v2, trust_grade, stars, category
-                FROM agents WHERE is_active = true AND trust_score_v2 IS NOT NULL
+                FROM entity_lookup WHERE is_active = true AND trust_score_v2 IS NOT NULL
                 ORDER BY stars DESC NULLS LAST LIMIT 40
             """)).fetchall()
         agents = [dict(zip(["name", "score", "grade", "stars", "category"], r)) for r in rows]
@@ -1412,7 +1599,7 @@ def mount_seo_programmatic(app):
     async def alternatives_landing():
         with get_db_session() as session:
             rows = session.execute(text("""
-                SELECT name FROM agents WHERE is_active = true AND trust_score_v2 > 60
+                SELECT name FROM entity_lookup WHERE is_active = true AND trust_score_v2 > 60
                 AND category IS NOT NULL
                 ORDER BY COALESCE(stars, 0) DESC LIMIT 60
             """)).fetchall()
@@ -1452,7 +1639,7 @@ def mount_seo_programmatic(app):
 
                 rows = session.execute(text(f"""
                     SELECT name, trust_score_v2, trust_grade, stars, description, category
-                    FROM agents
+                    FROM entity_lookup
                     WHERE is_active = true AND id != CAST(:tid AS uuid) AND trust_score_v2 > 0
                     {cat_filter}
                     ORDER BY COALESCE(trust_score_v2, 0) DESC, COALESCE(stars, 0) DESC
@@ -1524,7 +1711,7 @@ def mount_seo_programmatic(app):
                 params["cat"] = cat
             alt_rows = session.execute(text(f"""
                 SELECT name, trust_score_v2, trust_grade, stars
-                FROM agents WHERE is_active = true AND id != CAST(:tid AS uuid) AND trust_score_v2 > 0 {cat_filter}
+                FROM entity_lookup WHERE is_active = true AND id != CAST(:tid AS uuid) AND trust_score_v2 > 0 {cat_filter}
                 ORDER BY COALESCE(trust_score_v2, 0) DESC LIMIT 5
             """), params).fetchall()
             alts = [dict(zip(["name", "score", "grade", "stars"], r)) for r in alt_rows]
@@ -1636,7 +1823,7 @@ This score is based on independent analysis of security practices, maintenance a
             # Fallback: generate from top 200 agents
             with get_db_session() as session:
                 rows = session.execute(text("""
-                    SELECT name, category FROM agents
+                    SELECT name, category FROM entity_lookup
                     WHERE is_active = true AND trust_score_v2 IS NOT NULL
                     ORDER BY COALESCE(stars, 0) DESC LIMIT 200
                 """)).fetchall()
@@ -1658,20 +1845,33 @@ This score is based on independent analysis of security practices, maintenance a
         _set_cache("sitemap:compare", xml)
         return Response(xml, media_type="application/xml")
 
+    def _published_best_slugs():
+        """Return /best/ slugs whose registries are ALL published."""
+        try:
+            from agentindex.quality_gate import get_publishable_registries
+            pub = get_publishable_registries()
+            if not pub:
+                return list(BEST_CATEGORIES.keys())  # No gate state = publish all
+            return [slug for slug, (_, regs, _) in BEST_CATEGORIES.items()
+                    if not regs or any(r in pub for r in regs)]
+        except Exception:
+            return list(BEST_CATEGORIES.keys())
+
     @app.get("/sitemap-best.xml", response_class=Response)
     async def sitemap_best():
-        urls = [(f"{SITE}/best/{slug}", "0.7") for slug in BEST_CATEGORIES]
+        slugs = _published_best_slugs()
+        urls = [(f"{SITE}/best/{slug}", "0.7") for slug in slugs]
         return Response(_sitemap_xml(urls), media_type="application/xml")
 
-    _BEST_LANGS = ["es","de","fr","ja","pt","id","cs","th","ro","tr","hi","ru","pl","it","ko","vi","nl","sv","zh","da","ar"]
+    _BEST_LANGS = ["es","de","fr","ja","pt","id","cs","th","ro","tr","hi","ru","pl","it","ko","vi","nl","sv","zh","da","ar","no"]
 
     @app.get("/sitemap-best-localized.xml", response_class=Response)
     async def sitemap_best_localized():
-        """Sitemap index for localized /best/ pages — 502 × 21 langs."""
         from datetime import date
         now = date.today().isoformat()
+        slugs = _published_best_slugs()
         _per_chunk = 10000
-        _total = len(BEST_CATEGORIES) * len(_BEST_LANGS)
+        _total = len(slugs) * len(_BEST_LANGS)
         _chunks = max(1, -(-_total // _per_chunk))
         xml = '<?xml version="1.0" encoding="UTF-8"?>\n<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
         for c in range(_chunks):
@@ -1684,8 +1884,9 @@ This score is based on independent analysis of security practices, maintenance a
         from datetime import date
         now = date.today().isoformat()
         _per_chunk = 10000
+        slugs = _published_best_slugs()
         all_urls = []
-        for slug in BEST_CATEGORIES:
+        for slug in slugs:
             for lang in _BEST_LANGS:
                 all_urls.append(f"{SITE}/{lang}/best/{slug}")
         start = chunk * _per_chunk
@@ -1705,7 +1906,7 @@ This score is based on independent analysis of security practices, maintenance a
             return Response(cached, media_type="application/xml")
         with get_db_session() as session:
             rows = session.execute(text("""
-                SELECT name FROM agents
+                SELECT name FROM entity_lookup
                 WHERE is_active = true AND trust_score_v2 IS NOT NULL
                 ORDER BY COALESCE(stars, 0) DESC LIMIT 500
             """)).fetchall()
@@ -1721,7 +1922,7 @@ This score is based on independent analysis of security practices, maintenance a
             return Response(cached, media_type="application/xml")
         with get_db_session() as session:
             rows = session.execute(text("""
-                SELECT name FROM agents
+                SELECT name FROM entity_lookup
                 WHERE is_active = true AND trust_score_v2 IS NOT NULL
                 ORDER BY COALESCE(stars, 0) DESC LIMIT 200
             """)).fetchall()

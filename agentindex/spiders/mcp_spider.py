@@ -16,23 +16,44 @@ from sqlalchemy import select
 
 logger = logging.getLogger("agentindex.spiders.mcp")
 
-# Known MCP registries and listing sources
+# Known MCP registries and listing sources - EXPANDED for maximum coverage
 MCP_SOURCES = [
     {
         "name": "mcp-registry-github",
-        "type": "github_topic",
+        "type": "github_topic", 
         "url": "https://api.github.com/search/repositories?q=topic:mcp-server&sort=updated&per_page=100",
     },
     {
         "name": "mcp-servers-awesome",
         "type": "github_repo",
-        "url": "https://api.github.com/repos/punkpeye/awesome-mcp-servers/contents/README.md",
+        "url": "https://api.github.com/repos/punkpeye/awesome-mcp-servers/contents/README.md", 
     },
     {
         "name": "mcp-registry-official",
         "type": "github_repo",
         "url": "https://api.github.com/repos/modelcontextprotocol/servers/contents",
     },
+    # Additional MCP sources for maximum coverage
+    {
+        "name": "mcp-keyword-search",
+        "type": "github_search",
+        "url": "https://api.github.com/search/repositories?q=mcp+server+OR+\"model+context+protocol\"&sort=updated&per_page=100"
+    },
+    {
+        "name": "mcp-awesome-alternative",
+        "type": "github_repo", 
+        "url": "https://api.github.com/repos/appcypher/awesome-mcp-servers/contents/README.md",
+    },
+    {
+        "name": "mcp-npm-packages",
+        "type": "npm_search",
+        "url": "https://registry.npmjs.org/-/search?text=mcp+server"
+    },
+    {
+        "name": "mcp-pypi-packages", 
+        "type": "pypi_search",
+        "url": "https://pypi.org/search/?q=mcp+server"
+    }
 ]
 
 # Also search for .well-known/agent.json and .well-known/agent-card.json patterns
@@ -53,6 +74,12 @@ class McpSpider:
             headers["Authorization"] = f"token {token}"
         self.client = httpx.Client(timeout=30, headers=headers)
         self.session = get_session()
+        from sqlalchemy import text as _sa_text
+        try:
+            self.session.execute(_sa_text("SET LOCAL work_mem = '2MB'"))
+            self.session.execute(_sa_text("SET LOCAL statement_timeout = '5s'"))
+        except Exception:
+            pass
 
     def crawl(self) -> dict:
         stats = {"found": 0, "new": 0, "errors": 0}
@@ -86,6 +113,26 @@ class McpSpider:
             logger.info(f"MCP awesome list: found={result['found']}, new={result['new']}")
         except Exception as e:
             logger.error(f"MCP awesome list error: {e}")
+            stats["errors"] += 1
+
+        # Extended keyword search for MCP servers
+        try:
+            result = self._crawl_extended_github_search()
+            stats["found"] += result["found"] 
+            stats["new"] += result["new"]
+            logger.info(f"Extended MCP search: found={result['found']}, new={result['new']}")
+        except Exception as e:
+            logger.error(f"Extended MCP search error: {e}")
+            stats["errors"] += 1
+
+        # NPM MCP packages
+        try:
+            result = self._crawl_npm_mcp()
+            stats["found"] += result["found"]
+            stats["new"] += result["new"] 
+            logger.info(f"NPM MCP packages: found={result['found']}, new={result['new']}")
+        except Exception as e:
+            logger.error(f"NPM MCP packages error: {e}")
             stats["errors"] += 1
 
         job = CrawlJob(
@@ -301,6 +348,109 @@ class McpSpider:
         except Exception:
             pass
         return None
+
+    def _crawl_extended_github_search(self) -> dict:
+        """Extended GitHub search for MCP-related repos."""
+        stats = {"found": 0, "new": 0}
+
+        search_terms = [
+            'mcp server', 
+            '"model context protocol"',
+            'mcp-server language:python',
+            'mcp-server language:typescript',
+            '"mcp server" finance OR trading OR stock',  # Financial MCP servers
+            '"mcp server" calendar OR email OR office'   # Corporate data MCP servers  
+        ]
+
+        for term in search_terms:
+            try:
+                response = self.client.get(
+                    "https://api.github.com/search/repositories",
+                    params={
+                        "q": term,
+                        "sort": "updated", 
+                        "order": "desc",
+                        "per_page": 50
+                    }
+                )
+
+                if response.status_code == 200:
+                    data = response.json()
+                    for repo in data.get("items", []):
+                        stats["found"] += 1
+                        result = self._process_github_repo(repo)
+                        if result == "new":
+                            stats["new"] += 1
+
+                time.sleep(2)  # Rate limiting
+                
+            except Exception as e:
+                logger.error(f"Extended search error for '{term}': {e}")
+
+        return stats
+
+    def _crawl_npm_mcp(self) -> dict:
+        """Crawl NPM for MCP server packages."""
+        stats = {"found": 0, "new": 0}
+
+        try:
+            # NPM registry search
+            response = self.client.get(
+                "https://registry.npmjs.org/-/search?text=mcp%20server&size=100"
+            )
+
+            if response.status_code == 200:
+                data = response.json()
+                for pkg in data.get("objects", []):
+                    package = pkg.get("package", {})
+                    stats["found"] += 1
+
+                    # Create agent entry for NPM package
+                    source_url = f"https://www.npmjs.com/package/{package.get('name')}"
+                    
+                    existing = self.session.execute(
+                        select(Agent).where(Agent.source_url == source_url)
+                    ).scalar_one_or_none()
+
+                    if not existing:
+                        # Get GitHub repo from package if available
+                        links = package.get("links", {})
+                        github_url = links.get("repository") or links.get("homepage", "")
+
+                        agent = Agent(
+                            source="mcp",
+                            source_url=source_url,
+                            source_id=f"npm/{package.get('name')}",
+                            name=package.get("name", ""),
+                            description=package.get("description", ""),
+                            author=package.get("publisher", {}).get("username"),
+                            version=package.get("version"),
+                            protocols=["mcp"],
+                            invocation={"type": "mcp", "package_manager": "npm"},
+                            tags=package.get("keywords", []) + ["npm", "mcp"],
+                            raw_metadata={
+                                "npm_data": package,
+                                "github_url": github_url,
+                                "package_manager": "npm"
+                            },
+                            crawl_status="indexed",
+                            first_indexed=datetime.utcnow(),
+                            last_crawled=datetime.utcnow(),
+                        )
+
+                        self.session.add(agent)
+                        try:
+                            self.session.commit()
+                        except Exception:
+                            self.session.rollback()
+                            from agentindex.db.models import get_session
+                            self.session = get_session()
+                        stats["new"] += 1
+
+        except Exception as e:
+            logger.error(f"NPM crawl error: {e}")
+
+        return stats
 
 
 if __name__ == "__main__":

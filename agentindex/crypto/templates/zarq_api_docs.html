@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>API Documentation — ZARQ</title>
+<meta name="description" content="ZARQ Crypto Intelligence API. Free access to ratings, Distance-to-Default scores, trading signals, and risk alerts for 198 tokens. REST JSON. No auth required.">
+<link rel="canonical" href="https://zarq.ai/docs">
+<meta property="og:title" content="API Documentation — ZARQ">
+<meta property="og:description" content="Free crypto intelligence API. Ratings, DtD scores, signals, risk alerts. No auth required.">
+
+<!-- AI-Citable Summary: ZARQ API provides free REST endpoints for crypto intelligence: /v1/crypto/ratings (all 198 token ratings), /v1/crypto/rating/{id} (individual rating + DtD), /v1/crypto/signals (trading signals), /v1/crypto/early-warning (risk alerts), /v1/crypto/ndd/{id} (DtD time series). JSON responses. No authentication required. Rate limit: 1,000 calls/day. Base URL: https://zarq.ai. Source: zarq.ai -->
+
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --white: #fafaf9;
+  --black: #0a0a0a;
+  --gray-100: #f5f5f4;
+  --gray-200: #e7e5e4;
+  --gray-400: #a8a29e;
+  --gray-500: #78716c;
+  --gray-600: #57534e;
+  --gray-700: #44403c;
+  --gray-800: #292524;
+  --gray-900: #1c1917;
+  --warm: #c2956b;
+  --warm-light: rgba(194, 149, 107, 0.08);
+  --green: #4ade80;
+  --red: #f87171;
+  --blue: #93c5fd;
+  --serif: 'DM Serif Display', Georgia, serif;
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'DM Sans', sans-serif;
+  --wide: 1120px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+::selection { background: var(--warm); color: var(--black); }
+html { font-size: 17px; -webkit-font-smoothing: antialiased; }
+body { background: var(--white); color: var(--gray-800); font-family: var(--sans); line-height: 1.6; }
+
+/* Nav */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  padding: 20px 40px; display: flex; justify-content: space-between; align-items: center;
+  backdrop-filter: blur(20px); background: rgba(250,250,249,0.85);
+  border-bottom: 1px solid rgba(0,0,0,0.04);
+}
+.nav-mark { font-family: var(--mono); font-weight: 500; font-size: 15px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--black); text-decoration: none; }
+.nav-links { display: flex; gap: 32px; align-items: center; }
+.nav-links a { font-family: var(--mono); font-size: 12px; letter-spacing: 0.05em; color: var(--gray-600); text-decoration: none; }
+.nav-links a:hover { color: var(--black); }
+.nav-links a.active { color: var(--black); border-bottom: 1px solid var(--black); padding-bottom: 2px; }
+.nav-api { font-family: var(--mono); font-size: 11px; letter-spacing: 0.05em; color: var(--warm); border: 1px solid var(--warm); padding: 6px 16px; text-decoration: none; transition: all 0.2s; }
+.nav-api:hover { background: var(--warm); color: var(--white); }
+.nav-dropdown { position: relative; }
+.nav-dropdown-trigger { cursor: pointer; }
+.nav-dropdown-menu { display: none; position: absolute; top: 100%; right: 0; background: var(--white); border: 1px solid var(--gray-200); box-shadow: 0 8px 24px rgba(0,0,0,0.08); padding: 8px 0; min-width: 180px; z-index: 200; }
+.nav-dropdown:hover .nav-dropdown-menu { display: block; }
+.nav-dropdown-menu a { display: block; padding: 8px 20px; font-family: var(--mono); font-size: 12px; letter-spacing: 0.05em; color: var(--gray-600); text-decoration: none; white-space: nowrap; }
+.nav-dropdown-menu a:hover { background: var(--warm-light); color: var(--black); }
+.nav-toggle-input { display: none; }
+.nav-hamburger { display: none; cursor: pointer; flex-direction: column; gap: 5px; }
+.nav-hamburger span { display: block; width: 22px; height: 2px; background: var(--black); transition: all 0.3s; }
+
+/* Layout */
+.page-header { max-width: var(--wide); margin: 0 auto; padding: 140px 40px 60px; }
+.page-header h1 {
+  font-family: var(--serif); font-weight: 400; font-size: clamp(36px, 5vw, 56px);
+  line-height: 1.1; color: var(--black); letter-spacing: -0.02em;
+}
+.page-header .subtitle { font-size: 16px; color: var(--gray-600); margin-top: 16px; max-width: 600px; line-height: 1.7; }
+
+.content { max-width: var(--wide); margin: 0 auto; padding: 0 40px 80px; }
+
+/* Quick start box */
+.quickstart {
+  background: var(--gray-100); padding: 40px; margin-bottom: 48px; border: 1px solid var(--gray-200);
+  position: relative; overflow: hidden;
+}
+.quickstart::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--warm), transparent);
+}
+.quickstart .qs-label {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.15em;
+  text-transform: uppercase; color: var(--gray-500); margin-bottom: 20px;
+}
+.quickstart code {
+  display: block; font-family: var(--mono); font-size: 13px; line-height: 1.8; color: var(--gray-700);
+}
+.quickstart .method { color: var(--gray-800); font-weight: 500; }
+.quickstart .url { color: var(--warm); }
+.quickstart .comment { color: var(--gray-400); }
+
+/* Endpoint sections */
+.endpoint { margin-bottom: 48px; padding-bottom: 48px; border-bottom: 1px solid var(--gray-200); }
+.endpoint:last-child { border-bottom: none; }
+
+.ep-header { display: flex; align-items: baseline; gap: 16px; margin-bottom: 12px; flex-wrap: wrap; }
+.ep-method {
+  font-family: var(--mono); font-size: 11px; font-weight: 500; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--green); background: rgba(74, 222, 128, 0.1);
+  padding: 4px 10px;
+}
+.ep-path {
+  font-family: var(--mono); font-size: 15px; color: var(--black); font-weight: 500;
+}
+.ep-desc { font-size: 15px; color: var(--gray-600); line-height: 1.7; margin-bottom: 20px; max-width: 680px; }
+.ep-tag {
+  display: inline-block; font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--warm); border: 1px solid rgba(194,149,107,0.3);
+  padding: 3px 10px; margin-bottom: 16px;
+}
+
+/* Response blocks */
+.response-block {
+  background: var(--gray-100); padding: 24px; overflow-x: auto; border: 1px solid var(--gray-200);
+}
+.response-block pre {
+  font-family: var(--mono); font-size: 12px; line-height: 1.7; color: var(--gray-700); margin: 0;
+}
+.response-block .key { color: var(--gray-700); }
+.response-block .val-str { color: var(--gray-600); }
+.response-block .val-num { color: var(--gray-800); }
+.response-block .val-null { color: var(--gray-400); }
+
+/* Params table */
+.params { margin: 16px 0; }
+.params table { width: 100%; border-collapse: collapse; }
+.params th {
+  text-align: left; padding: 8px 12px; font-family: var(--mono);
+  font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--gray-500); border-bottom: 1px solid var(--gray-200); font-weight: 400;
+}
+.params td {
+  padding: 8px 12px; border-bottom: 1px solid var(--gray-100); font-size: 14px; color: var(--gray-700);
+}
+.params code { font-family: var(--mono); font-size: 13px; background: var(--gray-100); padding: 2px 6px; }
+
+/* Rating scale */
+.scale-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 1px; background: var(--gray-200); border: 1px solid var(--gray-200); margin: 16px 0;
+}
+.scale-item { background: var(--white); padding: 16px; text-align: center; }
+.scale-rating { font-family: var(--serif); font-size: 20px; color: var(--black); }
+.scale-range { font-family: var(--mono); font-size: 10px; color: var(--gray-500); margin-top: 2px; }
+.scale-label { font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gray-400); margin-top: 4px; }
+
+/* Section labels */
+.section-label {
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.15em;
+  text-transform: uppercase; color: var(--gray-500); margin-bottom: 32px; margin-top: 64px;
+  padding-top: 32px; border-top: 1px solid var(--gray-200);
+}
+
+/* Try it links */
+.try-it {
+  display: inline-block; font-family: var(--mono); font-size: 11px;
+  color: var(--warm); text-decoration: none; margin-top: 12px;
+}
+.try-it:hover { text-decoration: underline; }
+
+/* Footer */
+footer {
+  max-width: var(--wide); margin: 0 auto; padding: 40px 40px 60px;
+  border-top: 1px solid var(--gray-200); display: flex; justify-content: space-between; align-items: baseline;
+}
+.foot-left { font-family: var(--mono); font-size: 11px; color: var(--gray-500); }
+.foot-right { display: flex; gap: 24px; }
+.foot-right a { font-family: var(--mono); font-size: 11px; color: var(--gray-500); text-decoration: none; }
+.foot-right a:hover { color: var(--black); }
+
+@media (max-width: 768px) {
+  nav { padding: 16px 20px; }
+  .nav-hamburger { display: flex; }
+  .nav-links { display: none; position: absolute; top: 100%; left: 0; right: 0; background: var(--white); border-bottom: 1px solid var(--gray-200); padding: 16px 20px; flex-direction: column; gap: 16px; }
+  .nav-toggle-input:checked ~ .nav-links { display: flex; }
+  .nav-dropdown-menu { display: block; position: static; box-shadow: none; border: none; padding: 0 0 0 12px; }
+  .nav-dropdown-trigger { display: none; }
+  .page-header { padding: 120px 20px 40px; }
+  .content { padding: 0 20px 60px; }
+  footer { flex-direction: column; gap: 16px; padding: 40px 20px; }
+}
+
+.site-disclaimer {
+  max-width: var(--wide, 1120px);
+  margin: 0 auto;
+  padding: 24px 40px 40px;
+  font-family: var(--mono, 'IBM Plex Mono', monospace);
+  font-size: 10px;
+  line-height: 1.7;
+  color: var(--gray-500, #78716c);
+  letter-spacing: 0.02em;
+}
+.site-disclaimer p { margin: 0 0 8px; }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-mark">zarq</a>
+  <input type="checkbox" id="nav-toggle" class="nav-toggle-input">
+  <label for="nav-toggle" class="nav-hamburger"><span></span><span></span><span></span></label>
+  <div class="nav-links">
+    <a href="/scan">Scan</a>
+    <a href="/crypto">Ratings</a>
+    <a href="/tokens">Token Ratings</a>
+    <a href="/crash-watch">Crash Watch</a>
+    <div class="nav-dropdown">
+      <a href="#" class="nav-dropdown-trigger">More &#9662;</a>
+      <div class="nav-dropdown-menu">
+        <a href="/yield-risk">Yield Risk</a>
+        <a href="/compare">Compare</a>
+        <a href="/learn">Learn</a>
+        <a href="/track-record">Track Record</a>
+        <a href="/paper-trading">Paper Trading</a>
+        <a href="/press">Press</a>
+        <a href="/methodology">Methodology</a>
+      </div>
+    </div>
+    <a href="/docs" class="nav-api">API</a>
+  </div>
+</nav>
+
+<section class="page-header">
+  <h1>API Documentation</h1>
+  <p class="subtitle">Free REST API for crypto intelligence. Ratings, Distance-to-Default scores, trading signals, and risk alerts. JSON responses. No authentication required during beta.</p>
+</section>
+
+<div class="content">
+
+<!-- QUICK START -->
+<div class="quickstart">
+  <div class="qs-label">Quick Start</div>
+  <code>
+    <span class="comment"># Get Bitcoin's rating</span><br>
+    <span class="method">curl</span> <span class="url">https://zarq.ai/v1/crypto/rating/bitcoin</span><br><br>
+    <span class="comment"># All 198 token ratings</span><br>
+    <span class="method">curl</span> <span class="url">https://zarq.ai/v1/crypto/ratings</span><br><br>
+    <span class="comment"># Current trading signals</span><br>
+    <span class="method">curl</span> <span class="url">https://zarq.ai/v1/crypto/signals</span><br><br>
+    <span class="comment"># Active risk alerts</span><br>
+    <span class="method">curl</span> <span class="url">https://zarq.ai/v1/crypto/early-warning</span>
+  </code>
+</div>
+
+<!-- BASE INFO -->
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1px;background:var(--gray-200);border:1px solid var(--gray-200);margin-bottom:48px">
+  <div style="background:var(--white);padding:24px">
+    <div style="font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray-500)">Base URL</div>
+    <div style="font-family:var(--mono);font-size:15px;margin-top:4px">https://zarq.ai</div>
+  </div>
+  <div style="background:var(--white);padding:24px">
+    <div style="font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray-500)">Auth</div>
+    <div style="font-family:var(--mono);font-size:15px;margin-top:4px">None required</div>
+  </div>
+  <div style="background:var(--white);padding:24px">
+    <div style="font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray-500)">Rate Limit</div>
+    <div style="font-family:var(--mono);font-size:15px;margin-top:4px">1,000 / day</div>
+  </div>
+  <div style="background:var(--white);padding:24px">
+    <div style="font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray-500)">Format</div>
+    <div style="font-family:var(--mono);font-size:15px;margin-top:4px">JSON</div>
+  </div>
+</div>
+
+<!-- ═══ RATINGS ═══ -->
+<div class="section-label" style="margin-top:0;border-top:none;padding-top:0">Ratings</div>
+
+<div class="endpoint">
+  <div class="ep-header">
+    <span class="ep-method">GET</span>
+    <span class="ep-path">/v1/crypto/ratings</span>
+  </div>
+  <p class="ep-desc">All token ratings sorted by score. Returns rating, composite score, five pillar scores, risk level, and structural signals for every rated token.</p>
+  <div class="ep-tag">198 tokens</div>
+  <div class="response-block"><pre>{
+  <span class="key">"data"</span>: [
+    {
+      <span class="key">"token_id"</span>: <span class="val-str">"bitcoin"</span>,
+      <span class="key">"rating"</span>: <span class="val-str">"A2"</span>,
+      <span class="key">"score"</span>: <span class="val-num">74.52</span>,
+      <span class="key">"pillar_1"</span>: <span class="val-num">99.20</span>,
+      <span class="key">"pillar_2"</span>: <span class="val-num">32.84</span>,
+      <span class="key">"pillar_3"</span>: <span class="val-num">71.59</span>,
+      <span class="key">"pillar_4"</span>: <span class="val-num">86.50</span>,
+      <span class="key">"pillar_5"</span>: <span class="val-num">94.75</span>,
+      <span class="key">"risk_level"</span>: <span class="val-str">"WARNING"</span>,
+      <span class="key">"structural_weakness"</span>: <span class="val-num">2</span>,
+      <span class="key">"structural_strength"</span>: <span class="val-num">2</span>
+    }
+  ],
+  <span class="key">"meta"</span>: { <span class="key">"total"</span>: <span class="val-num">198</span>, <span class="key">"run_date"</span>: <span class="val-str">"2026-02-28"</span> }
+}</pre></div>
+  <a href="/v1/crypto/ratings" class="try-it">Try it live &rarr;</a>
+</div>
+
+<div class="endpoint">
+  <div class="ep-header">
+    <span class="ep-method">GET</span>
+    <span class="ep-path">/v1/crypto/rating/{token_id}</span>
+  </div>
+  <p class="ep-desc">Individual token rating with full detail including DtD score, crash probability, and pillar breakdown.</p>
+  <div class="params"><table>
+    <tr><th>Parameter</th><th>Type</th><th>Description</th></tr>
+    <tr><td><code>token_id</code></td><td>string</td><td>CoinGecko token ID, e.g. <code>bitcoin</code>, <code>ethereum</code>, <code>solana</code></td></tr>
+  </table></div>
+  <div class="response-block"><pre>{
+  <span class="key">"token_id"</span>: <span class="val-str">"bitcoin"</span>,
+  <span class="key">"rating"</span>: <span class="val-str">"A2"</span>,
+  <span class="key">"score"</span>: <span class="val-num">74.52</span>,
+  <span class="key">"pillars"</span>: {
+    <span class="key">"ecosystem"</span>: <span class="val-num">99.20</span>,
+    <span class="key">"contagion"</span>: <span class="val-num">32.84</span>,
+    <span class="key">"resilience"</span>: <span class="val-num">71.59</span>,
+    <span class="key">"fundamental"</span>: <span class="val-num">86.50</span>,
+    <span class="key">"rug_pull"</span>: <span class="val-num">94.75</span>
+  },
+  <span class="key">"dtd"</span>: <span class="val-num">3.03</span>,
+  <span class="key">"risk_level"</span>: <span class="val-str">"WARNING"</span>,
+  <span class="key">"crash_probability"</span>: <span class="val-num">8.2</span>
+}</pre></div>
+  <a href="/v1/crypto/rating/bitcoin" class="try-it">Try it live &rarr;</a>
+</div>
+
+<!-- ═══ RISK INTELLIGENCE ═══ -->
+<div class="section-label">Risk Intelligence</div>
+
+<div class="endpoint">
+  <div class="ep-header">
+    <span class="ep-method">GET</span>
+    <span class="ep-path">/v1/crypto/ndd/{token_id}</span>
+  </div>
+  <p class="ep-desc">Distance-to-Default time series for a token. DtD measures standard deviations from the default barrier, adapted from the Merton structural credit model.</p>
+  <div class="params"><table>
+    <tr><th>Parameter</th><th>Type</th><th>Description</th></tr>
+    <tr><td><code>token_id</code></td><td>string</td><td>CoinGecko token ID</td></tr>
+  </table></div>
+  <div style="margin:16px 0">
+    <div class="scale-grid">
+      <div class="scale-item"><div class="scale-rating" style="color:#16a34a">&gt; 3.0</div><div class="scale-label">Safe</div></div>
+      <div class="scale-item"><div class="scale-rating" style="color:var(--gray-600)">2.0–3.0</div><div class="scale-label">Watch</div></div>
+      <div class="scale-item"><div class="scale-rating" style="color:var(--warm)">1.0–2.0</div><div class="scale-label">Warning</div></div>
+      <div class="scale-item"><div class="scale-rating" style="color:#dc2626">&lt; 1.0</div><div class="scale-label">Danger</div></div>
+    </div>
+  </div>
+  <a href="/v1/crypto/ndd/bitcoin" class="try-it">Try it live &rarr;</a>
+</div>
+
+<div class="endpoint">
+  <div class="ep-header">
+    <span class="ep-method">GET</span>
+    <span class="ep-path">/v1/crypto/early-warning</span>
+  </div>
+  <p class="ep-desc">Active risk alerts across all rated tokens. Returns tokens with deteriorating DtD, elevated crash probability, or structural weakness signals.</p>
+  <a href="/v1/crypto/early-warning" class="try-it">Try it live &rarr;</a>
+</div>
+
+<!-- ═══ SIGNALS ═══ -->
+<div class="section-label">Trading Signals</div>
+
+<div class="endpoint">
+  <div class="ep-header">
+    <span class="ep-method">GET</span>
+    <span class="ep-path">/v1/crypto/signals</span>
+  </div>
+  <p class="ep-desc">Current month's conviction-ranked long/short pairs. Generated from rating spreads and DtD differentials within investment-grade tokens. Backtested Sharpe: 2.82.</p>
+  <div class="response-block"><pre>{
+  <span class="key">"pairs"</span>: [
+    {
+      <span class="key">"rank"</span>: <span class="val-num">1</span>,
+      <span class="key">"long"</span>: <span class="val-str">"the-open-network"</span>,
+      <span class="key">"short"</span>: <span class="val-str">"zcash"</span>,
+      <span class="key">"conviction"</span>: <span class="val-num">0.886</span>
+    }
+  ],
+  <span class="key">"regime"</span>: <span class="val-str">"BEAR"</span>,
+  <span class="key">"month"</span>: <span class="val-str">"2026-03"</span>
+}</pre></div>
+  <a href="/v1/crypto/signals" class="try-it">Try it live &rarr;</a>
+</div>
+
+<!-- ═══ TRUST SCORES ═══ -->
+<div class="section-label">Trust Scores (Entity Detail)</div>
+
+<div class="endpoint">
+  <div class="ep-header">
+    <span class="ep-method">GET</span>
+    <span class="ep-path">/api/v1/crypto/trust-score/{entity_type}/{id}</span>
+  </div>
+  <p class="ep-desc">Detailed trust score for any crypto entity. Five-dimensional breakdown with Security, Compliance, Maintenance, Popularity, and Ecosystem scores.</p>
+  <div class="params"><table>
+    <tr><th>Parameter</th><th>Type</th><th>Options</th></tr>
+    <tr><td><code>entity_type</code></td><td>string</td><td><code>token</code>, <code>exchange</code>, <code>defi</code></td></tr>
+    <tr><td><code>id</code></td><td>string</td><td>Entity ID, e.g. <code>bitcoin</code>, <code>binance</code>, <code>aave-v3</code></td></tr>
+  </table></div>
+  <div class="response-block"><pre>{
+  <span class="key">"entity_type"</span>: <span class="val-str">"token"</span>,
+  <span class="key">"id"</span>: <span class="val-str">"bitcoin"</span>,
+  <span class="key">"name"</span>: <span class="val-str">"Bitcoin"</span>,
+  <span class="key">"trust_score"</span>: <span class="val-num">74.52</span>,
+  <span class="key">"trust_grade"</span>: <span class="val-str">"A2"</span>,
+  <span class="key">"dimensions"</span>: {
+    <span class="key">"security"</span>: <span class="val-num">99.20</span>,
+    <span class="key">"compliance"</span>: <span class="val-num">32.84</span>,
+    <span class="key">"maintenance"</span>: <span class="val-num">71.59</span>,
+    <span class="key">"popularity"</span>: <span class="val-num">86.50</span>,
+    <span class="key">"ecosystem"</span>: <span class="val-num">94.75</span>
+  },
+  <span class="key">"source"</span>: <span class="val-str">"zarq.ai"</span>
+}</pre></div>
+  <a href="/api/v1/crypto/trust-score/token/bitcoin" class="try-it">Try token &rarr;</a>&nbsp;&nbsp;
+  <a href="/api/v1/crypto/trust-score/exchange/binance" class="try-it">Try exchange &rarr;</a>&nbsp;&nbsp;
+  <a href="/api/v1/crypto/trust-score/defi/aave-v3" class="try-it">Try DeFi &rarr;</a>
+</div>
+
+<!-- ═══ PAPER TRADING ═══ -->
+<div class="section-label">Paper Trading</div>
+
+<div class="endpoint">
+  <div class="ep-header">
+    <span class="ep-method">GET</span>
+    <span class="ep-path">/v1/paper-trading/portfolios</span>
+  </div>
+  <p class="ep-desc">All paper trading portfolios with current NAV and performance metrics.</p>
+  <a href="/v1/paper-trading/portfolios" class="try-it">Try it live &rarr;</a>
+</div>
+
+<div class="endpoint">
+  <div class="ep-header">
+    <span class="ep-method">GET</span>
+    <span class="ep-path">/v1/paper-trading/audit</span>
+  </div>
+  <p class="ep-desc">SHA-256 hash-chained audit trail. Every daily NAV snapshot is cryptographically linked to the previous day for independent verification.</p>
+  <a href="/v1/paper-trading/audit" class="try-it">Try it live &rarr;</a>
+</div>
+
+<!-- ═══ BULK DATA ═══ -->
+<div class="section-label">Bulk Data</div>
+
+<div class="endpoint">
+  <div class="ep-header">
+    <span class="ep-method">GET</span>
+    <span class="ep-path">/data/crypto-trust-scores.jsonl.gz</span>
+  </div>
+  <p class="ep-desc">All trust scores as gzipped JSONL. One line per entity. Updated daily.</p>
+</div>
+
+<div class="endpoint">
+  <div class="ep-header">
+    <span class="ep-method">GET</span>
+    <span class="ep-path">/data/crypto-trust-summary.json</span>
+  </div>
+  <p class="ep-desc">Summary statistics: grade distribution, average scores by category, coverage counts.</p>
+</div>
+
+<!-- ═══ RATING SCALE ═══ -->
+<div class="section-label">Rating Scale</div>
+
+<div class="scale-grid">
+  <div class="scale-item"><div class="scale-rating">Aaa</div><div class="scale-range">95–100</div><div class="scale-label">Highest quality</div></div>
+  <div class="scale-item"><div class="scale-rating">Aa</div><div class="scale-range">80–95</div><div class="scale-label">High quality</div></div>
+  <div class="scale-item"><div class="scale-rating">A</div><div class="scale-range">65–80</div><div class="scale-label">Upper medium</div></div>
+  <div class="scale-item"><div class="scale-rating">Baa</div><div class="scale-range">50–65</div><div class="scale-label">Medium grade</div></div>
+  <div class="scale-item"><div class="scale-rating">Ba</div><div class="scale-range">35–50</div><div class="scale-label">Speculative</div></div>
+  <div class="scale-item"><div class="scale-rating">B</div><div class="scale-range">20–35</div><div class="scale-label">Highly spec.</div></div>
+  <div class="scale-item"><div class="scale-rating">Caa–C</div><div class="scale-range">5–20</div><div class="scale-label">Substantial risk</div></div>
+  <div class="scale-item"><div class="scale-rating">D</div><div class="scale-range">0–5</div><div class="scale-label">In default</div></div>
+</div>
+
+<p style="font-family:var(--mono);font-size:11px;color:var(--gray-500);margin-top:16px">Investment grade: Baa3 and above · Speculative grade: Ba1 and below · Each tier has three notches (e.g. A1, A2, A3)</p>
+
+<!-- ═══ LLM INTEGRATION ═══ -->
+<div class="section-label">LLM &amp; AI Agent Integration</div>
+
+<div style="margin-bottom:32px">
+  <p class="ep-desc">ZARQ is built machine-first. Every endpoint returns structured JSON optimized for LLM context windows and automated decision pipelines.</p>
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1px;background:var(--gray-200);border:1px solid var(--gray-200)">
+  <div style="background:var(--white);padding:24px">
+    <div style="font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray-500);margin-bottom:8px">llms.txt</div>
+    <p style="font-size:14px;color:var(--gray-600);margin-bottom:8px">Compact site summary for LLM crawlers. Follows the llms.txt standard.</p>
+    <a href="/llms.txt" class="try-it">View &rarr;</a>
+  </div>
+  <div style="background:var(--white);padding:24px">
+    <div style="font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray-500);margin-bottom:8px">llms-full.txt</div>
+    <p style="font-size:14px;color:var(--gray-600);margin-bottom:8px">Extended context with methodology, rating scale, and all endpoints.</p>
+    <a href="/llms-full.txt" class="try-it">View &rarr;</a>
+  </div>
+  <div style="background:var(--white);padding:24px">
+    <div style="font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray-500);margin-bottom:8px">OpenAPI Spec</div>
+    <p style="font-size:14px;color:var(--gray-600);margin-bottom:8px">Machine-readable API specification. 86 documented endpoints.</p>
+    <a href="/openapi.json" class="try-it">View &rarr;</a>
+  </div>
+</div>
+
+</div>
+
+<footer>
+  <div class="foot-left">&copy; 2026 ZARQ &middot; Crypto Intelligence</div>
+  <div class="foot-right">
+    <a href="/">Home</a>
+    <a href="/scan">Scan</a>
+    <a href="/crypto">Ratings</a>
+    <a href="/tokens">Token Ratings</a>
+    <a href="/track-record">Track Record</a>
+        <a href="/paper-trading">Paper Trading</a>
+    <a href="/paper-trading">Paper Trading</a>
+    <a href="https://nerq.ai">NERQ (AI Agents)</a>
+  </div>
+</footer>
+<div class="site-disclaimer">
+<p><strong>Disclaimer</strong> &mdash; ZARQ provides data-driven crypto intelligence for informational and educational purposes only. Nothing on this website constitutes financial advice, investment advice, trading advice, or any other form of professional advice. ZARQ does not recommend buying, selling, or holding any cryptocurrency or financial instrument.</p>
+<p>Trust ratings, Distance-to-Default (DtD) scores, crash probabilities, trading signals, and all other data are derived from quantitative models and may contain errors, lag behind real-time conditions, or fail to predict future outcomes. Past performance, whether backtested or live, is not indicative of future results. All backtested results are hypothetical and do not represent actual trading.</p>
+<p>Crypto assets are highly volatile, speculative, and may result in total loss of invested capital. You should conduct your own research (DYOR) and consult a qualified, licensed financial advisor before making any investment decisions. ZARQ is not registered as a broker-dealer, investment advisor, or financial institution in any jurisdiction.</p>
+<p>By using this website, you acknowledge that you bear sole responsibility for your own investment decisions and that ZARQ, its founders, contributors, and affiliates accept no liability for any losses, damages, or consequences arising from the use of information provided herein.</p>
+<p>This website may not comply with regulatory requirements in all jurisdictions. Users are responsible for ensuring that their use of ZARQ data complies with local laws and regulations, including but not limited to MiFID II (EU), the Securities Act (US), MAS guidelines (Singapore), and FCA rules (UK).</p>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,712 @@
+[
+  {
+    "a": "olympus",
+    "b": "story-2",
+    "diff": 44.0,
+    "a_name": "Olympus",
+    "b_name": "Story",
+    "a_vs": 72.3,
+    "b_vs": 28.3,
+    "a_grade": "A",
+    "b_grade": "D"
+  },
+  {
+    "a": "pax-gold",
+    "b": "story-2",
+    "diff": 43.4,
+    "a_name": "PAX Gold",
+    "b_name": "Story",
+    "a_vs": 71.7,
+    "b_vs": 28.3,
+    "a_grade": "A",
+    "b_grade": "D"
+  },
+  {
+    "a": "rain",
+    "b": "story-2",
+    "diff": 41.4,
+    "a_name": "Rain",
+    "b_name": "Story",
+    "a_vs": 69.7,
+    "b_vs": 28.3,
+    "a_grade": "B",
+    "b_grade": "D"
+  },
+  {
+    "a": "humanity",
+    "b": "olympus",
+    "diff": 41.3,
+    "a_name": "Humanity",
+    "b_name": "Olympus",
+    "a_vs": 31.0,
+    "b_vs": 72.3,
+    "a_grade": "D",
+    "b_grade": "A"
+  },
+  {
+    "a": "a7a5",
+    "b": "story-2",
+    "diff": 41.2,
+    "a_name": "A7A5",
+    "b_name": "Story",
+    "a_vs": 69.5,
+    "b_vs": 28.3,
+    "a_grade": "B",
+    "b_grade": "D"
+  },
+  {
+    "a": "layerzero",
+    "b": "olympus",
+    "diff": 40.9,
+    "a_name": "LayerZero",
+    "b_name": "Olympus",
+    "a_vs": 31.4,
+    "b_vs": 72.3,
+    "a_grade": "D",
+    "b_grade": "A"
+  },
+  {
+    "a": "pax-gold",
+    "b": "humanity",
+    "diff": 40.7,
+    "a_name": "PAX Gold",
+    "b_name": "Humanity",
+    "a_vs": 71.7,
+    "b_vs": 31.0,
+    "a_grade": "A",
+    "b_grade": "D"
+  },
+  {
+    "a": "lighter",
+    "b": "olympus",
+    "diff": 40.7,
+    "a_name": "Lighter",
+    "b_name": "Olympus",
+    "a_vs": 31.6,
+    "b_vs": 72.3,
+    "a_grade": "D",
+    "b_grade": "A"
+  },
+  {
+    "a": "ethereum",
+    "b": "story-2",
+    "diff": 40.5,
+    "a_name": "Ethereum",
+    "b_name": "Story",
+    "a_vs": 68.8,
+    "b_vs": 28.3,
+    "a_grade": "B",
+    "b_grade": "D"
+  },
+  {
+    "a": "pax-gold",
+    "b": "layerzero",
+    "diff": 40.3,
+    "a_name": "PAX Gold",
+    "b_name": "LayerZero",
+    "a_vs": 71.7,
+    "b_vs": 31.4,
+    "a_grade": "A",
+    "b_grade": "D"
+  },
+  {
+    "a": "pax-gold",
+    "b": "lighter",
+    "diff": 40.1,
+    "a_name": "PAX Gold",
+    "b_name": "Lighter",
+    "a_vs": 71.7,
+    "b_vs": 31.6,
+    "a_grade": "A",
+    "b_grade": "D"
+  },
+  {
+    "a": "olympus",
+    "b": "monad",
+    "diff": 39.8,
+    "a_name": "Olympus",
+    "b_name": "Monad",
+    "a_vs": 72.3,
+    "b_vs": 32.5,
+    "a_grade": "A",
+    "b_grade": "D"
+  },
+  {
+    "a": "pax-gold",
+    "b": "monad",
+    "diff": 39.2,
+    "a_name": "PAX Gold",
+    "b_name": "Monad",
+    "a_vs": 71.7,
+    "b_vs": 32.5,
+    "a_grade": "A",
+    "b_grade": "D"
+  },
+  {
+    "a": "rain",
+    "b": "humanity",
+    "diff": 38.7,
+    "a_name": "Rain",
+    "b_name": "Humanity",
+    "a_vs": 69.7,
+    "b_vs": 31.0,
+    "a_grade": "B",
+    "b_grade": "D"
+  },
+  {
+    "a": "humanity",
+    "b": "a7a5",
+    "diff": 38.5,
+    "a_name": "Humanity",
+    "b_name": "A7A5",
+    "a_vs": 31.0,
+    "b_vs": 69.5,
+    "a_grade": "D",
+    "b_grade": "B"
+  },
+  {
+    "a": "rain",
+    "b": "layerzero",
+    "diff": 38.3,
+    "a_name": "Rain",
+    "b_name": "LayerZero",
+    "a_vs": 69.7,
+    "b_vs": 31.4,
+    "a_grade": "B",
+    "b_grade": "D"
+  },
+  {
+    "a": "rain",
+    "b": "lighter",
+    "diff": 38.1,
+    "a_name": "Rain",
+    "b_name": "Lighter",
+    "a_vs": 69.7,
+    "b_vs": 31.6,
+    "a_grade": "B",
+    "b_grade": "D"
+  },
+  {
+    "a": "layerzero",
+    "b": "a7a5",
+    "diff": 38.1,
+    "a_name": "LayerZero",
+    "b_name": "A7A5",
+    "a_vs": 31.4,
+    "b_vs": 69.5,
+    "a_grade": "D",
+    "b_grade": "B"
+  },
+  {
+    "a": "lighter",
+    "b": "a7a5",
+    "diff": 37.9,
+    "a_name": "Lighter",
+    "b_name": "A7A5",
+    "a_vs": 31.6,
+    "b_vs": 69.5,
+    "a_grade": "D",
+    "b_grade": "B"
+  },
+  {
+    "a": "ethereum",
+    "b": "humanity",
+    "diff": 37.8,
+    "a_name": "Ethereum",
+    "b_name": "Humanity",
+    "a_vs": 68.8,
+    "b_vs": 31.0,
+    "a_grade": "B",
+    "b_grade": "D"
+  },
+  {
+    "a": "ethereum",
+    "b": "layerzero",
+    "diff": 37.4,
+    "a_name": "Ethereum",
+    "b_name": "LayerZero",
+    "a_vs": 68.8,
+    "b_vs": 31.4,
+    "a_grade": "B",
+    "b_grade": "D"
+  },
+  {
+    "a": "rain",
+    "b": "monad",
+    "diff": 37.2,
+    "a_name": "Rain",
+    "b_name": "Monad",
+    "a_vs": 69.7,
+    "b_vs": 32.5,
+    "a_grade": "B",
+    "b_grade": "D"
+  },
+  {
+    "a": "ethereum",
+    "b": "lighter",
+    "diff": 37.2,
+    "a_name": "Ethereum",
+    "b_name": "Lighter",
+    "a_vs": 68.8,
+    "b_vs": 31.6,
+    "a_grade": "B",
+    "b_grade": "D"
+  },
+  {
+    "a": "monad",
+    "b": "a7a5",
+    "diff": 37.0,
+    "a_name": "Monad",
+    "b_name": "A7A5",
+    "a_vs": 32.5,
+    "b_vs": 69.5,
+    "a_grade": "D",
+    "b_grade": "B"
+  },
+  {
+    "a": "ethereum",
+    "b": "monad",
+    "diff": 36.3,
+    "a_name": "Ethereum",
+    "b_name": "Monad",
+    "a_vs": 68.8,
+    "b_vs": 32.5,
+    "a_grade": "B",
+    "b_grade": "D"
+  },
+  {
+    "a": "binancecoin",
+    "b": "pump-fun",
+    "diff": 36.1,
+    "a_name": "BNB",
+    "b_name": "Pump.fun",
+    "a_vs": 68.7,
+    "b_vs": 32.6,
+    "a_grade": "B",
+    "b_grade": "D"
+  },
+  {
+    "a": "binancecoin",
+    "b": "zksync",
+    "diff": 35.7,
+    "a_name": "BNB",
+    "b_name": "ZKsync",
+    "a_vs": 68.7,
+    "b_vs": 33.0,
+    "a_grade": "B",
+    "b_grade": "D"
+  },
+  {
+    "a": "binancecoin",
+    "b": "plasma",
+    "diff": 35.6,
+    "a_name": "BNB",
+    "b_name": "Plasma",
+    "a_vs": 68.7,
+    "b_vs": 33.1,
+    "a_grade": "B",
+    "b_grade": "D"
+  },
+  {
+    "a": "pump-fun",
+    "b": "falcon-finance-ff",
+    "diff": 35.6,
+    "a_name": "Pump.fun",
+    "b_name": "Falcon Finance",
+    "a_vs": 32.6,
+    "b_vs": 68.2,
+    "a_grade": "D",
+    "b_grade": "B"
+  },
+  {
+    "a": "binancecoin",
+    "b": "pudgy-penguins",
+    "diff": 35.2,
+    "a_name": "BNB",
+    "b_name": "Pudgy Penguins",
+    "a_vs": 68.7,
+    "b_vs": 33.5,
+    "a_grade": "B",
+    "b_grade": "D"
+  },
+  {
+    "a": "binancecoin",
+    "b": "axie-infinity",
+    "diff": 35.2,
+    "a_name": "BNB",
+    "b_name": "Axie Infinity",
+    "a_vs": 68.7,
+    "b_vs": 33.5,
+    "a_grade": "B",
+    "b_grade": "D"
+  },
+  {
+    "a": "zksync",
+    "b": "falcon-finance-ff",
+    "diff": 35.2,
+    "a_name": "ZKsync",
+    "b_name": "Falcon Finance",
+    "a_vs": 33.0,
+    "b_vs": 68.2,
+    "a_grade": "D",
+    "b_grade": "B"
+  },
+  {
+    "a": "falcon-finance-ff",
+    "b": "plasma",
+    "diff": 35.1,
+    "a_name": "Falcon Finance",
+    "b_name": "Plasma",
+    "a_vs": 68.2,
+    "b_vs": 33.1,
+    "a_grade": "B",
+    "b_grade": "D"
+  },
+  {
+    "a": "pudgy-penguins",
+    "b": "falcon-finance-ff",
+    "diff": 34.7,
+    "a_name": "Pudgy Penguins",
+    "b_name": "Falcon Finance",
+    "a_vs": 33.5,
+    "b_vs": 68.2,
+    "a_grade": "D",
+    "b_grade": "B"
+  },
+  {
+    "a": "falcon-finance-ff",
+    "b": "axie-infinity",
+    "diff": 34.7,
+    "a_name": "Falcon Finance",
+    "b_name": "Axie Infinity",
+    "a_vs": 68.2,
+    "b_vs": 33.5,
+    "a_grade": "B",
+    "b_grade": "D"
+  },
+  {
+    "a": "leo-token",
+    "b": "pump-fun",
+    "diff": 33.7,
+    "a_name": "LEO Token",
+    "b_name": "Pump.fun",
+    "a_vs": 66.3,
+    "b_vs": 32.6,
+    "a_grade": "B",
+    "b_grade": "D"
+  },
+  {
+    "a": "zksync",
+    "b": "leo-token",
+    "diff": 33.3,
+    "a_name": "ZKsync",
+    "b_name": "LEO Token",
+    "a_vs": 33.0,
+    "b_vs": 66.3,
+    "a_grade": "D",
+    "b_grade": "B"
+  },
+  {
+    "a": "leo-token",
+    "b": "plasma",
+    "diff": 33.2,
+    "a_name": "LEO Token",
+    "b_name": "Plasma",
+    "a_vs": 66.3,
+    "b_vs": 33.1,
+    "a_grade": "B",
+    "b_grade": "D"
+  },
+  {
+    "a": "arbitrum",
+    "b": "pump-fun",
+    "diff": 32.9,
+    "a_name": "Arbitrum",
+    "b_name": "Pump.fun",
+    "a_vs": 65.5,
+    "b_vs": 32.6,
+    "a_grade": "B",
+    "b_grade": "D"
+  },
+  {
+    "a": "leo-token",
+    "b": "pudgy-penguins",
+    "diff": 32.8,
+    "a_name": "LEO Token",
+    "b_name": "Pudgy Penguins",
+    "a_vs": 66.3,
+    "b_vs": 33.5,
+    "a_grade": "B",
+    "b_grade": "D"
+  },
+  {
+    "a": "leo-token",
+    "b": "axie-infinity",
+    "diff": 32.8,
+    "a_name": "LEO Token",
+    "b_name": "Axie Infinity",
+    "a_vs": 66.3,
+    "b_vs": 33.5,
+    "a_grade": "B",
+    "b_grade": "D"
+  },
+  {
+    "a": "arbitrum",
+    "b": "zksync",
+    "diff": 32.5,
+    "a_name": "Arbitrum",
+    "b_name": "ZKsync",
+    "a_vs": 65.5,
+    "b_vs": 33.0,
+    "a_grade": "B",
+    "b_grade": "D"
+  },
+  {
+    "a": "arbitrum",
+    "b": "plasma",
+    "diff": 32.4,
+    "a_name": "Arbitrum",
+    "b_name": "Plasma",
+    "a_vs": 65.5,
+    "b_vs": 33.1,
+    "a_grade": "B",
+    "b_grade": "D"
+  },
+  {
+    "a": "pump-fun",
+    "b": "flying-tulip",
+    "diff": 32.1,
+    "a_name": "Pump.fun",
+    "b_name": "Flying Tulip",
+    "a_vs": 32.6,
+    "b_vs": 64.7,
+    "a_grade": "D",
+    "b_grade": "B"
+  },
+  {
+    "a": "arbitrum",
+    "b": "pudgy-penguins",
+    "diff": 32.0,
+    "a_name": "Arbitrum",
+    "b_name": "Pudgy Penguins",
+    "a_vs": 65.5,
+    "b_vs": 33.5,
+    "a_grade": "B",
+    "b_grade": "D"
+  },
+  {
+    "a": "arbitrum",
+    "b": "axie-infinity",
+    "diff": 32.0,
+    "a_name": "Arbitrum",
+    "b_name": "Axie Infinity",
+    "a_vs": 65.5,
+    "b_vs": 33.5,
+    "a_grade": "B",
+    "b_grade": "D"
+  },
+  {
+    "a": "zksync",
+    "b": "flying-tulip",
+    "diff": 31.7,
+    "a_name": "ZKsync",
+    "b_name": "Flying Tulip",
+    "a_vs": 33.0,
+    "b_vs": 64.7,
+    "a_grade": "D",
+    "b_grade": "B"
+  },
+  {
+    "a": "flying-tulip",
+    "b": "plasma",
+    "diff": 31.6,
+    "a_name": "Flying Tulip",
+    "b_name": "Plasma",
+    "a_vs": 64.7,
+    "b_vs": 33.1,
+    "a_grade": "B",
+    "b_grade": "D"
+  },
+  {
+    "a": "pudgy-penguins",
+    "b": "flying-tulip",
+    "diff": 31.2,
+    "a_name": "Pudgy Penguins",
+    "b_name": "Flying Tulip",
+    "a_vs": 33.5,
+    "b_vs": 64.7,
+    "a_grade": "D",
+    "b_grade": "B"
+  },
+  {
+    "a": "flying-tulip",
+    "b": "axie-infinity",
+    "diff": 31.2,
+    "a_name": "Flying Tulip",
+    "b_name": "Axie Infinity",
+    "a_vs": 64.7,
+    "b_vs": 33.5,
+    "a_grade": "B",
+    "b_grade": "D"
+  },
+  {
+    "slug": "ethereum-vs-usds",
+    "token_a": "ethereum",
+    "token_b": "usds",
+    "name_a": "ethereum",
+    "name_b": "usds",
+    "generated_at": "2026-03-12T14:48:41.486065+00:00"
+  },
+  {
+    "slug": "ethereum-vs-the-sandbox",
+    "token_a": "ethereum",
+    "token_b": "the-sandbox",
+    "name_a": "ethereum",
+    "name_b": "the-sandbox",
+    "generated_at": "2026-03-12T14:48:41.486074+00:00"
+  },
+  {
+    "slug": "ethereum-vs-terra-luna",
+    "token_a": "ethereum",
+    "token_b": "terra-luna",
+    "name_a": "ethereum",
+    "name_b": "terra-luna",
+    "generated_at": "2026-03-12T14:48:41.486077+00:00"
+  },
+  {
+    "slug": "ethereum-vs-telcoin",
+    "token_a": "ethereum",
+    "token_b": "telcoin",
+    "name_a": "ethereum",
+    "name_b": "telcoin",
+    "generated_at": "2026-03-12T14:48:41.486080+00:00"
+  },
+  {
+    "slug": "ethereum-vs-swapr",
+    "token_a": "ethereum",
+    "token_b": "swapr",
+    "name_a": "ethereum",
+    "name_b": "Swapr",
+    "generated_at": "2026-03-12T14:48:41.486082+00:00"
+  },
+  {
+    "slug": "ethereum-vs-sui",
+    "token_a": "ethereum",
+    "token_b": "sui",
+    "name_a": "ethereum",
+    "name_b": "sui",
+    "generated_at": "2026-03-12T14:48:41.486084+00:00"
+  },
+  {
+    "slug": "ethereum-vs-siren-2",
+    "token_a": "ethereum",
+    "token_b": "siren-2",
+    "name_a": "ethereum",
+    "name_b": "siren-2",
+    "generated_at": "2026-03-12T14:48:41.486085+00:00"
+  },
+  {
+    "slug": "ethereum-vs-polkadot",
+    "token_a": "ethereum",
+    "token_b": "polkadot",
+    "name_a": "ethereum",
+    "name_b": "polkadot",
+    "generated_at": "2026-03-12T14:48:41.486087+00:00"
+  },
+  {
+    "slug": "ethereum-vs-ozone-chain",
+    "token_a": "ethereum",
+    "token_b": "ozone-chain",
+    "name_a": "ethereum",
+    "name_b": "ozone-chain",
+    "generated_at": "2026-03-12T14:48:41.486089+00:00"
+  },
+  {
+    "slug": "ethereum-vs-listen-rs",
+    "token_a": "ethereum",
+    "token_b": "listen-rs",
+    "name_a": "ethereum",
+    "name_b": "listen-rs",
+    "generated_at": "2026-03-12T14:48:41.486091+00:00"
+  },
+  {
+    "slug": "united-states-oil-fund-ondo-tokenized-vs-regent",
+    "token_a": "united-states-oil-fund-ondo-tokenized",
+    "token_b": "regent",
+    "name_a": "United States Oil Fund (Ondo Tokenized)",
+    "name_b": "REGENT",
+    "generated_at": "2026-03-16T04:00:01.493150+00:00"
+  },
+  {
+    "slug": "united-states-oil-fund-ondo-tokenized-vs-coinmarketcap-20-index-dtf",
+    "token_a": "united-states-oil-fund-ondo-tokenized",
+    "token_b": "coinmarketcap-20-index-dtf",
+    "name_a": "United States Oil Fund (Ondo Tokenized)",
+    "name_b": "CoinMarketCap 20 Index DTF",
+    "generated_at": "2026-03-16T04:00:01.493159+00:00"
+  },
+  {
+    "slug": "united-states-oil-fund-ondo-tokenized-vs-realio-network",
+    "token_a": "united-states-oil-fund-ondo-tokenized",
+    "token_b": "realio-network",
+    "name_a": "United States Oil Fund (Ondo Tokenized)",
+    "name_b": "Realio Network Token",
+    "generated_at": "2026-03-16T04:00:01.493162+00:00"
+  },
+  {
+    "slug": "united-states-oil-fund-ondo-tokenized-vs-xiaobai-2",
+    "token_a": "united-states-oil-fund-ondo-tokenized",
+    "token_b": "xiaobai-2",
+    "name_a": "United States Oil Fund (Ondo Tokenized)",
+    "name_b": "\u5c0f\u767d",
+    "generated_at": "2026-03-16T04:00:01.493164+00:00"
+  },
+  {
+    "slug": "united-states-oil-fund-ondo-tokenized-vs-psyopanime",
+    "token_a": "united-states-oil-fund-ondo-tokenized",
+    "token_b": "psyopanime",
+    "name_a": "United States Oil Fund (Ondo Tokenized)",
+    "name_b": "PsyopAnime",
+    "generated_at": "2026-03-16T04:00:01.493166+00:00"
+  },
+  {
+    "slug": "united-states-oil-fund-ondo-tokenized-vs-kled-ai",
+    "token_a": "united-states-oil-fund-ondo-tokenized",
+    "token_b": "kled-ai",
+    "name_a": "United States Oil Fund (Ondo Tokenized)",
+    "name_b": "Kled AI",
+    "generated_at": "2026-03-16T04:00:01.493168+00:00"
+  },
+  {
+    "slug": "united-states-oil-fund-ondo-tokenized-vs-bitrecs",
+    "token_a": "united-states-oil-fund-ondo-tokenized",
+    "token_b": "bitrecs",
+    "name_a": "United States Oil Fund (Ondo Tokenized)",
+    "name_b": "Bitrecs",
+    "generated_at": "2026-03-16T04:00:01.493169+00:00"
+  },
+  {
+    "slug": "united-states-oil-fund-ondo-tokenized-vs-eternalai",
+    "token_a": "united-states-oil-fund-ondo-tokenized",
+    "token_b": "eternalai",
+    "name_a": "United States Oil Fund (Ondo Tokenized)",
+    "name_b": "EternalAI",
+    "generated_at": "2026-03-16T04:00:01.493171+00:00"
+  },
+  {
+    "slug": "united-states-oil-fund-ondo-tokenized-vs-asmatch",
+    "token_a": "united-states-oil-fund-ondo-tokenized",
+    "token_b": "asmatch",
+    "name_a": "United States Oil Fund (Ondo Tokenized)",
+    "name_b": "AsMatch",
+    "generated_at": "2026-03-16T04:00:01.493173+00:00"
+  },
+  {
+    "slug": "united-states-oil-fund-ondo-tokenized-vs-ambervibe",
+    "token_a": "united-states-oil-fund-ondo-tokenized",
+    "token_b": "ambervibe",
+    "name_a": "United States Oil Fund (Ondo Tokenized)",
+    "name_b": "AmberVibe",
+    "generated_at": "2026-03-16T04:00:01.493175+00:00"
+  }
+]

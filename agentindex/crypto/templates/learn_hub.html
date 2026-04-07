@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Learn Crypto Risk — Guides &amp; Education — ZARQ</title>
+<meta name="description" content="Learn how to assess crypto risk with ZARQ's educational guides. DYOR checklist, crash probability explained, trust scores, DeFi risk assessment, and more.">
+<link rel="canonical" href="https://zarq.ai/learn">
+<meta property="og:title" content="Learn Crypto Risk — Guides &amp; Education — ZARQ">
+<meta property="og:description" content="Crypto risk education: how to check if a token is safe, understand crash probability, DeFi risk checklists, and more.">
+<meta property="og:url" content="https://zarq.ai/learn">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="ZARQ">
+<meta name="twitter:card" content="summary">
+<meta name="robots" content="index, follow">
+
+<script type="application/ld+json">
+{{ itemlist_jsonld }}
+</script>
+<script type="application/ld+json">
+{{ breadcrumb_jsonld }}
+</script>
+
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+{{ zarq_css }}
+
+.articles-grid { display: grid; grid-template-columns: 1fr; gap: 20px; margin: 32px 0; }
+.article-card { background: var(--gray-100); border: 1px solid var(--gray-200); padding: 32px; text-decoration: none; color: inherit; transition: border-color 0.2s; display: block; }
+.article-card:hover { border-color: var(--warm); }
+.article-card .card-num { font-family: var(--mono); font-size: 11px; color: var(--warm); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
+.article-card .card-title { font-family: var(--serif); font-size: 1.3rem; color: var(--black); margin-bottom: 8px; line-height: 1.3; }
+.article-card .card-desc { font-family: var(--sans); font-size: 14px; color: var(--gray-600); line-height: 1.6; }
+.article-card .card-meta { font-family: var(--mono); font-size: 11px; color: var(--gray-500); margin-top: 12px; }
+
+.cta-box { background: var(--warm-light); border: 1px solid var(--warm); padding: 32px; margin: 48px 0; text-align: center; }
+.cta-box h3 { font-family: var(--serif); font-size: 1.3rem; color: var(--black); margin-bottom: 8px; }
+.cta-box p { font-family: var(--sans); font-size: 15px; color: var(--gray-700); margin-bottom: 16px; }
+.cta-btn { display: inline-block; font-family: var(--mono); font-size: 12px; letter-spacing: 0.05em; color: var(--warm); border: 1px solid var(--warm); padding: 10px 28px; text-decoration: none; transition: all 0.2s; }
+.cta-btn:hover { background: var(--warm); color: var(--white); }
+</style>
+</head>
+<body>
+{{ zarq_nav }}
+
+<div class="container">
+  <div class="breadcrumb">
+    <a href="/">ZARQ</a> / Learn
+  </div>
+
+  <h1>Learn Crypto Risk</h1>
+  <p class="subtitle">Educational guides on crypto risk assessment, crash prediction, and due diligence — with real data from ZARQ's analysis of {{ total_tokens }} tokens.</p>
+
+  <div class="ai-summary">ZARQ's Learn section provides educational content on crypto risk assessment using real data. Topics include how to check if a cryptocurrency is safe, understanding crash probability, Distance-to-Default methodology, DeFi risk checklists, and how ZARQ's trust scoring works. All guides include examples from ZARQ's live analysis of {{ total_tokens }} rated tokens.</div>
+
+  <div class="articles-grid">
+{{ article_cards }}
+  </div>
+
+  <div class="cta-box">
+    <h3>Check Any Token Now</h3>
+    <p>Use ZARQ's free API to get instant risk assessments for any of {{ total_tokens }} rated tokens.</p>
+    <a href="/tokens" class="cta-btn">Browse Token Ratings</a>
+  </div>
+</div>
+
+{{ zarq_footer }}
+</body>
+</html>

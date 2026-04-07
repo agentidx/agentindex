@@ -167,10 +167,10 @@ def _search_agents(args):
     params.append(limit)
 
     agents = _query(f"""
-        SELECT id, name, description, agent_type, risk_class, domains,
+        SELECT id, name, description, agent_type, risk_class,
                compliance_score, source, source_url, stars, downloads,
-               trust_score_v2, trust_grade, trust_risk_level
-        FROM agents
+               trust_score_v2, trust_grade
+        FROM entity_lookup
         WHERE {where} AND is_active = true
         ORDER BY trust_score_v2 DESC NULLS LAST, stars DESC NULLS LAST
         LIMIT %s
@@ -214,10 +214,10 @@ def _recommend_agent(args):
     params.append(limit)
 
     agents = _query(f"""
-        SELECT id, name, description, agent_type, risk_class, domains,
+        SELECT id, name, description, agent_type, risk_class,
                compliance_score, source, source_url, stars, downloads,
                trust_score_v2, trust_grade
-        FROM agents
+        FROM entity_lookup
         WHERE {where} AND is_active = true
         ORDER BY trust_score_v2 DESC NULLS LAST, stars DESC NULLS LAST
         LIMIT %s
@@ -256,12 +256,12 @@ def _check_compliance(args):
     jurisdictions = args.get("jurisdictions")
 
     agent = _query(
-        """SELECT id, name, description, agent_type, risk_class, domains,
+        """SELECT id, name, description, agent_type, risk_class,
                   compliance_score, eu_risk_class
-           FROM agents
-           WHERE id::text = %s OR name ILIKE %s OR name ILIKE %s
+           FROM entity_lookup
+           WHERE id::text = %s OR name ILIKE %s OR name_lower LIKE %s
            LIMIT 1""",
-        (query, query, f"%{query}%"),
+        (query, query, f"%{query.lower()}%"),
         fetchone=True
     )
 
@@ -321,10 +321,10 @@ def _compare_agents(args):
         agent = _query(
             """SELECT id, name, agent_type, risk_class, compliance_score,
                       stars, downloads, source
-               FROM agents
-               WHERE name ILIKE %s OR name ILIKE %s
+               FROM entity_lookup
+               WHERE name ILIKE %s OR name_lower LIKE %s
                LIMIT 1""",
-            (name, f"%{name}%"),
+            (name, f"%{name.lower()}%"),
             fetchone=True
         )
         if agent:
@@ -353,10 +353,10 @@ def _compare_agents(args):
 
 
 def _nerq_stats(args):
-    stats = _query("SELECT COUNT(*) as total, COUNT(*) FILTER (WHERE is_active) as active FROM agents", fetchone=True)
-    risk = _query("SELECT risk_class, COUNT(*) as count FROM agents GROUP BY risk_class ORDER BY count DESC")
-    types = _query("SELECT agent_type, COUNT(*) as count FROM agents GROUP BY agent_type ORDER BY count DESC LIMIT 10")
-    sources = _query("SELECT source, COUNT(*) as count FROM agents GROUP BY source ORDER BY count DESC LIMIT 10")
+    stats = _query("SELECT COUNT(*) as total, COUNT(*) FILTER (WHERE is_active) as active FROM entity_lookup", fetchone=True)
+    risk = _query("SELECT risk_class, COUNT(*) as count FROM entity_lookup GROUP BY risk_class ORDER BY count DESC")
+    types = _query("SELECT agent_type, COUNT(*) as count FROM entity_lookup GROUP BY agent_type ORDER BY count DESC LIMIT 10")
+    sources = _query("SELECT source, COUNT(*) as count FROM entity_lookup GROUP BY source ORDER BY count DESC LIMIT 10")
 
     return {
         "summary": f"Nerq indexes {stats['total']:,} AI agents across 52 global jurisdictions. The world's largest AI agent compliance database.",

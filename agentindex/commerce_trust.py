@@ -84,7 +84,7 @@ def _lookup_trust(name: str) -> dict:
         from sqlalchemy import text
         session = get_session()
         row = session.execute(text(
-            "SELECT trust_score_v2, trust_score, category, stars FROM agents WHERE name = :name LIMIT 1"
+            "SELECT trust_score_v2, trust_score, category, stars FROM entity_lookup WHERE name = :name LIMIT 1"
         ), {"name": name}).fetchone()
         if row:
             score = row[0] or row[1]

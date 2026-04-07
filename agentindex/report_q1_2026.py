@@ -70,19 +70,19 @@ def _query_report_data() -> dict:
     try:
         # 1. Total counts by type
         type_rows = session.execute(text("""
-            SELECT agent_type, COUNT(*) FROM agents
+            SELECT agent_type, COUNT(*) FROM entity_lookup
             WHERE is_active = true GROUP BY agent_type ORDER BY COUNT(*) DESC
         """)).fetchall()
         type_counts = {(r[0] or "unclassified"): r[1] for r in type_rows}
 
         # 2. Growth — 7d and 30d
         growth_7d = session.execute(text("""
-            SELECT COALESCE(agent_type, 'other'), COUNT(*) FROM agents
+            SELECT COALESCE(agent_type, 'other'), COUNT(*) FROM entity_lookup
             WHERE is_active = true AND first_indexed > NOW() - INTERVAL '7 days'
             GROUP BY agent_type ORDER BY COUNT(*) DESC
         """)).fetchall()
         growth_30d = session.execute(text("""
-            SELECT COALESCE(agent_type, 'other'), COUNT(*) FROM agents
+            SELECT COALESCE(agent_type, 'other'), COUNT(*) FROM entity_lookup
             WHERE is_active = true AND first_indexed > NOW() - INTERVAL '30 days'
             GROUP BY agent_type ORDER BY COUNT(*) DESC
         """)).fetchall()
@@ -92,19 +92,21 @@ def _query_report_data() -> dict:
         # 3. Top categories
         cat_rows = session.execute(text(f"""
             SELECT COALESCE(category, 'uncategorized') as cat, COUNT(*)
-            FROM agents WHERE is_active = true AND {AT_FILTER}
+            FROM entity_lookup WHERE is_active = true AND {AT_FILTER}
             GROUP BY cat ORDER BY COUNT(*) DESC LIMIT 30
         """)).fetchall()
 
         # 4. Framework distribution
         fw_rows = session.execute(text(f"""
-            SELECT fw, COUNT(*) FROM agents,
+            SELECT fw, COUNT(*) FROM entity_lookup,
             LATERAL unnest(frameworks) AS fw
             WHERE is_active = true AND {AT_FILTER}
             GROUP BY fw ORDER BY COUNT(*) DESC LIMIT 15
         """)).fetchall()
 
-        # 5. Language distribution
+        # 5. Language distribution (language not in entity_lookup)
+        session.execute(text("SET LOCAL work_mem = '2MB'"))
+        session.execute(text("SET LOCAL statement_timeout = '5s'"))
         lang_rows = session.execute(text(f"""
             SELECT language, COUNT(*) FROM agents
             WHERE is_active = true AND {AT_FILTER}
@@ -114,7 +116,7 @@ def _query_report_data() -> dict:
 
         # 6. Source distribution
         src_rows = session.execute(text(f"""
-            SELECT source, COUNT(*) FROM agents
+            SELECT source, COUNT(*) FROM entity_lookup
             WHERE is_active = true AND {AT_FILTER}
             GROUP BY source ORDER BY COUNT(*) DESC
         """)).fetchall()
@@ -127,13 +129,13 @@ def _query_report_data() -> dict:
                 COUNT(*) FILTER (WHERE trust_score_v2 < 40 AND trust_score_v2 IS NOT NULL) as low,
                 COUNT(*) FILTER (WHERE trust_score_v2 IS NULL) as unscored,
                 ROUND(AVG(trust_score_v2)::numeric, 1) as avg
-            FROM agents WHERE is_active = true AND {AT_FILTER}
+            FROM entity_lookup WHERE is_active = true AND {AT_FILTER}
         """)).fetchone()
 
         # 8. Top 20 agents
         top_agents = session.execute(text(f"""
             SELECT name, agent_type, trust_score_v2, trust_grade, source, category, stars
-            FROM agents WHERE is_active = true AND agent_type IN ('agent', 'mcp_server')
+            FROM entity_lookup WHERE is_active = true AND agent_type IN ('agent', 'mcp_server')
             AND trust_score_v2 IS NOT NULL
             ORDER BY trust_score_v2 DESC, stars DESC NULLS LAST LIMIT 20
         """)).fetchall()
@@ -141,7 +143,7 @@ def _query_report_data() -> dict:
         # 9. Top 20 MCP servers
         top_mcp = session.execute(text("""
             SELECT name, trust_score_v2, trust_grade, source, stars
-            FROM agents WHERE is_active = true AND agent_type = 'mcp_server'
+            FROM entity_lookup WHERE is_active = true AND agent_type = 'mcp_server'
             AND trust_score_v2 IS NOT NULL
             ORDER BY trust_score_v2 DESC, stars DESC NULLS LAST LIMIT 20
         """)).fetchall()

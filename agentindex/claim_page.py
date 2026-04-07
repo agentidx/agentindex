@@ -32,14 +32,14 @@ def _lookup_agent(name: str, session) -> dict | None:
                COALESCE(trust_score_v2, trust_score) AS trust_score,
                trust_grade, category, first_indexed, is_verified, source_url
         FROM (
-            SELECT *, 1 AS _r FROM agents
-            WHERE LOWER(name) = LOWER(:name) AND is_active = true
+            SELECT id, name, trust_score, trust_score_v2, trust_grade, category, first_indexed, is_verified, source_url, 1 AS _r
+            FROM entity_lookup WHERE name_lower = lower(:name) AND is_active = true
           UNION ALL
-            SELECT *, 2 AS _r FROM agents
-            WHERE lower(name::text) LIKE lower(:suffix) AND is_active = true
+            SELECT id, name, trust_score, trust_score_v2, trust_grade, category, first_indexed, is_verified, source_url, 2 AS _r
+            FROM entity_lookup WHERE name_lower LIKE lower(:suffix) AND is_active = true
           UNION ALL
-            SELECT *, 3 AS _r FROM agents
-            WHERE lower(name::text) LIKE lower(:pattern) AND is_active = true
+            SELECT id, name, trust_score, trust_score_v2, trust_grade, category, first_indexed, is_verified, source_url, 3 AS _r
+            FROM entity_lookup WHERE name_lower LIKE lower(:pattern) AND is_active = true
         ) sub
         ORDER BY COALESCE(trust_score_v2, trust_score) DESC NULLS LAST
         LIMIT 1
@@ -62,7 +62,7 @@ def _rank_in_category(session, category: str, trust_score: float) -> int | None:
     if not category or trust_score is None:
         return None
     row = session.execute(text("""
-        SELECT COUNT(*) FROM agents
+        SELECT COUNT(*) FROM entity_lookup
         WHERE category = :cat
           AND COALESCE(trust_score_v2, trust_score) > :score
           AND is_active = true

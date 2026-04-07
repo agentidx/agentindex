@@ -160,9 +160,9 @@ def mount_intelligence(app):
         # Ecosystem stats
         session = get_session()
         try:
-            total = session.execute(text("SELECT COUNT(*) FROM agents WHERE is_active = true")).scalar() or 0
+            total = session.execute(text("SELECT COUNT(*) FROM entity_lookup WHERE is_active = true")).scalar() or 0
             avg_trust = session.execute(text(
-                "SELECT AVG(COALESCE(trust_score_v2, trust_score)) FROM agents WHERE is_active = true"
+                "SELECT AVG(COALESCE(trust_score_v2, trust_score)) FROM entity_lookup WHERE is_active = true"
             )).scalar() or 0
         finally:
             session.close()
@@ -212,9 +212,11 @@ def mount_intelligence(app):
                 SELECT name, COALESCE(trust_score_v2, trust_score) as ts,
                        trust_grade, category, stars, is_verified
                 FROM (
-                    SELECT *, 1 AS _r FROM agents WHERE LOWER(name) = LOWER(:name) AND is_active = true
+                    SELECT name, trust_score, trust_score_v2, trust_grade, category, stars, is_verified, 1 AS _r
+                    FROM entity_lookup WHERE name_lower = lower(:name) AND is_active = true
                   UNION ALL
-                    SELECT *, 2 AS _r FROM agents WHERE lower(name) LIKE lower(:pattern) AND is_active = true
+                    SELECT name, trust_score, trust_score_v2, trust_grade, category, stars, is_verified, 2 AS _r
+                    FROM entity_lookup WHERE name_lower LIKE lower(:pattern) AND is_active = true
                 ) sub
                 ORDER BY _r ASC, COALESCE(trust_score_v2, trust_score) DESC NULLS LAST
                 LIMIT 1
@@ -289,7 +291,7 @@ def mount_intelligence(app):
         try:
             top_agents = session.execute(text("""
                 SELECT name, COALESCE(trust_score_v2, trust_score) as ts, trust_grade, category, stars
-                FROM agents WHERE is_active = true AND COALESCE(trust_score_v2, trust_score) IS NOT NULL
+                FROM entity_lookup WHERE is_active = true AND COALESCE(trust_score_v2, trust_score) IS NOT NULL
                 ORDER BY stars DESC NULLS LAST
                 LIMIT 20
             """)).fetchall()
@@ -351,9 +353,11 @@ document.getElementById('agent-input').addEventListener('keydown', e => {{
                 SELECT name, COALESCE(trust_score_v2, trust_score) as ts,
                        trust_grade, category, stars, description, source_url
                 FROM (
-                    SELECT *, 1 AS _r FROM agents WHERE LOWER(name) = LOWER(:name) AND is_active = true
+                    SELECT name, trust_score, trust_score_v2, trust_grade, category, stars, description, source_url, 1 AS _r
+                    FROM entity_lookup WHERE name_lower = lower(:name) AND is_active = true
                   UNION ALL
-                    SELECT *, 2 AS _r FROM agents WHERE lower(name) LIKE lower(:pattern) AND is_active = true
+                    SELECT name, trust_score, trust_score_v2, trust_grade, category, stars, description, source_url, 2 AS _r
+                    FROM entity_lookup WHERE name_lower LIKE lower(:pattern) AND is_active = true
                 ) sub
                 ORDER BY _r ASC, COALESCE(trust_score_v2, trust_score) DESC NULLS LAST
                 LIMIT 1

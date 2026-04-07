@@ -69,7 +69,7 @@ def _get_nerq_data() -> dict:
                 ROUND(AVG(CASE WHEN agent_type IN ('agent','mcp_server','tool')
                                AND trust_score_v2 IS NOT NULL
                           THEN trust_score_v2 END)::numeric, 1) as avg_trust
-            FROM agents WHERE is_active = true
+            FROM entity_lookup WHERE is_active = true
         """)).fetchone()
 
         total_assets = session.execute(
@@ -79,7 +79,7 @@ def _get_nerq_data() -> dict:
         # Top categories — exclude uncategorized, normalize duplicates
         cat_rows = session.execute(text("""
             SELECT COALESCE(category, 'uncategorized') as cat, COUNT(*)
-            FROM agents WHERE is_active = true AND agent_type IN ('agent', 'mcp_server', 'tool')
+            FROM entity_lookup WHERE is_active = true AND agent_type IN ('agent', 'mcp_server', 'tool')
             GROUP BY cat ORDER BY COUNT(*) DESC LIMIT 30
         """)).fetchall()
 

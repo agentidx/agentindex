@@ -91,18 +91,26 @@ def _lookup_agent(name):
         clean = name.replace("-", " ").replace("_", " ")
         row = session.execute(text(f"""
             SELECT {_AGENT_COLS} FROM (
-                SELECT *, 1 AS _rank FROM agents
-                WHERE LOWER(name) = LOWER(:name) AND is_active = true
+                SELECT name, trust_score, trust_score_v2, trust_grade, category, source, source_url,
+                       stars, author, is_verified, compliance_score, eu_risk_class, documentation_score,
+                       activity_score, security_score, popularity_score, description, 1 AS _rank
+                FROM entity_lookup WHERE name_lower = lower(:name) AND is_active = true
               UNION ALL
-                SELECT *, 1 AS _rank FROM agents
-                WHERE LOWER(name) = LOWER(:clean) AND is_active = true
+                SELECT name, trust_score, trust_score_v2, trust_grade, category, source, source_url,
+                       stars, author, is_verified, compliance_score, eu_risk_class, documentation_score,
+                       activity_score, security_score, popularity_score, description, 1 AS _rank
+                FROM entity_lookup WHERE name_lower = lower(:clean) AND is_active = true
                 AND :clean != :name
               UNION ALL
-                SELECT *, 2 AS _rank FROM agents
-                WHERE lower(name::text) LIKE lower(:suffix) AND is_active = true
+                SELECT name, trust_score, trust_score_v2, trust_grade, category, source, source_url,
+                       stars, author, is_verified, compliance_score, eu_risk_class, documentation_score,
+                       activity_score, security_score, popularity_score, description, 2 AS _rank
+                FROM entity_lookup WHERE name_lower LIKE lower(:suffix) AND is_active = true
               UNION ALL
-                SELECT *, 3 AS _rank FROM agents
-                WHERE lower(name::text) LIKE lower(:pattern) AND is_active = true
+                SELECT name, trust_score, trust_score_v2, trust_grade, category, source, source_url,
+                       stars, author, is_verified, compliance_score, eu_risk_class, documentation_score,
+                       activity_score, security_score, popularity_score, description, 3 AS _rank
+                FROM entity_lookup WHERE name_lower LIKE lower(:pattern) AND is_active = true
             ) sub
             ORDER BY COALESCE(trust_score_v2, trust_score) DESC NULLS LAST,
                      stars DESC NULLS LAST

@@ -154,7 +154,7 @@ GET https://nerq.ai/v1/preflight?target=langchain</code></pre>
                 SELECT name, agent_type, category, source,
                        COALESCE(trust_score_v2, trust_score) as trust_score,
                        trust_grade, compliance_score, stars, author, source_url
-                FROM agents
+                FROM entity_lookup
                 WHERE is_active = true AND COALESCE(trust_score_v2, trust_score) IS NOT NULL
                 ORDER BY COALESCE(trust_score_v2, trust_score) DESC
                 LIMIT 10000
@@ -185,7 +185,7 @@ GET https://nerq.ai/v1/preflight?target=langchain</code></pre>
                 SELECT name, agent_type, category, source,
                        COALESCE(trust_score_v2, trust_score) as trust_score,
                        trust_grade, compliance_score, stars, author, source_url
-                FROM agents
+                FROM entity_lookup
                 WHERE is_active = true AND COALESCE(trust_score_v2, trust_score) IS NOT NULL
                 ORDER BY COALESCE(trust_score_v2, trust_score) DESC
                 LIMIT 10000
@@ -214,7 +214,7 @@ GET https://nerq.ai/v1/preflight?target=langchain</code></pre>
                 SELECT category, COUNT(*) as count,
                        AVG(COALESCE(trust_score_v2, trust_score)) as avg_score,
                        AVG(compliance_score) as avg_compliance
-                FROM agents
+                FROM entity_lookup
                 WHERE is_active = true AND category IS NOT NULL
                 GROUP BY category
                 HAVING COUNT(*) >= 5

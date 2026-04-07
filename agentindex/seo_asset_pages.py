@@ -120,6 +120,8 @@ def _find_asset(query, agent_type):
     with get_db_session() as session:
         q = query.lower().strip()
         p = "%" + q.replace("-", "%").replace("/", "%") + "%"
+        # language/tags not in entity_lookup — use agents with guards
+        session.execute(text("SET LOCAL work_mem = '2MB'; SET LOCAL statement_timeout = '5s'"))
         row = session.execute(text("""
             SELECT id, name, trust_score_v2, trust_grade, stars, description,
                    category, language, author, source, source_url, license,
@@ -156,9 +158,9 @@ def _find_similar(name, category, agent_type, limit=8):
     with get_db_session() as session:
         rows = session.execute(text("""
             SELECT name, trust_score_v2, trust_grade, stars, downloads
-            FROM agents
+            FROM entity_lookup
             WHERE is_active = true AND agent_type = :atype
-              AND LOWER(name) != :name
+              AND name_lower != :name
               AND (category = :cat OR :cat IS NULL)
               AND trust_score_v2 IS NOT NULL
             ORDER BY COALESCE(downloads, 0) DESC, COALESCE(stars, 0) DESC
@@ -551,7 +553,7 @@ def _render_org_page(org_name):
     with get_db_session() as session:
         rows = session.execute(text("""
             SELECT name, agent_type, trust_score_v2, trust_grade, stars, downloads, description
-            FROM agents
+            FROM entity_lookup
             WHERE is_active = true AND LOWER(SPLIT_PART(name, '/', 1)) = :org
             ORDER BY COALESCE(downloads, 0) DESC, COALESCE(stars, 0) DESC
             LIMIT 200
@@ -697,11 +699,11 @@ def mount_asset_pages(app):
         with get_db_session() as session:
             rows = session.execute(text("""
                 SELECT name, trust_score_v2, trust_grade, stars, downloads, description
-                FROM agents WHERE is_active = true AND agent_type = 'space'
+                FROM entity_lookup WHERE is_active = true AND agent_type = 'space'
                 AND description IS NOT NULL AND LENGTH(description) > 10
                 ORDER BY COALESCE(downloads, 0) DESC LIMIT 100
             """)).fetchall()
-            total = session.execute(text("SELECT COUNT(*) FROM agents WHERE is_active=true AND agent_type='space'")).scalar() or 0
+            total = session.execute(text("SELECT COUNT(*) FROM entity_lookup WHERE is_active=true AND agent_type='space'")).scalar() or 0
 
         rows_html = ""
         for r in rows:
@@ -766,11 +768,11 @@ def mount_asset_pages(app):
         with get_db_session() as session:
             rows = session.execute(text("""
                 SELECT name, trust_score_v2, trust_grade, stars, downloads, description
-                FROM agents WHERE is_active = true AND agent_type = 'container'
+                FROM entity_lookup WHERE is_active = true AND agent_type = 'container'
                 AND description IS NOT NULL AND LENGTH(description) > 10
                 ORDER BY COALESCE(downloads, 0) DESC LIMIT 100
             """)).fetchall()
-            total = session.execute(text("SELECT COUNT(*) FROM agents WHERE is_active=true AND agent_type='container'")).scalar() or 0
+            total = session.execute(text("SELECT COUNT(*) FROM entity_lookup WHERE is_active=true AND agent_type='container'")).scalar() or 0
 
         rows_html = ""
         for r in rows:
@@ -835,11 +837,11 @@ def mount_asset_pages(app):
         with get_db_session() as session:
             rows = session.execute(text("""
                 SELECT name, trust_score_v2, trust_grade, stars, downloads, license
-                FROM agents WHERE is_active = true AND agent_type = 'dataset'
+                FROM entity_lookup WHERE is_active = true AND agent_type = 'dataset'
                 AND description IS NOT NULL AND LENGTH(description) > 10
                 ORDER BY COALESCE(downloads, 0) DESC LIMIT 100
             """)).fetchall()
-            total = session.execute(text("SELECT COUNT(*) FROM agents WHERE is_active=true AND agent_type='dataset'")).scalar() or 0
+            total = session.execute(text("SELECT COUNT(*) FROM entity_lookup WHERE is_active=true AND agent_type='dataset'")).scalar() or 0
 
         rows_html = ""
         for r in rows:
@@ -886,13 +888,13 @@ def mount_asset_pages(app):
             rows = session.execute(text("""
                 SELECT SPLIT_PART(name, '/', 1) as org, COUNT(*) as cnt,
                        MAX(stars) as max_stars, AVG(trust_score_v2) as avg_trust
-                FROM agents WHERE is_active = true AND name LIKE '%%/%%'
+                FROM entity_lookup WHERE is_active = true AND name LIKE '%%/%%'
                 GROUP BY org HAVING COUNT(*) >= 3
                 ORDER BY cnt DESC LIMIT 200
             """)).fetchall()
             total = session.execute(text("""
                 SELECT COUNT(*) FROM (
-                    SELECT SPLIT_PART(name, '/', 1) FROM agents
+                    SELECT SPLIT_PART(name, '/', 1) FROM entity_lookup
                     WHERE is_active = true AND name LIKE '%%/%%'
                     GROUP BY 1 HAVING COUNT(*) >= 3
                 ) sub
@@ -927,7 +929,7 @@ def mount_asset_pages(app):
         offset = chunk * 50000
         with get_db_session() as session:
             rows = session.execute(text("""
-                SELECT name FROM agents WHERE is_active = true AND agent_type = 'space'
+                SELECT name FROM entity_lookup WHERE is_active = true AND agent_type = 'space'
                 AND description IS NOT NULL AND LENGTH(description) > 10
                 ORDER BY COALESCE(downloads, 0) DESC
                 OFFSET :off LIMIT 50000
@@ -946,7 +948,7 @@ def mount_asset_pages(app):
             return Response(cached, media_type="application/xml")
         with get_db_session() as session:
             rows = session.execute(text("""
-                SELECT name FROM agents WHERE is_active = true AND agent_type = 'container'
+                SELECT name FROM entity_lookup WHERE is_active = true AND agent_type = 'container'
                 AND description IS NOT NULL AND LENGTH(description) > 10
                 ORDER BY COALESCE(downloads, 0) DESC LIMIT 50000
             """)).fetchall()
@@ -963,7 +965,7 @@ def mount_asset_pages(app):
             return Response(cached, media_type="application/xml")
         with get_db_session() as session:
             rows = session.execute(text("""
-                SELECT name FROM agents WHERE is_active = true AND agent_type = 'dataset'
+                SELECT name FROM entity_lookup WHERE is_active = true AND agent_type = 'dataset'
                 AND description IS NOT NULL AND LENGTH(description) > 10
                 ORDER BY COALESCE(downloads, 0) DESC LIMIT 50000
             """)).fetchall()
@@ -981,7 +983,7 @@ def mount_asset_pages(app):
         with get_db_session() as session:
             rows = session.execute(text("""
                 SELECT SPLIT_PART(name, '/', 1) as org
-                FROM agents WHERE is_active = true AND name LIKE '%%/%%'
+                FROM entity_lookup WHERE is_active = true AND name LIKE '%%/%%'
                 GROUP BY org HAVING COUNT(*) >= 3
                 ORDER BY COUNT(*) DESC LIMIT 50000
             """)).fetchall()

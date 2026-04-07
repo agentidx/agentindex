@@ -45,15 +45,15 @@ def mount_vs_pages(app):
 
         # Get top MCP servers grouped by domain
         rows = session.execute(text("""
-            SELECT id, name, stars, domains, compliance_score, risk_class
-            FROM agents
+            SELECT id, name, stars, protocols, compliance_score, risk_class
+            FROM entity_lookup
             WHERE is_active = true AND agent_type = 'mcp_server'
             AND stars > 50
             ORDER BY stars DESC NULLS LAST
             LIMIT 500
         """)).fetchall()
 
-        agents = [dict(zip(['id','name','stars','domains','score','risk'], r)) for r in rows]
+        agents = [dict(zip(['id','name','stars','domains','score','risk'], r)) for r in rows]  # 'domains' key now holds protocols from entity_lookup
 
         # Group by domain
         by_domain = {}
@@ -174,6 +174,8 @@ def mount_vs_pages(app):
 def _fetch_agent_by_slug(session, slug):
     """Resolve a slug (e.g. 'langchain') to an agent dict by fuzzy name match."""
     clean = slug.replace("-", " ").replace("_", " ")
+    # domains/tags not in entity_lookup — keep on agents with guards
+    session.execute(text("SET LOCAL work_mem = '2MB'; SET LOCAL statement_timeout = '5s'"))
     row = session.execute(text("""
         SELECT id, name, description, source, author, agent_type, risk_class,
                domains, tags, stars, downloads, license, source_url,
@@ -192,6 +194,8 @@ def _fetch_agent_by_slug(session, slug):
 
 
 def _fetch_agent(session, agent_id):
+    # domains/tags not in entity_lookup — keep on agents with guards
+    session.execute(text("SET LOCAL work_mem = '2MB'; SET LOCAL statement_timeout = '5s'"))
     row = session.execute(text("""
         SELECT id, name, description, source, author, agent_type, risk_class,
                domains, tags, stars, downloads, license, source_url,

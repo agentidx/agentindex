@@ -79,14 +79,14 @@ def _lookup_best(name: str, session) -> dict | None:
                COALESCE(trust_score_v2, trust_score) AS trust_score,
                trust_grade, category, first_indexed, is_verified
         FROM (
-            SELECT *, 1 AS _r FROM agents
-            WHERE LOWER(name) = LOWER(:name) AND is_active = true
+            SELECT id, name, trust_score, trust_score_v2, trust_grade, category, first_indexed, is_verified, 1 AS _r
+            FROM entity_lookup WHERE name_lower = lower(:name) AND is_active = true
           UNION ALL
-            SELECT *, 2 AS _r FROM agents
-            WHERE lower(name::text) LIKE lower(:suffix) AND is_active = true
+            SELECT id, name, trust_score, trust_score_v2, trust_grade, category, first_indexed, is_verified, 2 AS _r
+            FROM entity_lookup WHERE name_lower LIKE lower(:suffix) AND is_active = true
           UNION ALL
-            SELECT *, 3 AS _r FROM agents
-            WHERE lower(name::text) LIKE lower(:pattern) AND is_active = true
+            SELECT id, name, trust_score, trust_score_v2, trust_grade, category, first_indexed, is_verified, 3 AS _r
+            FROM entity_lookup WHERE name_lower LIKE lower(:pattern) AND is_active = true
         ) sub
         ORDER BY COALESCE(trust_score_v2, trust_score) DESC NULLS LAST
         LIMIT 1
@@ -258,7 +258,7 @@ def get_reputation(name: str):
         category = agent.get("category")
         if category and static_trust is not None:
             rank_row = session.execute(text("""
-                SELECT COUNT(*) FROM agents
+                SELECT COUNT(*) FROM entity_lookup
                 WHERE category = :cat
                   AND COALESCE(trust_score_v2, trust_score) > :score
                   AND is_active = true

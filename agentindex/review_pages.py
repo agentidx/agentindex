@@ -94,9 +94,9 @@ def _lookup_agent_for_review(name: str):
         row = session.execute(text("""
             SELECT name, COALESCE(trust_score_v2, trust_score) as trust_score,
                    trust_grade, category, source, stars, description
-            FROM agents
-            WHERE (LOWER(name) = LOWER(:name) OR LOWER(name) = LOWER(:clean)
-                   OR lower(name::text) LIKE lower(:pattern))
+            FROM entity_lookup
+            WHERE (name_lower = LOWER(:name) OR name_lower = LOWER(:clean)
+                   OR name_lower LIKE lower(:pattern))
               AND is_active = true
             ORDER BY COALESCE(trust_score_v2, trust_score) DESC NULLS LAST,
                      stars DESC NULLS LAST

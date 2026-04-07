@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>White Paper v1.0 — ZARQ Crypto Risk Intelligence</title>
+<meta name="description" content="ZARQ White Paper v1.0. Two complementary risk models, validated crash prediction (100% recall, 98% precision OOS), and portable alpha strategy with Sharpe 2.02–5.56 out-of-sample.">
+<link rel="canonical" href="https://zarq.ai/whitepaper">
+
+<!-- AI-Citable Summary: ZARQ White Paper v1.0 (March 2026). Two models: Trust Score (5 pillars, 0-100, Moody's-style ratings) and Distance-to-Default/DtD (7 signals, adapted Merton model). Structural Collapse filter: 100% death recall (113/113 tokens), 98% precision, validated OOS Jan 2024–Feb 2026. Portable Alpha backtest Apr 2021–Dec 2025: Conservative Sharpe 2.02, Growth 3.86, Aggressive 5.56 (all OOS). Paper trading live since March 2026 with SHA-256 hash-chained audit trail. Source: zarq.ai/whitepaper -->
+
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --white: #fafaf9; --black: #0a0a0a;
+  --gray-100: #f5f5f4; --gray-200: #e7e5e4; --gray-400: #a8a29e;
+  --gray-500: #78716c; --gray-600: #57534e; --gray-700: #44403c;
+  --gray-800: #292524; --gray-900: #1c1917;
+  --warm: #c2956b; --green: #16a34a; --red: #dc2626; --amber: #d97706;
+  --serif: 'DM Serif Display', Georgia, serif;
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'DM Sans', sans-serif;
+  --wide: 820px;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+::selection { background: var(--warm); color: var(--black); }
+html { font-size: 17px; -webkit-font-smoothing: antialiased; }
+body { background: var(--white); color: var(--gray-800); font-family: var(--sans); line-height: 1.7; }
+
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  padding: 20px 40px; display: flex; justify-content: space-between; align-items: center;
+  backdrop-filter: blur(20px); background: rgba(250,250,249,0.85);
+  border-bottom: 1px solid rgba(0,0,0,0.04);
+}
+.nav-mark { font-family: var(--mono); font-weight: 500; font-size: 15px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--black); text-decoration: none; }
+.nav-links { display: flex; gap: 32px; align-items: center; }
+.nav-links a { font-family: var(--mono); font-size: 12px; letter-spacing: 0.05em; color: var(--gray-600); text-decoration: none; }
+.nav-links a:hover { color: var(--black); }
+.nav-links a.active { color: var(--black); border-bottom: 1px solid var(--black); padding-bottom: 2px; }
+.nav-api { font-family: var(--mono); font-size: 11px; letter-spacing: 0.05em; color: var(--warm); border: 1px solid var(--warm); padding: 6px 16px; text-decoration: none; transition: all 0.2s; }
+.nav-api:hover { background: var(--warm); color: var(--white); }
+.nav-dropdown { position: relative; }
+.nav-dropdown-trigger { cursor: pointer; }
+.nav-dropdown-menu { display: none; position: absolute; top: 100%; right: 0; background: var(--white); border: 1px solid var(--gray-200); box-shadow: 0 8px 24px rgba(0,0,0,0.08); padding: 8px 0; min-width: 180px; z-index: 200; }
+.nav-dropdown:hover .nav-dropdown-menu { display: block; }
+.nav-dropdown-menu a { display: block; padding: 8px 20px; font-family: var(--mono); font-size: 12px; letter-spacing: 0.05em; color: var(--gray-600); text-decoration: none; white-space: nowrap; }
+.nav-dropdown-menu a:hover { background: var(--warm-light, rgba(194,149,107,0.08)); color: var(--black); }
+.nav-toggle-input { display: none; }
+.nav-hamburger { display: none; cursor: pointer; flex-direction: column; gap: 5px; }
+.nav-hamburger span { display: block; width: 22px; height: 2px; background: var(--black); transition: all 0.3s; }
+
+.page-header {
+  max-width: var(--wide); margin: 0 auto; padding: 140px 40px 40px;
+}
+.page-header h1 {
+  font-family: var(--serif); font-weight: 400; font-size: clamp(32px, 4vw, 48px);
+  line-height: 1.15; color: var(--black); letter-spacing: -0.02em;
+}
+.page-header .subtitle {
+  font-size: 16px; color: var(--gray-600); margin-top: 16px; max-width: 600px; line-height: 1.7;
+}
+.page-header .meta {
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--gray-500); margin-top: 24px; display: flex; gap: 32px; flex-wrap: wrap;
+}
+
+.content { max-width: var(--wide); margin: 0 auto; padding: 0 40px 80px; }
+
+.section-label {
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase;
+  color: var(--gray-500); margin-bottom: 16px; margin-top: 64px;
+}
+.content h2 {
+  font-family: var(--serif); font-size: 28px; font-weight: 400; color: var(--black);
+  margin: 64px 0 16px; letter-spacing: -0.01em;
+}
+.content h3 {
+  font-family: var(--serif); font-size: 21px; font-weight: 400; color: var(--black);
+  margin: 40px 0 12px;
+}
+.content p {
+  font-size: 15px; color: var(--gray-700); line-height: 1.75; margin-bottom: 16px;
+}
+.content code {
+  font-family: var(--mono); font-size: 13px; background: var(--gray-100); padding: 2px 6px;
+}
+
+table {
+  width: 100%; border-collapse: collapse; margin: 24px 0 32px; font-size: 14px;
+}
+th {
+  text-align: left; padding: 10px 14px; font-family: var(--mono); font-size: 10px;
+  letter-spacing: 0.1em; text-transform: uppercase; color: var(--gray-500);
+  border-bottom: 2px solid var(--gray-200); font-weight: 400;
+}
+td {
+  padding: 10px 14px; border-bottom: 1px solid var(--gray-100); color: var(--gray-700);
+  font-size: 14px;
+}
+tr:hover td { background: rgba(194,149,107,0.04); }
+.pos { color: var(--green); }
+.neg { color: var(--red); }
+
+.stat-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1px; background: var(--gray-200); border: 1px solid var(--gray-200); margin: 24px 0 32px;
+}
+.stat-card { background: var(--white); padding: 24px; }
+.stat-val { font-family: var(--serif); font-size: 32px; color: var(--black); letter-spacing: -0.02em; }
+.stat-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gray-500); margin-top: 4px; }
+
+.evidence-box {
+  background: var(--gray-100); padding: 24px; margin: 24px 0; font-size: 14px; line-height: 1.7;
+}
+.evidence-box .ev-title {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--warm); margin-bottom: 8px;
+}
+
+.caveat {
+  border-left: 3px solid var(--amber); padding: 16px 20px; margin: 24px 0;
+  font-size: 13px; color: var(--gray-600); line-height: 1.7; background: rgba(217,119,6,0.04);
+}
+.caveat strong { color: var(--gray-800); }
+
+.toc { margin: 32px 0; padding: 24px; background: var(--gray-100); }
+.toc-title { font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gray-500); margin-bottom: 12px; }
+.toc a { display: block; font-size: 14px; color: var(--gray-700); text-decoration: none; padding: 4px 0; }
+.toc a:hover { color: var(--black); }
+.toc a span { font-family: var(--mono); font-size: 12px; color: var(--gray-400); margin-right: 8px; }
+
+.disclaimer {
+  max-width: var(--wide); margin: 0 auto; padding: 40px;
+  border-top: 1px solid var(--gray-200);
+  font-family: var(--mono); font-size: 10px; color: var(--gray-500); line-height: 1.8;
+}
+
+footer {
+  max-width: var(--wide); margin: 0 auto; padding: 40px 40px 60px;
+  border-top: 1px solid var(--gray-200); display: flex; justify-content: space-between; align-items: baseline;
+}
+.foot-left { font-family: var(--mono); font-size: 11px; color: var(--gray-500); }
+.foot-right { display: flex; gap: 24px; }
+.foot-right a { font-family: var(--mono); font-size: 11px; color: var(--gray-500); text-decoration: none; }
+.foot-right a:hover { color: var(--black); }
+
+@media (max-width: 768px) {
+  nav { padding: 16px 20px; }
+  .nav-hamburger { display: flex; }
+  .nav-links { display: none; position: absolute; top: 100%; left: 0; right: 0; background: var(--white); border-bottom: 1px solid var(--gray-200); padding: 16px 20px; flex-direction: column; gap: 16px; }
+  .nav-toggle-input:checked ~ .nav-links { display: flex; }
+  .nav-dropdown-menu { display: block; position: static; box-shadow: none; border: none; padding: 0 0 0 12px; }
+  .nav-dropdown-trigger { display: none; }
+  .page-header, .content { padding-left: 20px; padding-right: 20px; }
+  .stat-grid { grid-template-columns: 1fr 1fr; }
+  footer { flex-direction: column; gap: 16px; padding: 40px 20px; }
+  .page-header .meta { flex-direction: column; gap: 8px; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-mark">zarq</a>
+  <input type="checkbox" id="nav-toggle" class="nav-toggle-input">
+  <label for="nav-toggle" class="nav-hamburger"><span></span><span></span><span></span></label>
+  <div class="nav-links">
+    <a href="/scan">Scan</a>
+    <a href="/crypto">Ratings</a>
+    <a href="/tokens">Token Ratings</a>
+    <a href="/crash-watch">Crash Watch</a>
+    <div class="nav-dropdown">
+      <a href="#" class="nav-dropdown-trigger">More &#9662;</a>
+      <div class="nav-dropdown-menu">
+        <a href="/yield-risk">Yield Risk</a>
+        <a href="/compare">Compare</a>
+        <a href="/learn">Learn</a>
+        <a href="/track-record">Track Record</a>
+        <a href="/paper-trading">Paper Trading</a>
+        <a href="/press">Press</a>
+        <a href="/methodology">Methodology</a>
+      </div>
+    </div>
+    <a href="/docs" class="nav-api">API</a>
+  </div>
+</nav>
+
+<div class="page-header">
+  <h1>White Paper v1.0</h1>
+  <p class="subtitle">
+    Two complementary risk models, validated crash prediction, and a portable alpha strategy — built for machines, transparent to humans.
+  </p>
+  <div class="meta">
+    <span>Version 1.0</span>
+    <span>March 2026</span>
+    <span>ZARQ Research</span>
+  </div>
+</div>
+
+<div class="content">
+
+<div class="toc">
+  <div class="toc-title">Contents</div>
+  <a href="#abstract"><span>1</span> Abstract</a>
+  <a href="#trust-score"><span>2</span> Trust Score — Five Pillars</a>
+  <a href="#dtd"><span>3</span> Distance-to-Default (DtD) — Seven Signals</a>
+  <a href="#structural"><span>4</span> Structural Collapse Detection</a>
+  <a href="#crash-prob"><span>5</span> Crash Probability Calibration</a>
+  <a href="#contagion"><span>6</span> Contagion Model</a>
+  <a href="#alpha"><span>7</span> Portable Alpha Strategy</a>
+  <a href="#case-studies"><span>8</span> Retroactive Case Studies</a>
+  <a href="#track-record"><span>9</span> Track Record — Backtest & Live</a>
+  <a href="#architecture"><span>10</span> Machine-First Architecture</a>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<h2 id="abstract">1. Abstract</h2>
+
+<p>
+  ZARQ is a crypto risk intelligence platform that rates digital assets using two complementary models: a Trust Score measuring relative quality, and a Distance-to-Default (DtD) score measuring proximity to critical failure. Together they form the basis for crash prediction, contagion mapping, and a conviction-ranked long/short trading strategy.
+</p>
+
+<div class="stat-grid">
+  <div class="stat-card"><div class="stat-val">198</div><div class="stat-label">Tokens Rated</div></div>
+  <div class="stat-card"><div class="stat-val">100%</div><div class="stat-label">Death Recall OOS</div></div>
+  <div class="stat-card"><div class="stat-val">98%</div><div class="stat-label">Precision OOS</div></div>
+  <div class="stat-card"><div class="stat-val">3.86</div><div class="stat-label">Sharpe (Growth OOS)</div></div>
+</div>
+
+<p>
+  The structural collapse detection system identified 113 out of 113 tokens that subsequently died, with 98% precision, validated out-of-sample from January 2024 through February 2026. A portable alpha strategy using these signals produced risk-adjusted returns between Sharpe 2.02 (Conservative) and 5.56 (Aggressive) out-of-sample.
+</p>
+
+<p>
+  Paper trading launched March 1, 2026, with SHA-256 hash-chained audit trail. Every signal is logged before market open. No hindsight. No adjustments.
+</p>
+
+<!-- ════════════════════════════════════════════ -->
+<h2 id="trust-score">2. Trust Score — Five Pillars</h2>
+
+<p>
+  The Trust Score assesses relative quality and creditworthiness of crypto entities (tokens, exchanges, DeFi protocols) on a 0–100 scale, mapped to Moody's-style letter ratings (Aaa through D).
+</p>
+
+<table>
+  <tr><th>Pillar</th><th>Weight</th><th>Measures</th></tr>
+  <tr><td>Security</td><td>30%</td><td>Audits, hack history, contract risk, reserves, ATH recovery</td></tr>
+  <tr><td>Compliance</td><td>25%</td><td>Regulatory status, social presence, supply transparency</td></tr>
+  <tr><td>Maintenance</td><td>20%</td><td>GitHub activity, volume activity, development cadence</td></tr>
+  <tr><td>Popularity</td><td>15%</td><td>Market cap rank, volume, community size</td></tr>
+  <tr><td>Ecosystem</td><td>10%</td><td>Multi-chain presence, DeFi integration, category breadth</td></tr>
+</table>
+
+<h3>Rating Scale</h3>
+
+<table>
+  <tr><th>Rating</th><th>Score Range</th><th>Grade</th></tr>
+  <tr><td>Aaa</td><td>95–100</td><td>Highest quality</td></tr>
+  <tr><td>Aa1–Aa3</td><td>80–95</td><td>High quality</td></tr>
+  <tr><td>A1–A3</td><td>65–80</td><td>Upper medium</td></tr>
+  <tr><td>Baa1–Baa3</td><td>50–65</td><td>Investment grade floor</td></tr>
+  <tr><td>Ba1–Ba3</td><td>35–50</td><td>Speculative</td></tr>
+  <tr><td>B1–B3</td><td>20–35</td><td>Highly speculative</td></tr>
+  <tr><td>Caa–C</td><td>5–20</td><td>Substantial risk</td></tr>
+  <tr><td>D</td><td>0–5</td><td>In default</td></tr>
+</table>
+
+<div class="evidence-box">
+  <div class="ev-title">Retroactive Validation</div>
+  Collapsed exchanges (FTX, Celsius, Voyager, BlockFi) averaged 5.0/100 vs 44.5 platform average — 80-point separation. Collapsed tokens averaged 30.9/100. Every major collapse of 2022–2023 scored below platform average.
+</div>
+
+<div class="caveat">
+  <strong>Limitation:</strong> This validation is retroactive. Trust Score is calculated on current data, not data from before each collapse. The separation is consistent but not a forward-looking prediction claim.
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<h2 id="dtd">3. Distance-to-Default (DtD) — Seven Signals</h2>
+
+<p>
+  Adapted from Merton's structural credit model used in corporate bond analysis, DtD measures standard deviations from a default barrier. Scale 0–5 where 5 = safe, 0 = imminent collapse risk. DtD is recalculated daily from on-chain and market data.
+</p>
+
+<table>
+  <tr><th>#</th><th>Signal</th><th>Weight</th><th>Measures</th></tr>
+  <tr><td>S1</td><td>Liquidity Depth</td><td>10%</td><td>Turnover, volume trend, volume stability</td></tr>
+  <tr><td>S2</td><td>Holder Concentration</td><td>5%</td><td>Whale activity, Gini coefficient, distribution</td></tr>
+  <tr><td>S3</td><td>Ecosystem Resilience</td><td>30%</td><td>Drawdown, volatility, momentum, acceleration</td></tr>
+  <tr><td>S4</td><td>Fundamental Activity</td><td>10%</td><td>Volume trend, panic detection, price/volume divergence</td></tr>
+  <tr><td>S5</td><td>Contagion Exposure</td><td>25%</td><td>BTC correlation, downside beta</td></tr>
+  <tr><td>S6</td><td>Structural Risk</td><td>5%</td><td>Flash crash frequency, spread, token age</td></tr>
+  <tr><td>S7</td><td>Relative Weakness</td><td>15%</td><td>Performance vs BTC (7d/14d/30d)</td></tr>
+</table>
+
+<h3>Weight Calibration (v3.1)</h3>
+<p>
+  Signal weights were calibrated through correlation analysis against historical crashes. Key adjustments: S1 (Liquidity) reduced from 20% to 10% — volume often <em>increases</em> during crashes, making it counterproductive as a distress signal. S5 (Contagion) increased from 10% to 25% — strongest single predictor with -1.14 mean differential between crash and stable tokens. S7 (Relative Weakness) added at 15% — captures rapid underperformance relative to BTC.
+</p>
+
+<div class="caveat">
+  <strong>Frozen parameters:</strong> These weights and thresholds are locked. No modifications without new backtest validation cycle.
+</div>
+
+<h3>Alert Levels</h3>
+<table>
+  <tr><th>Level</th><th>DtD Threshold</th><th>Interpretation</th></tr>
+  <tr><td>SAFE</td><td>≥ 4.0</td><td>Low risk</td></tr>
+  <tr><td>WATCH</td><td>≥ 3.0</td><td>Elevated monitoring</td></tr>
+  <tr><td>WARNING</td><td>≥ 2.0</td><td>Active risk</td></tr>
+  <tr><td>CRITICAL</td><td>≥ 1.0</td><td>High distress</td></tr>
+  <tr><td>STRUCTURAL COLLAPSE</td><td>&lt; 1.0</td><td>Imminent failure risk</td></tr>
+</table>
+
+<!-- ════════════════════════════════════════════ -->
+<h2 id="structural">4. Structural Collapse Detection</h2>
+
+<p>
+  The STRUCTURAL COLLAPSE / STRUCTURAL STRESS alert system combines DtD signals with trend analysis to identify tokens at elevated risk of permanent failure. This is the core predictive system and has been validated with strict in-sample / out-of-sample separation.
+</p>
+
+<h3>Out-of-Sample Validation (January 2024 – February 2026)</h3>
+
+<div class="stat-grid">
+  <div class="stat-card"><div class="stat-val">100%</div><div class="stat-label">Death Recall (113/113)</div></div>
+  <div class="stat-card"><div class="stat-val">98%</div><div class="stat-label">Precision</div></div>
+  <div class="stat-card"><div class="stat-val">22 mo</div><div class="stat-label">Avg Detection Lead</div></div>
+  <div class="stat-card"><div class="stat-val">2%</div><div class="stat-label">False Positive Rate</div></div>
+</div>
+
+<div class="evidence-box">
+  <div class="ev-title">Methodology</div>
+  In-sample period (2017–2023): signal weights calibrated. Out-of-sample period (January 2024–February 2026): zero parameter changes. The system identified all 113 tokens that subsequently reached permanent zero value during the OOS period, with only 2% false positives. Average detection occurred 22 months before terminal failure.
+</div>
+
+<h3>Target Tracking</h3>
+<table>
+  <tr><th>Target</th><th>Definition</th><th>Hit Rate</th></tr>
+  <tr><td>1st Target</td><td>-30% from alert price</td><td class="pos">92%</td></tr>
+  <tr><td>2nd Target</td><td>-50% from alert price</td><td class="pos">65%</td></tr>
+</table>
+
+<div class="caveat">
+  <strong>IS/OOS Separation:</strong> All figures above are out-of-sample. In-sample results are not reported separately to avoid selection bias. The OOS period spans 26 months with no parameter modifications.
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<h2 id="crash-prob">5. Crash Probability Calibration</h2>
+
+<p>
+  Crash probability estimates the likelihood of a ≥30% decline within 90 days, calibrated on 393 historical crash cycles with per-crisis-type betas achieving 3.4 percentage point median error.
+</p>
+
+<table>
+  <tr><th>Trend</th><th>WARNING</th><th>CRITICAL</th><th>WATCH</th><th>SAFE</th></tr>
+  <tr><td>FREEFALL</td><td>43%</td><td>34%</td><td>28%</td><td>—</td></tr>
+  <tr><td>FALLING</td><td>37%</td><td>30%</td><td>25%</td><td>—</td></tr>
+  <tr><td>SLIDING</td><td>33%</td><td>28%</td><td>20%</td><td>—</td></tr>
+  <tr><td>STABLE</td><td>33%</td><td>30%</td><td>18%</td><td>3%</td></tr>
+  <tr><td>IMPROVING</td><td>20%</td><td>18%</td><td>12%</td><td>2%</td></tr>
+</table>
+
+<h3>Stresstest Engine</h3>
+<p>
+  The portfolio stresstest uses the same calibrated model with per-crisis-type betas: contagion events (SOL -67.6% predicted vs -67.9% actual), liquidity crises, and stablecoin depegs. Median prediction error of 3.4 percentage points across historical scenarios. Evidence banners on the Risk Scanner and Contagion Map reference specific validated predictions.
+</p>
+
+<!-- ════════════════════════════════════════════ -->
+<h2 id="contagion">6. Contagion Model</h2>
+
+<p>
+  The contagion model maps dependency relationships between tokens through shared liquidity pools, ecosystem membership, bridge exposure, oracle dependencies, stablecoin reliance, and exchange concentration. Each token receives a Contagion Score (0–10) representing vulnerability to cascading failures.
+</p>
+
+<h3>Scenario Analysis</h3>
+<p>
+  Three pre-built scenarios (major exchange collapse, stablecoin depeg, ecosystem contagion) plus custom portfolio input. Retroactive case studies validate the model against FTX, LUNA/UST, and 3AC — all using the same calibrated betas applied to current data.
+</p>
+
+<div class="evidence-box">
+  <div class="ev-title">Validated Prediction</div>
+  SOL ecosystem contagion scenario: model predicted -67.6% impact. Actual FTX-era drawdown: -67.9%. Delta: 0.3 percentage points.
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<h2 id="alpha">7. Portable Alpha Strategy</h2>
+
+<p>
+  The Portable Alpha strategy generates conviction-ranked long/short pairs using Trust Score spreads and DtD differentials. It operates within the investment-grade universe (A1–A3 rated tokens), applies bear market detection, and holds positions for 90-day cycles.
+</p>
+
+<h3>Strategy Rules</h3>
+<p>
+  Universe: ~85 major tokens, excluding stablecoins. Rating class: IG_MID (A1–A3) — empirically the highest-alpha class. Pair selection: top-5 monthly by conviction score (40% composite spread + 60% DtD differential). Maximum 2 pairs per token. Bear detection: BTC monthly return &lt; -15% triggers skip (Alpha) or defensive allocation (Dynamic/Conservative). Return cap: ±100% per leg.
+</p>
+
+<h3>Backtest Results (April 2021 – December 2025)</h3>
+
+<table>
+  <tr><th>Variant</th><th>Period</th><th>Return</th><th>Sharpe</th><th>Max DD</th><th>BTC Return</th><th>Alpha</th></tr>
+  <tr><td>Conservative</td><td>OOS (24mo)</td><td class="pos">+314.7%</td><td>2.02</td><td>-11.0%</td><td>+100.8%</td><td>+213.9%</td></tr>
+  <tr><td>Growth</td><td>OOS (24mo)</td><td class="pos">+842.2%</td><td>3.86</td><td>-12.1%</td><td>+100.8%</td><td>+741.4%</td></tr>
+  <tr><td>Aggressive</td><td>OOS (24mo)</td><td class="pos">+1,872.9%</td><td>5.56</td><td>-18.8%</td><td>+100.8%</td><td>+1,772.1%</td></tr>
+</table>
+
+<div class="evidence-box">
+  <div class="ev-title">In-Sample vs Out-of-Sample</div>
+  In-sample (36 months, Apr 2021–Mar 2023): strategy developed and calibrated. Out-of-sample (24 months, Apr 2023–Dec 2025): zero parameter changes. OOS Sharpe ratios exceed IS across all variants, suggesting the signal is robust and not overfit. However, the OOS period included a strong crypto bull market which may have amplified long-side returns.
+</div>
+
+<h3>Allocation Variants</h3>
+<table>
+  <tr><th>Variant</th><th>Pairs Weight</th><th>BTC Weight</th><th>Cash Weight</th><th>Bear Adjustment</th></tr>
+  <tr><td>Alpha (Pure L/S)</td><td>100% / 0%</td><td>—</td><td>—</td><td>Skip entirely</td></tr>
+  <tr><td>Dynamic</td><td>30% (bear) / 40%</td><td>10% (bear) / 40%</td><td>60% (bear) / 20%</td><td>Defensive</td></tr>
+  <tr><td>Conservative</td><td>20% (bear) / 30%</td><td>5% (bear) / 30%</td><td>75% (bear) / 40%</td><td>Defensive</td></tr>
+</table>
+
+<div class="caveat">
+  <strong>Important limitations:</strong> (1) Backtest does not include transaction costs (estimated 1% round-trip per pair). (2) The strategy operates on 5 pairs/month from ~85 tokens — high concentration risk. (3) Maximum monthly drawdown on individual pairs reached -64.3%. (4) IG_MID is the empirically best-performing rating class — selecting only this class represents a form of data mining that may not persist. (5) Bear detection threshold (-15% BTC monthly) was determined in-sample.
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<h2 id="case-studies">8. Retroactive Case Studies</h2>
+
+<h3>FTX (November 2022)</h3>
+<p>
+  Trust Score: 5.0/100 (Grade F). No proof of reserves, opaque corporate structure, circular collateralization through FTT token, and Alameda Research conflicts of interest. The score reflects systematic detection of structural red flags through publicly available data. Losses: $8.0B.
+</p>
+
+<h3>Terra/LUNA (May 2022)</h3>
+<p>
+  Trust Score: 57.2/100 (Grade C+) for LUNA, 29.9/100 (Grade D) for UST. Algorithmic stablecoin with no real reserves, unsustainable 20% APY via Anchor Protocol, and known death-spiral risk mechanism. Combined losses: $58B.
+</p>
+
+<h3>Celsius Network (June 2022)</h3>
+<p>
+  Trust Score: 5.0/100 (Grade F). Losses: $4.7B. Below-platform scoring across all five pillars.
+</p>
+
+<div class="caveat">
+  <strong>Disclaimer:</strong> These case studies are retroactive. Trust Scores are computed on current data, not historical data from before each collapse. The purpose is to demonstrate that the scoring methodology captures structural risk factors, not to claim forward prediction of these specific events.
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<h2 id="track-record">9. Track Record</h2>
+
+<h3>Backtest (April 2021 – December 2025)</h3>
+<p>
+  60-month backtest period with strict IS/OOS separation at month 36. Full results available at <a href="/track-record" style="color:var(--warm)">/track-record</a>. All signals are reproducible from the published methodology and publicly available market data.
+</p>
+
+<h3>Live Paper Trading (March 2026 →)</h3>
+<p>
+  Three portfolios tracked live since March 1, 2026. All entries SHA-256 hash-chained in an append-only database. No UPDATE or DELETE operations permitted. Microsecond-precision timestamps. Signals logged before market open.
+</p>
+<p>
+  Current regime: BEAR (BTC -46.7% from 365-day ATH). Alpha Fund in bear skip (100% cash). Dynamic and Conservative running defensive allocations.
+</p>
+<p>
+  Dashboard: <a href="/paper-trading" style="color:var(--warm)">/paper-trading</a>. Audit trail: <code>GET /v1/crypto/paper-trading/audit</code>.
+</p>
+
+<!-- ════════════════════════════════════════════ -->
+<h2 id="architecture">10. Machine-First Architecture</h2>
+
+<p>
+  ZARQ is built API-first. The dashboard is a showcase — the API is the product. Every data point visible on the website is available through a documented JSON endpoint. All endpoints are free during beta with a 1,000 calls/day rate limit.
+</p>
+
+<h3>API Surface (37 endpoints)</h3>
+<p>
+  Ratings, DtD scores, early warnings, trading signals, safety checks, portfolio stresstest, contagion mapping, paper trading NAV, and audit trails. Full documentation at <a href="/docs" style="color:var(--warm)">/docs</a>.
+</p>
+
+<h3>AI Discoverability</h3>
+<p>
+  Optimized for autonomous AI agent consumption: <code>llms.txt</code>, <code>robots.txt</code> with AI bot directives, Schema.org markup, AI-citable summary comments in HTML source, and MCP (Model Context Protocol) server integration. Bulk data available as JSONL under CC BY 4.0.
+</p>
+
+<h3>Infrastructure</h3>
+<p>
+  Self-hosted on dedicated hardware. SQLite for crypto data (zero-overhead reads), PostgreSQL for agent data. Cloudflare Tunnel for TLS termination and CDN. Automated daily pipeline: data collection → scoring → signal generation → NAV calculation → audit logging. System health monitored every 5 minutes with automatic self-healing.
+</p>
+
+</div><!-- /.content -->
+
+<div class="disclaimer">
+  <p><strong>Disclaimer</strong></p>
+  <p>This white paper is for informational purposes only and does not constitute financial advice, a solicitation to invest, or an offer of securities. Past performance, whether backtested or live, does not guarantee future results. Backtested results are hypothetical and subject to inherent limitations including but not limited to: the benefit of hindsight in strategy design, the absence of transaction costs and slippage, and the selection of parameters from historical data. Crypto assets are highly volatile and can lose all value. The ZARQ rating system provides risk assessments based on publicly available data and should not be the sole basis for investment decisions. Readers should conduct their own research and consult qualified financial advisors before making any investment.</p>
+  <p>ZARQ is not registered as an investment advisor, broker-dealer, or credit rating agency. All ratings, scores, and signals are analytical tools, not recommendations.</p>
+  <p>© 2026 ZARQ. Data updated daily. White Paper v1.0, March 2026.</p>
+</div>
+
+<footer>
+  <div class="foot-left">© 2026 ZARQ</div>
+  <div class="foot-right">
+    <a href="/methodology">Methodology</a>
+    <a href="/track-record">Track Record</a>
+        <a href="/paper-trading">Paper Trading</a>
+    <a href="/paper-trading">Paper Trading</a>
+    <a href="/docs">API</a>
+  </div>
+</footer>
+
+</body>
+</html>

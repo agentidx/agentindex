@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent Discovery Report — 2026-03-09</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          background: #0a0a0a; color: #e0e0e0; max-width: 900px;
+          margin: 0 auto; padding: 2rem; }
+  h1 { color: #00d4aa; font-size: 1.8rem; border-bottom: 1px solid #333; padding-bottom: 1rem; }
+  h2 { color: #888; font-size: 1rem; text-transform: uppercase; letter-spacing: 2px;
+        margin-top: 2.5rem; }
+  .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin: 1.5rem 0; }
+  .stat-card { background: #141414; border: 1px solid #222; border-radius: 8px;
+                padding: 1.2rem; text-align: center; }
+  .stat-number { font-size: 2rem; font-weight: 700; color: #00d4aa; }
+  .stat-label { font-size: 0.8rem; color: #666; margin-top: 0.3rem; }
+  .stat-delta { font-size: 0.9rem; color: #4CAF50; margin-top: 0.2rem; }
+  table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+  th { background: #141414; color: #666; font-size: 0.75rem;
+        text-transform: uppercase; padding: 0.6rem 0.8rem; text-align: left; }
+  td { padding: 0.6rem 0.8rem; border-bottom: 1px solid #1a1a1a; font-size: 0.9rem; }
+  tr:hover td { background: #0f0f0f; }
+  code { background: #1a1a1a; padding: 2px 6px; border-radius: 3px;
+          font-family: 'SF Mono', monospace; font-size: 0.85rem; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 3px;
+            font-size: 0.75rem; font-weight: 600; }
+  .badge-ai { background: #00d4aa22; color: #00d4aa; border: 1px solid #00d4aa44; }
+  .footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid #1a1a1a;
+             color: #444; font-size: 0.8rem; }
+</style>
+</head>
+<body>
+
+<h1>🤖 Agent Discovery Report</h1>
+<p style="color:#555">Vecka 2026-03-09 → 2026-03-16 &nbsp;|&nbsp;
+   Genererad: 2026-03-16 05:00 UTC</p>
+
+<h2>Sammanfattning</h2>
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-number">172,590</div>
+    <div class="stat-label">Totala agenter indexerade</div>
+    <div class="stat-delta">+125,471 denna vecka</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-number">7</div>
+    <div class="stat-label">Identifierade AI-agenter</div>
+    <div class="stat-delta">+0 nya denna vecka</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-number">32%</div>
+    <div class="stat-label">AI-detektionsgrad</div>
+    <div class="stat-delta">22 wallets analyserade</div>
+  </div>
+</div>
+
+<h2>Nya agenter denna vecka</h2>
+<table>
+  <tr><th>Källa</th><th>Nya agenter</th></tr>
+  <tr><td>erc8004</td><td>+86,894</td></tr><tr><td>agentverse</td><td>+27,000</td></tr><tr><td>pulsemcp</td><td>+6,931</td></tr><tr><td>mcp_registry</td><td>+3,786</td></tr><tr><td>lobehub</td><td>+505</td></tr><tr><td>openrouter</td><td>+355</td></tr>
+</table>
+
+<h2>Totalt per källa</h2>
+<table>
+  <tr><th>Källa</th><th>Totalt</th></tr>
+  <tr><td>erc8004</td><td>86,894</td></tr><tr><td>agentverse</td><td>27,000</td></tr><tr><td>fetchai</td><td>24,100</td></tr><tr><td>virtuals</td><td>19,905</td></tr><tr><td>pulsemcp</td><td>6,931</td></tr><tr><td>mcp_registry</td><td>3,786</td></tr><tr><td>coingecko</td><td>1,789</td></tr><tr><td>bittensor</td><td>641</td></tr><tr><td>lobehub</td><td>505</td></tr><tr><td>olas</td><td>474</td></tr><tr><td>openrouter</td><td>355</td></tr><tr><td>dexscreener</td><td>210</td></tr>
+</table>
+
+<h2>Nyidentifierade AI-agenter (wallet behavior)</h2>
+<table>
+  <tr><th>Agenttyp</th><th>Antal</th><th>Snitt confidence</th></tr>
+  <tr><td colspan='3'>Ingen ny wallet-analys denna vecka</td></tr>
+</table>
+
+<h2>Top entities — högst AI-koncentration</h2>
+<table>
+  <tr><th>Typ</th><th>Entity</th><th>AI-agenter</th><th>AI-ratio</th><th>AI-TVL</th></tr>
+  <tr>
+            <td>chain</td>
+            <td><strong>Fetch.ai Chain</strong>
+                </td>
+            <td>24100</td>
+            <td>100.0%</td>
+            <td>—</td>
+        </tr><tr>
+            <td>protocol</td>
+            <td><strong>Fetch.ai</strong>
+                </td>
+            <td>24100</td>
+            <td>100.0%</td>
+            <td>—</td>
+        </tr><tr>
+            <td>chain</td>
+            <td><strong>BASE</strong>
+                </td>
+            <td>19378</td>
+            <td>100.0%</td>
+            <td>100.0%</td>
+        </tr><tr>
+            <td>chain</td>
+            <td><strong>Bittensor</strong>
+                </td>
+            <td>641</td>
+            <td>100.0%</td>
+            <td>100.0%</td>
+        </tr><tr>
+            <td>chain</td>
+            <td><strong>SOLANA</strong>
+                </td>
+            <td>509</td>
+            <td>100.0%</td>
+            <td>100.0%</td>
+        </tr><tr>
+            <td>subnet</td>
+            <td><strong>Subnet 1</strong>
+                </td>
+            <td>257</td>
+            <td>100.0%</td>
+            <td>100.0%</td>
+        </tr><tr>
+            <td>subnet</td>
+            <td><strong>Subnet 2</strong>
+                </td>
+            <td>257</td>
+            <td>100.0%</td>
+            <td>100.0%</td>
+        </tr><tr>
+            <td>token</td>
+            <td><strong>i am</strong>
+                (I AM)</td>
+            <td>145</td>
+            <td>100.0%</td>
+            <td>100.0%</td>
+        </tr><tr>
+            <td>token</td>
+            <td><strong>ClawCore by Virtuals</strong>
+                (CLAWCORE)</td>
+            <td>100</td>
+            <td>100.0%</td>
+            <td>100.0%</td>
+        </tr><tr>
+            <td>token</td>
+            <td><strong>HealthAgentChecker by Virtuals</strong>
+                (HEALTH)</td>
+            <td>99</td>
+            <td>100.0%</td>
+            <td>100.0%</td>
+        </tr>
+</table>
+
+<h2>Top 10 AI-agenter (confidence)</h2>
+<table>
+  <tr><th>Wallet</th><th>Namn</th><th>Källa</th><th>Typ</th><th>Confidence</th><th>Aktivitet</th></tr>
+  <tr>
+            <td><code>0xbb73ac55...</code></td>
+            <td>nickcom007/prediction_request_sme</td>
+            <td>olas</td>
+            <td>trading-agent</td>
+            <td><strong>0.65</strong></td>
+            <td>6.0/dag</td>
+        </tr><tr>
+            <td><code>0xbb73ac55...</code></td>
+            <td>nickcom007/sme_generation_request</td>
+            <td>olas</td>
+            <td>trading-agent</td>
+            <td><strong>0.65</strong></td>
+            <td>6.0/dag</td>
+        </tr><tr>
+            <td><code>0xda386358...</code></td>
+            <td>n/a</td>
+            <td>olas</td>
+            <td>trading-agent</td>
+            <td><strong>0.45</strong></td>
+            <td>1.6/dag</td>
+        </tr><tr>
+            <td><code>0xda386358...</code></td>
+            <td>n/a</td>
+            <td>olas</td>
+            <td>trading-agent</td>
+            <td><strong>0.45</strong></td>
+            <td>1.6/dag</td>
+        </tr><tr>
+            <td><code>0x4a4b1f45...</code></td>
+            <td>FeedOracle Mech</td>
+            <td>olas</td>
+            <td>trading-agent</td>
+            <td><strong>0.40</strong></td>
+            <td>24.0/dag</td>
+        </tr><tr>
+            <td><code>0xb5c62646...</code></td>
+            <td>Mike Trading Agent</td>
+            <td>olas</td>
+            <td>trading-agent</td>
+            <td><strong>0.35</strong></td>
+            <td>3.0/dag</td>
+        </tr><tr>
+            <td><code>0xb5c62646...</code></td>
+            <td>Mike Trader Strategy</td>
+            <td>olas</td>
+            <td>trading-agent</td>
+            <td><strong>0.35</strong></td>
+            <td>3.0/dag</td>
+        </tr><tr>
+            <td><code>0xdc6ceada...</code></td>
+            <td>OneSoul Dating Platform Agent</td>
+            <td>olas</td>
+            <td>trading-agent</td>
+            <td><strong>0.35</strong></td>
+            <td>0.1/dag</td>
+        </tr><tr>
+            <td><code>0xdc6ceada...</code></td>
+            <td>onesoul/cupidagent</td>
+            <td>olas</td>
+            <td>trading-agent</td>
+            <td><strong>0.35</strong></td>
+            <td>0.1/dag</td>
+        </tr><tr>
+            <td><code>0xdc6ceada...</code></td>
+            <td>onesoul/cupidagent</td>
+            <td>olas</td>
+            <td>trading-agent</td>
+            <td><strong>0.35</strong></td>
+            <td>0.1/dag</td>
+        </tr>
+</table>
+
+<div class="footer">
+  <p>ZARQ Agent Intelligence &nbsp;|&nbsp; zarq.ai &nbsp;|&nbsp;
+     Data: crypto_trust.db &nbsp;|&nbsp; 93,786 relationer indexerade</p>
+  <p>Rapporten genereras automatiskt varje måndag 06:00 UTC</p>
+</div>
+
+</body>
+</html>

@@ -74,7 +74,7 @@ def _get_agent_data():
             SELECT name,
                    COALESCE(trust_score_v2, trust_score) as trust_score,
                    stars
-            FROM agents
+            FROM entity_lookup
             WHERE is_active = true AND agent_type = 'mcp_server'
               AND COALESCE(trust_score_v2, trust_score) IS NOT NULL
         """)).fetchall()

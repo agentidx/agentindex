@@ -480,14 +480,14 @@ def _get_system_health():
         health["total_agents"] = int(s.execute(text("SELECT reltuples::bigint FROM pg_class WHERE relname = 'agents'")).scalar() or 0)
         # Use sampling for scored count (exact count on 5M+ rows is too slow)
         health["scored"] = health["total_agents"]  # Nearly all agents have trust_score_v2
-        health["avg_score"] = float(s.execute(text("SELECT ROUND(AVG(trust_score_v2)::numeric, 1) FROM agents TABLESAMPLE SYSTEM(1) WHERE trust_score_v2 IS NOT NULL")).scalar() or 0)
+        health["avg_score"] = float(s.execute(text("SELECT ROUND(AVG(trust_score_v2)::numeric, 1) FROM entity_lookup TABLESAMPLE SYSTEM(1) WHERE trust_score_v2 IS NOT NULL")).scalar() or 0)
 
         # Grade distribution (sampled)
-        gc = s.execute(text("SELECT trust_grade, COUNT(*) FROM agents TABLESAMPLE SYSTEM(1) WHERE trust_score_v2 IS NOT NULL GROUP BY trust_grade ORDER BY trust_grade")).fetchall()
+        gc = s.execute(text("SELECT trust_grade, COUNT(*) FROM entity_lookup TABLESAMPLE SYSTEM(1) WHERE trust_score_v2 IS NOT NULL GROUP BY trust_grade ORDER BY trust_grade")).fetchall()
         health["grades"] = {g: c * 100 for g, c in gc}  # Scale up from 1% sample
 
         # New agents last 24h (uses index on first_indexed)
-        health["new_24h"] = s.execute(text("SELECT COUNT(*) FROM agents WHERE first_indexed > NOW() - INTERVAL '24 hours'")).scalar() or 0
+        health["new_24h"] = s.execute(text("SELECT COUNT(*) FROM entity_lookup WHERE first_indexed > NOW() - INTERVAL '24 hours'")).scalar() or 0
         
         # Snapshot date
         try:

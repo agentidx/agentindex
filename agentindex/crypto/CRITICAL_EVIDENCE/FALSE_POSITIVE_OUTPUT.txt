@@ -1,0 +1,26 @@
+VERIFIED OUTPUT — 2026-02-28
+
+Total tokens with OOS data: 207
+Warned (structural filter triggered): 176
+Not warned: 31
+
+CONFUSION MATRIX:
+  DD>30%:  175  1  5  26  99.4%  97.2%  3.7%
+  DD>50%:  172  4  2  29  97.7%  98.9%  12.1%
+  DD>80%:  113  63  0  31  64.2% 100.0%  67.0%
+
+HONEST SUMMARY:
+  Of 207 tokens tracked in OOS (2024-2026):
+  176 (85%) triggered structural warning
+    113 went on to lose >80% (true deaths)
+    59 lost 50-80%
+    3 lost 30-50%
+    1 lost <30% (genuine false positive: stasis-eurs)
+  31 (15%) never triggered warning
+    2 still lost >50% (false negatives)
+    29 stayed relatively healthy
+
+PRECISION:
+  Warning means >80% crash: 64% precision
+  Warning means >50% crash: 98% precision
+  Warning means >30% crash: 99% precision

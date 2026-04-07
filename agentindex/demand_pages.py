@@ -107,8 +107,8 @@ def _find_tool(query):
             SELECT id, name, trust_score_v2, trust_grade, stars, description,
                    category, author, source_url, license, downloads, agent_type,
                    security_score, activity_score, documentation_score, popularity_score
-            FROM agents
-            WHERE (LOWER(name) = :q OR LOWER(name) LIKE :p) AND is_active = true
+            FROM entity_lookup
+            WHERE (name_lower = :q OR name_lower LIKE :p) AND is_active = true
             ORDER BY COALESCE(stars, 0) DESC LIMIT 1
         """), {"q": q, "p": p}).fetchone()
         if row:
@@ -124,7 +124,7 @@ def _find_similar(name, category, limit=5):
     try:
         rows = session.execute(text("""
             SELECT name, trust_score_v2, trust_grade, stars, downloads
-            FROM agents WHERE is_active = true AND LOWER(name) != :n
+            FROM entity_lookup WHERE is_active = true AND name_lower != :n
             AND (category = :cat OR :cat IS NULL) AND trust_score_v2 IS NOT NULL
             ORDER BY COALESCE(stars, 0) DESC LIMIT :lim
         """), {"n": name.lower(), "cat": category, "lim": limit}).fetchall()
@@ -668,7 +668,7 @@ def mount_demand_pages(app):
         session = get_session()
         try:
             rows = session.execute(text("""
-                SELECT name FROM agents WHERE is_active = true
+                SELECT name FROM entity_lookup WHERE is_active = true
                 AND description IS NOT NULL AND LENGTH(description) > 10
                 AND (stars > 100 OR downloads > 1000)
                 ORDER BY COALESCE(stars, 0) DESC LIMIT 5000
@@ -694,7 +694,7 @@ def mount_demand_pages(app):
         session = get_session()
         try:
             rows = session.execute(text("""
-                SELECT name FROM agents WHERE is_active = true
+                SELECT name FROM entity_lookup WHERE is_active = true
                 AND trust_score_v2 IS NOT NULL AND stars > 500
                 ORDER BY COALESCE(stars, 0) DESC LIMIT 1000
             """)).fetchall()
@@ -728,7 +728,7 @@ def mount_demand_pages(app):
         session = get_session()
         try:
             rows = session.execute(text("""
-                SELECT name FROM agents WHERE is_active = true AND stars > 500
+                SELECT name FROM entity_lookup WHERE is_active = true AND stars > 500
                 ORDER BY COALESCE(stars, 0) DESC LIMIT 1000
             """)).fetchall()
         finally:
@@ -922,7 +922,7 @@ def mount_demand_pages(app):
         try:
             rows = session.execute(text("""
                 SELECT name, trust_score_v2, trust_grade, stars, downloads, agent_type
-                FROM agents WHERE is_active = true
+                FROM entity_lookup WHERE is_active = true
                 AND trust_score_v2 IS NOT NULL
                 ORDER BY COALESCE(stars, 0) DESC LIMIT 1000
             """)).fetchall()
@@ -1012,7 +1012,7 @@ def mount_demand_pages(app):
         session = get_session()
         try:
             rows = session.execute(text("""
-                SELECT name FROM agents WHERE is_active = true
+                SELECT name FROM entity_lookup WHERE is_active = true
                 AND description IS NOT NULL AND LENGTH(description) > 10
                 AND (stars > 100 OR downloads > 1000)
                 ORDER BY COALESCE(stars, 0) DESC LIMIT 5000

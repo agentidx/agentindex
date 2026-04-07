@@ -487,6 +487,8 @@ def _resolve(task: str, min_trust: int = 60, client: str = None,
     session = get_session()
     rows = []
     try:
+        session.execute(text("SET LOCAL work_mem = '2MB'"))
+        session.execute(text("SET LOCAL statement_timeout = '5s'"))
         seen_names = set()
         for query_str, params in queries:
             try:

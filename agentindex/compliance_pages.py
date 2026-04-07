@@ -156,7 +156,7 @@ def mount_compliance_pages(app):
                     COUNT(*) FILTER (WHERE eu_risk_class = 'minimal') as minimal,
                     COUNT(*) FILTER (WHERE eu_risk_class = 'high') as high,
                     COUNT(*) FILTER (WHERE eu_risk_class = 'limited') as limited
-                FROM agents
+                FROM entity_lookup
             """)).fetchone()
             assessed = stats[0] or 0
             minimal = stats[1] or 0
@@ -343,7 +343,7 @@ Check any agent against all {total} jurisdictions with a single API call.</p>
             session = get_session()
             dist = session.execute(text("""
                 SELECT eu_risk_class, COUNT(*) as cnt
-                FROM agents
+                FROM entity_lookup
                 WHERE eu_risk_class IS NOT NULL
                 GROUP BY eu_risk_class
                 ORDER BY cnt DESC
@@ -354,7 +354,7 @@ Check any agent against all {total} jurisdictions with a single API call.</p>
             top_agents = session.execute(text("""
                 SELECT name, compliance_score, eu_risk_class,
                        COALESCE(trust_score_v2, trust_score) as trust_score
-                FROM agents
+                FROM entity_lookup
                 WHERE eu_risk_class IS NOT NULL
                 ORDER BY compliance_score DESC, trust_score DESC
                 LIMIT 10

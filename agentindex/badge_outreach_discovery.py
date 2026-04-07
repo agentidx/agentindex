@@ -158,6 +158,9 @@ def cross_reference_agents(repos: list[dict]) -> list[dict]:
         full_name = repo["full_name"]
 
         try:
+            # trust_explanation not in entity_lookup; use agents with guard
+            cur.execute("SET LOCAL work_mem = '2MB'")
+            cur.execute("SET LOCAL statement_timeout = '5s'")
             cur.execute("""
                 SELECT id::text, name, trust_score, trust_explanation, category,
                        activity_score, security_score, popularity_score, documentation_score

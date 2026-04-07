@@ -1,0 +1,28 @@
+VERIFIED OUTPUT — 2026-02-28
+
+Q1: HOW MANY TOKENS THAT DIE DO WE WARN ABOUT?
+  Tokens in OOS with enough data: 207
+  Tokens that 'died' (>80% from peak): 113
+  Warned by structural filter: 113 (100%)
+  NOT warned: 0 (0%)
+
+  COVERAGE BY SEVERITY:
+    DD >50%: 174 tokens, warned=172 (99%)
+    DD >60%: 157 tokens, warned=156 (99%)
+    DD >70%: 143 tokens, warned=143 (100%)
+    DD >80%: 113 tokens, warned=113 (100%)
+    DD >90%: 62 tokens, warned=62 (100%)
+
+Q2: TIMING
+  Warned dead tokens with timing: 113
+  Median DD at warning: -31.0%
+  Warned at 0% (before ANY drop): 8/113
+  Warned at <10% down: 12/113
+  Warned at <30% down: 54/113
+  Median additional loss avoided: -58.0%
+  Mean additional loss avoided: -55.3%
+
+Q3: IDIOSYNCRATIC DEATHS
+  Idiosyncratic deaths: 98/113 (87%)
+  Beta-driven deaths: 15/113 (13%)
+  Of idiosyncratic deaths, warned: 98/98 (100%)

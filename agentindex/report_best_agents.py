@@ -90,7 +90,7 @@ def _query_article(art: dict) -> dict:
         rows = session.execute(text(f"""
             SELECT name, agent_type, trust_score_v2, trust_grade, source, stars,
                    LEFT(description, 200) as desc_short
-            FROM agents
+            FROM entity_lookup
             WHERE is_active = true
             AND agent_type IN ('agent', 'tool', 'mcp_server')
             AND {cat_filter}
@@ -100,7 +100,7 @@ def _query_article(art: dict) -> dict:
         """)).fetchall()
 
         total = session.execute(text(f"""
-            SELECT COUNT(*) FROM agents
+            SELECT COUNT(*) FROM entity_lookup
             WHERE is_active = true
             AND agent_type IN ('agent', 'tool', 'mcp_server')
             AND {cat_filter}

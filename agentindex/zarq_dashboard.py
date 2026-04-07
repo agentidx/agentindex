@@ -48,7 +48,7 @@ def _pg_status() -> dict:
         from agentindex.db.models import get_session
         s = get_session()
         from sqlalchemy import text
-        row = s.execute(text("SELECT COUNT(*) FROM agents")).scalar()
+        row = s.execute(text("SELECT COUNT(*) FROM entity_lookup")).scalar()
         s.close()
         return {"status": "ok", "agents": row}
     except Exception as e:
@@ -636,14 +636,14 @@ def _agent_index() -> dict:
         total = int(s.execute(text("SELECT reltuples::bigint FROM pg_class WHERE relname = 'agents'")).scalar() or 0)
         # Use TABLESAMPLE for new_24h estimate instead of scanning 5M+ rows
         new_24h = s.execute(
-            text("SELECT COUNT(*) FROM agents TABLESAMPLE SYSTEM(0.1) WHERE first_indexed > :d"),
+            text("SELECT COUNT(*) FROM entity_lookup TABLESAMPLE SYSTEM(0.1) WHERE first_indexed > :d"),
             {"d": datetime.now(timezone.utc) - timedelta(hours=24)}
         ).scalar() or 0
         new_24h = int(new_24h * 1000)  # Scale up from 0.1% sample
         trust_scored = total
 
         # Category distribution (top 8) — uses index on category
-        cats = s.execute(text("""SELECT category, COUNT(*) as cnt FROM agents
+        cats = s.execute(text("""SELECT category, COUNT(*) as cnt FROM entity_lookup
             WHERE category IS NOT NULL GROUP BY category ORDER BY cnt DESC LIMIT 8""")).fetchall()
 
         s.close()

@@ -128,7 +128,7 @@ def sync_agent_slugs() -> int:
             SELECT name, source_url, category, source, trust_score, stars,
                    activity_score, security_score, popularity_score, documentation_score,
                    is_verified
-            FROM agents
+            FROM entity_lookup
             WHERE is_active = true
               AND trust_score >= 50
               AND agent_type IN ('agent', 'tool', 'mcp_server')
@@ -194,7 +194,7 @@ def sync_mcp_slugs() -> int:
         cur.execute("""
             SELECT name, source_url, category, source, trust_score, stars,
                    is_verified
-            FROM agents
+            FROM entity_lookup
             WHERE is_active = true
               AND trust_score >= 50
               AND agent_type = 'mcp_server'

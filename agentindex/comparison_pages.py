@@ -453,14 +453,14 @@ def mount_comparison_pages(app):
         session = get_session()
         try:
             total_mcp = session.execute(text(
-                "SELECT COUNT(*) FROM agents WHERE is_active = true AND agent_type = 'mcp_server'"
+                "SELECT COUNT(*) FROM entity_lookup WHERE is_active = true AND agent_type = 'mcp_server'"
             )).scalar() or 0
 
             # Get top MCP servers — filter to trusted/caution only (trust >= 35)
             top = session.execute(text("""
                 SELECT id, name, stars, description,
                        trust_score_v2, trust_grade
-                FROM agents WHERE is_active = true AND agent_type = 'mcp_server'
+                FROM entity_lookup WHERE is_active = true AND agent_type = 'mcp_server'
                 AND trust_score_v2 >= 35
                 ORDER BY trust_score_v2 DESC NULLS LAST, stars DESC NULLS LAST LIMIT 20
             """)).fetchall()
@@ -491,6 +491,8 @@ def mount_comparison_pages(app):
             tag_conditions = " OR ".join([f"'{t}' = ANY(tags)" for t in cat["query_tags"]])
             desc_conditions = " OR ".join([f"description ILIKE '%{d}%'" for d in cat["query_desc"]])
 
+            # domains/tags not in entity_lookup — keep on agents with guards
+            session.execute(text("SET LOCAL work_mem = '2MB'; SET LOCAL statement_timeout = '5s'"))
             query = f"""
                 SELECT id, name, stars, downloads,
                        description, author, license, source_url, domains, tags,
@@ -510,7 +512,7 @@ def mount_comparison_pages(app):
                       for r in rows]
 
             total_in_cat = session.execute(text(f"""
-                SELECT COUNT(*) FROM agents 
+                SELECT COUNT(*) FROM agents
                 WHERE is_active = true AND agent_type = 'mcp_server'
                 AND ({tag_conditions} OR {desc_conditions})
             """)).scalar()

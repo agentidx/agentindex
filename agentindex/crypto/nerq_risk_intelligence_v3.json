@@ -1,0 +1,87 @@
+{
+  "system": "NERQ Crypto Risk Intelligence",
+  "version": "3.0",
+  "date": "2026-02-28",
+  "components": {
+    "btc_beta": {
+      "method": "Rolling 90-day OLS regression on daily returns",
+      "correlation_oos": 0.486,
+      "mae_pct": 15.9,
+      "sample_betas": {
+        "bitcoin": 1.01,
+        "ethereum": 1.23,
+        "solana": 1.26,
+        "cardano": 1.3,
+        "sui": 1.55,
+        "bonk": 1.37
+      },
+      "validation": {
+        "high_beta_predicted": -44.5,
+        "high_beta_actual": -45.1,
+        "low_beta_predicted": -1.6,
+        "low_beta_actual": -2.1
+      }
+    },
+    "p3_sniper_raw": {
+      "subset": "structural_weakness >= 2",
+      "label": "90d raw crash >30%",
+      "threshold_90pct": {
+        "alerts": 97,
+        "true_positives": 72,
+        "false_positives": 25,
+        "precision": 0.742,
+        "ci_lower": 0.647
+      },
+      "top_30_accuracy": "28/30 = 93.3%"
+    },
+    "idio_sniper": {
+      "subset": "structural_weakness >= 2",
+      "label": "90d idiosyncratic drop >15% (beta-adjusted)",
+      "auc_oos": 0.7067,
+      "threshold_50pct": {
+        "alerts": 258,
+        "true_positives": 176,
+        "false_positives": 82,
+        "precision": 0.682,
+        "ci_lower": 0.623
+      }
+    },
+    "alpha_model": {
+      "status": "in_development",
+      "auc_oos": 0.612,
+      "notes": "Insufficient resolution, needs more features or data"
+    }
+  },
+  "data": {
+    "tokens": 207,
+    "price_history_rows": 1112210,
+    "ndd_history_rows": 32529,
+    "rating_history_rows": 7857,
+    "oos_period": "2024-01 to 2026-02",
+    "oos_observations": 17845
+  },
+  "shap_top_features": {
+    "idio_crash_structural": [
+      {
+        "feature": "btc_beta",
+        "importance": 0.1824
+      },
+      {
+        "feature": "excess_vol",
+        "importance": 0.1494
+      },
+      {
+        "feature": "weeks_since_ath",
+        "importance": 0.1193
+      },
+      {
+        "feature": "p3_rank",
+        "importance": 0.0404
+      },
+      {
+        "feature": "trust_p3_maintenance",
+        "importance": 0.0262
+      }
+    ]
+  }
+}

@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent Intelligence — ZARQ</title>
+<meta name="description" content="47,119 AI agents tracked. $517M exposed to high crash-risk tokens. Real-time agent risk intelligence from ZARQ.">
+<link rel="canonical" href="https://zarq.ai/agent-intelligence">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --white: #fafaf9;
+  --black: #0a0a0a;
+  --gray-100: #f5f5f4;
+  --gray-200: #e7e5e4;
+  --gray-400: #a8a29e;
+  --gray-500: #78716c;
+  --gray-600: #57534e;
+  --gray-700: #44403c;
+  --gray-800: #292524;
+  --gray-900: #1c1917;
+  --warm: #c2956b;
+  --warm-light: rgba(194, 149, 107, 0.08);
+  --red: #dc2626;
+  --red-light: rgba(220, 38, 38, 0.08);
+  --amber: #d97706;
+  --amber-light: rgba(217, 119, 6, 0.08);
+  --green: #16a34a;
+  --green-light: rgba(22, 163, 74, 0.08);
+  --serif: 'DM Serif Display', Georgia, serif;
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'DM Sans', sans-serif;
+  --wide: 1120px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { font-size: 17px; -webkit-font-smoothing: antialiased; }
+body { background: var(--white); color: var(--gray-800); font-family: var(--sans); line-height: 1.6; }
+
+/* Nav */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  padding: 20px 40px; display: flex; justify-content: space-between; align-items: center;
+  backdrop-filter: blur(20px); background: rgba(250,250,249,0.85);
+  border-bottom: 1px solid rgba(0,0,0,0.04);
+}
+.nav-mark { font-family: var(--mono); font-weight: 500; font-size: 15px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--black); text-decoration: none; }
+.nav-links { display: flex; gap: 32px; align-items: center; }
+.nav-links a { font-family: var(--mono); font-size: 12px; letter-spacing: 0.05em; color: var(--gray-600); text-decoration: none; transition: color 0.2s; }
+.nav-links a:hover, .nav-links a.active { color: var(--black); }
+.nav-api { font-family: var(--mono); font-size: 11px; letter-spacing: 0.05em; color: var(--warm); border: 1px solid var(--warm); padding: 6px 16px; text-decoration: none; transition: all 0.2s; }
+.nav-api:hover { background: var(--warm); color: var(--white); }
+.nav-dropdown { position: relative; }
+.nav-dropdown-trigger { cursor: pointer; }
+.nav-dropdown-menu { display: none; position: absolute; top: 100%; right: 0; background: var(--white); border: 1px solid var(--gray-200); box-shadow: 0 8px 24px rgba(0,0,0,0.08); padding: 8px 0; min-width: 180px; z-index: 200; }
+.nav-dropdown:hover .nav-dropdown-menu { display: block; }
+.nav-dropdown-menu a { display: block; padding: 8px 20px; font-family: var(--mono); font-size: 12px; letter-spacing: 0.05em; color: var(--gray-600); text-decoration: none; white-space: nowrap; }
+.nav-dropdown-menu a:hover { background: var(--warm-light); color: var(--black); }
+.nav-toggle-input { display: none; }
+.nav-hamburger { display: none; cursor: pointer; flex-direction: column; gap: 5px; }
+.nav-hamburger span { display: block; width: 22px; height: 2px; background: var(--black); transition: all 0.3s; }
+
+/* Page */
+.page { max-width: var(--wide); margin: 0 auto; padding: 120px 40px 80px; }
+
+/* Header */
+.page-eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--warm); margin-bottom: 16px; }
+.page-title { font-family: var(--serif); font-size: clamp(36px, 5vw, 56px); line-height: 1.1; color: var(--black); margin-bottom: 20px; }
+.page-sub { font-size: 18px; color: var(--gray-600); max-width: 600px; line-height: 1.7; margin-bottom: 48px; }
+
+/* Live badge */
+.live-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em;
+  color: var(--green); border: 1px solid rgba(22,163,74,0.3);
+  padding: 4px 12px; margin-bottom: 32px;
+}
+.live-dot { width: 6px; height: 6px; background: var(--green); border-radius: 50%; animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
+
+/* Stats grid */
+.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--gray-200); border: 1px solid var(--gray-200); margin-bottom: 64px; }
+.stat-card { background: var(--white); padding: 32px 28px; }
+.stat-number { font-family: var(--serif); font-size: 42px; line-height: 1; color: var(--black); margin-bottom: 6px; }
+.stat-number.red { color: var(--red); }
+.stat-number.amber { color: var(--amber); }
+.stat-label { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gray-500); margin-bottom: 4px; }
+.stat-sub { font-family: var(--mono); font-size: 11px; color: var(--gray-400); }
+
+/* Section headers */
+.section-label { font-family: var(--mono); font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gray-500); margin-bottom: 24px; padding-bottom: 12px; border-bottom: 1px solid var(--gray-200); }
+.section { margin-bottom: 64px; }
+
+/* Alert box */
+.alert-box {
+  border: 1px solid rgba(220,38,38,0.2); background: var(--red-light);
+  padding: 20px 24px; margin-bottom: 32px; display: flex; gap: 16px; align-items: flex-start;
+}
+.alert-icon { font-family: var(--mono); font-size: 11px; color: var(--red); letter-spacing: 0.1em; white-space: nowrap; padding-top: 2px; }
+.alert-text { font-size: 15px; color: var(--gray-800); line-height: 1.6; }
+.alert-text strong { color: var(--red); }
+
+/* Table */
+.data-table { width: 100%; border-collapse: collapse; }
+.data-table th { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gray-500); padding: 10px 16px; text-align: left; border-bottom: 1px solid var(--gray-200); background: var(--gray-100); }
+.data-table td { padding: 14px 16px; border-bottom: 1px solid var(--gray-100); font-size: 14px; }
+.data-table tr:hover td { background: var(--gray-100); }
+.badge { display: inline-block; font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; padding: 2px 8px; font-weight: 600; }
+.badge-critical { background: var(--red-light); color: var(--red); border: 1px solid rgba(220,38,38,0.2); }
+.badge-warning { background: var(--amber-light); color: var(--amber); border: 1px solid rgba(217,119,6,0.2); }
+.badge-watch { background: rgba(234,179,8,0.08); color: #854d0e; border: 1px solid rgba(234,179,8,0.2); }
+.badge-safe { background: var(--green-light); color: var(--green); border: 1px solid rgba(22,163,74,0.2); }
+.badge-extreme { background: var(--red-light); color: var(--red); border: 1px solid rgba(220,38,38,0.3); }
+.badge-high { background: var(--amber-light); color: var(--amber); border: 1px solid rgba(217,119,6,0.2); }
+
+/* Chain bar */
+.chain-bar-wrap { margin-bottom: 24px; }
+.chain-bar-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+.chain-name { font-family: var(--mono); font-size: 13px; color: var(--black); }
+.chain-score { font-family: var(--mono); font-size: 13px; color: var(--gray-500); }
+.chain-bar-track { height: 4px; background: var(--gray-200); }
+.chain-bar-fill { height: 4px; background: var(--warm); transition: width 1s ease; }
+.chain-bar-fill.danger { background: var(--red); }
+.chain-meta { font-family: var(--mono); font-size: 11px; color: var(--gray-400); margin-top: 4px; }
+
+/* Tabs */
+.tabs { display: flex; gap: 0; border-bottom: 1px solid var(--gray-200); margin-bottom: 32px; }
+.tab { font-family: var(--mono); font-size: 12px; letter-spacing: 0.05em; padding: 12px 20px; cursor: pointer; color: var(--gray-500); border-bottom: 2px solid transparent; transition: all 0.2s; background: none; border-top: none; border-left: none; border-right: none; }
+.tab:hover { color: var(--black); }
+.tab.active { color: var(--black); border-bottom-color: var(--warm); }
+
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* API box */
+.api-box { background: var(--gray-900); padding: 24px; margin-top: 32px; }
+.api-box-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gray-500); margin-bottom: 12px; }
+.api-endpoint { font-family: var(--mono); font-size: 13px; color: #86efac; margin-bottom: 6px; }
+.api-endpoint span { color: var(--gray-400); }
+
+/* Loading */
+.loading { font-family: var(--mono); font-size: 12px; color: var(--gray-400); padding: 32px 0; text-align: center; }
+.error { font-family: var(--mono); font-size: 12px; color: var(--red); padding: 16px 0; }
+
+/* Updated at */
+.updated-at { font-family: var(--mono); font-size: 11px; color: var(--gray-400); margin-top: 16px; }
+
+/* Footer */
+footer { border-top: 1px solid var(--gray-200); padding: 40px; display: flex; justify-content: space-between; align-items: center; }
+footer a { font-family: var(--mono); font-size: 12px; color: var(--gray-500); text-decoration: none; margin-right: 24px; }
+footer a:hover { color: var(--black); }
+
+@media (max-width: 768px) {
+  nav { padding: 16px 20px; }
+  .nav-hamburger { display: flex; }
+  .nav-links { display: none; position: absolute; top: 100%; left: 0; right: 0; background: var(--white); border-bottom: 1px solid var(--gray-200); padding: 16px 20px; flex-direction: column; gap: 16px; }
+  .nav-toggle-input:checked ~ .nav-links { display: flex; }
+  .nav-dropdown-menu { display: block; position: static; box-shadow: none; border: none; padding: 0 0 0 12px; }
+  .nav-dropdown-trigger { display: none; }
+  .page { padding: 100px 20px 60px; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-mark">zarq</a>
+  <input type="checkbox" id="nav-toggle" class="nav-toggle-input">
+  <label for="nav-toggle" class="nav-hamburger"><span></span><span></span><span></span></label>
+  <div class="nav-links">
+    <a href="/scan">Scan</a>
+    <a href="/crypto">Ratings</a>
+    <a href="/tokens">Token Ratings</a>
+    <a href="/crash-watch">Crash Watch</a>
+    <div class="nav-dropdown">
+      <a href="#" class="nav-dropdown-trigger">More &#9662;</a>
+      <div class="nav-dropdown-menu">
+        <a href="/yield-risk">Yield Risk</a>
+        <a href="/compare">Compare</a>
+        <a href="/learn">Learn</a>
+        <a href="/track-record">Track Record</a>
+        <a href="/paper-trading">Paper Trading</a>
+        <a href="/press">Press</a>
+        <a href="/methodology">Methodology</a>
+      </div>
+    </div>
+    <a href="/docs" class="nav-api">API</a>
+  </div>
+</nav>
+
+<div class="page">
+
+  <div class="page-eyebrow">Agent Intelligence</div>
+  <h1 class="page-title">47,119 AI agents.<br><em>Tracked. Rated. Mapped.</em></h1>
+  <p class="page-sub">The only platform that crosses AI agent data with institutional crypto risk intelligence. We track which agents hold what, and what's about to collapse.</p>
+  <div class="live-badge"><span class="live-dot"></span>LIVE — Updated daily at 04:00 UTC</div>
+
+  <!-- Key stats -->
+  <div class="stats-grid" id="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">AI Assets Indexed</div>
+      <div class="stat-number" id="stat-total">47,119</div>
+      <div class="stat-sub">6 registries · 9 chains</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Capital at Risk</div>
+      <div class="stat-number red" id="stat-mcap-risk">$517M</div>
+      <div class="stat-sub">crash probability &gt;50%</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Structural Collapse</div>
+      <div class="stat-number red" id="stat-collapse">12</div>
+      <div class="stat-sub">agents · $344M exposed</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Base Chain Exposure</div>
+      <div class="stat-number amber" id="stat-base">$1.92B</div>
+      <div class="stat-sub">19,442 agents · risk 10/10</div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('collapse')">Structural Collapse</button>
+    <button class="tab" onclick="showTab('critical')">CRITICAL Agents</button>
+    <button class="tab" onclick="showTab('chains')">Chain Risk</button>
+    <button class="tab" onclick="showTab('all')">All Exposed</button>
+  </div>
+
+  <!-- Tab: Structural Collapse -->
+  <div class="tab-content active" id="tab-collapse">
+    <div class="alert-box">
+      <div class="alert-icon">⚠ ALERT</div>
+      <div class="alert-text">
+        <strong>$344M in AI-agent capital is exposed to Structural Collapse tokens.</strong>
+        These tokens have triggered ZARQ's Structural Collapse signal — the same signal with 100% recall across 113 detected defaults. Agent <strong>pippin</strong> holds $344.6M in PIPPIN token with 90% crash probability.
+      </div>
+    </div>
+    <div id="collapse-table"><div class="loading">Loading...</div></div>
+    <div class="updated-at" id="collapse-updated"></div>
+  </div>
+
+  <!-- Tab: CRITICAL -->
+  <div class="tab-content" id="tab-critical">
+    <div id="critical-table"><div class="loading">Loading...</div></div>
+  </div>
+
+  <!-- Tab: Chain Risk -->
+  <div class="tab-content" id="tab-chains">
+    <div id="chains-content"><div class="loading">Loading...</div></div>
+  </div>
+
+  <!-- Tab: All Exposed -->
+  <div class="tab-content" id="tab-all">
+    <div id="all-table"><div class="loading">Loading...</div></div>
+  </div>
+
+  <!-- Methodology note -->
+  <div class="section" style="margin-top:64px">
+    <div class="section-label">How It Works</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:32px">
+      <div>
+        <div style="font-family:var(--mono);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--warm);margin-bottom:8px">Step 1 — Index</div>
+        <div style="font-size:15px;color:var(--gray-600);line-height:1.7">We crawl 6 AI-agent registries: Virtuals, Fetch.ai, Olas, Bittensor, ElizaOS, DexScreener. 47,119 agents indexed with token exposure, chain, and creator wallet.</div>
+      </div>
+      <div>
+        <div style="font-family:var(--mono);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--warm);margin-bottom:8px">Step 2 — Cross</div>
+        <div style="font-size:15px;color:var(--gray-600);line-height:1.7">Each agent's token exposure is matched against ZARQ's risk database — 205 tokens rated with Distance-to-Default, Structural Collapse signal, and crash probability (v3 model, AUC 0.71).</div>
+      </div>
+      <div>
+        <div style="font-family:var(--mono);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--warm);margin-bottom:8px">Step 3 — Alert</div>
+        <div style="font-size:15px;color:var(--gray-600);line-height:1.7">When a token enters Structural Collapse or CRITICAL rating, we surface all AI agents exposed. Updated daily. API available. Exodus signal (agent outflow as leading indicator) launching Q3 2026.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- API -->
+  <div class="section">
+    <div class="section-label">API Access</div>
+    <div class="api-box">
+      <div class="api-box-label">Endpoints</div>
+      <div class="api-endpoint">GET <span>zarq.ai</span>/v1/agents/structural-collapse</div>
+      <div class="api-endpoint">GET <span>zarq.ai</span>/v1/agents/risk-exposure<span>?risk_level=CRITICAL</span></div>
+      <div class="api-endpoint">GET <span>zarq.ai</span>/v1/agents/chain-concentration-risk</div>
+      <div class="api-endpoint">GET <span>zarq.ai</span>/v1/agents/ai-identified<span>?min_confidence=0.65</span></div>
+      <div class="api-endpoint">GET <span>zarq.ai</span>/v1/agents/exodus-snapshot</div>
+      <div style="margin-top:16px;font-family:var(--mono);font-size:11px;color:var(--gray-500)">Free during beta · 1,000 calls/day · No API key required</div>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <div>
+    <a href="/scan">Scan</a>
+    <a href="/crypto">Ratings</a>
+    <a href="/tokens">Token Ratings</a>
+    <a href="/methodology">Methodology</a>
+    <a href="/docs">API</a>
+    <a href="/track-record">Track Record</a>
+        <a href="/paper-trading">Paper Trading</a>
+  </div>
+  <div style="font-family:var(--mono);font-size:11px;color:var(--gray-400)">zarq.ai · Agent Intelligence · Updated daily</div>
+</footer>
+
+<script>
+function showTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+}
+
+function fmt(n) {
+  if (!n) return '—';
+  if (n >= 1e9) return '$' + (n/1e9).toFixed(1) + 'B';
+  if (n >= 1e6) return '$' + (n/1e6).toFixed(1) + 'M';
+  if (n >= 1e3) return '$' + (n/1e3).toFixed(0) + 'K';
+  return '$' + n.toFixed(0);
+}
+
+function riskBadge(level) {
+  const map = {CRITICAL:'badge-critical',WARNING:'badge-warning',WATCH:'badge-watch',SAFE:'badge-safe'};
+  return `<span class="badge ${map[level]||'badge-watch'}">${level||'—'}</span>`;
+}
+
+function crashBar(prob) {
+  if (!prob) return '—';
+  const pct = Math.round(prob * 100);
+  const color = pct >= 70 ? '#dc2626' : pct >= 50 ? '#d97706' : '#78716c';
+  return `<div style="display:flex;align-items:center;gap:8px">
+    <div style="width:60px;height:3px;background:#e7e5e4"><div style="width:${pct}%;height:3px;background:${color}"></div></div>
+    <span style="font-family:var(--mono);font-size:12px;color:${color}">${pct}%</span>
+  </div>`;
+}
+
+async function loadCollapse() {
+  try {
+    const r = await fetch('/v1/agents/structural-collapse?limit=50');
+    const d = await r.json();
+    const rows = d.agents.map(a => `
+      <tr>
+        <td><strong>${a.agent_name||a.agent_id}</strong><br><span style="font-family:var(--mono);font-size:11px;color:var(--gray-400)">${a.agent_id}</span></td>
+        <td><span style="font-family:var(--mono);font-size:13px">${a.token_symbol||'—'}</span></td>
+        <td>${fmt(a.market_cap_usd)}</td>
+        <td>${crashBar(a.crash_prob_v3)}</td>
+        <td><span style="font-family:var(--mono);font-size:12px;color:var(--red)">${a.structural_weakness}/3</span></td>
+        <td><span style="font-family:var(--mono);font-size:11px;color:var(--gray-500)">${a.agent_source}</span></td>
+      </tr>`).join('');
+    document.getElementById('collapse-table').innerHTML = `
+      <table class="data-table">
+        <thead><tr>
+          <th>Agent</th><th>Token</th><th>Market Cap</th>
+          <th>Crash Prob</th><th>Weakness</th><th>Source</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+    document.getElementById('collapse-updated').textContent =
+      `Last updated: ${new Date(d.agents[0]?.computed_at||Date.now()).toUTCString()}`;
+  } catch(e) {
+    document.getElementById('collapse-table').innerHTML = '<div class="error">Failed to load data</div>';
+  }
+}
+
+async function loadCritical() {
+  try {
+    const r = await fetch('/v1/agents/risk-exposure?risk_level=CRITICAL&limit=50');
+    const d = await r.json();
+    const rows = d.agents.map(a => `
+      <tr>
+        <td><strong>${a.agent_name||a.agent_id}</strong></td>
+        <td><span style="font-family:var(--mono);font-size:13px">${a.token_symbol||'—'}</span></td>
+        <td>${fmt(a.market_cap_usd)}</td>
+        <td>${riskBadge(a.risk_level)}</td>
+        <td>${crashBar(a.crash_prob_v3)}</td>
+        <td><span style="font-family:var(--mono);font-size:11px;color:var(--gray-500)">${a.chain||'—'}</span></td>
+      </tr>`).join('');
+    document.getElementById('critical-table').innerHTML = `
+      <p style="font-family:var(--mono);font-size:12px;color:var(--gray-500);margin-bottom:20px">
+        ${d.summary.critical} agents · ${fmt(d.summary.mcap_at_risk_usd)} at risk
+      </p>
+      <table class="data-table">
+        <thead><tr><th>Agent</th><th>Token</th><th>Market Cap</th><th>Rating</th><th>Crash Prob</th><th>Chain</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+  } catch(e) {
+    document.getElementById('critical-table').innerHTML = '<div class="error">Failed to load data</div>';
+  }
+}
+
+async function loadChains() {
+  try {
+    const r = await fetch('/v1/agents/chain-concentration-risk');
+    const d = await r.json();
+    const bars = d.chains.map(c => {
+      const pct = Math.round(c.concentration_risk_score * 10);
+      const isDanger = c.concentration_risk_score >= 8;
+      return `<div class="chain-bar-wrap">
+        <div class="chain-bar-header">
+          <span class="chain-name">${c.chain.charAt(0).toUpperCase()+c.chain.slice(1)}</span>
+          <span class="chain-score">
+            <span class="badge ${isDanger?'badge-extreme':'badge-watch'}">${c.risk_label}</span>
+            &nbsp;${c.concentration_risk_score}/10
+          </span>
+        </div>
+        <div class="chain-bar-track">
+          <div class="chain-bar-fill ${isDanger?'danger':''}" style="width:${pct}%"></div>
+        </div>
+        <div class="chain-meta">
+          ${c.total_agents.toLocaleString()} agents ·
+          ${fmt(c.total_market_cap_usd)} total ·
+          ${c.agents_in_critical+c.agents_in_warning} in WARNING/CRITICAL ·
+          ${c.agents_structural_collapse} Structural Collapse
+        </div>
+      </div>`;
+    }).join('');
+    document.getElementById('chains-content').innerHTML = `
+      <p style="font-size:15px;color:var(--gray-600);line-height:1.7;margin-bottom:32px;max-width:640px">
+        Chains dominated by AI agents face higher systemic risk: coordinated exits, correlated strategies, and faster contagion. Concentration risk score combines agent share, capital at risk, and chain dominance.
+      </p>
+      ${bars}`;
+  } catch(e) {
+    document.getElementById('chains-content').innerHTML = '<div class="error">Failed to load data</div>';
+  }
+}
+
+async function loadAll() {
+  try {
+    const r = await fetch('/v1/agents/risk-exposure?limit=100');
+    const d = await r.json();
+    const rows = d.agents.map(a => `
+      <tr>
+        <td><strong>${a.agent_name||a.agent_id}</strong></td>
+        <td><span style="font-family:var(--mono);font-size:13px">${a.token_symbol||'—'}</span></td>
+        <td>${fmt(a.market_cap_usd)}</td>
+        <td>${riskBadge(a.risk_level)}</td>
+        <td>${crashBar(a.crash_prob_v3)}</td>
+        <td>${a.is_structural_collapse ? '<span class="badge badge-critical">COLLAPSE</span>' : '—'}</td>
+      </tr>`).join('');
+    document.getElementById('all-table').innerHTML = `
+      <p style="font-family:var(--mono);font-size:12px;color:var(--gray-500);margin-bottom:20px">
+        ${d.total} agents with risk data · ${fmt(d.summary.total_mcap_usd)} total · ${fmt(d.summary.mcap_at_risk_usd)} at risk
+      </p>
+      <table class="data-table">
+        <thead><tr><th>Agent</th><th>Token</th><th>Market Cap</th><th>Rating</th><th>Crash Prob</th><th>Flag</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+  } catch(e) {
+    document.getElementById('all-table').innerHTML = '<div class="error">Failed to load data</div>';
+  }
+}
+
+// Load on page init
+loadCollapse();
+document.querySelector('.tab[onclick="showTab(\'critical\')"]').addEventListener('click', loadCritical, {once:true});
+document.querySelector('.tab[onclick="showTab(\'chains\')"]').addEventListener('click', loadChains, {once:true});
+document.querySelector('.tab[onclick="showTab(\'all\')"]').addEventListener('click', loadAll, {once:true});
+</script>
+
+</body>
+</html>

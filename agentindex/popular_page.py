@@ -31,7 +31,7 @@ def _fetch_top_agents(limit=50):
         rows = session.execute(text("""
             SELECT name, source, trust_score_v2, trust_grade, category, stars, downloads,
                    description, source_url
-            FROM agents
+            FROM entity_lookup
             WHERE is_active = true
               AND agent_type IN ('agent', 'tool', 'mcp_server')
               AND trust_score_v2 IS NOT NULL

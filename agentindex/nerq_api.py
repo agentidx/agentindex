@@ -68,7 +68,7 @@ def benchmark_categories(response: Response):
                 COALESCE(category, 'uncategorized') as cat,
                 COUNT(*) as cnt,
                 ROUND(AVG(trust_score_v2)::numeric, 1) as avg_trust
-            FROM agents
+            FROM entity_lookup
             WHERE is_active = true AND {_ACTUAL_AGENTS}
             GROUP BY cat
             HAVING COUNT(*) >= 3
@@ -104,7 +104,7 @@ def benchmark_category(category: str, response: Response):
 
     session = get_session()
     try:
-        cat_filter = "(LOWER(category) = :cat OR :cat = ANY(domains))"
+        cat_filter = "LOWER(category) = :cat"
 
         # Top 20 — fast index scan, no window function
         rows = session.execute(text(f"""
@@ -121,7 +121,7 @@ def benchmark_category(category: str, response: Response):
                 source as platform,
                 source_url,
                 stars
-            FROM agents
+            FROM entity_lookup
             WHERE is_active = true AND {_ACTUAL_AGENTS}
               AND {cat_filter}
             ORDER BY trust_score_v2 DESC NULLS LAST
@@ -144,7 +144,7 @@ def benchmark_category(category: str, response: Response):
         if not total:
             # Fallback: count from DB (slower but only on first cold hit)
             total = session.execute(text(f"""
-                SELECT COUNT(*) FROM agents
+                SELECT COUNT(*) FROM entity_lookup
                 WHERE is_active = true AND {_ACTUAL_AGENTS} AND {cat_filter}
             """), {"cat": cache_key}).scalar() or 0
 
@@ -215,8 +215,7 @@ def agent_search(
             params["q"] = q
 
         if domain:
-            # Use index-friendly array containment instead of subquery
-            conditions.append("(LOWER(category) = LOWER(:domain) OR :domain = ANY(domains))")
+            conditions.append("LOWER(category) = :domain")
             params["domain"] = domain.lower()
 
         if type:
@@ -234,8 +233,8 @@ def agent_search(
             SELECT
                 name, agent_type, source, source_url,
                 trust_score_v2 as trust_score,
-                domains, category
-            FROM agents
+                category
+            FROM entity_lookup
             WHERE {where}
             ORDER BY trust_score_v2 DESC NULLS LAST
             LIMIT :lim OFFSET :off
@@ -248,8 +247,7 @@ def agent_search(
                 "source": r[2],
                 "source_url": r[3],
                 "trust_score": round(float(r[4]), 1) if r[4] else None,
-                "domains": r[5],
-                "category": r[6],
+                "category": r[5],
             }
             for r in rows
         ]
@@ -261,7 +259,7 @@ def agent_search(
             # Use EXPLAIN estimate for total (instant, ~90% accurate)
             try:
                 plan = session.execute(
-                    text(f"EXPLAIN (FORMAT JSON) SELECT 1 FROM agents WHERE {where}"), params
+                    text(f"EXPLAIN (FORMAT JSON) SELECT 1 FROM entity_lookup WHERE {where}"), params
                 ).scalar()
                 import json as _json
                 total = int(_json.loads(plan)[0]["Plan"]["Plan Rows"])
@@ -332,23 +330,23 @@ def agent_stats(response: Response):
                 ROUND(AVG(CASE WHEN agent_type IN ('agent','mcp_server','tool')
                                AND trust_score_v2 IS NOT NULL
                           THEN trust_score_v2 END)::numeric, 1) as avg_trust
-            FROM agents
+            FROM entity_lookup
             WHERE is_active = true
         """)).fetchone()
 
-        # Category distribution (actual agents only) — uses idx_agents_type_category
+        # Category distribution (actual agents only)
         cat_rows = session.execute(text(f"""
             SELECT COALESCE(category, 'uncategorized') as cat, COUNT(*)
-            FROM agents
+            FROM entity_lookup
             WHERE is_active = true AND {_ACTUAL_AGENTS}
             GROUP BY cat ORDER BY COUNT(*) DESC LIMIT 50
         """)).fetchall()
         categories = {r[0]: r[1] for r in cat_rows}
 
-        # Framework distribution — TABLESAMPLE to avoid scanning all 204K rows
+        # Framework distribution — entity_lookup has frameworks column
         fw_rows = session.execute(text(f"""
             SELECT fw, COUNT(*) as cnt
-            FROM (SELECT unnest(frameworks) as fw FROM agents
+            FROM (SELECT unnest(frameworks) as fw FROM entity_lookup
                   WHERE frameworks IS NOT NULL AND is_active = true
                   AND {_ACTUAL_AGENTS}
                   LIMIT 50000) sub
@@ -356,7 +354,9 @@ def agent_stats(response: Response):
         """)).fetchall()
         frameworks = {r[0]: r[1] for r in fw_rows}
 
-        # Language distribution — uses idx_agents_type_category partial
+        # Language distribution — language not in entity_lookup; use agents with guards
+        session.execute(text("SET LOCAL work_mem = '2MB'"))
+        session.execute(text("SET LOCAL statement_timeout = '5s'"))
         lang_rows = session.execute(text(f"""
             SELECT COALESCE(language, 'unknown') as lang, COUNT(*)
             FROM agents
@@ -369,13 +369,13 @@ def agent_stats(response: Response):
         cutoff_24h = (datetime.now(timezone.utc) - timedelta(hours=24)).isoformat()
         cutoff_7d = (datetime.now(timezone.utc) - timedelta(days=7)).isoformat()
         new_24h = session.execute(
-            text("SELECT COUNT(*) FROM agents TABLESAMPLE SYSTEM(0.1) WHERE first_indexed > :d"),
+            text("SELECT COUNT(*) FROM entity_lookup TABLESAMPLE SYSTEM(0.1) WHERE first_indexed > :d"),
             {"d": cutoff_24h}
         ).scalar() or 0
         new_24h = int(new_24h * 1000)
 
         new_7d = session.execute(
-            text("SELECT COUNT(*) FROM agents TABLESAMPLE SYSTEM(1) WHERE first_indexed > :d"),
+            text("SELECT COUNT(*) FROM entity_lookup TABLESAMPLE SYSTEM(1) WHERE first_indexed > :d"),
             {"d": cutoff_7d}
         ).scalar() or 0
         new_7d = int(new_7d * 100)

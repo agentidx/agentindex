@@ -80,9 +80,9 @@ def _zarq_check(token_id: str) -> dict | None:
 
 _KYA_COLS = """id, name, description, source, author, category,
     COALESCE(trust_score_v2, trust_score) as trust_score,
-    compliance_score, eu_risk_class, trust_grade, trust_risk_level,
-    first_indexed, last_crawled, is_verified, is_active,
-    stars, downloads, protocols, frameworks, source_url"""
+    compliance_score, eu_risk_class, trust_grade,
+    first_indexed, is_verified, is_active,
+    stars, downloads, protocols, frameworks, source_url, license"""
 
 
 def _lookup_agent(identifier: str) -> dict | None:
@@ -94,25 +94,33 @@ def _lookup_agent(identifier: str) -> dict | None:
         if _is_uuid(identifier):
             row = session.execute(text(f"""
                 SELECT {_KYA_COLS}
-                FROM agents WHERE id = :id AND is_active = true
+                FROM entity_lookup WHERE id = :id AND is_active = true
             """), {"id": identifier}).fetchone()
             return dict(row._mapping) if row else None
 
         clean = identifier.replace("-", " ").replace("_", " ")
         row = session.execute(text(f"""
             SELECT {_KYA_COLS} FROM (
-                SELECT *, 1 AS _rank FROM agents
-                WHERE LOWER(name) = LOWER(:name) AND is_active = true
+                SELECT id, name, description, source, author, category, trust_score, trust_score_v2,
+                       compliance_score, eu_risk_class, trust_grade, first_indexed, is_verified,
+                       is_active, stars, downloads, protocols, frameworks, source_url, license, 1 AS _rank
+                FROM entity_lookup WHERE name_lower = lower(:name) AND is_active = true
               UNION ALL
-                SELECT *, 1 AS _rank FROM agents
-                WHERE LOWER(name) = LOWER(:clean) AND is_active = true
+                SELECT id, name, description, source, author, category, trust_score, trust_score_v2,
+                       compliance_score, eu_risk_class, trust_grade, first_indexed, is_verified,
+                       is_active, stars, downloads, protocols, frameworks, source_url, license, 1 AS _rank
+                FROM entity_lookup WHERE name_lower = lower(:clean) AND is_active = true
                 AND :clean != :name
               UNION ALL
-                SELECT *, 2 AS _rank FROM agents
-                WHERE lower(name::text) LIKE lower(:suffix) AND is_active = true
+                SELECT id, name, description, source, author, category, trust_score, trust_score_v2,
+                       compliance_score, eu_risk_class, trust_grade, first_indexed, is_verified,
+                       is_active, stars, downloads, protocols, frameworks, source_url, license, 2 AS _rank
+                FROM entity_lookup WHERE name_lower LIKE lower(:suffix) AND is_active = true
               UNION ALL
-                SELECT *, 3 AS _rank FROM agents
-                WHERE lower(name::text) LIKE lower(:pattern) AND is_active = true
+                SELECT id, name, description, source, author, category, trust_score, trust_score_v2,
+                       compliance_score, eu_risk_class, trust_grade, first_indexed, is_verified,
+                       is_active, stars, downloads, protocols, frameworks, source_url, license, 3 AS _rank
+                FROM entity_lookup WHERE name_lower LIKE lower(:pattern) AND is_active = true
             ) sub
             ORDER BY COALESCE(trust_score_v2, trust_score) DESC NULLS LAST,
                      stars DESC NULLS LAST

@@ -30,6 +30,8 @@ from agentindex.api.api_protection import setup_api_protection
 import os
 import uuid
 import redis
+from redis.backoff import ExponentialBackoff
+from redis.retry import Retry
 import json
 import gzip
 import hashlib
@@ -43,15 +45,29 @@ except ImportError:
 
 logger = logging.getLogger("agentindex.api")
 
-# Redis setup for caching
+# Redis setup — connection pool with auto-reconnect + exponential backoff
+_REDIS_RETRY = Retry(ExponentialBackoff(cap=30, base=0.5), retries=5)
+
+_REDIS_POOL = redis.ConnectionPool(
+    host='127.0.0.1',
+    port=6379,
+    db=0,
+    max_connections=20,
+    socket_timeout=5,
+    socket_connect_timeout=5,
+    retry_on_timeout=True,
+    retry=_REDIS_RETRY,
+    health_check_interval=30,
+)
+
+redis_client = redis.Redis(connection_pool=_REDIS_POOL)
 try:
-    redis_client = redis.from_url("redis://localhost:6379")
     redis_client.ping()
     CACHE_AVAILABLE = True
-    logger.info("Redis cache connected")
+    logger.info("Redis cache connected (pool, max=20, retry=5)")
 except Exception as e:
-    CACHE_AVAILABLE = False
-    logger.warning(f"Redis cache not available: {e}")
+    CACHE_AVAILABLE = True  # Pool will auto-reconnect — don't permanently disable
+    logger.warning(f"Redis not available at startup (will auto-reconnect): {e}")
 
 app = FastAPI(
     title="ZARQ & Nerq",
@@ -61,6 +77,24 @@ app = FastAPI(
     redoc_url="/redoc",
     openapi_url=None,  # Disabled: custom /openapi.json with A/B variant below
 )
+
+# ── Custom 404 page ──
+from starlette.exceptions import HTTPException as StarletteHTTPException
+
+@app.exception_handler(404)
+@app.exception_handler(StarletteHTTPException)
+async def custom_404(request: Request, exc):
+    if hasattr(exc, 'status_code') and exc.status_code != 404:
+        return HTMLResponse(str(exc.detail), status_code=exc.status_code)
+    from agentindex.nerq_design import nerq_head, NERQ_FOOTER
+    _h = nerq_head("Page Not Found — Nerq", "The page you're looking for doesn't exist.", "https://nerq.ai/")
+    return HTMLResponse(f"""{_h}
+<main class="container" style="padding:60px 20px;text-align:center">
+<h1 style="font-size:3rem;color:#e2e8f0">404</h1>
+<p style="font-size:18px;color:#64748b;margin:12px 0 24px">This page doesn't exist.</p>
+<form action="/search" method="get" style="margin:20px auto;max-width:400px"><input type="text" name="q" placeholder="Search Nerq..." style="width:100%;padding:12px;font-size:16px;border:2px solid #e2e8f0;border-radius:8px"></form>
+<div style="margin-top:24px"><a href="/" style="margin:0 12px">Home</a><a href="/best" style="margin:0 12px">Rankings</a><a href="/safe" style="margin:0 12px">Safety Reports</a></div>
+</main>{NERQ_FOOTER}</body></html>""", status_code=404)
 
 # ── Bot rate limiter (Meta crawlers hitting 287 req/sec) ──────────
 from collections import defaultdict as _rl_dd
@@ -82,18 +116,6 @@ _blocked_ips_cache = {"data": {}, "ts": 0}
 _BLOCK_FILE = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "data", "blocked_ips.json")
 
 import json as _json_mod
-
-_ADMIN_PATHS = {"/flywheel", "/v1/pool-status", "/admin/analytics-dashboard", "/admin/analytics-weekly"}
-
-class AdminGuardMiddleware(BaseHTTPMiddleware):
-    """Block external access to admin endpoints. Localhost only."""
-    async def dispatch(self, request: Request, call_next):
-        path = request.url.path
-        if any(path.startswith(p) for p in _ADMIN_PATHS):
-            real_ip = request.headers.get("CF-Connecting-IP") or (request.client.host if request.client else "127.0.0.1")
-            if real_ip not in ("127.0.0.1", "::1"):
-                return HTMLResponse("Forbidden", status_code=403)
-        return await call_next(request)
 
 class BotRateLimitMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
@@ -134,8 +156,18 @@ class BotRateLimitMiddleware(BaseHTTPMiddleware):
                      "chatgpt-user", "oai-searchbot", "gptbot",
                      "perplexitybot", "yandexbot", "baiduspider", "duckduckbot",
                      "applebot", "slurp", "bytespider", "bytedance",
-                     "facebot", "facebookexternalhit", "meta-externalagent",
-                     "meta-externalfetcher", "twitterbot", "linkedinbot")
+                     "facebot", "facebookexternalhit",
+                     "twitterbot", "linkedinbot")
+        # Hard rate limit for Meta — global 100/hour across all IPs (was per-IP 1/10s)
+        if "meta-externalagent" in ua or "meta-externalfetcher" in ua:
+            _meta = _bot_request_counts.setdefault("_meta_global", {"count": 0, "reset": 0})
+            if now > _meta["reset"]:
+                _meta["count"] = 0
+                _meta["reset"] = now + 3600
+            _meta["count"] += 1
+            if _meta["count"] > 100:
+                return StarletteResponse(content="", status_code=429, headers={"Retry-After": "3600"})
+            return await call_next(request)
         if any(s in ua for s in _SAFE_UA) or client_ip.startswith(_SAFE_PREFIXES):
             return await call_next(request)
         for bot_sig, max_rps in _BOT_RATE_LIMITS.items():
@@ -159,27 +191,47 @@ class BotRateLimitMiddleware(BaseHTTPMiddleware):
         return response
 
 app.add_middleware(BotRateLimitMiddleware)
-app.add_middleware(AdminGuardMiddleware)
 
 
 # ── Page Cache Middleware (Redis) ──────────────────────────
 # Caches GET responses for cacheable paths. API/dashboard excluded.
 class PageCacheMiddleware(BaseHTTPMiddleware):
     _NO_CACHE = ("/v1/", "/flywheel", "/dashboard", "/admin", "/ab-", "/openapi",
-                  "/robots.txt", "/llms.txt", "/sitemap", "/internal/")
-    _redis = None
+                  "/robots.txt", "/llms.txt", "/sitemap", "/internal/", "/my/")
     _TTL = 14400  # 4 hours — pages rarely change, enrichment flushes cache
+    _pool = None
+    _backoff = 0
+    _last_fail = 0.0
 
     @classmethod
     def _get_redis(cls):
-        if cls._redis is None:
-            try:
-                import redis
-                cls._redis = redis.Redis(host='localhost', port=6379, db=1, socket_timeout=0.1)
-                cls._redis.ping()
-            except Exception:
-                cls._redis = False  # Mark as unavailable
-        return cls._redis if cls._redis else None
+        """Redis with exponential backoff — never permanently disabled."""
+        import time as _t
+        now = _t.time()
+
+        # Respect backoff period
+        if cls._backoff > 0 and now - cls._last_fail < cls._backoff:
+            return None
+
+        try:
+            if cls._pool is None:
+                cls._pool = redis.ConnectionPool(
+                    host='127.0.0.1', port=6379, db=1,
+                    max_connections=10,
+                    socket_timeout=0.5,
+                    socket_connect_timeout=0.5,
+                    retry_on_timeout=True,
+                    retry=_REDIS_RETRY,
+                    health_check_interval=30,
+                )
+            r = redis.Redis(connection_pool=cls._pool)
+            r.ping()
+            cls._backoff = 0  # Reset on success
+            return r
+        except Exception:
+            cls._last_fail = now
+            cls._backoff = min((cls._backoff or 2.5) * 2, 300)  # 5s→10s→...max 5min
+            return None
 
     async def dispatch(self, request: Request, call_next):
         if request.method not in ("GET", "HEAD"):
@@ -190,14 +242,36 @@ class PageCacheMiddleware(BaseHTTPMiddleware):
         # Skip non-cacheable
         if any(path.startswith(p) for p in self._NO_CACHE):
             return await call_next(request)
+        # Skip paths with functional query params (search, API); ignore tracking params
         if request.url.query:
-            return await call_next(request)
+            _func_params = {k for k in request.query_params if k not in (
+                "ref", "utm_source", "utm_medium", "utm_campaign", "utm_content",
+                "utm_term", "fbclid", "gclid", "msclkid", "twclid", "dclid",
+            )}
+            if _func_params:
+                return await call_next(request)
 
         r = self._get_redis()
         if not r:
             return await call_next(request)
 
         cache_key = f"pc:{path}"
+
+        # Path-aware CDN TTLs — scores change daily, not hourly
+        if path.startswith(("/safe/", "/is-", "/review/", "/privacy/", "/who-owns/",
+                            "/pros-cons/", "/what-is/", "/badge/", "/mcp/")):
+            _smaxage = 86400   # 24h — entity pages
+        elif path.startswith(("/best/", "/alternatives/", "/compare/", "/guide/")):
+            _smaxage = 86400   # 24h — ranking pages
+        elif path.startswith(("/sitemap",)):
+            _smaxage = 86400   # 24h — sitemaps
+        elif path == "/":
+            _smaxage = 3600    # 1h — homepage
+        else:
+            _smaxage = 43200   # 12h — everything else
+        _cc = f"public, max-age=300, s-maxage={_smaxage}, stale-while-revalidate=86400"
+        _cdn_cc = f"public, max-age={_smaxage}, stale-while-revalidate=86400"
+
         try:
             cached = r.get(cache_key)
             if cached:
@@ -206,8 +280,8 @@ class PageCacheMiddleware(BaseHTTPMiddleware):
                     media_type="text/html; charset=utf-8",
                     headers={
                         "X-Cache": "HIT",
-                        "Cache-Control": "public, max-age=300, s-maxage=3600, stale-while-revalidate=86400",
-                        "CDN-Cache-Control": "public, max-age=3600",
+                        "Cache-Control": _cc,
+                        "CDN-Cache-Control": _cdn_cc,
                     }
                 )
         except Exception:
@@ -230,8 +304,8 @@ class PageCacheMiddleware(BaseHTTPMiddleware):
                 media_type=response.media_type or "text/html; charset=utf-8",
                 headers={
                     "X-Cache": "MISS",
-                    "Cache-Control": "public, max-age=300, s-maxage=3600, stale-while-revalidate=86400",
-                    "CDN-Cache-Control": "public, max-age=3600",
+                    "Cache-Control": _cc,
+                    "CDN-Cache-Control": _cdn_cc,
                 }
             )
 
@@ -313,8 +387,8 @@ def check_rate_limit(request: Request):
                    "chatgpt-user", "oai-searchbot", "gptbot",
                    "perplexitybot", "yandexbot", "baiduspider", "duckduckbot",
                    "applebot", "slurp", "bytespider", "bytedance",
-                   "facebot", "facebookexternalhit", "meta-externalagent",
-                   "meta-externalfetcher", "twitterbot", "linkedinbot")
+                   "facebot", "facebookexternalhit",
+                   "twitterbot", "linkedinbot")
     _SAFE_IP_RL = ("66.249.", "64.233.", "72.14.", "74.125.", "209.85.", "216.239.",
                    "40.77.", "52.167.", "207.46.", "157.55.", "13.66.", "13.67.")
     client_ip = request.headers.get("x-forwarded-for", "").split(",")[0].strip() or (request.client.host if request.client else "")
@@ -348,6 +422,62 @@ def check_rate_limit(request: Request):
 
 # --- Endpoints ---
 
+@app.get("/search", response_class=HTMLResponse)
+async def search_page(q: str = ""):
+    """HTML search results page."""
+    from agentindex.nerq_design import nerq_head, NERQ_FOOTER
+    import html as _h
+    if not q or len(q) < 2:
+        _head = nerq_head("Search — Nerq", "Search 2.5M+ software packages, apps, and tools for trust scores.", "https://nerq.ai/search")
+        return HTMLResponse(f"""{_head}
+<main class="container" style="padding:40px 20px"><h1>Search Nerq</h1>
+<form action="/search" method="get" style="margin:20px 0"><input type="text" name="q" placeholder="Search: express, NordVPN, TikTok..." style="width:100%;max-width:500px;padding:12px;font-size:16px;border:2px solid #e2e8f0;border-radius:8px" autofocus></form>
+<p style="color:#64748b">Search 2.5M+ entities across npm, PyPI, Chrome, WordPress, and 11 more registries.</p>
+</main>{NERQ_FOOTER}</body></html>""")
+
+    session = get_session()
+    try:
+        session.execute(text("SET LOCAL statement_timeout = '3s'"))
+        rows = session.execute(text("""
+            SELECT name, slug, registry, trust_score, trust_grade, LEFT(description, 120) as desc
+            FROM software_registry
+            WHERE (lower(name) LIKE lower(:pat) OR lower(slug) LIKE lower(:pat))
+              AND trust_score IS NOT NULL AND trust_score >= 30
+            ORDER BY trust_score DESC LIMIT 30
+        """), {"pat": f"%{q}%"}).fetchall()
+    finally:
+        session.close()
+
+    results_html = ""
+    for r in rows:
+        _s = f"{r[3]:.0f}" if r[3] else "?"
+        results_html += f'<div style="padding:12px 0;border-bottom:1px solid #f1f5f9"><a href="/safe/{_h.escape(r[1])}" style="font-size:16px;font-weight:600">{_h.escape(r[0])}</a> <span style="color:#64748b;font-size:13px">{_h.escape(r[2] or "")}</span> <span style="font-weight:600;color:#0d9488">{_s}/100</span> <span style="font-size:12px;padding:2px 6px;background:#f0fdf4;border-radius:4px">{_h.escape(r[4] or "")}</span><div style="font-size:14px;color:#64748b;margin-top:4px">{_h.escape(r[5] or "")}</div></div>'
+
+    _head = nerq_head(f'Search "{_h.escape(q)}" — Nerq', f"Search results for {q} — trust scores and safety analysis.", f"https://nerq.ai/search?q={_h.escape(q)}")
+    return HTMLResponse(f"""{_head}
+<main class="container" style="padding:20px">
+<form action="/search" method="get" style="margin:12px 0"><input type="text" name="q" value="{_h.escape(q)}" style="width:100%;max-width:500px;padding:12px;font-size:16px;border:2px solid #e2e8f0;border-radius:8px"></form>
+<p style="color:#64748b;margin-bottom:16px">{len(rows)} results for "{_h.escape(q)}"</p>
+{results_html}
+{f'<p style="margin-top:20px;color:#94a3b8">Showing top {len(rows)} results by trust score.</p>' if rows else '<p>No results found. Try a different search term.</p>'}
+</main>{NERQ_FOOTER}</body></html>""")
+
+@app.get("/contact", response_class=HTMLResponse)
+async def contact_page():
+    from agentindex.nerq_design import nerq_head, NERQ_FOOTER
+    _head = nerq_head("Contact — Nerq", "Contact Nerq for questions about trust scores, API access, or partnerships.", "https://nerq.ai/contact")
+    return HTMLResponse(f"""{_head}
+<main class="container" style="padding:40px 20px;max-width:640px">
+<h1>Contact Nerq</h1>
+<table style="margin:20px 0">
+<tr><td style="color:#64748b;width:140px">Email</td><td><a href="mailto:anders@nerq.ai">anders@nerq.ai</a></td></tr>
+<tr><td style="color:#64748b">Founded by</td><td>Anders Nilsson</td></tr>
+<tr><td style="color:#64748b">Location</td><td>Sweden</td></tr>
+<tr><td style="color:#64748b">API docs</td><td><a href="/nerq/docs">nerq.ai/nerq/docs</a></td></tr>
+</table>
+<p style="font-size:14px;color:#64748b">For API questions, badge partnerships, or data inquiries — email is the fastest way to reach us.</p>
+</main>{NERQ_FOOTER}</body></html>""")
+
 @app.get("/v1/pool-status")
 def pool_status():
     """Connection pool diagnostics — instant, no DB query."""
@@ -366,10 +496,13 @@ def pool_status():
     except Exception as e:
         return {"error": str(e)}
 
-# ── 410 Gone for /agent/ paths (191K stale UUIDs, all 404) ──
+# ── 301 Redirect /agent/ → /safe/ (was 410 — redirect preserves crawl budget) ──
 @app.get("/agent/{path:path}")
-async def agent_gone(path: str):
-    return HTMLResponse("", status_code=410, headers={"X-Robots-Tag": "noindex"})
+async def agent_redirect(path: str):
+    # Strip any UUID-like paths, keep just the last segment as slug
+    slug = path.rstrip("/").split("/")[-1] if "/" in path else path
+    from starlette.responses import RedirectResponse
+    return RedirectResponse(url=f"/safe/{slug}", status_code=301)
 
 # Sprint N0: Nerq Product APIs — MUST be mounted before /v1/agent/{agent_id}
 from agentindex.nerq_api import router_nerq
@@ -444,25 +577,26 @@ async def add_cors_headers(request: Request, call_next):
         ct = response.headers.get("content-type", "")
         if "text/html" in ct:
             if path == "/":
-                # Homepage: cache 60s at Cloudflare edge
-                response.headers["Cache-Control"] = "public, s-maxage=60, max-age=0, stale-while-revalidate=300"
-                response.headers["CDN-Cache-Control"] = "public, max-age=60, stale-while-revalidate=300"
-            elif path.startswith(("/is-", "/guide/", "/compare/", "/apps", "/npm", "/pypi",
-                                  "/crates", "/nuget", "/extensions", "/vpns", "/games",
-                                  "/websites", "/wordpress-plugins", "/guides", "/check-website",
-                                  "/best", "/alternatives/", "/what-is/", "/review/",
-                                  "/privacy/", "/who-owns/", "/pros-cons/", "/safe/",
-                                  "/mcp", "/discover", "/kya", "/crypto")):
-                # Content pages: cache 5 min at Cloudflare edge
-                response.headers["Cache-Control"] = "public, s-maxage=300, max-age=0, stale-while-revalidate=600"
-                response.headers["CDN-Cache-Control"] = "public, max-age=300, stale-while-revalidate=600"
-            elif path.startswith("/discover"):
-                # Search page: don't cache
-                pass
+                response.headers["Cache-Control"] = "public, s-maxage=3600, max-age=300, stale-while-revalidate=86400"
+                response.headers["CDN-Cache-Control"] = "public, max-age=3600, stale-while-revalidate=86400"
+            elif path.startswith(("/safe/", "/is-", "/review/", "/privacy/", "/who-owns/",
+                                  "/pros-cons/", "/what-is/", "/badge/", "/mcp/",
+                                  "/best/", "/alternatives/", "/compare/", "/guide/",
+                                  "/apps", "/npm", "/pypi", "/crates", "/nuget",
+                                  "/extensions", "/vpns", "/games", "/websites",
+                                  "/wordpress-plugins", "/guides", "/check-website",
+                                  "/kya", "/crypto")):
+                response.headers["Cache-Control"] = "public, s-maxage=86400, max-age=300, stale-while-revalidate=86400"
+                response.headers["CDN-Cache-Control"] = "public, max-age=86400, stale-while-revalidate=86400"
+            elif path.startswith(("/search", "/discover")):
+                response.headers["Cache-Control"] = "no-cache"
         elif "application/json" in ct and path.startswith("/v1/"):
-            # API responses: cache 60s at edge
-            response.headers["Cache-Control"] = "public, s-maxage=60, max-age=0"
-            response.headers["CDN-Cache-Control"] = "public, max-age=60"
+            if path.startswith("/v1/preflight"):
+                response.headers["Cache-Control"] = "public, s-maxage=3600, max-age=0"
+                response.headers["CDN-Cache-Control"] = "public, max-age=3600"
+            else:
+                response.headers["Cache-Control"] = "public, s-maxage=300, max-age=0"
+                response.headers["CDN-Cache-Control"] = "public, max-age=300"
     return response
 
 # Sprint 0 Track E: Observability
@@ -635,6 +769,8 @@ def discover(req: DiscoverRequest, request: Request, _=Depends(check_rate_limit)
             return cached_result
     
     session = get_session()
+    session.execute(text("SET LOCAL statement_timeout = '3s'"))
+    session.execute(text("SET LOCAL work_mem = '2MB'"))
 
     # Cap max results
     limit = min(req.max_results or 10, MAX_RESULTS)
@@ -679,92 +815,89 @@ def discover(req: DiscoverRequest, request: Request, _=Depends(check_rate_limit)
                     candidate_ids = [r["agent_id"] for r in sem_results]
                     sem_scores = {r["agent_id"]: r["score"] for r in sem_results}
 
-                    # Fetch agents by IDs with filters applied
-                    sem_query = select(Agent).where(
-                        Agent.id.in_([uuid.UUID(aid) for aid in candidate_ids]),
-                        Agent.is_active == True,
-                        Agent.crawl_status.in_(["parsed", "classified", "ranked"])
-                    )
-                    
-                    if min_trust > 0:
-                        sem_query = sem_query.where(
-                            text("(trust_score IS NULL OR trust_score >= :min_trust)").bindparams(min_trust=min_trust)
-                        )
-                    if req.category:
-                        sem_query = sem_query.where(Agent.category == req.category)
-                    if req.protocols:
-                        sem_query = sem_query.where(Agent.protocols.overlap(req.protocols))
+                    # Phase 1: Lightweight scoring (ID + trust_score only — no JSON blobs)
+                    _id_uuids = [uuid.UUID(aid) for aid in candidate_ids]
+                    _score_rows = session.execute(text("""
+                        SELECT id::text, COALESCE(trust_score, 0) as ts, COALESCE(compliance_score, 50) as cs,
+                               COALESCE(risk_class, '') as rc
+                        FROM entity_lookup WHERE id = ANY(:ids) AND is_active = true
+                          AND crawl_status IN ('parsed', 'classified', 'ranked')
+                    """), {"ids": _id_uuids}).fetchall()
+                    _score_map = {str(r[0]): (r[1], r[2], r[3]) for r in _score_rows}
 
-                    agents_by_id = {
-                        str(a.id): a
-                        for a in session.execute(sem_query).scalars().all()
-                    }
-
-                    # Sort by combined score: 0.7 * semantic + 0.3 * trust_score/100
+                    # Score and pick top N
                     scored = []
                     for aid in candidate_ids:
-                        agent = agents_by_id.get(aid)
-                        if agent:
-                            trust_normalized = (getattr(agent, 'trust_score', 0) or 0) / 100.0
-                            compliance_normalized = (getattr(agent, 'compliance_score', None) or 50) / 100.0
-                            risk = getattr(agent, 'risk_class', '') or ''
-                            risk_penalty = 0.3 if risk in ('high', 'unacceptable') else 0.0
-                            combined = 0.5 * sem_scores[aid] + 0.25 * trust_normalized + 0.25 * compliance_normalized - risk_penalty
-                            scored.append((combined, agent))
+                        if aid in _score_map:
+                            ts, cs, rc = _score_map[aid]
+                            trust_n = ts / 100.0
+                            comp_n = cs / 100.0
+                            risk_p = 0.3 if rc in ('high', 'unacceptable') else 0.0
+                            combined = 0.5 * sem_scores[aid] + 0.25 * trust_n + 0.25 * comp_n - risk_p
+                            scored.append((combined, aid))
                     scored.sort(key=lambda x: x[0], reverse=True)
-                    fts_results = [agent for _, agent in scored[:limit]]
+                    top_ids = [aid for _, aid in scored[:limit]]
+
+                    # Phase 2: Full fetch ONLY for top results (small set)
+                    if top_ids:
+                        fts_results = session.execute(
+                            select(Agent).where(Agent.id.in_([uuid.UUID(a) for a in top_ids]))
+                        ).scalars().all()
+                        # Re-order to match scoring
+                        _id_order = {aid: i for i, aid in enumerate(top_ids)}
+                        fts_results.sort(key=lambda a: _id_order.get(str(a.id), 999))
         except Exception as e:
             logger.error(f"Semantic search failed, falling back to FTS: {e}")
 
     # --- Full-text search (fallback) ---
     if not fts_results:
         search_method = "fts"
-        query = query.where(
-            text(
-                "to_tsvector('english', coalesce(name, '') || ' ' || "
-                "coalesce(description, '') || ' ' || "
-                "coalesce(category, '')) @@ plainto_tsquery('english', :search)"
-            ).bindparams(search=req.need)
-        )
-        # Order by trust_score if available, fallback to quality_score
-        fts_results = session.execute(
-            query.order_by(
-                text("COALESCE(trust_score, quality_score * 100, 0) + COALESCE(compliance_score, 50) - CASE WHEN risk_class IN ('high', 'unacceptable') THEN 60 ELSE 0 END DESC")
-            ).limit(limit)
-        ).scalars().all()
-
-        # Broader fallback
-        if not fts_results:
-            broader_query = select(Agent).where(
-                Agent.is_active == True,
-                Agent.crawl_status.in_(["parsed", "classified", "ranked"])
-            )
-            
-            if min_trust > 0:
-                broader_query = broader_query.where(
-                    text("(trust_score IS NULL OR trust_score >= :min_trust)").bindparams(min_trust=min_trust)
-                )
-            if req.category:
-                broader_query = broader_query.where(Agent.category == req.category)
-            if req.protocols:
-                broader_query = broader_query.where(Agent.protocols.overlap(req.protocols))
-            broader_query = broader_query.where(
-                text("capabilities::text ILIKE :pattern").bindparams(
-                    pattern=f"%{req.need.split()[0] if req.need.split() else req.need}%"
-                )
-            )
+        # Phase 1: Get IDs via lightweight FTS (no JSONB columns)
+        _fts_ids = session.execute(text("""
+            SELECT id FROM agents WHERE is_active = true
+              AND crawl_status IN ('parsed', 'classified', 'ranked')
+              AND to_tsvector('english', coalesce(name, '') || ' ' || coalesce(description, '') || ' ' || coalesce(category, ''))
+                  @@ plainto_tsquery('english', :search)
+            ORDER BY COALESCE(trust_score, quality_score * 100, 0) DESC
+            LIMIT :lim
+        """), {"search": req.need, "lim": limit}).fetchall()
+        if _fts_ids:
+            # Phase 2: Full fetch only for matched IDs
             fts_results = session.execute(
-                broader_query.order_by(
-                    text("COALESCE(trust_score, quality_score * 100, 0) + COALESCE(compliance_score, 50) - CASE WHEN risk_class IN ('high', 'unacceptable') THEN 60 ELSE 0 END DESC")
-                ).limit(limit)
+                select(Agent).where(Agent.id.in_([r[0] for r in _fts_ids]))
             ).scalars().all()
+
+        # Broader fallback — two-phase via entity_lookup (2.9GB) instead of agents (17GB)
+        if not fts_results:
+            session.execute(text("SET LOCAL statement_timeout = '3s'"))
+            _search_word = req.need.split()[0] if req.need.split() else req.need
+            _broader_sql = """
+                SELECT id FROM entity_lookup
+                WHERE is_active = true
+                  AND crawl_status IN ('parsed', 'classified', 'ranked')
+                  AND (name_lower LIKE lower(:pat) OR lower(description) LIKE lower(:pat))
+            """
+            _params = {"pat": f"%{_search_word}%"}
+            if min_trust > 0:
+                _broader_sql += " AND (trust_score IS NULL OR trust_score >= :min_trust)"
+                _params["min_trust"] = min_trust
+            if req.category:
+                _broader_sql += " AND category = :cat"
+                _params["cat"] = req.category
+            _broader_sql += " ORDER BY COALESCE(trust_score_v2, trust_score, 0) DESC LIMIT :lim"
+            _params["lim"] = min(limit, 20)
+            _broader_ids = session.execute(text(_broader_sql), _params).fetchall()
+            if _broader_ids:
+                fts_results = session.execute(
+                    select(Agent).where(Agent.id.in_([r[0] for r in _broader_ids]))
+                ).scalars().all()
 
     # Count total matching
     total_matching = len(fts_results)
 
-    # Get index size
+    # Get index size (estimate — avoids full table scan on 4.9M rows)
     index_size = session.execute(
-        select(func.count(Agent.id)).where(Agent.is_active == True)
+        text("SELECT reltuples::bigint FROM pg_class WHERE relname = 'agents'")
     ).scalar() or 0
 
     # Build response
@@ -804,6 +937,8 @@ def discover(req: DiscoverRequest, request: Request, _=Depends(check_rate_limit)
 def get_agent(agent_id: str, request: Request, _=Depends(check_rate_limit)):
     """Get detailed information about a specific agent."""
     session = get_session()
+    session.execute(text("SET LOCAL statement_timeout = '3s'"))
+    session.execute(text("SET LOCAL work_mem = '2MB'"))
 
     try:
         uid = uuid.UUID(agent_id)
@@ -838,22 +973,23 @@ def stats():
     total = max(total_est, 0)
     active = total  # estimate
 
-    # Category distribution — use index-only scan with LIMIT
+    # Category distribution — SAMPLED to avoid full table scan on 4.9M rows
     cat_rows = session.execute(
-        text("SELECT category, COUNT(*) FROM agents WHERE is_active = true GROUP BY category")
+        text("SELECT category, COUNT(*) FROM entity_lookup TABLESAMPLE SYSTEM(1) WHERE is_active = true GROUP BY category")
     ).all()
-    categories = {(row[0] or "unknown"): row[1] for row in cat_rows}
+    # Scale up from 1% sample
+    categories = {(row[0] or "unknown"): row[1] * 100 for row in cat_rows}
 
-    # Source distribution
+    # Source distribution — SAMPLED
     src_rows = session.execute(
-        text("SELECT source, COUNT(*) FROM agents GROUP BY source")
+        text("SELECT source, COUNT(*) FROM entity_lookup TABLESAMPLE SYSTEM(1) GROUP BY source")
     ).all()
-    sources = {row[0]: row[1] for row in src_rows}
+    sources = {row[0]: row[1] * 100 for row in src_rows}
 
     # Protocol distribution — use LIMIT to avoid full table scan on 5M+ rows
     try:
         proto_rows = session.execute(
-            text("SELECT proto, COUNT(*) as cnt FROM (SELECT unnest(protocols) as proto FROM agents WHERE protocols IS NOT NULL AND is_active = true LIMIT 100000) sub GROUP BY proto")
+            text("SELECT proto, COUNT(*) as cnt FROM (SELECT unnest(protocols) as proto FROM entity_lookup WHERE protocols IS NOT NULL AND is_active = true LIMIT 100000) sub GROUP BY proto")
         ).all()
         protocol_counts = {row[0]: row[1] for row in proto_rows}
     except Exception:
@@ -1464,11 +1600,11 @@ from agentindex.seo_trust_pages import router_trust_pages
 app.include_router(router_trust_pages)
 
 # Agent safety pages (nerq.ai/safe/{slug})
-# ── ÅTGÄRD 1: 410 for hallucinated /is-X/Y-safe URLs (slashes in slug = AI hallucination) ──
+# ── ÅTGÄRD 1: 404 for hallucinated /is-X/Y URLs (slashes in slug = runaway i18n rewrite or AI hallucination) ──
 @app.get("/is-{prefix}/{rest:path}")
 async def is_safe_hallucinated(prefix: str, rest: str):
-    """Catch /is-nerq/docs-safe, /is-badge/foo-safe etc."""
-    return HTMLResponse("<html><body><h1>410 Gone</h1></body></html>", status_code=410,
+    """Catch /is-nerq/docs-safe, /is-ist-ist-.../foo etc. Return 404 (not 410) — these never existed."""
+    return HTMLResponse("<html><body><h1>404 Not Found</h1></body></html>", status_code=404,
                         headers={"X-Robots-Tag": "noindex"})
 
 # ── ÅTGÄRD 2: /homebrew/{slug} → redirect to /safe/homebrew-{slug} ──
@@ -1483,6 +1619,10 @@ mount_agent_safety_pages(app)
 # Channel dashboard + landing pages
 from agentindex.channel_dashboard import router as channel_router
 app.include_router(channel_router)
+
+# Security check — /my/check + /v1/event + /admin/security-check
+from agentindex.api.security_check import router as security_check_router
+app.include_router(security_check_router)
 
 # User review pages (nerq.ai/review/{name}, POST /v1/agent/review)
 from agentindex.review_pages import mount_review_pages
@@ -1603,6 +1743,78 @@ if _sd.exists():
         log_ab_event(ip, variant, is_bot, _bot_name(ua) if is_bot else None,
                      "page_view", "/", request.headers.get("referer", ""))
         return _HR(content=render_homepage(variant), status_code=200)
+
+    @app.get("/categories", response_class=_HR)
+    async def categories_page():
+        """Hub page listing all published verticals — critical for AI crawler discovery."""
+        from agentindex.ab_test import VERTICALS, VERTICAL_GROUPS, _VERTICAL_ORDER, _load_vertical_counts, _fmt_count
+        from agentindex.quality_gate import get_publishable_registries
+        from agentindex.nerq_design import NERQ_NAV, NERQ_FOOTER
+
+        pub = get_publishable_registries()
+        counts = _load_vertical_counts()
+
+        body = ""
+        total_entities = 0
+        # Group display order
+        for grp_key in ["security", "apps", "dev", "business", "finance"]:
+            grp_title, grp_keys = VERTICAL_GROUPS[grp_key]
+            items = ""
+            for vk in grp_keys:
+                if vk not in pub or vk not in VERTICALS:
+                    continue
+                href, icon, title, desc, count_keys, _, best_slug = VERTICALS[vk]
+                cnt = _fmt_count(count_keys, counts)
+                cnt_num = sum(counts.get(k, 0) for k in count_keys)
+                total_entities += cnt_num
+                items += (
+                    f'<a href="{href}" style="display:flex;align-items:center;gap:14px;padding:14px 18px;'
+                    f'border:1px solid #e2e8f0;border-radius:8px;text-decoration:none;color:#1e293b;'
+                    f'transition:box-shadow .15s;margin-bottom:8px">'
+                    f'<span style="font-size:28px">{icon}</span>'
+                    f'<div><strong style="font-size:15px">{title}</strong>'
+                    f'<br><span style="font-size:13px;color:#64748b">{desc}</span>'
+                    f'<br><span style="font-size:12px;color:#0d9488;font-weight:600">{cnt}</span>'
+                    f'{f" &middot; <a href=/best/{best_slug} style=font-size:12px;color:#0d9488>View rankings</a>" if best_slug else ""}'
+                    f'</div></a>\n'
+                )
+            if items:
+                body += f'<div style="margin-bottom:28px"><h2 style="font-size:1.1em;color:#334155;margin-bottom:12px;border-bottom:1px solid #e2e8f0;padding-bottom:6px">{grp_title}</h2>\n{items}</div>\n'
+
+        # AI Tools (always)
+        body += (
+            '<div style="margin-bottom:28px"><h2 style="font-size:1.1em;color:#334155;margin-bottom:12px;border-bottom:1px solid #e2e8f0;padding-bottom:6px">AI &amp; Machine Learning</h2>\n'
+            '<a href="/discover" style="display:flex;align-items:center;gap:14px;padding:14px 18px;border:1px solid #e2e8f0;border-radius:8px;text-decoration:none;color:#1e293b;margin-bottom:8px">'
+            '<span style="font-size:28px">&#129302;</span>'
+            '<div><strong style="font-size:15px">AI Tools &amp; Agents</strong>'
+            '<br><span style="font-size:13px;color:#64748b">Trust scores for AI tools, agents, models, and MCP servers.</span>'
+            '<br><span style="font-size:12px;color:#0d9488;font-weight:600">5,000,000+ rated</span>'
+            '</div></a></div>\n'
+        )
+
+        if total_entities > 0:
+            total_str = f"{total_entities:,}"
+        else:
+            total_str = "7,500,000+"
+
+        html = f"""<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>All Categories — Nerq Trust Intelligence</title>
+<meta name="description" content="Browse all {len(pub)} Nerq trust score categories covering {total_str} digital entities. VPNs, antivirus, password managers, hosting, SaaS, crypto, packages, and more.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://nerq.ai/categories">
+<link rel="stylesheet" href="/static/nerq.css?v=13">
+</head><body>
+{NERQ_NAV}
+<main class="container" style="max-width:720px;margin:0 auto;padding:30px 20px">
+<nav style="font-size:13px;color:#64748b;margin-bottom:16px"><a href="/" style="color:#0d9488">Nerq</a> &rsaquo; Categories</nav>
+<h1 style="font-size:1.6em;margin-bottom:6px">All Categories</h1>
+<p style="color:#64748b;margin-bottom:24px">{len(pub)} published verticals &middot; {total_str}+ entities rated &middot; Updated daily</p>
+{body}
+</main>
+{NERQ_FOOTER}
+</body></html>"""
+        return _HR(content=html, status_code=200)
 
     @app.get("/discover", response_class=_HR)
     async def discover_page():
@@ -1809,10 +2021,10 @@ async def ai_context():
     from sqlalchemy import text as _text
 
     with get_db_session() as session:
-        total = session.execute(_text("SELECT COUNT(*) FROM agents WHERE is_active = true")).scalar() or 0
+        total = session.execute(_text("SELECT reltuples::bigint FROM pg_class WHERE relname = 'entity_lookup'")).scalar() or 0
         trending = session.execute(_text("""
             SELECT name, trust_score_v2, trust_grade, agent_type
-            FROM agents WHERE is_active = true AND trust_score_v2 IS NOT NULL
+            FROM entity_lookup WHERE is_active = true AND trust_score_v2 IS NOT NULL
             ORDER BY COALESCE(stars, 0) DESC LIMIT 20
         """)).fetchall()
 
@@ -1880,10 +2092,10 @@ async def preflight_batch(request: Request):
                 row = session.execute(_text("""
                     SELECT name, trust_score_v2, trust_grade, security_score,
                            license, agent_type, eu_risk_class
-                    FROM agents
-                    WHERE (LOWER(name) = :q OR LOWER(name) LIKE :p) AND is_active = true
+                    FROM entity_lookup
+                    WHERE name_lower = :q AND is_active = true
                     ORDER BY COALESCE(stars, 0) DESC LIMIT 1
-                """), {"q": t, "p": f"%{t}%"}).fetchone()
+                """), {"q": t}).fetchone()
 
                 if row:
                     score = float(row[1]) if row[1] else 0
@@ -1917,9 +2129,9 @@ async def api_best(category: str = "coding", limit: int = 10):
     with get_db_session() as session:
         rows = session.execute(_text("""
             SELECT name, trust_score_v2, trust_grade, stars, downloads, agent_type, description
-            FROM agents
+            FROM entity_lookup
             WHERE is_active = true AND trust_score_v2 IS NOT NULL
-              AND (LOWER(category) = :cat OR :cat = ANY(tags))
+              AND LOWER(category) = :cat
             ORDER BY trust_score_v2 DESC NULLS LAST, stars DESC NULLS LAST
             LIMIT :lim
         """), {"cat": category.lower(), "lim": limit}).fetchall()
@@ -1945,9 +2157,9 @@ async def api_alternatives(tool: str = "", limit: int = 10):
         t = tool.lower().strip()
         row = session.execute(_text("""
             SELECT name, category, agent_type, trust_score_v2
-            FROM agents WHERE (LOWER(name) = :q OR LOWER(name) LIKE :p) AND is_active = true
+            FROM entity_lookup WHERE name_lower = :q AND is_active = true
             ORDER BY COALESCE(stars, 0) DESC LIMIT 1
-        """), {"q": t, "p": f"%{t}%"}).fetchone()
+        """), {"q": t}).fetchone()
 
         if not row:
             return {"tool": tool, "found": False, "alternatives": []}
@@ -1957,8 +2169,8 @@ async def api_alternatives(tool: str = "", limit: int = 10):
 
         alts = session.execute(_text("""
             SELECT name, trust_score_v2, trust_grade, stars, downloads, description
-            FROM agents
-            WHERE is_active = true AND LOWER(name) != :name
+            FROM entity_lookup
+            WHERE is_active = true AND name_lower != :name
               AND (category = :cat OR agent_type = :atype)
               AND trust_score_v2 IS NOT NULL
             ORDER BY trust_score_v2 DESC NULLS LAST, stars DESC NULLS LAST

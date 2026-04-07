@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Crypto Crash Watch — Tokens at Risk of Structural Collapse — ZARQ</title>
+<meta name="description" content="Live crypto crash prediction dashboard. {{ total_warnings }} tokens show structural stress or collapse warnings. 100% recall, 98% precision on structural collapse prediction.">
+<link rel="canonical" href="https://zarq.ai/crash-watch">
+<meta property="og:title" content="Crypto Crash Watch — Tokens at Risk of Structural Collapse — ZARQ">
+<meta property="og:description" content="{{ total_warnings }} tokens show structural stress or collapse warnings. ZARQ's crash model: 100% recall, 98% precision.">
+<meta property="og:url" content="https://zarq.ai/crash-watch">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="ZARQ">
+<meta name="twitter:card" content="summary">
+<meta name="robots" content="index, follow">
+
+<script type="application/ld+json">
+{{ webpage_jsonld }}
+</script>
+<script type="application/ld+json">
+{{ faq_jsonld }}
+</script>
+<script type="application/ld+json">
+{{ breadcrumb_jsonld }}
+</script>
+
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+{{ zarq_css }}
+
+.stats-row { display: flex; gap: 24px; margin-bottom: 40px; flex-wrap: wrap; }
+.stat-box { background: var(--gray-100); border: 1px solid var(--gray-200); padding: 24px; flex: 1; min-width: 160px; }
+.stat-box .value { font-family: var(--serif); font-size: 32px; color: var(--black); }
+.stat-box .label { font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gray-500); margin-top: 4px; }
+
+.watch-table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 24px 0; }
+.watch-table th { font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--gray-500); text-align: left; padding: 12px 16px; border-bottom: 2px solid var(--gray-200); }
+.watch-table td { padding: 14px 16px; border-bottom: 1px solid var(--gray-200); font-family: var(--sans); font-size: 14px; color: var(--gray-700); }
+.watch-table tr:hover { background: var(--warm-light); }
+.watch-table .token-link { color: var(--black); font-weight: 600; text-decoration: none; }
+.watch-table .token-link:hover { color: var(--warm); }
+.watch-table .mono-cell { font-family: var(--mono); font-size: 13px; }
+.status-critical { color: var(--red); font-weight: 600; }
+.status-warning { color: #ea580c; font-weight: 600; }
+.status-watch { color: var(--yellow); }
+.status-safe { color: var(--green); }
+
+.method-box { background: var(--gray-100); border: 1px solid var(--gray-200); padding: 32px; margin: 48px 0; }
+.method-box h3 { font-family: var(--serif); font-size: 1.3rem; color: var(--black); margin-bottom: 16px; }
+.method-box p { font-family: var(--sans); font-size: 15px; color: var(--gray-700); line-height: 1.7; margin-bottom: 12px; }
+.method-stats { display: flex; gap: 32px; margin-top: 20px; flex-wrap: wrap; }
+.method-stat { text-align: center; }
+.method-stat .ms-val { font-family: var(--serif); font-size: 28px; color: var(--black); }
+.method-stat .ms-label { font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gray-500); margin-top: 4px; }
+
+.disclaimer { margin-top: 48px; padding: 24px; background: var(--gray-100); border: 1px solid var(--gray-200); font-family: var(--mono); font-size: 12px; color: var(--gray-600); }
+</style>
+</head>
+<body>
+{{ zarq_nav }}
+
+<div class="container">
+  <div class="breadcrumb">
+    <a href="/">ZARQ</a> / Crash Watch
+  </div>
+
+  <h1>Crypto Crash Watch — Tokens at Risk of Structural Collapse</h1>
+  <p class="subtitle">Live monitoring of {{ total_monitored }} tokens for structural collapse signals. Updated {{ run_date }}.</p>
+
+  <div class="ai-summary">ZARQ's Crash Watch monitors {{ total_monitored }} tokens for signs of structural collapse. Currently {{ total_warnings }} tokens show structural stress or collapse warnings. ZARQ's crash model has achieved 100% recall (113/113 collapses detected) and 98% precision on predicting structural collapses, with a 22-month average detection lead time.</div>
+
+  <div class="stats-row">
+    <div class="stat-box">
+      <div class="value">{{ total_monitored }}</div>
+      <div class="label">Tokens Monitored</div>
+    </div>
+    <div class="stat-box">
+      <div class="value" style="color:var(--red)">{{ critical_count }}</div>
+      <div class="label">Critical</div>
+    </div>
+    <div class="stat-box">
+      <div class="value" style="color:#ea580c">{{ warning_count }}</div>
+      <div class="label">Warning</div>
+    </div>
+    <div class="stat-box">
+      <div class="value" style="color:var(--yellow)">{{ watch_count }}</div>
+      <div class="label">Watch</div>
+    </div>
+    <div class="stat-box">
+      <div class="value" style="color:var(--green)">{{ safe_count }}</div>
+      <div class="label">Safe</div>
+    </div>
+  </div>
+
+  <h2 class="section-title">Tokens Under Structural Stress</h2>
+  <table class="watch-table">
+    <thead>
+      <tr>
+        <th>Token</th>
+        <th>Rating</th>
+        <th>Crash Prob</th>
+        <th>NDD</th>
+        <th>Status</th>
+        <th>Key Warning</th>
+      </tr>
+    </thead>
+    <tbody>
+{{ table_rows }}
+    </tbody>
+  </table>
+
+  <div class="method-box">
+    <h3>How ZARQ Predicts Structural Collapse</h3>
+    <p>ZARQ's crash model combines Distance-to-Default (DtD) scoring with 7 quantitative signals to detect structural weakness before price collapse. The model is adapted from Merton's structural credit framework, originally used to predict corporate defaults. When a token's DtD falls below 1.0, it has breached the distress threshold — historically, this has preceded terminal failure with 100% accuracy.</p>
+    <p>The 7 signals: Liquidity Depth (10%), Holder Concentration (5%), Ecosystem Resilience (30%), Fundamental Activity (10%), Contagion Exposure (25%), Structural Risk (5%), Relative Weakness (15%). Each is calibrated against historical collapses to maximize predictive power.</p>
+    <p>Track record independently verified at <a href="https://github.com/kbanilsson-pixel/track-record" style="color:var(--warm)">github.com/kbanilsson-pixel/track-record</a>.</p>
+    <div class="method-stats">
+      <div class="method-stat">
+        <div class="ms-val">100%</div>
+        <div class="ms-label">Recall (OOS)</div>
+      </div>
+      <div class="method-stat">
+        <div class="ms-val">98%</div>
+        <div class="ms-label">Precision (OOS)</div>
+      </div>
+      <div class="method-stat">
+        <div class="ms-val">113/113</div>
+        <div class="ms-label">Collapses Detected</div>
+      </div>
+      <div class="method-stat">
+        <div class="ms-val">22 mo</div>
+        <div class="ms-label">Avg Lead Time</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="faq-section">
+    <h2 class="section-title">Frequently Asked Questions</h2>
+{{ faq_html }}
+  </div>
+
+  <div class="disclaimer">
+    <strong>Disclaimer:</strong> ZARQ's crash model provides quantitative risk estimates, not investment advice. Past predictive accuracy does not guarantee future results. Always conduct your own research before making investment decisions.
+  </div>
+</div>
+
+{{ zarq_footer }}
+</body>
+</html>

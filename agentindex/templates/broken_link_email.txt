@@ -1,0 +1,16 @@
+Subject: Broken link on {page_title}
+
+Hi,
+
+I noticed a broken link on your page at {source_page}.
+
+The link to {dead_url} appears to be returning a {error_code} error.
+
+We have a relevant page that covers the same topic:
+{our_url}
+
+Happy to help if you'd like to update the link. No worries if not!
+
+Cheers,
+Anders
+ZARQ (zarq.ai) / Nerq (nerq.ai)

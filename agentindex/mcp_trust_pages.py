@@ -78,7 +78,6 @@ _COLS = """
     is_verified,
     frameworks,
     protocols,
-    capabilities,
     compliance_score,
     eu_risk_class,
     documentation_score,
@@ -94,14 +93,23 @@ def _lookup_server(name):
         clean = name.replace("-", " ").replace("_", " ")
         row = session.execute(text(f"""
             SELECT {_COLS} FROM (
-                SELECT *, 1 AS _rank FROM agents
-                WHERE LOWER(name) = LOWER(:name) AND is_active = true AND agent_type = 'mcp_server'
+                SELECT name, trust_score, trust_score_v2, trust_grade, category, description,
+                       source_url, source, stars, author, is_verified, frameworks, protocols,
+                       compliance_score, eu_risk_class, documentation_score, activity_score,
+                       security_score, popularity_score, 1 AS _rank
+                FROM entity_lookup WHERE name_lower = lower(:name) AND is_active = true AND agent_type = 'mcp_server'
               UNION ALL
-                SELECT *, 2 AS _rank FROM agents
-                WHERE lower(name::text) LIKE lower(:suffix) AND is_active = true AND agent_type = 'mcp_server'
+                SELECT name, trust_score, trust_score_v2, trust_grade, category, description,
+                       source_url, source, stars, author, is_verified, frameworks, protocols,
+                       compliance_score, eu_risk_class, documentation_score, activity_score,
+                       security_score, popularity_score, 2 AS _rank
+                FROM entity_lookup WHERE name_lower LIKE lower(:suffix) AND is_active = true AND agent_type = 'mcp_server'
               UNION ALL
-                SELECT *, 3 AS _rank FROM agents
-                WHERE lower(name::text) LIKE lower(:pattern) AND is_active = true AND agent_type = 'mcp_server'
+                SELECT name, trust_score, trust_score_v2, trust_grade, category, description,
+                       source_url, source, stars, author, is_verified, frameworks, protocols,
+                       compliance_score, eu_risk_class, documentation_score, activity_score,
+                       security_score, popularity_score, 3 AS _rank
+                FROM entity_lookup WHERE name_lower LIKE lower(:pattern) AND is_active = true AND agent_type = 'mcp_server'
             ) sub
             ORDER BY _rank, COALESCE(trust_score_v2, trust_score) DESC NULLS LAST,
                      stars DESC NULLS LAST
@@ -118,10 +126,10 @@ def _get_alternatives(category, current_name, current_score, limit=5):
         rows = session.execute(text("""
             SELECT name, COALESCE(trust_score_v2, trust_score) as trust_score,
                    trust_grade, category, source
-            FROM agents
+            FROM entity_lookup
             WHERE is_active = true AND agent_type = 'mcp_server'
               AND category = :cat
-              AND LOWER(name) != LOWER(:name)
+              AND name_lower != lower(:name)
               AND COALESCE(trust_score_v2, trust_score) >= :score
             ORDER BY COALESCE(trust_score_v2, trust_score) DESC
             LIMIT :lim
@@ -502,7 +510,7 @@ def _render_hub_page():
         rows = session.execute(text("""
             SELECT name, COALESCE(trust_score_v2, trust_score) as trust_score,
                    trust_grade, category, source, stars, is_verified
-            FROM agents
+            FROM entity_lookup
             WHERE is_active = true AND agent_type = 'mcp_server'
               AND COALESCE(trust_score_v2, trust_score) IS NOT NULL
             ORDER BY COALESCE(trust_score_v2, trust_score) DESC, stars DESC NULLS LAST

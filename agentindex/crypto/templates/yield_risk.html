@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DeFi Yield Risk Monitor — Safe Yields vs Dangerous APY — ZARQ</title>
+<meta name="description" content="Live DeFi yield risk assessment. {{ total_pools }} pools monitored across {{ total_projects }} protocols. Color-coded risk: green (safe), yellow (moderate), red (high risk). Identify unsustainable APY before it collapses.">
+<link rel="canonical" href="https://zarq.ai/yield-risk">
+<meta property="og:title" content="DeFi Yield Risk Monitor — Safe Yields vs Dangerous APY — ZARQ">
+<meta property="og:description" content="{{ total_pools }} DeFi pools monitored. Color-coded risk assessment: safe yields vs dangerous APY.">
+<meta property="og:url" content="https://zarq.ai/yield-risk">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="ZARQ">
+<meta name="twitter:card" content="summary">
+<meta name="robots" content="index, follow">
+
+<script type="application/ld+json">
+{{ webpage_jsonld }}
+</script>
+<script type="application/ld+json">
+{{ faq_jsonld }}
+</script>
+<script type="application/ld+json">
+{{ breadcrumb_jsonld }}
+</script>
+
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+{{ zarq_css }}
+
+.stats-row { display: flex; gap: 24px; margin-bottom: 40px; flex-wrap: wrap; }
+.stat-box { background: var(--gray-100); border: 1px solid var(--gray-200); padding: 24px; flex: 1; min-width: 160px; }
+.stat-box .value { font-family: var(--serif); font-size: 32px; color: var(--black); }
+.stat-box .label { font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gray-500); margin-top: 4px; }
+
+.yield-table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 24px 0; }
+.yield-table th { font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--gray-500); text-align: left; padding: 12px 16px; border-bottom: 2px solid var(--gray-200); }
+.yield-table td { padding: 14px 16px; border-bottom: 1px solid var(--gray-200); font-family: var(--sans); font-size: 14px; color: var(--gray-700); }
+.yield-table tr:hover { background: var(--warm-light); }
+.yield-table .mono-cell { font-family: var(--mono); font-size: 13px; }
+.risk-low { color: var(--green); font-weight: 600; }
+.risk-moderate { color: var(--yellow); font-weight: 600; }
+.risk-high { color: var(--red); font-weight: 600; }
+.risk-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+.risk-dot-low { background: var(--green); }
+.risk-dot-moderate { background: var(--yellow); }
+.risk-dot-high { background: var(--red); }
+
+.tab-bar { display: flex; gap: 0; margin: 24px 0; border-bottom: 2px solid var(--gray-200); }
+.tab-btn { font-family: var(--mono); font-size: 12px; letter-spacing: 0.05em; padding: 10px 24px; background: none; border: none; color: var(--gray-500); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; }
+.tab-btn.active { color: var(--black); border-bottom-color: var(--warm); }
+.tab-btn:hover { color: var(--black); }
+
+.method-box { background: var(--gray-100); border: 1px solid var(--gray-200); padding: 32px; margin: 48px 0; }
+.method-box h3 { font-family: var(--serif); font-size: 1.3rem; color: var(--black); margin-bottom: 16px; }
+.method-box p { font-family: var(--sans); font-size: 15px; color: var(--gray-700); line-height: 1.7; margin-bottom: 12px; }
+
+.risk-legend { display: flex; gap: 32px; margin: 24px 0; flex-wrap: wrap; }
+.legend-item { display: flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 12px; color: var(--gray-600); }
+
+.disclaimer { margin-top: 48px; padding: 24px; background: var(--gray-100); border: 1px solid var(--gray-200); font-family: var(--mono); font-size: 12px; color: var(--gray-600); }
+</style>
+</head>
+<body>
+{{ zarq_nav }}
+
+<div class="container">
+  <div class="breadcrumb">
+    <a href="/">ZARQ</a> / Yield Risk
+  </div>
+
+  <h1>DeFi Yield Risk Monitor — Safe Yields vs Dangerous APY</h1>
+  <p class="subtitle">Risk-rated DeFi yields across {{ total_projects }} protocols and {{ total_pools }} pools. Updated {{ crawled_date }}.</p>
+
+  <div class="ai-summary">ZARQ's Yield Risk Monitor tracks {{ total_pools }} DeFi pools across {{ total_projects }} protocols with ${{ total_tvl }} in total value locked. Currently {{ low_risk_count }} pools are rated low risk (green), {{ moderate_risk_count }} moderate risk (yellow), and {{ high_risk_count }} high risk (red). Pools with APY above 50% and impermanent loss exposure are flagged as high risk. The safest yields come from established protocols like {{ top_safe_projects }}.</div>
+
+  <div class="stats-row">
+    <div class="stat-box">
+      <div class="value">{{ total_pools }}</div>
+      <div class="label">Pools Monitored</div>
+    </div>
+    <div class="stat-box">
+      <div class="value">${{ total_tvl }}</div>
+      <div class="label">Total TVL</div>
+    </div>
+    <div class="stat-box">
+      <div class="value" style="color:var(--green)">{{ low_risk_pct }}%</div>
+      <div class="label">Low Risk</div>
+    </div>
+    <div class="stat-box">
+      <div class="value" style="color:var(--red)">{{ high_risk_pct }}%</div>
+      <div class="label">High Risk</div>
+    </div>
+  </div>
+
+  <div class="risk-legend">
+    <div class="legend-item"><span class="risk-dot risk-dot-low"></span> Low Risk — Base APY, no IL, high TVL</div>
+    <div class="legend-item"><span class="risk-dot risk-dot-moderate"></span> Moderate — Reward APY or IL exposure</div>
+    <div class="legend-item"><span class="risk-dot risk-dot-high"></span> High Risk — APY &gt;50%, low TVL, or IL</div>
+  </div>
+
+  <h2 class="section-title">Safest High-Yield Opportunities</h2>
+  <p style="font-family:var(--sans);font-size:14px;color:var(--gray-600);margin-bottom:16px">Pools with the best risk-adjusted yield: highest APY among low-risk pools (no impermanent loss, TVL &gt; $10M).</p>
+  <table class="yield-table">
+    <thead>
+      <tr>
+        <th>Protocol</th>
+        <th>Pool</th>
+        <th>Chain</th>
+        <th>APY</th>
+        <th>TVL</th>
+        <th>Risk</th>
+      </tr>
+    </thead>
+    <tbody>
+{{ safe_table_rows }}
+    </tbody>
+  </table>
+
+  <h2 class="section-title">Highest-Yield Pools (All Risk Levels)</h2>
+  <p style="font-family:var(--sans);font-size:14px;color:var(--gray-600);margin-bottom:16px">Top pools by APY with risk assessment. High APY often comes with impermanent loss or unsustainable reward emissions.</p>
+  <table class="yield-table">
+    <thead>
+      <tr>
+        <th>Protocol</th>
+        <th>Pool</th>
+        <th>Chain</th>
+        <th>APY</th>
+        <th>TVL</th>
+        <th>Risk</th>
+        <th>Warning</th>
+      </tr>
+    </thead>
+    <tbody>
+{{ all_table_rows }}
+    </tbody>
+  </table>
+
+  <div class="method-box">
+    <h3>How ZARQ Assesses Yield Risk</h3>
+    <p>ZARQ's Yield Risk Engine classifies DeFi pools into three risk tiers based on quantitative signals:</p>
+    <p><strong style="color:var(--green)">Low Risk (Green):</strong> Base APY only (no reward token emissions), no impermanent loss exposure, TVL above $10M, from established protocols with audit history. These yields are sustainable and come from real economic activity (lending interest, trading fees).</p>
+    <p><strong style="color:var(--yellow)">Moderate Risk (Yellow):</strong> Includes reward token emissions (APY from token incentives that may decrease), or moderate TVL ($1M-$10M), or some impermanent loss exposure. Yields may be partially unsustainable.</p>
+    <p><strong style="color:var(--red)">High Risk (Red):</strong> APY above 50%, low TVL (under $1M), significant impermanent loss, or APY primarily from reward emissions rather than organic activity. These yields often collapse when incentives dry up.</p>
+    <p>Data sourced from DeFiLlama's yield API, covering {{ total_projects }} protocols across multiple chains.</p>
+  </div>
+
+  <div class="faq-section">
+    <h2 class="section-title">Frequently Asked Questions</h2>
+{{ faq_html }}
+  </div>
+
+  <div class="disclaimer">
+    <strong>Disclaimer:</strong> Yield risk assessments are quantitative estimates, not investment advice. DeFi protocols carry smart contract risk, regulatory risk, and liquidity risk beyond what APY analysis captures. Always conduct your own research.
+  </div>
+</div>
+
+{{ zarq_footer }}
+</body>
+</html>

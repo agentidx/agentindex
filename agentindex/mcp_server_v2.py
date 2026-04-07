@@ -202,13 +202,13 @@ def _check_compliance(args):
     
     # Find the agent
     agent = _query(
-        """SELECT id, name, description, agent_type, risk_class, domains, 
+        """SELECT id, name, description, agent_type, risk_class,
                   compliance_score, eu_risk_class,
-                  trust_score_v2, trust_grade, trust_risk_level
-           FROM agents 
-           WHERE id::text = %s OR name ILIKE %s OR name ILIKE %s
+                  trust_score_v2, trust_grade
+           FROM entity_lookup
+           WHERE id::text = %s OR name ILIKE %s OR name_lower LIKE %s
            LIMIT 1""",
-        (query, query, f"%{query}%"),
+        (query, query, f"%{query.lower()}%"),
         fetchone=True
     )
     
@@ -249,7 +249,6 @@ def _check_compliance(args):
             "trust_grade": agent.get('trust_grade'),
             "risk_class": agent['risk_class'],
             "compliance_score": agent['compliance_score'],
-            "domains": agent['domains']
         },
         "summary": {
             "jurisdictions_checked": len(statuses),
@@ -295,10 +294,10 @@ def _discover_agents(args):
     params.append(limit)
     
     agents = _query(f"""
-        SELECT id, name, description, agent_type, risk_class, domains,
+        SELECT id, name, description, agent_type, risk_class,
                compliance_score, source, stars, downloads,
-               trust_score_v2, trust_grade, trust_risk_level
-        FROM agents 
+               trust_score_v2, trust_grade
+        FROM entity_lookup
         WHERE {where} AND is_active = true
         ORDER BY trust_score_v2 DESC NULLS LAST, stars DESC NULLS LAST
         LIMIT %s
@@ -329,13 +328,13 @@ def _discover_agents(args):
 def _get_agent_details(args):
     """Get full agent details with compliance."""
     agent_id = args.get("agent_id", "")
-    
+
     agent = _query(
-        """SELECT id, name, description, agent_type, risk_class, domains,
+        """SELECT id, name, description, agent_type, risk_class,
                   compliance_score, eu_risk_class, source, source_url, author,
-                  stars, downloads, license, capabilities, tags,
-                  first_indexed, last_crawled
-           FROM agents WHERE id::text = %s OR name ILIKE %s LIMIT 1""",
+                  stars, downloads, license,
+                  first_indexed
+           FROM entity_lookup WHERE id::text = %s OR name ILIKE %s LIMIT 1""",
         (agent_id, agent_id),
         fetchone=True
     )
@@ -353,7 +352,7 @@ def _get_agent_details(args):
     
     return {
         "agent": {
-            k: (str(v) if k in ('first_indexed', 'last_crawled') and v else v)
+            k: (str(v) if k == 'first_indexed' and v else v)
             for k, v in agent.items()
         },
         "compliance": {
@@ -372,7 +371,7 @@ def _compliance_summary(args):
     
     if group_by == "risk_class":
         return {"summary": _query(
-            "SELECT risk_class, COUNT(*) as count FROM agents WHERE risk_class IS NOT NULL GROUP BY risk_class ORDER BY count DESC"
+            "SELECT risk_class, COUNT(*) as count FROM entity_lookup WHERE risk_class IS NOT NULL GROUP BY risk_class ORDER BY count DESC"
         )}
     
     elif group_by == "jurisdiction":
@@ -391,12 +390,12 @@ def _compliance_summary(args):
     
     elif group_by == "agent_type":
         return {"summary": _query(
-            "SELECT agent_type, risk_class, COUNT(*) as count FROM agents WHERE agent_type IS NOT NULL GROUP BY agent_type, risk_class ORDER BY count DESC LIMIT 50"
+            "SELECT agent_type, risk_class, COUNT(*) as count FROM entity_lookup WHERE agent_type IS NOT NULL GROUP BY agent_type, risk_class ORDER BY count DESC LIMIT 50"
         )}
-    
+
     elif group_by == "domain":
         return {"summary": _query(
-            "SELECT unnest(domains) as domain, risk_class, COUNT(*) as count FROM agents WHERE domains IS NOT NULL GROUP BY domain, risk_class ORDER BY count DESC LIMIT 50"
+            "SELECT risk_class, COUNT(*) as count FROM entity_lookup WHERE risk_class IS NOT NULL GROUP BY risk_class ORDER BY count DESC LIMIT 50"
         )}
     
     return {"error": f"Unknown group_by: {group_by}"}
@@ -404,10 +403,10 @@ def _compliance_summary(args):
 
 def _nerq_stats(args):
     """Get overview statistics."""
-    stats = _query("SELECT COUNT(*) as total, COUNT(*) FILTER (WHERE is_active) as active FROM agents", fetchone=True)
-    risk = _query("SELECT risk_class, COUNT(*) as count FROM agents GROUP BY risk_class ORDER BY count DESC")
-    types = _query("SELECT agent_type, COUNT(*) as count FROM agents GROUP BY agent_type ORDER BY count DESC LIMIT 10")
-    sources = _query("SELECT source, COUNT(*) as count FROM agents GROUP BY source ORDER BY count DESC LIMIT 10")
+    stats = _query("SELECT COUNT(*) as total, COUNT(*) FILTER (WHERE is_active) as active FROM entity_lookup", fetchone=True)
+    risk = _query("SELECT risk_class, COUNT(*) as count FROM entity_lookup GROUP BY risk_class ORDER BY count DESC")
+    types = _query("SELECT agent_type, COUNT(*) as count FROM entity_lookup GROUP BY agent_type ORDER BY count DESC LIMIT 10")
+    sources = _query("SELECT source, COUNT(*) as count FROM entity_lookup GROUP BY source ORDER BY count DESC LIMIT 10")
     j_count = _query("SELECT COUNT(*) as count FROM jurisdiction_registry", fetchone=True)
     
     return {

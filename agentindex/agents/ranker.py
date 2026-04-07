@@ -21,7 +21,7 @@ Also calculates:
 import logging
 from datetime import datetime, timedelta
 from agentindex.db.models import Agent, DiscoveryLog, get_session
-from sqlalchemy import select, func, update
+from sqlalchemy import select, func, update, text
 import math
 
 logger = logging.getLogger("agentindex.ranker")
@@ -75,17 +75,26 @@ class Ranker:
 
     def _recalculate_scores(self) -> int:
         """Recalculate quality_score for all classified agents."""
-        agents = self.session.execute(
-            select(Agent).where(
-                Agent.is_active == True,
-                Agent.crawl_status.in_(["classified", "ranked"]),
-            )
-        ).scalars().all()
+        self.session.execute(text("SET LOCAL work_mem = '2MB'"))
+        self.session.execute(text("SET LOCAL statement_timeout = '120s'"))
+        # Two-phase: IDs from entity_lookup, then batch-fetch full Agents by PK
+        _all_ids = self.session.execute(text("""
+            SELECT id FROM entity_lookup
+            WHERE is_active = true AND crawl_status IN ('classified', 'ranked')
+        """)).fetchall()
+        agents = []
+        # Fetch in batches of 5000 to limit per-query memory
+        for i in range(0, len(_all_ids), 5000):
+            batch_ids = [r[0] for r in _all_ids[i:i+5000]]
+            batch = self.session.execute(
+                select(Agent).where(Agent.id.in_(batch_ids))
+            ).scalars().all()
+            agents.extend(batch)
 
         # Get global stats for normalization
-        max_stars = self.session.execute(
-            select(func.max(Agent.stars)).where(Agent.is_active == True)
-        ).scalar() or 1
+        max_stars = self.session.execute(text(
+            "SELECT MAX(stars) FROM entity_lookup WHERE is_active = true"
+        )).scalar() or 1
 
         max_downloads = self.session.execute(
             select(func.max(Agent.downloads)).where(Agent.is_active == True)
@@ -202,6 +211,8 @@ class Ranker:
 
     def _apply_decay(self) -> int:
         """Reduce scores for agents that haven't been updated."""
+        self.session.execute(text("SET LOCAL work_mem = '2MB'"))
+        self.session.execute(text("SET LOCAL statement_timeout = '30s'"))
         cutoff = datetime.utcnow() - timedelta(days=180)
 
         agents = self.session.execute(
@@ -249,6 +260,8 @@ class Ranker:
 
     def _normalize_categories(self):
         """Ensure relative ranking within categories is sensible."""
+        self.session.execute(text("SET LOCAL work_mem = '2MB'"))
+        self.session.execute(text("SET LOCAL statement_timeout = '30s'"))
         categories = self.session.execute(
             select(Agent.category).where(Agent.is_active == True).distinct()
         ).scalars().all()
@@ -302,6 +315,8 @@ class Ranker:
 
     def get_category_leaders(self) -> dict:
         """Get top agent per category."""
+        self.session.execute(text("SET LOCAL work_mem = '2MB'"))
+        self.session.execute(text("SET LOCAL statement_timeout = '30s'"))
         categories = self.session.execute(
             select(Agent.category).where(Agent.is_active == True).distinct()
         ).scalars().all()

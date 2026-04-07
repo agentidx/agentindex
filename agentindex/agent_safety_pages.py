@@ -19,7 +19,7 @@ from fastapi.responses import HTMLResponse, Response
 from sqlalchemy.sql import text
 
 from agentindex.db.models import get_session
-from agentindex.nerq_design import NERQ_CSS, NERQ_NAV, NERQ_FOOTER, render_hreflang
+from agentindex.nerq_design import NERQ_CSS, NERQ_NAV, NERQ_FOOTER, render_hreflang, render_nav, render_footer
 
 logger = logging.getLogger("nerq.safety_pages")
 
@@ -250,11 +250,217 @@ _STRINGS = {
     "not_analyzed_browse": "Browse entities we have analyzed",
     "not_analyzed_no_score": "This page does not contain a trust score because we have not analyzed this entity.",
     "not_analyzed_no_fabricate": "Nerq never fabricates ratings. If you believe this entity should be covered, it may appear in a future update.",
+    # Entity description templates
+    "is_a_type": "is a {type}",
+    "with_trust_score": "with a Nerq Trust Score of {score}/100 ({grade})",
+    "based_on_dims": "based on {dims} independent data dimensions",
+    "type_vpn": "VPN service", "type_npm": "npm package", "type_pypi": "Python package",
+    "type_android": "Android app", "type_ios": "iOS app", "type_chrome": "Chrome extension",
+    "type_firefox": "Firefox extension", "type_wordpress": "WordPress plugin",
+    "type_saas": "SaaS platform", "type_hosting": "web hosting provider",
+    "type_website_builder": "website builder", "type_antivirus": "antivirus software",
+    "type_password_manager": "password manager", "type_crypto": "crypto exchange",
+    "type_crates": "Rust crate", "type_gems": "Ruby gem", "type_packagist": "PHP package",
+    "type_vscode": "VS Code extension", "type_homebrew": "Homebrew formula",
+    "type_steam": "Steam game", "type_website": "website",
+    # Recommendation strings
+    # VPN privacy section
+    # Sidebar
+    # Eyes alliance
+    "eyes_five": "within the Five Eyes surveillance alliance",
+    "eyes_nine": "within the Nine Eyes surveillance alliance",
+    "eyes_fourteen": "within the Fourteen Eyes surveillance alliance",
+    "eyes_outside": "outside all Eyes surveillance alliances — a privacy advantage",
+    "eyes_none": "not a member of the Five/Nine/Fourteen Eyes alliances",
+    "audit_yes": "{name} has been independently audited to verify its privacy claims",
+    "audit_no": "{name} has not published an independent privacy audit",
+    "sidebar_popular_in": "Popular in",
+    "sidebar_browse": "Browse Categories",
+    "sidebar_recently": "Recently Analyzed",
+    "sidebar_safest_vpns": "Safest VPNs",
+    "sidebar_most_private": "Most Private Apps",
+    # Privacy
+    "privacy_assessment": "Privacy Assessment",
+    "undisclosed_jurisdiction": "an undisclosed jurisdiction",
+    "serving_users": "Serving",
+    # VPN
+    # VPN security section
+    "below_threshold": "Below the recommended threshold of 70.",
+    "dim_security": "Security",
+    "dim_maintenance": "Maintenance",
+    "dim_popularity": "Popularity",
+    "vpn_sec_score": "Security score",
+    "privacy_score_label": "Privacy score",
+    "vpn_proto": "Primary encryption protocol: {proto}, which is considered industry-standard for VPN connections.",
+    "vpn_audit_positive": "According to independent audit reports, {name} has undergone third-party security audits verifying its infrastructure and no-logs claims. This is a strong positive signal — most VPN providers have not been independently audited.",
+    "vpn_audit_verified": "Independent security audit verified.",
+    "vpn_audit_none": "{name} has not published results from an independent security audit. While this does not indicate a security issue, audited VPNs provide higher assurance.",
+    "vpn_no_breaches": "No known data breaches associated with this service.",
+    "vpn_operates_under": "operates under",
+    "vpn_jurisdiction": "jurisdiction",
+    "vpn_outside_eyes": "outside the Five Eyes, Nine Eyes, and Fourteen Eyes surveillance alliances",
+    "vpn_significant": "This is significant because VPN providers in non-allied jurisdictions are not subject to mandatory data retention laws or intelligence-sharing agreements.",
+    "vpn_server_infra": "Server infrastructure",
+    "vpn_logging_audited": "Logging policy: independently audited no-logs policy. According to independent audit reports, {name} does not store connection logs, browsing activity, or DNS queries.",
+    # Cross-link text
+    "xlink_complete_privacy": "Complete Your Privacy Setup",
+    "xlink_complete_security": "Complete Your Security",
+    "xlink_add_pm_vpn": "Add a password manager to your VPN for full protection",
+    "xlink_add_vpn_pm": "Add a VPN to your password manager for full protection",
+    "xlink_add_av": "Add Antivirus Protection",
+    "xlink_add_av_vpn": "Complete your security with antivirus alongside your VPN",
+    "xlink_add_vpn_av": "Add a VPN for encrypted browsing alongside your antivirus",
+    "xlink_add_malware": "Add Malware Protection",
+    "xlink_add_malware_desc": "Protect against keyloggers and credential stealers",
+    "xlink_safest_crypto": "Safest Crypto Exchanges",
+    "xlink_crypto_desc": "Independent crypto exchange safety ranking",
+    "xlink_protect_server": "Protect Your Server",
+    "xlink_protect_server_desc": "Add a VPN for secure remote administration",
+    "xlink_secure_creds": "Secure Your Credentials",
+    "xlink_secure_creds_desc": "Use a password manager for hosting and server credentials",
+    "xlink_safest_hosting": "Safest Web Hosting",
+    "xlink_hosting_desc": "Independent hosting provider safety ranking",
+    "xlink_safest_av": "Safest Antivirus Software",
+    "xlink_av_desc": "Independent antivirus safety ranking based on AV-TEST scores",
+    "xlink_secure_passwords": "Secure Your Passwords",
+    "xlink_secure_passwords_desc": "Use a password manager to protect your accounts",
+    "xlink_secure_saas": "Secure Your SaaS Logins",
+    "xlink_secure_saas_desc": "Use a password manager for your SaaS credentials",
+    "xlink_access_secure": "Access Your Tools Securely",
+    "xlink_access_secure_desc": "Use a VPN when accessing SaaS tools on public Wi-Fi",
+    # FAQ questions (localizable)
+    "faq_q3_alts": "What are safer alternatives to {name}?",
+    "faq_q4_log": "Does {name} log my data?",
+    "faq_q4_update": "How often is {name}'s safety score updated?",
+    "faq_q4_vuln": "Does {name} have known vulnerabilities?",
+    "faq_q4_kids": "Is {name} safe for kids?",
+    "faq_q4_perms": "What permissions does {name} need?",
+    "faq_q4_maintained": "Is {name} actively maintained?",
+    "faq_q4_scam": "Is {name} a scam?",
+    "faq_q4_telemetry": "Does {name} collect telemetry?",
+    "faq_q4_gdpr": "Is {name} GDPR compliant?",
+    "faq_q4_training": "Does {name} use my data for training?",
+    "faq_q5_vs": "{name} vs alternatives: which is safer?",
+    "faq_q5_regulated": "Can I use {name} in a regulated environment?",
+    # FAQ answers (localizable)
+    "faq_a4_vuln": "Nerq checks {name} against NVD, OSV.dev, and registry-specific vulnerability databases. Current security score: {sec_score}. Run your package manager's audit command for the latest findings.",
+    "faq_a4_kids": "{name} has a Nerq Trust Score of {score}/100. Parents should review the full safety report, check permissions and content ratings, and apply appropriate parental controls.",
+    "faq_a4_perms": "Review {name}'s requested permissions carefully. Extensions requesting broad data access carry the highest risk. Current trust score: {score}/100.",
+    "faq_a4_maintained": "{name} maintenance score: {maint_score}. Check the repository for recent commit activity and issue responsiveness.",
+    "faq_a5_verified": "{name} meets the Nerq Verified threshold (70+). Safe for production use.",
+    "faq_a5_not_verified": "{name} has not reached the Nerq Verified threshold of 70. Additional due diligence is recommended.",
+    # Recommendation strings
+    # See Also section
+    "see_also": "See Also",
+    "see_also_vs": "{a} vs {b}",
+    "see_also_alts": "Alternatives to {name}",
+    "see_also_best": "Best {category} 2026",
+    "rec_privacy": "recommended for privacy-conscious use",
+    "rec_production": "recommended for production use",
+    "rec_general": "recommended for general use",
+    "rec_play": "recommended for play",
+    "rec_use": "recommended for use",
+    "rec_wordpress": "recommended for use in WordPress",
 }
 
 # Translation dictionaries per language — keyed by _STRINGS keys
 _TRANSLATIONS = {
     "es": {
+        "dim_popularity": "Popularidad",
+        "faq_q3_alts": "¿Cuáles son alternativas más seguras a {name}?",
+        "faq_q4_log": "¿{name} registra mis datos?",
+        "faq_q4_update": "¿Con qué frecuencia se actualiza la puntuación de {name}?",
+        "faq_q5_vs": "{name} vs alternativas: ¿cuál es más seguro?",
+        "faq_q5_regulated": "¿Puedo usar {name} en un entorno regulado?",
+        "vpn_sec_score": "Puntuación de seguridad",
+        "privacy_score_label": "Puntuación de privacidad",
+        "strong": "fuerte",
+        "moderate": "moderado",
+        "weak": "débil",
+        "actively_maintained": "mantenido activamente",
+        "moderately_maintained": "mantenimiento moderado",
+        "low_maintenance": "baja actividad de mantenimiento",
+        "well_documented": "bien documentado",
+        "partial_documentation": "documentación parcial",
+        "limited_documentation": "documentación limitada",
+        "community_adoption": "adopción comunitaria",
+        "faq_q4_vuln": "¿Tiene {name} vulnerabilidades conocidas?",
+        "faq_q4_kids": "¿Es {name} seguro para niños?",
+        "faq_q4_perms": "¿Qué permisos necesita {name}?",
+        "faq_q4_maintained": "¿Se mantiene activamente {name}?",
+        "faq_a4_vuln": "Nerq verifica {name} contra NVD, OSV.dev y bases de datos de vulnerabilidades. Puntuación de seguridad actual: {sec_score}. Ejecute el comando de auditoría de su gestor de paquetes.",
+        "faq_a4_kids": "{name} tiene una puntuación Nerq de {score}/100. Los padres deben revisar el informe completo y verificar los permisos.",
+        "faq_a4_perms": "Revise los permisos solicitados por {name} cuidadosamente. Puntuación de confianza: {score}/100.",
+        "faq_a4_maintained": "Puntuación de mantenimiento de {name}: {maint_score}. Verifique la actividad reciente del repositorio.",
+        "faq_a5_verified": "{name} cumple el umbral de verificación Nerq (70+). Seguro para uso en producción.",
+        "faq_a5_not_verified": "{name} no ha alcanzado el umbral de verificación Nerq de 70. Se recomienda diligencia adicional.",
+        "more_being_analyzed": "se están analizando más {type} — vuelve pronto.",
+        "dim_maintenance": "Mantenimiento",
+        "dim_security": "Seguridad",
+        "sidebar_most_private": "Apps más privadas",
+        "sidebar_safest_vpns": "VPNs más seguros",
+        "eyes_outside": "fuera de todas las alianzas Eyes — una ventaja de privacidad",
+        "serving_users": "Sirviendo a",
+        "privacy_assessment": "Evaluación de privacidad",
+        "sidebar_recently": "Analizados recientemente",
+        "sidebar_browse": "Explorar categorías",
+        "sidebar_popular_in": "Popular en",
+        "vpn_logging_audited": "Política de registros: política de no-registros auditada independientemente. Según informes de auditoría independientes, {name} no almacena registros de conexión, actividad de navegación ni consultas DNS.",
+        "vpn_server_infra": "Infraestructura de servidores",
+        "vpn_significant": "Esto es significativo porque los proveedores de VPN en jurisdicciones no aliadas no están sujetos a leyes obligatorias de retención de datos o acuerdos de intercambio de inteligencia.",
+        "vpn_outside_eyes": "fuera de las alianzas de vigilancia Five Eyes, Nine Eyes y Fourteen Eyes",
+        "vpn_jurisdiction": "jurisdicción",
+        "vpn_operates_under": "opera bajo",
+        "xlink_av_desc": "Ranking independiente de antivirus basado en AV-TEST",
+        "xlink_safest_av": "Antivirus más seguro",
+        "xlink_hosting_desc": "Ranking independiente de proveedores de hosting",
+        "xlink_safest_hosting": "Hosting más seguro",
+        "xlink_crypto_desc": "Ranking independiente de seguridad de exchanges",
+        "xlink_safest_crypto": "Exchanges crypto más seguros",
+        "xlink_access_secure_desc": "Usa una VPN al acceder a herramientas SaaS en Wi-Fi público",
+        "xlink_access_secure": "Accede a tus herramientas de forma segura",
+        "xlink_secure_saas_desc": "Usa un gestor de contraseñas para tus credenciales SaaS",
+        "xlink_secure_saas": "Protege tus inicios de sesión SaaS",
+        "xlink_secure_creds_desc": "Usa un gestor de contraseñas para credenciales de hosting",
+        "xlink_secure_creds": "Protege tus credenciales",
+        "xlink_protect_server_desc": "Añade una VPN para administración remota segura",
+        "xlink_protect_server": "Protege tu servidor",
+        "xlink_secure_passwords_desc": "Usa un gestor de contraseñas para proteger tus cuentas",
+        "xlink_secure_passwords": "Protege tus contraseñas",
+        "xlink_add_vpn_av": "Añade una VPN para navegación cifrada",
+        "xlink_add_malware_desc": "Protección contra keyloggers y robo de credenciales",
+        "xlink_add_malware": "Añadir protección antimalware",
+        "xlink_add_av_vpn": "Completa tu seguridad con antivirus junto a tu VPN",
+        "xlink_add_av": "Añadir protección antivirus",
+        "xlink_add_vpn_pm": "Añade una VPN a tu gestor de contraseñas",
+        "xlink_add_pm_vpn": "Añade un gestor de contraseñas a tu VPN",
+        "xlink_complete_security": "Completa tu seguridad",
+        "xlink_complete_privacy": "Completa tu privacidad",
+        "type_wordpress": "plugin de WordPress",
+        "type_crates": "paquete Rust",
+        "type_pypi": "paquete Python",
+        "type_steam": "juego de Steam",
+        "type_android": "aplicación Android",
+        "type_website_builder": "creador de sitios web",
+        "type_crypto": "exchange de criptomonedas",
+        "type_password_manager": "gestor de contraseñas",
+        "type_antivirus": "software antivirus",
+        "type_hosting": "proveedor de hosting",
+        "type_saas": "plataforma SaaS",
+        "type_npm": "paquete npm",
+        "type_vpn": "servicio VPN",
+        "based_on_dims": "basado en {dims} dimensiones de datos independientes",
+        "with_trust_score": "con un Nerq Trust Score de {score}/100 ({grade})",
+        "is_a_type": "es un {type}",
+        "rec_wordpress": "recomendado para WordPress",
+        "rec_use": "recomendado para uso",
+        "rec_play": "recomendado para jugar",
+        "rec_general": "recomendado para uso general",
+        "rec_production": "recomendado para uso en producción",
+        "rec_privacy": "recomendado para uso consciente de la privacidad",
+        "data_sourced": "Datos de {sources}. Última actualización: {date}.",
+        "score_based_dims": "Puntuación basada en {dims}.",
+        "yes_safe_short": "Sí, es seguro de usar.",
         "title_safe": "¿Es {name} Seguro? Análisis Independiente de Confianza y Seguridad {year} | Nerq",
         "title_safe_visit": "¿Es {name} Seguro para Visitar? Puntuación de Seguridad {year} y Guía de Viaje | Nerq",
         "title_charity": "¿Es {name} una Organización Benéfica Confiable? Análisis de Confianza {year} | Nerq",
@@ -338,6 +544,113 @@ _TRANSLATIONS = {
         "what_are_safer_alts": "¿Cuáles son alternativas más seguras a {name}?",
     },
     "de": {
+        "dim_popularity": "Beliebtheit",
+        "faq_q3_alts": "Was sind sicherere Alternativen zu {name}?",
+        "faq_q4_log": "Protokolliert {name} meine Daten?",
+        "faq_q4_update": "Wie oft wird die Sicherheitsbewertung von {name} aktualisiert?",
+        "faq_q5_vs": "{name} vs Alternativen: Was ist sicherer?",
+        "faq_q5_regulated": "Kann ich {name} in einer regulierten Umgebung verwenden?",
+        "faq_q4_vuln": "Hat {name} bekannte Schwachstellen?",
+        "faq_q4_kids": "Ist {name} sicher für Kinder?",
+        "faq_q4_perms": "Welche Berechtigungen benötigt {name}?",
+        "faq_q4_maintained": "Wird {name} aktiv gepflegt?",
+        "faq_a4_vuln": "Nerq prüft {name} gegen NVD, OSV.dev und registerspezifische Schwachstellendatenbanken. Aktuelle Sicherheitsbewertung: {sec_score}. Führen Sie den Audit-Befehl Ihres Paketmanagers aus.",
+        "faq_a4_kids": "{name} hat einen Nerq-Wert von {score}/100. Eltern sollten den vollständigen Bericht prüfen und Berechtigungen kontrollieren.",
+        "faq_a4_perms": "Prüfen Sie die angeforderten Berechtigungen von {name} sorgfältig. Vertrauenswert: {score}/100.",
+        "faq_a4_maintained": "{name} Wartungsbewertung: {maint_score}. Prüfen Sie das Repository auf aktuelle Aktivität.",
+        "faq_a5_verified": "{name} erfüllt die Nerq-Verifizierungsschwelle (70+). Sicher für den Produktionseinsatz.",
+        "faq_a5_not_verified": "{name} hat die Nerq-Verifizierungsschwelle von 70 nicht erreicht. Zusätzliche Prüfung empfohlen.",
+        "more_being_analyzed": "weitere {type} werden analysiert — schauen Sie bald wieder vorbei.",
+        "strong": "stark",
+        "moderate": "mäßig",
+        "weak": "schwach",
+        "actively_maintained": "aktiv gepflegt",
+        "moderately_maintained": "mäßig gepflegt",
+        "low_maintenance": "geringe Wartungsaktivität",
+        "well_documented": "gut dokumentiert",
+        "partial_documentation": "teilweise Dokumentation",
+        "limited_documentation": "begrenzte Dokumentation",
+        "community_adoption": "Community-Akzeptanz",
+        "dim_maintenance": "Wartung",
+        "dim_security": "Sicherheit",
+        "vpn_no_breaches": "Keine bekannten Datenschutzverletzungen im Zusammenhang mit diesem Dienst.",
+        "vpn_audit_none": "{name} hat keine Ergebnisse einer unabhängigen Sicherheitsprüfung veröffentlicht. Geprüfte VPNs bieten höhere Sicherheit.",
+        "vpn_audit_verified": "Unabhängiges Sicherheitsaudit verifiziert.",
+        "vpn_audit_positive": "Laut unabhängiger Prüfberichte hat {name} Sicherheitsaudits durch Dritte unterzogen. Dies ist ein stark positives Signal — die meisten VPN-Anbieter wurden nicht unabhängig geprüft.",
+        "vpn_proto": "Primäres Verschlüsselungsprotokoll: {proto}, das als Industriestandard für VPN-Verbindungen gilt.",
+        "vpn_sec_score": "Sicherheitsbewertung",
+        "privacy_score_label": "Datenschutzbewertung",
+        "sidebar_most_private": "Privateste Apps",
+        "sidebar_safest_vpns": "Sicherste VPNs",
+        "audit_no": "{name} hat kein unabhängiges Datenschutz-Audit veröffentlicht",
+        "audit_yes": "{name} wurde unabhängig geprüft, um seine Datenschutzansprüche zu verifizieren",
+        "eyes_none": "kein Mitglied der Five/Nine/Fourteen Eyes-Allianzen",
+        "eyes_fourteen": "innerhalb der Fourteen Eyes-Überwachungsallianz",
+        "eyes_nine": "innerhalb der Nine Eyes-Überwachungsallianz",
+        "eyes_five": "innerhalb der Five Eyes-Überwachungsallianz",
+        "eyes_outside": "außerhalb aller Eyes-Überwachungsallianzen — ein Datenschutzvorteil",
+        "undisclosed_jurisdiction": "einer unbekannten Gerichtsbarkeit",
+        "serving_users": "Bedient",
+        "privacy_assessment": "Datenschutzbewertung",
+        "sidebar_recently": "Kürzlich analysiert",
+        "sidebar_browse": "Kategorien durchsuchen",
+        "sidebar_popular_in": "Beliebt in",
+        "vpn_logging_audited": "Protokollierungsrichtlinie: unabhängig geprüfte No-Logs-Policy. Laut unabhängiger Prüfberichte speichert {name} keine Verbindungsprotokolle, Browser-Aktivitäten oder DNS-Abfragen.",
+        "vpn_server_infra": "Server-Infrastruktur",
+        "vpn_significant": "Dies ist bedeutsam, da VPN-Anbieter in nicht-alliierten Rechtsgebieten nicht den Datenspeicherungspflichten oder Geheimdienstabkommen unterliegen.",
+        "vpn_outside_eyes": "außerhalb der Five Eyes, Nine Eyes und Fourteen Eyes Überwachungsallianzen",
+        "vpn_jurisdiction": "Gerichtsbarkeit",
+        "vpn_operates_under": "operiert unter",
+        "xlink_av_desc": "Unabhängiges Antivirus-Ranking basierend auf AV-TEST",
+        "xlink_safest_av": "Sicherste Antivirus-Software",
+        "xlink_hosting_desc": "Unabhängiges Hosting-Sicherheitsranking",
+        "xlink_safest_hosting": "Sicherste Hosting-Anbieter",
+        "xlink_crypto_desc": "Unabhängiges Krypto-Börsen-Sicherheitsranking",
+        "xlink_safest_crypto": "Sicherste Krypto-Börsen",
+        "xlink_access_secure_desc": "Verwenden Sie ein VPN beim Zugriff auf SaaS-Tools über öffentliches WLAN",
+        "xlink_access_secure": "Greifen Sie sicher auf Ihre Tools zu",
+        "xlink_secure_saas_desc": "Verwenden Sie einen Passwort-Manager für Ihre SaaS-Zugangsdaten",
+        "xlink_secure_saas": "Schützen Sie Ihre SaaS-Logins",
+        "xlink_secure_creds_desc": "Verwenden Sie einen Passwort-Manager für Hosting-Zugangsdaten",
+        "xlink_secure_creds": "Schützen Sie Ihre Zugangsdaten",
+        "xlink_protect_server_desc": "Fügen Sie ein VPN für sichere Fernverwaltung hinzu",
+        "xlink_protect_server": "Schützen Sie Ihren Server",
+        "xlink_secure_passwords_desc": "Verwenden Sie einen Passwort-Manager zum Schutz Ihrer Konten",
+        "xlink_secure_passwords": "Schützen Sie Ihre Passwörter",
+        "xlink_add_vpn_av": "Fügen Sie ein VPN für verschlüsseltes Surfen hinzu",
+        "xlink_add_malware_desc": "Schutz vor Keyloggern und Anmeldedatendiebstahl",
+        "xlink_add_malware": "Malware-Schutz hinzufügen",
+        "xlink_add_av_vpn": "Vervollständigen Sie Ihre Sicherheit mit Antivirus neben Ihrem VPN",
+        "xlink_add_av": "Antivirenschutz hinzufügen",
+        "xlink_add_vpn_pm": "Fügen Sie ein VPN zu Ihrem Passwort-Manager hinzu",
+        "xlink_add_pm_vpn": "Fügen Sie einen Passwort-Manager zu Ihrem VPN hinzu",
+        "xlink_complete_security": "Vervollständigen Sie Ihre Sicherheit",
+        "xlink_complete_privacy": "Vervollständigen Sie Ihren Datenschutz",
+        "type_wordpress": "WordPress-Plugin",
+        "type_crates": "Rust-Paket",
+        "type_pypi": "Python-Paket",
+        "type_steam": "Steam-Spiel",
+        "type_android": "Android-App",
+        "type_website_builder": "Website-Baukasten",
+        "type_crypto": "Krypto-Börse",
+        "type_password_manager": "Passwort-Manager",
+        "type_antivirus": "Antivirus-Software",
+        "type_hosting": "Hosting-Anbieter",
+        "type_saas": "SaaS-Plattform",
+        "type_npm": "npm-Paket",
+        "type_vpn": "VPN-Dienst",
+        "based_on_dims": "basierend auf {dims} unabhängigen Datendimensionen",
+        "with_trust_score": "mit einem Nerq-Vertrauenswert von {score}/100 ({grade})",
+        "is_a_type": "ist ein {type}",
+        "rec_wordpress": "empfohlen für WordPress-Nutzung",
+        "rec_use": "empfohlen zur Nutzung",
+        "rec_play": "empfohlen zum Spielen",
+        "rec_general": "empfohlen für allgemeine Nutzung",
+        "rec_production": "empfohlen für den Produktionseinsatz",
+        "rec_privacy": "empfohlen für datenschutzbewusste Nutzung",
+        "data_sourced": "Daten von {sources}. Zuletzt aktualisiert: {date}.",
+        "score_based_dims": "Bewertung basierend auf {dims}.",
+        "yes_safe_short": "Ja, es ist sicher in der Verwendung.",
         "title_safe": "Ist {name} sicher? Unabhängige Vertrauens- und Sicherheitsanalyse {year} | Nerq",
         "title_safe_visit": "Ist {name} sicher zu besuchen? {year} Sicherheitsbewertung &amp; Reiseführer | Nerq",
         "title_charity": "Ist {name} eine vertrauenswürdige Wohltätigkeitsorganisation? {year} Vertrauensanalyse | Nerq",
@@ -419,6 +732,101 @@ _TRANSLATIONS = {
         "what_are_safer_alts": "Was sind sicherere Alternativen zu {name}?",
     },
     "fr": {
+        "dim_popularity": "Popularité",
+        "vpn_sec_score": "Score de sécurité",
+        "privacy_score_label": "Score de confidentialité",
+        "faq_q3_alts": "Quelles sont les alternatives plus sûres à {name} ?",
+        "faq_q4_log": "Est-ce que {name} enregistre mes données ?",
+        "faq_q4_update": "À quelle fréquence le score de sécurité de {name} est-il mis à jour ?",
+        "faq_q5_vs": "{name} vs alternatives : lequel est le plus sûr ?",
+        "faq_q5_regulated": "Puis-je utiliser {name} dans un environnement réglementé ?",
+        "faq_q4_vuln": "Est-ce que {name} a des vulnérabilités connues ?",
+        "faq_q4_kids": "Est-ce que {name} est sûr pour les enfants ?",
+        "faq_q4_perms": "Quelles permissions {name} nécessite-t-il ?",
+        "faq_q4_maintained": "Est-ce que {name} est activement maintenu ?",
+        "faq_a4_vuln": "Nerq vérifie {name} contre NVD, OSV.dev et les bases de données de vulnérabilités. Score de sécurité actuel : {sec_score}.",
+        "faq_a4_kids": "{name} a un score Nerq de {score}/100. Les parents doivent vérifier le rapport complet et les autorisations.",
+        "faq_a4_perms": "Vérifiez attentivement les permissions demandées par {name}. Score de confiance : {score}/100.",
+        "faq_a4_maintained": "Score de maintenance de {name} : {maint_score}. Vérifiez l'activité récente du dépôt.",
+        "faq_a5_verified": "{name} atteint le seuil de vérification Nerq (70+). Sûr pour la production.",
+        "faq_a5_not_verified": "{name} n'a pas atteint le seuil de vérification Nerq de 70. Vérification supplémentaire recommandée.",
+        "more_being_analyzed": "d'autres {type} sont en cours d'analyse — revenez bientôt.",
+        "strong": "fort",
+        "moderate": "modéré",
+        "weak": "faible",
+        "actively_maintained": "activement maintenu",
+        "moderately_maintained": "modérément maintenu",
+        "low_maintenance": "faible activité de maintenance",
+        "well_documented": "bien documenté",
+        "partial_documentation": "documentation partielle",
+        "limited_documentation": "documentation limitée",
+        "community_adoption": "adoption communautaire",
+        "dim_maintenance": "Maintenance",
+        "dim_security": "Sécurité",
+        "sidebar_most_private": "Apps les plus privées",
+        "sidebar_safest_vpns": "VPN les plus sûrs",
+        "eyes_outside": "en dehors de toutes les alliances Eyes — un avantage pour la vie privée",
+        "serving_users": "Au service de",
+        "privacy_assessment": "Évaluation de la confidentialité",
+        "sidebar_recently": "Analysés récemment",
+        "sidebar_browse": "Parcourir les catégories",
+        "sidebar_popular_in": "Populaire dans",
+        "vpn_logging_audited": "Politique de journalisation: politique no-logs auditée indépendamment. Selon les rapports d'audit indépendants, {name} ne stocke pas les journaux de connexion, l'activité de navigation ni les requêtes DNS.",
+        "vpn_server_infra": "Infrastructure serveur",
+        "vpn_significant": "C'est significatif car les fournisseurs VPN dans des juridictions non alliées ne sont pas soumis aux lois de rétention de données ni aux accords de partage de renseignements.",
+        "vpn_outside_eyes": "en dehors des alliances de surveillance Five Eyes, Nine Eyes et Fourteen Eyes",
+        "vpn_jurisdiction": "juridiction",
+        "vpn_operates_under": "opère sous",
+        "xlink_av_desc": "Classement antivirus indépendant basé sur AV-TEST",
+        "xlink_safest_av": "Antivirus le plus sûr",
+        "xlink_hosting_desc": "Classement indépendant des hébergeurs",
+        "xlink_safest_hosting": "Hébergement le plus sûr",
+        "xlink_crypto_desc": "Classement indépendant de sécurité des exchanges",
+        "xlink_safest_crypto": "Échanges crypto les plus sûrs",
+        "xlink_access_secure_desc": "Utilisez un VPN pour accéder aux outils SaaS sur un Wi-Fi public",
+        "xlink_access_secure": "Accédez à vos outils en toute sécurité",
+        "xlink_secure_saas_desc": "Utilisez un gestionnaire de mots de passe pour vos identifiants SaaS",
+        "xlink_secure_saas": "Sécurisez vos connexions SaaS",
+        "xlink_secure_creds_desc": "Utilisez un gestionnaire de mots de passe pour les identifiants d'hébergement",
+        "xlink_secure_creds": "Sécurisez vos identifiants",
+        "xlink_protect_server_desc": "Ajoutez un VPN pour l'administration à distance sécurisée",
+        "xlink_protect_server": "Protégez votre serveur",
+        "xlink_secure_passwords_desc": "Utilisez un gestionnaire de mots de passe pour protéger vos comptes",
+        "xlink_secure_passwords": "Protégez vos mots de passe",
+        "xlink_add_vpn_av": "Ajoutez un VPN pour la navigation chiffrée",
+        "xlink_add_malware_desc": "Protection contre les enregistreurs de frappe et le vol d'identifiants",
+        "xlink_add_malware": "Ajouter une protection anti-malware",
+        "xlink_add_av_vpn": "Complétez votre sécurité avec un antivirus et votre VPN",
+        "xlink_add_av": "Ajouter une protection antivirus",
+        "xlink_add_vpn_pm": "Ajoutez un VPN à votre gestionnaire de mots de passe",
+        "xlink_add_pm_vpn": "Ajoutez un gestionnaire de mots de passe à votre VPN",
+        "xlink_complete_security": "Complétez votre sécurité",
+        "xlink_complete_privacy": "Complétez votre confidentialité",
+        "type_wordpress": "plugin WordPress",
+        "type_crates": "package Rust",
+        "type_pypi": "package Python",
+        "type_steam": "jeu Steam",
+        "type_android": "application Android",
+        "type_website_builder": "créateur de sites",
+        "type_crypto": "échange crypto",
+        "type_password_manager": "gestionnaire de mots de passe",
+        "type_antivirus": "logiciel antivirus",
+        "type_hosting": "hébergeur web",
+        "type_saas": "plateforme SaaS",
+        "type_npm": "package npm",
+        "type_vpn": "service VPN",
+        "based_on_dims": "basé sur {dims} dimensions de données indépendantes",
+        "with_trust_score": "avec un Nerq Trust Score de {score}/100 ({grade})",
+        "is_a_type": "est un {type}",
+        "rec_wordpress": "recommandé pour WordPress",
+        "rec_use": "recommandé pour utilisation",
+        "rec_play": "recommandé pour jouer",
+        "rec_general": "recommandé pour une utilisation générale",
+        "rec_production": "recommandé pour une utilisation en production",
+        "rec_privacy": "recommandé pour une utilisation soucieuse de la vie privée",
+        "data_sourced": "Données de {sources}. Dernière mise à jour: {date}.",
+        "score_based_dims": "Score basé sur {dims}.",
+        "yes_safe_short": "Oui, il est sûr à utiliser.",
         "title_safe": "{name} est-il sûr ? Analyse Indépendante de Confiance et Sécurité {year} | Nerq",
         "title_safe_visit": "{name} est-il sûr à visiter ? Score de Sécurité {year} et Guide de Voyage | Nerq",
         "title_charity": "{name} est-elle une association fiable ? Analyse de Confiance {year} | Nerq",
@@ -492,6 +900,111 @@ _TRANSLATIONS = {
         "check_back_soon": "revenez bientôt",
     },
     "ja": {
+        "in_category": "{category}カテゴリでは、",
+        "dim_popularity": "人気度",
+        "faq_q3_alts": "{name}のより安全な代替は何ですか？",
+        "faq_q4_log": "{name}は私のデータを記録しますか？",
+        "faq_q4_update": "{name}の安全性スコアはどのくらいの頻度で更新されますか？",
+        "faq_q5_vs": "{name}と代替製品：どちらが安全？",
+        "faq_q5_regulated": "規制環境で{name}を使用できますか？",
+        "faq_q4_vuln": "{name}に既知の脆弱性はありますか？",
+        "faq_q4_kids": "{name}は子供に安全ですか？",
+        "faq_q4_perms": "{name}にはどのような権限が必要ですか？",
+        "faq_q4_maintained": "{name}は積極的にメンテナンスされていますか？",
+        "faq_a4_vuln": "Nerqは{name}をNVD、OSV.dev、レジストリ固有の脆弱性データベースでチェックします。現在のセキュリティスコア：{sec_score}。",
+        "faq_a4_kids": "{name}のNerqスコアは{score}/100です。保護者は完全なレポートを確認し、権限を確認してください。",
+        "faq_a4_perms": "{name}の要求する権限を慎重に確認してください。信頼スコア：{score}/100。",
+        "faq_a4_maintained": "{name}のメンテナンススコア：{maint_score}。リポジトリの最近の活動を確認してください。",
+        "faq_a5_verified": "{name}はNerq認証閾値（70+）を満たしています。本番環境での使用に安全です。",
+        "faq_a5_not_verified": "{name}はNerq認証閾値70に達していません。追加の確認が推奨されます。",
+        "more_being_analyzed": "さらに多くの{type}が分析中です — 後で確認してください。",
+        "strong": "強い",
+        "moderate": "中程度",
+        "weak": "弱い",
+        "actively_maintained": "積極的にメンテナンス中",
+        "moderately_maintained": "適度にメンテナンス中",
+        "low_maintenance": "メンテナンス活動が低い",
+        "well_documented": "十分に文書化",
+        "partial_documentation": "部分的な文書化",
+        "limited_documentation": "限定的な文書化",
+        "community_adoption": "コミュニティ採用",
+        "dim_maintenance": "メンテナンス",
+        "dim_security": "セキュリティ",
+        "vpn_no_breaches": "このサービスに関連する既知のデータ侵害はありません。",
+        "vpn_audit_none": "{name}は独立したセキュリティ監査の結果を公開していません。監査済みVPNはより高い保証を提供します。",
+        "vpn_audit_verified": "独立セキュリティ監査確認済み。",
+        "vpn_audit_positive": "独立監査報告書によると、{name}はインフラストラクチャとノーログの主張を検証するサードパーティのセキュリティ監査を受けています。これは強力な正のシグナルです。",
+        "vpn_proto": "主要暗号化プロトコル: {proto}。VPN接続の業界標準とされています。",
+        "vpn_sec_score": "セキュリティスコア",
+        "privacy_score_label": "プライバシースコア",
+        "sidebar_most_private": "最もプライベートなアプリ",
+        "sidebar_safest_vpns": "最も安全なVPN",
+        "audit_no": "{name}は独立したプライバシー監査を公開していません",
+        "audit_yes": "{name}はプライバシーの主張を検証するために独立した監査を受けています",
+        "eyes_none": "Five/Nine/Fourteen Eyes同盟の非加盟国",
+        "eyes_fourteen": "フォーティーンアイズ監視同盟内",
+        "eyes_nine": "ナインアイズ監視同盟内",
+        "eyes_five": "ファイブアイズ監視同盟内",
+        "eyes_outside": "全てのEyes監視同盟の外 — プライバシー上の利点",
+        "undisclosed_jurisdiction": "非公開の管轄地",
+        "serving_users": "ユーザー数:",
+        "privacy_assessment": "プライバシー評価",
+        "sidebar_recently": "最近の分析",
+        "sidebar_browse": "カテゴリを閲覧",
+        "sidebar_popular_in": "人気の",
+        "vpn_logging_audited": "ログポリシー：独立監査済みノーログポリシー。独立監査報告書によると、{name}は接続ログ、閲覧履歴、DNSクエリを保存しません。",
+        "vpn_server_infra": "サーバーインフラ",
+        "vpn_significant": "これは重要です。非同盟管轄区域のVPNプロバイダーはデータ保持法や情報共有協定の対象外であるためです。",
+        "vpn_outside_eyes": "ファイブアイズ、ナインアイズ、フォーティーンアイズの監視同盟の外",
+        "vpn_jurisdiction": "の管轄下にあります",
+        "vpn_operates_under": "は",
+        "xlink_av_desc": "AV-TESTスコアに基づく独立したアンチウイルスランキング",
+        "xlink_safest_av": "最も安全なアンチウイルス",
+        "xlink_hosting_desc": "独立したホスティングプロバイダー安全ランキング",
+        "xlink_safest_hosting": "最も安全なウェブホスティング",
+        "xlink_crypto_desc": "独立した暗号取引所安全ランキング",
+        "xlink_safest_crypto": "最も安全な仮想通貨取引所",
+        "xlink_access_secure_desc": "公共Wi-FiでSaaSツールにアクセスする際はVPNを使用",
+        "xlink_access_secure": "安全にツールにアクセス",
+        "xlink_secure_saas_desc": "SaaS認証情報にパスワードマネージャーを使用",
+        "xlink_secure_saas": "SaaSログインを保護",
+        "xlink_secure_creds_desc": "ホスティングとサーバーの認証情報にパスワードマネージャーを使用",
+        "xlink_secure_creds": "認証情報を保護",
+        "xlink_protect_server_desc": "安全なリモート管理のためにVPNを追加",
+        "xlink_protect_server": "サーバーを保護",
+        "xlink_secure_passwords_desc": "アカウントを保護するためにパスワードマネージャーを使用",
+        "xlink_secure_passwords": "パスワードを保護",
+        "xlink_add_vpn_av": "暗号化ブラウジングのためにVPNを追加",
+        "xlink_add_malware_desc": "キーロガーや資格情報の窃取から保護",
+        "xlink_add_malware": "マルウェア対策を追加",
+        "xlink_add_av_vpn": "VPNと併せてアンチウイルスでセキュリティを完成",
+        "xlink_add_av": "ウイルス対策を追加",
+        "xlink_add_vpn_pm": "パスワードマネージャーにVPNを追加",
+        "xlink_add_pm_vpn": "VPNにパスワードマネージャーを追加",
+        "xlink_complete_security": "セキュリティを完成",
+        "xlink_complete_privacy": "プライバシー設定を完成",
+        "type_wordpress": "WordPressプラグイン",
+        "type_crates": "Rustクレート",
+        "type_pypi": "Pythonパッケージ",
+        "type_steam": "Steamゲーム",
+        "type_android": "Androidアプリ",
+        "type_website_builder": "ウェブサイトビルダー",
+        "type_crypto": "仮想通貨取引所",
+        "type_password_manager": "パスワードマネージャー",
+        "type_antivirus": "アンチウイルスソフト",
+        "type_hosting": "ウェブホスティング",
+        "type_saas": "SaaSプラットフォーム",
+        "type_npm": "npmパッケージ",
+        "type_vpn": "VPNサービス",
+        "based_on_dims": "{dims}つの独立したデータ次元に基づく",
+        "with_trust_score": "Nerq信頼スコア{score}/100（{grade}）",
+        "is_a_type": "は{type}です",
+        "rec_wordpress": "WordPressでの使用に推奨",
+        "rec_use": "使用に推奨",
+        "rec_play": "プレイに推奨",
+        "rec_general": "一般的な使用に推奨",
+        "rec_production": "本番環境での使用に推奨",
+        "rec_privacy": "プライバシーを重視する使用に推奨",
         "title_safe": "{name}は安全ですか？ 独立した信頼性・セキュリティ分析 {year} | Nerq",
         "title_safe_visit": "{name}は訪問しても安全ですか？ {year} セキュリティスコア＆旅行ガイド | Nerq",
         "title_charity": "{name}は信頼できる慈善団体ですか？ {year} 信頼性分析 | Nerq",
@@ -548,6 +1061,51 @@ _TRANSLATIONS = {
         "what_are_safer_alts": "{name}のより安全な代替品は？",
     },
     "pt": {
+        "faq_q3_alts": "Quais são alternativas mais seguras ao {name}?",
+        "faq_q4_log": "O {name} registra meus dados?",
+        "faq_q4_update": "Com que frequência o score de segurança do {name} é atualizado?",
+        "faq_q5_vs": "{name} vs alternativas: qual é mais seguro?",
+        "faq_q5_regulated": "Posso usar {name} em um ambiente regulado?",
+        "privacy_assessment": "Avaliação de privacidade",
+        "vpn_sec_score": "Pontuação de segurança",
+        "privacy_score_label": "Pontuação de privacidade",
+        "strong": "forte",
+        "moderate": "moderado",
+        "weak": "fraco",
+        "actively_maintained": "mantido ativamente",
+        "moderately_maintained": "moderadamente mantido",
+        "low_maintenance": "baixa atividade de manutenção",
+        "well_documented": "bem documentado",
+        "partial_documentation": "documentação parcial",
+        "limited_documentation": "documentação limitada",
+        "community_adoption": "adoção comunitária",
+        "faq_q4_vuln": "{name} tem vulnerabilidades conhecidas?",
+        "faq_q4_kids": "{name} é seguro para crianças?",
+        "faq_q4_perms": "Quais permissões {name} precisa?",
+        "faq_q4_maintained": "{name} é mantido ativamente?",
+        "faq_a4_vuln": "Nerq verifica {name} contra NVD, OSV.dev e bancos de dados de vulnerabilidades. Score de segurança atual: {sec_score}.",
+        "faq_a4_kids": "{name} tem um score Nerq de {score}/100. Os pais devem revisar o relatório completo.",
+        "faq_a4_perms": "Revise cuidadosamente as permissões solicitadas por {name}. Score de confiança: {score}/100.",
+        "faq_a4_maintained": "Score de manutenção de {name}: {maint_score}. Verifique a atividade recente do repositório.",
+        "faq_a5_verified": "{name} atinge o limiar de verificação Nerq (70+). Seguro para uso em produção.",
+        "faq_a5_not_verified": "{name} não atingiu o limiar de verificação Nerq de 70. Diligência adicional recomendada.",
+        "more_being_analyzed": "mais {type} estão sendo analisados — volte em breve.",
+        "sidebar_recently": "Analisados recentemente",
+        "sidebar_browse": "Navegar categorias",
+        "sidebar_popular_in": "Popular em",
+        "vpn_significant": "Isso é significativo porque provedores de VPN em jurisdições não aliadas não estão sujeitos a leis obrigatórias de retenção de dados ou acordos de compartilhamento de inteligência.",
+        "vpn_outside_eyes": "fora das alianças de vigilância Five Eyes, Nine Eyes e Fourteen Eyes",
+        "vpn_jurisdiction": "jurisdição",
+        "vpn_operates_under": "opera sob",
+        "xlink_add_av_vpn": "Complete sua segurança com antivírus junto ao VPN",
+        "xlink_add_av": "Adicionar proteção antivírus",
+        "xlink_add_pm_vpn": "Adicione um gerenciador de senhas ao seu VPN",
+        "xlink_complete_security": "Complete sua segurança",
+        "xlink_complete_privacy": "Complete sua privacidade",
+        "based_on_dims": "com base em {dims} dimensões de dados independentes",
+        "with_trust_score": "com um Nerq Trust Score de {score}/100 ({grade})",
+        "is_a_type": "é um {type}",
+        "rec_privacy": "recomendado para uso consciente de privacidade",
         "title_safe": "{name} é seguro? Análise Independente de Confiança e Segurança {year} | Nerq",
         "title_safe_visit": "{name} é seguro para visitar? Pontuação de Segurança {year} e Guia de Viagem | Nerq",
         "title_charity": "{name} é uma instituição de caridade confiável? Análise de Confiança {year} | Nerq",
@@ -606,6 +1164,44 @@ _TRANSLATIONS = {
         "what_are_safer_alts": "Quais são alternativas mais seguras a {name}?",
     },
     "id": {
+        "vpn_outside_eyes": "di luar aliansi pengawasan Five Eyes, Nine Eyes, dan Fourteen Eyes",
+        "faq_q3_alts": "Apa alternatif yang lebih aman dari {name}?",
+        "faq_q4_log": "Apakah {name} mencatat data saya?",
+        "faq_q4_update": "Seberapa sering skor keamanan {name} diperbarui?",
+        "faq_q5_vs": "{name} vs alternatif: mana yang lebih aman?",
+        "faq_q5_regulated": "Bisakah saya menggunakan {name} di lingkungan yang diatur?",
+        "vpn_sec_score": "Skor keamanan",
+        "privacy_score_label": "Skor privasi",
+        "strong": "kuat",
+        "moderate": "sedang",
+        "weak": "lemah",
+        "actively_maintained": "dipelihara aktif",
+        "moderately_maintained": "dipelihara sedang",
+        "low_maintenance": "aktivitas pemeliharaan rendah",
+        "well_documented": "terdokumentasi baik",
+        "partial_documentation": "dokumentasi sebagian",
+        "limited_documentation": "dokumentasi terbatas",
+        "community_adoption": "adopsi komunitas",
+        "faq_q4_vuln": "Apakah {name} memiliki kerentanan yang diketahui?",
+        "faq_q4_kids": "Apakah {name} aman untuk anak-anak?",
+        "faq_q4_perms": "Izin apa yang dibutuhkan {name}?",
+        "faq_q4_maintained": "Apakah {name} dipelihara secara aktif?",
+        "faq_a4_vuln": "Nerq memeriksa {name} terhadap NVD, OSV.dev, dan database kerentanan. Skor keamanan saat ini: {sec_score}.",
+        "faq_a4_kids": "{name} memiliki skor Nerq {score}/100. Orang tua harus meninjau laporan lengkap.",
+        "faq_a4_perms": "Tinjau izin yang diminta {name} dengan cermat. Skor kepercayaan: {score}/100.",
+        "faq_a4_maintained": "Skor pemeliharaan {name}: {maint_score}. Periksa aktivitas terbaru repositori.",
+        "faq_a5_verified": "{name} memenuhi ambang verifikasi Nerq (70+). Aman untuk penggunaan produksi.",
+        "faq_a5_not_verified": "{name} belum mencapai ambang verifikasi Nerq 70. Tinjauan tambahan disarankan.",
+        "more_being_analyzed": "lebih banyak {type} sedang dianalisis — periksa kembali segera.",
+        "vpn_jurisdiction": "yurisdiksi",
+        "vpn_operates_under": "beroperasi di bawah",
+        "xlink_add_av_vpn": "Lengkapi keamanan dengan antivirus bersama VPN",
+        "xlink_add_av": "Tambahkan perlindungan antivirus",
+        "xlink_add_pm_vpn": "Tambahkan pengelola kata sandi ke VPN Anda",
+        "xlink_complete_security": "Lengkapi keamanan Anda",
+        "xlink_complete_privacy": "Lengkapi privasi Anda",
+        "is_a_type": "adalah {type}",
+        "rec_privacy": "direkomendasikan untuk penggunaan yang memperhatikan privasi",
         "title_safe": "Apakah {name} Aman? Analisis Kepercayaan &amp; Keamanan Independen {year} | Nerq",
         "title_safe_visit": "Apakah {name} Aman Dikunjungi? Skor Keamanan {year} &amp; Panduan Perjalanan | Nerq",
         "title_charity": "Apakah {name} Lembaga Amal Terpercaya? Analisis Kepercayaan {year} | Nerq",
@@ -708,6 +1304,44 @@ _TRANSLATIONS = {
         "not_analyzed_no_fabricate": "Nerq tidak pernah memalsukan penilaian. Jika Anda yakin entitas ini perlu dianalisis, entitas ini mungkin akan muncul di pembaruan mendatang.",
     },
     "cs": {
+        "vpn_outside_eyes": "mimo aliance dohledu Five Eyes, Nine Eyes a Fourteen Eyes",
+        "faq_q3_alts": "Jaké jsou bezpečnější alternativy k {name}?",
+        "faq_q4_log": "Zaznamenává {name} moje data?",
+        "faq_q4_update": "Jak často se aktualizuje bezpečnostní skóre {name}?",
+        "faq_q5_vs": "{name} vs alternativy: co je bezpečnější?",
+        "faq_q5_regulated": "Mohu používat {name} v regulovaném prostředí?",
+        "vpn_sec_score": "Bezpečnostní skóre",
+        "privacy_score_label": "Skóre soukromí",
+        "strong": "silný",
+        "moderate": "střední",
+        "weak": "slabý",
+        "actively_maintained": "aktivně udržováno",
+        "moderately_maintained": "středně udržováno",
+        "low_maintenance": "nízká údržba",
+        "well_documented": "dobře dokumentováno",
+        "partial_documentation": "částečná dokumentace",
+        "limited_documentation": "omezená dokumentace",
+        "community_adoption": "přijetí komunitou",
+        "faq_q4_vuln": "Má {name} známé zranitelnosti?",
+        "faq_q4_kids": "Je {name} bezpečný pro děti?",
+        "faq_q4_perms": "Jaká oprávnění {name} potřebuje?",
+        "faq_q4_maintained": "Je {name} aktivně udržován?",
+        "faq_a4_vuln": "Nerq kontroluje {name} proti NVD, OSV.dev a databázím zranitelností. Aktuální bezpečnostní skóre: {sec_score}.",
+        "faq_a4_kids": "{name} má skóre Nerq {score}/100. Rodiče by měli zkontrolovat úplnou zprávu.",
+        "faq_a4_perms": "Pečlivě zkontrolujte oprávnění požadovaná {name}. Skóre důvěry: {score}/100.",
+        "faq_a4_maintained": "Skóre údržby {name}: {maint_score}. Zkontrolujte nedávnou aktivitu repozitáře.",
+        "faq_a5_verified": "{name} splňuje práh ověření Nerq (70+). Bezpečné pro produkční použití.",
+        "faq_a5_not_verified": "{name} nedosáhl prahu ověření Nerq 70. Doporučuje se dodatečné přezkoumání.",
+        "more_being_analyzed": "další {type} se analyzují — zkontrolujte později.",
+        "vpn_jurisdiction": "jurisdikce",
+        "vpn_operates_under": "působí pod",
+        "xlink_add_av_vpn": "Doplňte zabezpečení antivirem k VPN",
+        "xlink_add_av": "Přidat antivirovou ochranu",
+        "xlink_add_pm_vpn": "Přidejte správce hesel k vašemu VPN",
+        "xlink_complete_security": "Dokončete zabezpečení",
+        "xlink_complete_privacy": "Dokončete ochranu soukromí",
+        "is_a_type": "je {type}",
+        "rec_privacy": "doporučeno pro použití s důrazem na soukromí",
         "title_safe": "Je {name} bezpečný? Nezávislá analýza důvěryhodnosti a bezpečnosti {year} | Nerq",
         "title_safe_visit": "Je {name} bezpečné navštívit? Bezpečnostní skóre {year} &amp; Cestovní průvodce | Nerq",
         "title_charity": "Je {name} důvěryhodná charita? Analýza důvěryhodnosti {year} | Nerq",
@@ -810,6 +1444,44 @@ _TRANSLATIONS = {
         "not_analyzed_no_fabricate": "Nerq nikdy nevymýšlí hodnocení. Pokud se domníváte, že by tato entita měla být pokryta, může se objevit v budoucí aktualizaci.",
     },
     "th": {
+        "vpn_outside_eyes": "อยู่นอกพันธมิตรเฝ้าระวัง Five Eyes, Nine Eyes และ Fourteen Eyes",
+        "faq_q3_alts": "ทางเลือกที่ปลอดภัยกว่า {name} คืออะไร?",
+        "faq_q4_log": "{name} บันทึกข้อมูลของฉันหรือไม่?",
+        "faq_q4_update": "คะแนนความปลอดภัยของ {name} อัปเดตบ่อยแค่ไหน?",
+        "faq_q5_vs": "{name} กับทางเลือกอื่น: อันไหนปลอดภัยกว่า?",
+        "faq_q5_regulated": "ฉันสามารถใช้ {name} ในสภาพแวดล้อมที่มีกฎระเบียบได้หรือไม่?",
+        "vpn_sec_score": "คะแนนความปลอดภัย",
+        "privacy_score_label": "คะแนนความเป็นส่วนตัว",
+        "strong": "แข็งแกร่ง",
+        "moderate": "ปานกลาง",
+        "weak": "อ่อน",
+        "actively_maintained": "ดูแลอย่างต่อเนื่อง",
+        "moderately_maintained": "ดูแลปานกลาง",
+        "low_maintenance": "กิจกรรมดูแลต่ำ",
+        "well_documented": "มีเอกสารดี",
+        "partial_documentation": "เอกสารบางส่วน",
+        "limited_documentation": "เอกสารจำกัด",
+        "community_adoption": "การยอมรับจากชุมชน",
+        "faq_q4_vuln": "{name} มีช่องโหว่ที่ทราบหรือไม่?",
+        "faq_q4_kids": "{name} ปลอดภัยสำหรับเด็กหรือไม่?",
+        "faq_q4_perms": "{name} ต้องการสิทธิ์อะไรบ้าง?",
+        "faq_q4_maintained": "{name} ได้รับการดูแลอย่างต่อเนื่องหรือไม่?",
+        "faq_a4_vuln": "Nerq ตรวจสอบ {name} กับ NVD, OSV.dev และฐานข้อมูลช่องโหว่ คะแนนความปลอดภัยปัจจุบัน: {sec_score}",
+        "faq_a4_kids": "{name} มีคะแนน Nerq {score}/100 ผู้ปกครองควรตรวจสอบรายงานฉบับเต็ม",
+        "faq_a4_perms": "ตรวจสอบสิทธิ์ที่ร้องขอโดย {name} อย่างรอบคอบ คะแนนความน่าเชื่อถือ: {score}/100",
+        "faq_a4_maintained": "คะแนนการดูแลรักษา {name}: {maint_score} ตรวจสอบกิจกรรมล่าสุดของ repository",
+        "faq_a5_verified": "{name} ผ่านเกณฑ์การยืนยัน Nerq (70+) ปลอดภัยสำหรับการใช้งาน",
+        "faq_a5_not_verified": "{name} ยังไม่ถึงเกณฑ์การยืนยัน Nerq 70 แนะนำให้ตรวจสอบเพิ่มเติม",
+        "more_being_analyzed": "{type} เพิ่มเติมกำลังถูกวิเคราะห์ — กลับมาเร็วๆ นี้",
+        "vpn_jurisdiction": "เขตอำนาจศาล",
+        "vpn_operates_under": "ดำเนินงานภายใต้",
+        "xlink_add_av_vpn": "เสริมความปลอดภัยด้วยแอนตี้ไวรัสร่วมกับ VPN",
+        "xlink_add_av": "เพิ่มการป้องกันไวรัส",
+        "xlink_add_pm_vpn": "เพิ่มตัวจัดการรหัสผ่านให้ VPN",
+        "xlink_complete_security": "เสริมความปลอดภัย",
+        "xlink_complete_privacy": "ตั้งค่าความเป็นส่วนตัว",
+        "is_a_type": "เป็น {type}",
+        "rec_privacy": "แนะนำสำหรับการใช้งานที่คำนึงถึงความเป็นส่วนตัว",
         "title_safe": "{name} ปลอดภัยหรือไม่? การวิเคราะห์ความน่าเชื่อถือและความปลอดภัยอิสระ {year} | Nerq",
         "title_safe_visit": "{name} ปลอดภัยที่จะเยี่ยมชมหรือไม่? คะแนนความปลอดภัย {year} &amp; คู่มือการเดินทาง | Nerq",
         "title_charity": "{name} เป็นองค์กรการกุศลที่น่าเชื่อถือหรือไม่? การวิเคราะห์ความน่าเชื่อถือ {year} | Nerq",
@@ -912,6 +1584,44 @@ _TRANSLATIONS = {
         "not_analyzed_no_fabricate": "Nerq ไม่เคยปลอมแปลงคะแนน หากคุณเชื่อว่าเอนทิตีนี้ควรได้รับการวิเคราะห์ อาจปรากฏในการอัปเดตครั้งต่อไป",
     },
     "tr": {
+        "vpn_outside_eyes": "Five Eyes, Nine Eyes ve Fourteen Eyes gözetim ittifaklarının dışında",
+        "faq_q3_alts": "{name} için daha güvenli alternatifler nelerdir?",
+        "faq_q4_log": "{name} verilerimi kaydediyor mu?",
+        "faq_q4_update": "{name} güvenlik puanı ne sıklıkla güncellenir?",
+        "faq_q5_vs": "{name} vs alternatifler: hangisi daha güvenli?",
+        "faq_q5_regulated": "{name}'i düzenlenmiş bir ortamda kullanabilir miyim?",
+        "vpn_sec_score": "Güvenlik puanı",
+        "privacy_score_label": "Gizlilik puanı",
+        "strong": "güçlü",
+        "moderate": "orta",
+        "weak": "zayıf",
+        "actively_maintained": "aktif olarak sürdürülüyor",
+        "moderately_maintained": "orta düzeyde sürdürülüyor",
+        "low_maintenance": "düşük bakım etkinliği",
+        "well_documented": "iyi belgelenmiş",
+        "partial_documentation": "kısmi belgeleme",
+        "limited_documentation": "sınırlı belgeleme",
+        "community_adoption": "topluluk benimsemesi",
+        "faq_q4_vuln": "{name}'in bilinen güvenlik açıkları var mı?",
+        "faq_q4_kids": "{name} çocuklar için güvenli mi?",
+        "faq_q4_perms": "{name} hangi izinlere ihtiyaç duyar?",
+        "faq_q4_maintained": "{name} aktif olarak bakımı yapılıyor mu?",
+        "faq_a4_vuln": "Nerq, {name}'i NVD, OSV.dev ve kayıt defteri güvenlik açığı veritabanlarına karşı kontrol eder. Mevcut güvenlik puanı: {sec_score}.",
+        "faq_a4_kids": "{name}'in Nerq puanı {score}/100'dür. Ebeveynler tam raporu incelemelidir.",
+        "faq_a4_perms": "{name}'in istediği izinleri dikkatle inceleyin. Güven puanı: {score}/100.",
+        "faq_a4_maintained": "{name} bakım puanı: {maint_score}. Depodaki son etkinliği kontrol edin.",
+        "faq_a5_verified": "{name} Nerq doğrulama eşiğini karşılıyor (70+). Üretim kullanımı için güvenli.",
+        "faq_a5_not_verified": "{name} Nerq doğrulama eşiği olan 70'e ulaşmadı. Ek inceleme önerilir.",
+        "more_being_analyzed": "daha fazla {type} analiz ediliyor — yakında tekrar kontrol edin.",
+        "vpn_jurisdiction": "yetki alanı",
+        "vpn_operates_under": "yetki alanı altında faaliyet gösterir",
+        "xlink_add_av_vpn": "VPN'inizle birlikte antivirüs ile güvenliğinizi tamamlayın",
+        "xlink_add_av": "Antivirüs koruması ekle",
+        "xlink_add_pm_vpn": "VPN'inize bir parola yöneticisi ekleyin",
+        "xlink_complete_security": "Güvenliğinizi tamamlayın",
+        "xlink_complete_privacy": "Gizliliğinizi tamamlayın",
+        "is_a_type": "bir {type}",
+        "rec_privacy": "gizlilik bilincine sahip kullanım için önerilir",
         "title_safe": "{name} Güvenli mi? Bağımsız Güven ve Güvenlik Analizi {year} | Nerq",
         "title_safe_visit": "{name} Ziyaret Etmek Güvenli mi? Güvenlik Puanı {year} &amp; Seyahat Rehberi | Nerq",
         "title_charity": "{name} Güvenilir Bir Hayır Kurumu mu? Güven Analizi {year} | Nerq",
@@ -1014,6 +1724,47 @@ _TRANSLATIONS = {
         "not_analyzed_no_fabricate": "Nerq asla puan uydurmaz. Bu varlığın kapsanması gerektiğine inanıyorsanız, gelecek bir güncellemede görünebilir.",
     },
     "ro": {
+        "vpn_outside_eyes": "în afara alianțelor de supraveghere Five Eyes, Nine Eyes și Fourteen Eyes",
+        "faq_q3_alts": "Care sunt alternative mai sigure la {name}?",
+        "faq_q4_log": "{name} înregistrează datele mele?",
+        "faq_q4_update": "Cât de des este actualizat scorul de securitate al {name}?",
+        "faq_q5_vs": "{name} vs alternative: care este mai sigur?",
+        "faq_q5_regulated": "Pot folosi {name} într-un mediu reglementat?",
+        "vpn_sec_score": "Scor de securitate",
+        "privacy_score_label": "Scor de confidențialitate",
+        "strong": "puternic",
+        "moderate": "moderat",
+        "weak": "slab",
+        "actively_maintained": "întreținut activ",
+        "moderately_maintained": "moderat întreținut",
+        "low_maintenance": "activitate redusă de întreținere",
+        "well_documented": "bine documentat",
+        "partial_documentation": "documentare parțială",
+        "limited_documentation": "documentare limitată",
+        "community_adoption": "adoptare de comunitate",
+        "faq_q4_vuln": "Are {name} vulnerabilități cunoscute?",
+        "faq_q4_kids": "Este {name} sigur pentru copii?",
+        "faq_q4_perms": "Ce permisiuni necesită {name}?",
+        "faq_q4_maintained": "Este {name} întreținut activ?",
+        "faq_a4_vuln": "Nerq verifică {name} contra NVD, OSV.dev și bazelor de date de vulnerabilități. Scor de securitate actual: {sec_score}.",
+        "faq_a4_kids": "{name} are un scor Nerq de {score}/100. Părinții ar trebui să verifice raportul complet.",
+        "faq_a4_perms": "Verificați cu atenție permisiunile solicitate de {name}. Scor de încredere: {score}/100.",
+        "faq_a4_maintained": "Scor de întreținere {name}: {maint_score}. Verificați activitatea recentă a depozitului.",
+        "faq_a5_verified": "{name} îndeplinește pragul de verificare Nerq (70+). Sigur pentru utilizare în producție.",
+        "faq_a5_not_verified": "{name} nu a atins pragul de verificare Nerq de 70. Se recomandă verificare suplimentară.",
+        "more_being_analyzed": "mai multe {type} sunt analizate — reveniți curând.",
+        "vpn_jurisdiction": "jurisdicție",
+        "vpn_operates_under": "operează sub",
+        "xlink_add_av_vpn": "Completați securitatea cu antivirus alături de VPN",
+        "xlink_add_av": "Adăugați protecție antivirus",
+        "xlink_add_pm_vpn": "Adăugați un manager de parole la VPN-ul dvs.",
+        "xlink_complete_security": "Completați securitatea",
+        "xlink_complete_privacy": "Completați confidențialitatea",
+        "is_a_type": "este un {type}",
+        "rec_privacy": "recomandat pentru utilizare conștientă de confidențialitate",
+        "ans_trust": "{name} are un Nerq Trust Score de {score}/100 cu nota {grade}. Acest scor se bazează pe {dims} dimensiuni măsurate independent, inclusiv securitate, întreținere și adopție comunitară.",
+        "ans_findings_strong": "Cel mai puternic semnal al {name} este {signal} la {signal_score}/100.",
+        "ans_no_vulns": "Nu au fost detectate vulnerabilități cunoscute.",
         "title_safe": "Este {name} sigur? Analiză independentă de încredere și securitate {year} | Nerq",
         "title_safe_visit": "Este {name} sigur de vizitat? Scor de securitate {year} &amp; Ghid de călătorie | Nerq",
         "title_charity": "Este {name} o organizație caritabilă de încredere? Analiză de încredere {year} | Nerq",
@@ -1116,6 +1867,47 @@ _TRANSLATIONS = {
         "not_analyzed_no_fabricate": "Nerq nu fabrică niciodată evaluări. Dacă credeți că această entitate ar trebui acoperită, poate apărea într-o actualizare viitoare.",
     },
     "hi": {
+        "vpn_outside_eyes": "Five Eyes, Nine Eyes और Fourteen Eyes निगरानी गठबंधनों से बाहर",
+        "faq_q3_alts": "{name} के अधिक सुरक्षित विकल्प क्या हैं?",
+        "faq_q4_log": "क्या {name} मेरा डेटा लॉग करता है?",
+        "faq_q4_update": "{name} का सुरक्षा स्कोर कितनी बार अपडेट होता है?",
+        "faq_q5_vs": "{name} बनाम विकल्प: कौन अधिक सुरक्षित है?",
+        "faq_q5_regulated": "क्या मैं विनियमित वातावरण में {name} उपयोग कर सकता हूँ?",
+        "vpn_sec_score": "सुरक्षा स्कोर",
+        "privacy_score_label": "गोपनीयता स्कोर",
+        "strong": "मजबूत",
+        "moderate": "मध्यम",
+        "weak": "कमजोर",
+        "actively_maintained": "सक्रिय रूप से अनुरक्षित",
+        "moderately_maintained": "मध्यम रूप से अनुरक्षित",
+        "low_maintenance": "कम रखरखाव गतिविधि",
+        "well_documented": "अच्छी तरह से प्रलेखित",
+        "partial_documentation": "आंशिक प्रलेखन",
+        "limited_documentation": "सीमित प्रलेखन",
+        "community_adoption": "सामुदायिक अपनाव",
+        "faq_q4_vuln": "क्या {name} में ज्ञात कमज़ोरियाँ हैं?",
+        "faq_q4_kids": "क्या {name} बच्चों के लिए सुरक्षित है?",
+        "faq_q4_perms": "{name} को किन अनुमतियों की आवश्यकता है?",
+        "faq_q4_maintained": "क्या {name} सक्रिय रूप से अनुरक्षित है?",
+        "faq_a4_vuln": "Nerq {name} को NVD, OSV.dev और रजिस्ट्री-विशिष्ट भेद्यता डेटाबेस के विरुद्ध जाँचता है। वर्तमान सुरक्षा स्कोर: {sec_score}।",
+        "faq_a4_kids": "{name} का Nerq स्कोर {score}/100 है। माता-पिता को पूरी रिपोर्ट की समीक्षा करनी चाहिए।",
+        "faq_a4_perms": "{name} द्वारा अनुरोधित अनुमतियों की सावधानीपूर्वक समीक्षा करें। विश्वास स्कोर: {score}/100।",
+        "faq_a4_maintained": "{name} रखरखाव स्कोर: {maint_score}। हाल की रिपॉजिटरी गतिविधि जाँचें।",
+        "faq_a5_verified": "{name} Nerq सत्यापन सीमा (70+) पूरी करता है। उत्पादन उपयोग के लिए सुरक्षित।",
+        "faq_a5_not_verified": "{name} Nerq सत्यापन सीमा 70 तक नहीं पहुँचा। अतिरिक्त समीक्षा अनुशंसित है।",
+        "more_being_analyzed": "और {type} का विश्लेषण किया जा रहा है — जल्दी वापस आएं।",
+        "vpn_jurisdiction": "अधिकार क्षेत्र",
+        "vpn_operates_under": "के अधिकार क्षेत्र में काम करता है",
+        "xlink_add_av_vpn": "VPN के साथ एंटीवायरस से अपनी सुरक्षा पूरी करें",
+        "xlink_add_av": "एंटीवायरस सुरक्षा जोड़ें",
+        "xlink_add_pm_vpn": "अपने VPN में पासवर्ड मैनेजर जोड़ें",
+        "xlink_complete_security": "अपनी सुरक्षा पूरी करें",
+        "xlink_complete_privacy": "अपनी गोपनीयता पूरी करें",
+        "is_a_type": "एक {type} है",
+        "rec_privacy": "गोपनीयता-सचेत उपयोग के लिए अनुशंसित",
+        "ans_trust": "{name} का Nerq Trust Score {score}/100 है, ग्रेड {grade}। यह स्कोर सुरक्षा, रखरखाव और सामुदायिक अपनाने सहित {dims} स्वतंत्र रूप से मापे गए आयामों पर आधारित है।",
+        "ans_findings_strong": "{name} का सबसे मजबूत संकेत {signal} है {signal_score}/100 पर।",
+        "ans_no_vulns": "कोई ज्ञात भेद्यता नहीं पाई गई।",
         "title_safe": "क्या {name} सुरक्षित है? स्वतंत्र विश्वास एवं सुरक्षा विश्लेषण {year} | Nerq",
         "title_safe_visit": "क्या {name} पर जाना सुरक्षित है? सुरक्षा स्कोर {year} &amp; यात्रा गाइड | Nerq",
         "title_charity": "क्या {name} एक विश्वसनीय चैरिटी है? विश्वास विश्लेषण {year} | Nerq",
@@ -1218,6 +2010,47 @@ _TRANSLATIONS = {
         "not_analyzed_no_fabricate": "Nerq कभी भी रेटिंग नहीं बनाता। यदि आपको लगता है कि इस इकाई को शामिल किया जाना चाहिए, तो यह भविष्य के अपडेट में दिखाई दे सकती है।",
     },
     "ru": {
+        "vpn_outside_eyes": "за пределами альянсов наблюдения Five Eyes, Nine Eyes и Fourteen Eyes",
+        "faq_q3_alts": "Какие более безопасные альтернативы {name}?",
+        "faq_q4_log": "Записывает ли {name} мои данные?",
+        "faq_q4_update": "Как часто обновляется оценка безопасности {name}?",
+        "faq_q5_vs": "{name} vs альтернативы: что безопаснее?",
+        "faq_q5_regulated": "Могу ли я использовать {name} в регулируемой среде?",
+        "vpn_sec_score": "Оценка безопасности",
+        "privacy_score_label": "Оценка конфиденциальности",
+        "strong": "сильный",
+        "moderate": "умеренный",
+        "weak": "слабый",
+        "actively_maintained": "активно поддерживается",
+        "moderately_maintained": "умеренно поддерживается",
+        "low_maintenance": "низкая активность поддержки",
+        "well_documented": "хорошо документировано",
+        "partial_documentation": "частичная документация",
+        "limited_documentation": "ограниченная документация",
+        "community_adoption": "принятие сообществом",
+        "faq_q4_vuln": "Есть ли у {name} известные уязвимости?",
+        "faq_q4_kids": "Безопасен ли {name} для детей?",
+        "faq_q4_perms": "Какие разрешения нужны {name}?",
+        "faq_q4_maintained": "Активно ли поддерживается {name}?",
+        "faq_a4_vuln": "Nerq проверяет {name} по NVD, OSV.dev и базам данных уязвимостей. Текущая оценка безопасности: {sec_score}.",
+        "faq_a4_kids": "{name} имеет оценку Nerq {score}/100. Родителям следует изучить полный отчёт.",
+        "faq_a4_perms": "Внимательно проверьте запрашиваемые разрешения {name}. Оценка доверия: {score}/100.",
+        "faq_a4_maintained": "Оценка поддержки {name}: {maint_score}. Проверьте недавнюю активность репозитория.",
+        "faq_a5_verified": "{name} соответствует порогу верификации Nerq (70+). Безопасно для продакшена.",
+        "faq_a5_not_verified": "{name} не достиг порога верификации Nerq 70. Рекомендуется дополнительная проверка.",
+        "more_being_analyzed": "анализируется ещё больше {type} — проверьте позже.",
+        "vpn_jurisdiction": "юрисдикция",
+        "vpn_operates_under": "действует под юрисдикцией",
+        "xlink_add_av_vpn": "Дополните безопасность антивирусом вместе с VPN",
+        "xlink_add_av": "Добавить антивирусную защиту",
+        "xlink_add_pm_vpn": "Добавьте менеджер паролей к VPN",
+        "xlink_complete_security": "Завершите настройку безопасности",
+        "xlink_complete_privacy": "Завершите настройку конфиденциальности",
+        "is_a_type": "— это {type}",
+        "rec_privacy": "рекомендуется для использования с учётом конфиденциальности",
+        "ans_trust": "{name} имеет Nerq Trust Score {score}/100 с оценкой {grade}. Этот балл основан на {dims} независимо измеренных параметрах, включая безопасность, обслуживание и принятие сообществом.",
+        "ans_findings_strong": "Самый сильный сигнал {name} — {signal} на уровне {signal_score}/100.",
+        "ans_no_vulns": "Известных уязвимостей не обнаружено.",
         "title_safe": "Безопасен ли {name}? Независимый анализ доверия и безопасности {year} | Nerq",
         "title_safe_visit": "Безопасно ли посещать {name}? Рейтинг безопасности {year} &amp; Путеводитель | Nerq",
         "title_charity": "Является ли {name} надёжной благотворительной организацией? Анализ доверия {year} | Nerq",
@@ -1320,6 +2153,47 @@ _TRANSLATIONS = {
         "not_analyzed_no_fabricate": "Nerq никогда не фальсифицирует рейтинги. Если вы считаете, что эта сущность должна быть охвачена, она может появиться в будущем обновлении.",
     },
     "pl": {
+        "vpn_outside_eyes": "poza sojuszami inwigilacji Five Eyes, Nine Eyes i Fourteen Eyes",
+        "faq_q3_alts": "Jakie są bezpieczniejsze alternatywy dla {name}?",
+        "faq_q4_log": "Czy {name} rejestruje moje dane?",
+        "faq_q4_update": "Jak często aktualizowana jest ocena bezpieczeństwa {name}?",
+        "faq_q5_vs": "{name} vs alternatywy: co jest bezpieczniejsze?",
+        "faq_q5_regulated": "Czy mogę używać {name} w środowisku regulowanym?",
+        "vpn_sec_score": "Ocena bezpieczeństwa",
+        "privacy_score_label": "Ocena prywatności",
+        "strong": "silny",
+        "moderate": "umiarkowany",
+        "weak": "słaby",
+        "actively_maintained": "aktywnie utrzymywany",
+        "moderately_maintained": "umiarkowanie utrzymywany",
+        "low_maintenance": "niska aktywność konserwacji",
+        "well_documented": "dobrze udokumentowany",
+        "partial_documentation": "częściowa dokumentacja",
+        "limited_documentation": "ograniczona dokumentacja",
+        "community_adoption": "przyjęcie przez społeczność",
+        "faq_q4_vuln": "Czy {name} ma znane luki?",
+        "faq_q4_kids": "Czy {name} jest bezpieczny dla dzieci?",
+        "faq_q4_perms": "Jakich uprawnień potrzebuje {name}?",
+        "faq_q4_maintained": "Czy {name} jest aktywnie utrzymywany?",
+        "faq_a4_vuln": "Nerq sprawdza {name} w NVD, OSV.dev i bazach danych luk. Aktualny wynik bezpieczeństwa: {sec_score}.",
+        "faq_a4_kids": "{name} ma wynik Nerq {score}/100. Rodzice powinni przejrzeć pełny raport.",
+        "faq_a4_perms": "Dokładnie sprawdź uprawnienia wymagane przez {name}. Wynik zaufania: {score}/100.",
+        "faq_a4_maintained": "Wynik konserwacji {name}: {maint_score}. Sprawdź ostatnią aktywność repozytorium.",
+        "faq_a5_verified": "{name} spełnia próg weryfikacji Nerq (70+). Bezpieczny do użytku produkcyjnego.",
+        "faq_a5_not_verified": "{name} nie osiągnął progu weryfikacji Nerq 70. Zalecana dodatkowa weryfikacja.",
+        "more_being_analyzed": "więcej {type} jest analizowanych — sprawdź wkrótce.",
+        "vpn_jurisdiction": "jurysdykcja",
+        "vpn_operates_under": "działa pod jurysdykcją",
+        "xlink_add_av_vpn": "Uzupełnij bezpieczeństwo antywirusem obok VPN",
+        "xlink_add_av": "Dodaj ochronę antywirusową",
+        "xlink_add_pm_vpn": "Dodaj menedżera haseł do VPN",
+        "xlink_complete_security": "Uzupełnij bezpieczeństwo",
+        "xlink_complete_privacy": "Uzupełnij prywatność",
+        "is_a_type": "to {type}",
+        "rec_privacy": "zalecane do użytku dbającego o prywatność",
+        "ans_trust": "{name} ma Nerq Trust Score {score}/100 z oceną {grade}. Ten wynik opiera się na {dims} niezależnie mierzonych wymiarach, w tym bezpieczeństwie, konserwacji i adopcji społeczności.",
+        "ans_findings_strong": "Najsilniejszy sygnał {name} to {signal} na poziomie {signal_score}/100.",
+        "ans_no_vulns": "Nie wykryto znanych luk w zabezpieczeniach.",
         "title_safe": "Czy {name} jest bezpieczny? Niezależna analiza zaufania i bezpieczeństwa {year} | Nerq",
         "title_safe_visit": "Czy {name} jest bezpieczne do odwiedzenia? Wynik bezpieczeństwa {year} &amp; Przewodnik | Nerq",
         "title_charity": "Czy {name} jest wiarygodną organizacją charytatywną? Analiza zaufania {year} | Nerq",
@@ -1422,6 +2296,94 @@ _TRANSLATIONS = {
         "not_analyzed_no_fabricate": "Nerq nigdy nie fałszuje ocen. Jeśli uważasz, że ten podmiot powinien być uwzględniony, może pojawić się w przyszłej aktualizacji.",
     },
     "ko": {
+        "dim_popularity": "인기도",
+        "faq_q3_alts": "{name}의 더 안전한 대안은?",
+        "faq_q4_log": "{name}이 내 데이터를 기록하나요?",
+        "faq_q4_update": "{name}의 보안 점수는 얼마나 자주 업데이트되나요?",
+        "faq_q5_vs": "{name} vs 대안: 어느 것이 더 안전한가요?",
+        "faq_q5_regulated": "규제 환경에서 {name}을 사용할 수 있나요?",
+        "vpn_sec_score": "보안 점수",
+        "privacy_score_label": "개인정보 점수",
+        "strong": "강함",
+        "moderate": "보통",
+        "weak": "약함",
+        "actively_maintained": "활발히 유지관리 중",
+        "moderately_maintained": "보통 유지관리",
+        "low_maintenance": "낮은 유지관리 활동",
+        "well_documented": "잘 문서화됨",
+        "partial_documentation": "부분 문서화",
+        "limited_documentation": "제한적 문서화",
+        "community_adoption": "커뮤니티 채택",
+        "faq_q4_vuln": "{name}에 알려진 취약점이 있나요?",
+        "faq_q4_kids": "{name}은 아이들에게 안전한가요?",
+        "faq_q4_perms": "{name}에 필요한 권한은?",
+        "faq_q4_maintained": "{name}은 활발히 유지관리되고 있나요?",
+        "faq_a4_vuln": "Nerq는 {name}을 NVD, OSV.dev 및 레지스트리별 취약점 데이터베이스에서 확인합니다. 현재 보안 점수: {sec_score}.",
+        "faq_a4_kids": "{name}의 Nerq 점수는 {score}/100입니다. 부모님은 전체 보고서를 확인하세요.",
+        "faq_a4_perms": "{name}의 요청된 권한을 신중히 검토하세요. 신뢰 점수: {score}/100.",
+        "faq_a4_maintained": "{name} 유지관리 점수: {maint_score}. 저장소의 최근 활동을 확인하세요.",
+        "faq_a5_verified": "{name}은 Nerq 인증 임계값(70+)을 충족합니다. 프로덕션 사용에 안전합니다.",
+        "faq_a5_not_verified": "{name}은 Nerq 인증 임계값 70에 도달하지 못했습니다. 추가 검토가 권장됩니다.",
+        "more_being_analyzed": "더 많은 {type}이(가) 분석 중입니다 — 곧 다시 확인하세요.",
+        "dim_maintenance": "유지보수",
+        "dim_security": "보안",
+        "sidebar_most_private": "가장 프라이빗한 앱",
+        "sidebar_safest_vpns": "가장 안전한 VPN",
+        "eyes_outside": "모든 Eyes 감시 동맹 밖 — 프라이버시 이점",
+        "serving_users": "사용자 수:",
+        "privacy_assessment": "개인정보 보호 평가",
+        "sidebar_recently": "최근 분석",
+        "sidebar_browse": "카테고리 탐색",
+        "sidebar_popular_in": "인기",
+        "vpn_logging_audited": "로깅 정책: 독립적으로 감사된 노로그 정책. 독립 감사 보고서에 따르면 {name}는 연결 로그, 브라우징 활동 또는 DNS 쿼리를 저장하지 않습니다.",
+        "vpn_server_infra": "서버 인프라",
+        "vpn_significant": "이는 비동맹 관할권의 VPN 제공업체가 의무적 데이터 보존법이나 정보 공유 협정의 적용을 받지 않기 때문에 중요합니다.",
+        "vpn_outside_eyes": "파이브아이즈, 나인아이즈, 포틴아이즈 감시 동맹 밖",
+        "vpn_jurisdiction": "관할권",
+        "vpn_operates_under": "관할 하에 운영",
+        "xlink_safest_crypto": "가장 안전한 암호화폐 거래소",
+        "xlink_access_secure": "안전하게 도구에 접근",
+        "xlink_secure_saas": "SaaS 로그인 보호",
+        "xlink_protect_server": "서버 보호",
+        "xlink_secure_passwords_desc": "계정 보호를 위해 비밀번호 관리자 사용",
+        "xlink_secure_passwords": "비밀번호 보호",
+        "xlink_add_vpn_av": "암호화된 브라우징을 위해 VPN 추가",
+        "xlink_add_malware_desc": "키로거 및 자격 증명 도용 방지",
+        "xlink_add_malware": "악성코드 보호 추가",
+        "xlink_add_av_vpn": "VPN과 함께 백신으로 보안 완성",
+        "xlink_add_av": "백신 보호 추가",
+        "xlink_add_vpn_pm": "비밀번호 관리자에 VPN 추가",
+        "xlink_add_pm_vpn": "완전한 보호를 위해 VPN에 비밀번호 관리자 추가",
+        "xlink_complete_security": "보안 완성",
+        "xlink_complete_privacy": "프라이버시 설정 완성",
+        "type_steam": "Steam 게임",
+        "type_android": "Android 앱",
+        "type_website_builder": "웹사이트 빌더",
+        "type_crypto": "암호화폐 거래소",
+        "type_password_manager": "비밀번호 관리자",
+        "type_antivirus": "백신 소프트웨어",
+        "type_hosting": "웹 호스팅",
+        "type_saas": "SaaS 플랫폼",
+        "type_npm": "npm 패키지",
+        "type_vpn": "VPN 서비스",
+        "based_on_dims": "{dims}개의 독립적으로 측정된 데이터 차원 기반",
+        "with_trust_score": "Nerq 신뢰 점수 {score}/100 ({grade})",
+        "is_a_type": "은(는) {type}입니다",
+        "rec_wordpress": "WordPress 사용에 권장",
+        "rec_use": "사용에 권장",
+        "rec_play": "플레이에 권장",
+        "rec_general": "일반적인 사용에 권장",
+        "rec_production": "프로덕션 사용에 권장",
+        "rec_privacy": "개인정보 보호를 중시하는 사용에 권장",
+        "ans_trust": "{name}의 Nerq 신뢰 점수는 {score}/100이며 {grade} 등급입니다. 이 점수는 보안, 유지보수, 커뮤니티 채택을 포함한 {dims}개의 독립적으로 측정된 차원을 기반으로 합니다.",
+        "ans_findings_strong": "{name}의 가장 강한 신호는 {signal}이며 {signal_score}/100입니다.",
+        "ans_no_vulns": "알려진 취약점이 감지되지 않았습니다.",
+        "ans_has_vulns": "{count}개의 알려진 취약점이 확인되었습니다.",
+        "ans_verified": "Nerq 인증 임계값 70+를 충족합니다.",
+        "ans_not_verified": "아직 Nerq 인증 임계값 70+에 도달하지 못했습니다.",
+        "data_sourced": "{sources}에서 수집된 데이터. 마지막 업데이트: {date}.",
+        "score_based_dims": "{dims} 기반 점수.",
+        "yes_safe_short": "네, 안전하게 사용할 수 있습니다.",
         "title_safe": "{name}은(는) 안전한가요? 독립적인 신뢰 및 보안 분석 {year} | Nerq",
         "title_safe_visit": "{name}은(는) 방문하기 안전한가요? 보안 점수 {year} &amp; 여행 가이드 | Nerq",
         "title_charity": "{name}은(는) 신뢰할 수 있는 자선단체인가요? 신뢰 분석 {year} | Nerq",
@@ -1524,6 +2486,47 @@ _TRANSLATIONS = {
         "not_analyzed_no_fabricate": "Nerq는 절대로 점수를 조작하지 않습니다. 이 엔터티가 포함되어야 한다고 생각하시면 향후 업데이트에서 나타날 수 있습니다.",
     },
     "it": {
+        "vpn_outside_eyes": "al di fuori delle alleanze di sorveglianza Five Eyes, Nine Eyes e Fourteen Eyes",
+        "faq_q3_alts": "Quali sono alternative più sicure a {name}?",
+        "faq_q4_log": "{name} registra i miei dati?",
+        "faq_q4_update": "Con che frequenza viene aggiornato il punteggio di {name}?",
+        "faq_q5_vs": "{name} vs alternative: quale è più sicuro?",
+        "faq_q5_regulated": "Posso usare {name} in un ambiente regolamentato?",
+        "vpn_sec_score": "Punteggio di sicurezza",
+        "privacy_score_label": "Punteggio di privacy",
+        "strong": "forte",
+        "moderate": "moderato",
+        "weak": "debole",
+        "actively_maintained": "mantenuto attivamente",
+        "moderately_maintained": "moderatamente mantenuto",
+        "low_maintenance": "bassa attività di manutenzione",
+        "well_documented": "ben documentato",
+        "partial_documentation": "documentazione parziale",
+        "limited_documentation": "documentazione limitata",
+        "community_adoption": "adozione comunitaria",
+        "faq_q4_vuln": "{name} ha vulnerabilità note?",
+        "faq_q4_kids": "{name} è sicuro per i bambini?",
+        "faq_q4_perms": "Quali permessi richiede {name}?",
+        "faq_q4_maintained": "{name} viene mantenuto attivamente?",
+        "faq_a4_vuln": "Nerq verifica {name} contro NVD, OSV.dev e database di vulnerabilità. Punteggio di sicurezza attuale: {sec_score}.",
+        "faq_a4_kids": "{name} ha un punteggio Nerq di {score}/100. I genitori dovrebbero consultare il rapporto completo.",
+        "faq_a4_perms": "Verificare attentamente i permessi richiesti da {name}. Punteggio di fiducia: {score}/100.",
+        "faq_a4_maintained": "Punteggio di manutenzione di {name}: {maint_score}. Controllare l'attività recente del repository.",
+        "faq_a5_verified": "{name} soddisfa la soglia di verifica Nerq (70+). Sicuro per l'uso in produzione.",
+        "faq_a5_not_verified": "{name} non ha raggiunto la soglia di verifica Nerq di 70. Si consiglia ulteriore verifica.",
+        "more_being_analyzed": "altri {type} sono in fase di analisi — ricontrolla presto.",
+        "vpn_jurisdiction": "giurisdizione",
+        "vpn_operates_under": "opera sotto",
+        "xlink_add_av_vpn": "Completa la sicurezza con antivirus e VPN",
+        "xlink_add_av": "Aggiungi protezione antivirus",
+        "xlink_add_pm_vpn": "Aggiungi un gestore di password alla VPN",
+        "xlink_complete_security": "Completa la tua sicurezza",
+        "xlink_complete_privacy": "Completa la tua privacy",
+        "is_a_type": "è un {type}",
+        "rec_privacy": "raccomandato per un uso attento alla privacy",
+        "ans_trust": "{name} ha un Nerq Trust Score di {score}/100 con voto {grade}. Questo punteggio si basa su {dims} dimensioni misurate indipendentemente, tra cui sicurezza, manutenzione e adozione della community.",
+        "ans_findings_strong": "Il segnale più forte di {name} è {signal} a {signal_score}/100.",
+        "ans_no_vulns": "Non sono state rilevate vulnerabilità note.",
         "title_safe": "{name} è sicuro? Analisi indipendente di fiducia e sicurezza {year} | Nerq",
         "title_safe_visit": "È sicuro visitare {name}? Punteggio di sicurezza {year} &amp; Guida di viaggio | Nerq",
         "title_charity": "{name} è un ente di beneficenza affidabile? Analisi di fiducia {year} | Nerq",
@@ -1626,6 +2629,109 @@ _TRANSLATIONS = {
         "not_analyzed_no_fabricate": "Nerq non fabbrica mai valutazioni. Se ritieni che questa entità debba essere coperta, potrebbe apparire in un aggiornamento futuro.",
     },
     "vi": {
+        "dim_popularity": "Độ phổ biến",
+        "faq_q3_alts": "Các lựa chọn an toàn hơn {name} là gì?",
+        "faq_q4_log": "{name} có ghi lại dữ liệu của tôi không?",
+        "faq_q4_update": "Điểm an toàn của {name} được cập nhật bao lâu một lần?",
+        "faq_q5_vs": "{name} so với các lựa chọn khác: cái nào an toàn hơn?",
+        "faq_q5_regulated": "Tôi có thể sử dụng {name} trong môi trường được quản lý không?",
+        "strong": "mạnh",
+        "moderate": "trung bình",
+        "weak": "yếu",
+        "actively_maintained": "được duy trì tích cực",
+        "moderately_maintained": "được duy trì vừa phải",
+        "low_maintenance": "hoạt động bảo trì thấp",
+        "well_documented": "được tài liệu hóa tốt",
+        "partial_documentation": "tài liệu một phần",
+        "limited_documentation": "tài liệu hạn chế",
+        "community_adoption": "sự chấp nhận cộng đồng",
+        "faq_q4_vuln": "{name} có lỗ hổng bảo mật đã biết không?",
+        "faq_q4_kids": "{name} có an toàn cho trẻ em không?",
+        "faq_q4_perms": "{name} cần những quyền gì?",
+        "faq_q4_maintained": "{name} có được bảo trì tích cực không?",
+        "faq_a4_vuln": "Nerq kiểm tra {name} với NVD, OSV.dev và cơ sở dữ liệu lỗ hổng. Điểm bảo mật hiện tại: {sec_score}.",
+        "faq_a4_kids": "{name} có điểm Nerq {score}/100. Phụ huynh nên xem báo cáo đầy đủ.",
+        "faq_a4_perms": "Xem xét cẩn thận các quyền được yêu cầu bởi {name}. Điểm tin cậy: {score}/100.",
+        "faq_a4_maintained": "Điểm bảo trì {name}: {maint_score}. Kiểm tra hoạt động gần đây của kho lưu trữ.",
+        "faq_a5_verified": "{name} đạt ngưỡng xác minh Nerq (70+). An toàn cho sử dụng.",
+        "faq_a5_not_verified": "{name} chưa đạt ngưỡng xác minh Nerq 70. Khuyến nghị kiểm tra thêm.",
+        "more_being_analyzed": "thêm {type} đang được phân tích — hãy quay lại sớm.",
+        "dim_maintenance": "Bảo trì",
+        "dim_security": "Bảo mật",
+        "vpn_no_breaches": "Không có vi phạm dữ liệu đã biết liên quan đến dịch vụ này.",
+        "vpn_audit_none": "{name} chưa công bố kết quả từ kiểm toán bảo mật độc lập. VPN đã được kiểm toán cung cấp đảm bảo cao hơn.",
+        "vpn_audit_verified": "Kiểm toán bảo mật độc lập đã xác minh.",
+        "vpn_audit_positive": "Theo báo cáo kiểm toán độc lập, {name} đã trải qua các cuộc kiểm toán bảo mật bên thứ ba. Đây là tín hiệu tích cực mạnh.",
+        "vpn_proto": "Giao thức mã hóa chính: {proto}, được coi là tiêu chuẩn ngành cho kết nối VPN.",
+        "vpn_sec_score": "Điểm bảo mật",
+        "privacy_score_label": "Điểm quyền riêng tư",
+        "sidebar_most_private": "Ứng dụng riêng tư nhất",
+        "sidebar_safest_vpns": "VPN an toàn nhất",
+        "audit_no": "{name} chưa công bố kiểm toán quyền riêng tư độc lập",
+        "audit_yes": "{name} đã được kiểm toán độc lập để xác minh các tuyên bố về quyền riêng tư",
+        "eyes_none": "không phải thành viên của các liên minh Five/Nine/Fourteen Eyes",
+        "eyes_fourteen": "trong liên minh giám sát Fourteen Eyes",
+        "eyes_nine": "trong liên minh giám sát Nine Eyes",
+        "eyes_five": "trong liên minh giám sát Five Eyes",
+        "eyes_outside": "nằm ngoài tất cả các liên minh giám sát Eyes — lợi thế về quyền riêng tư",
+        "undisclosed_jurisdiction": "quyền tài phán không được tiết lộ",
+        "serving_users": "Phục vụ",
+        "privacy_assessment": "Đánh giá quyền riêng tư",
+        "sidebar_recently": "Phân tích gần đây",
+        "sidebar_browse": "Duyệt danh mục",
+        "sidebar_popular_in": "Phổ biến trong",
+        "ans_trust": "{name} có Điểm tin cậy Nerq là {score}/100 với xếp hạng {grade}. Điểm này dựa trên {dims} chiều dữ liệu được đo lường độc lập bao gồm bảo mật, bảo trì và sự chấp nhận của cộng đồng.",
+        "ans_findings_strong": "Tín hiệu mạnh nhất của {name} là {signal} ở mức {signal_score}/100.",
+        "ans_no_vulns": "Không phát hiện lỗ hổng đã biết.",
+        "ans_has_vulns": "Đã phát hiện {count} lỗ hổng đã biết.",
+        "ans_verified": "Đạt ngưỡng xác minh Nerq 70+.",
+        "ans_not_verified": "Chưa đạt ngưỡng xác minh Nerq 70+.",
+        "data_sourced": "Dữ liệu từ {sources}. Cập nhật lần cuối: {date}.",
+        "score_based_dims": "Điểm dựa tr��n {dims}.",
+        "yes_safe_short": "Có, nó an toàn để sử dụng.",
+        "vpn_logging_audited": "Chính sách ghi nhật ký: chính sách không ghi nhật ký đã được kiểm toán độc lập. Theo báo cáo kiểm toán độc lập, {name} không lưu trữ nhật ký kết nối, hoạt động duyệt web hoặc truy vấn DNS.",
+        "vpn_server_infra": "Hạ tầng máy chủ",
+        "vpn_significant": "Điều này quan trọng vì các nhà cung cấp VPN tại các quốc gia ngoài liên minh không bắt buộc tuân thủ luật lưu giữ dữ liệu hay thỏa thuận chia sẻ tình báo.",
+        "vpn_outside_eyes": "nằm ngoài các liên minh giám sát Five Eyes, Nine Eyes và Fourteen Eyes",
+        "vpn_jurisdiction": "quyền tài phán",
+        "vpn_operates_under": "hoạt động dưới",
+        "xlink_safest_crypto": "Sàn giao dịch crypto an toàn nhất",
+        "xlink_access_secure": "Truy cập công cụ an toàn",
+        "xlink_secure_saas": "Bảo vệ đăng nhập SaaS",
+        "xlink_protect_server": "Bảo vệ máy chủ của bạn",
+        "xlink_secure_passwords_desc": "Sử dụng trình quản lý mật khẩu để bảo vệ tài khoản",
+        "xlink_secure_passwords": "Bảo vệ mật khẩu của bạn",
+        "xlink_add_vpn_av": "Thêm VPN để duyệt web được mã hóa",
+        "xlink_add_malware_desc": "Bảo vệ chống keylogger và đánh cắp thông tin đăng nhập",
+        "xlink_add_malware": "Thêm bảo vệ chống phần mềm độc hại",
+        "xlink_add_av_vpn": "Hoàn thiện bảo mật với phần mềm diệt virus cùng VPN",
+        "xlink_add_av": "Thêm bảo vệ diệt virus",
+        "xlink_add_vpn_pm": "Thêm VPN vào trình quản lý mật khẩu",
+        "xlink_add_pm_vpn": "Thêm trình quản lý mật khẩu vào VPN",
+        "xlink_complete_security": "Hoàn thiện bảo mật",
+        "xlink_complete_privacy": "Hoàn thiện bảo mật riêng tư",
+        "type_wordpress": "plugin WordPress",
+        "type_crates": "gói Rust",
+        "type_pypi": "gói Python",
+        "type_steam": "trò chơi Steam",
+        "type_android": "ứng dụng Android",
+        "type_website_builder": "trình tạo website",
+        "type_crypto": "sàn giao dịch tiền điện tử",
+        "type_password_manager": "trình quản lý mật khẩu",
+        "type_antivirus": "phần mềm diệt virus",
+        "type_hosting": "nhà cung cấp hosting",
+        "type_saas": "nền tảng SaaS",
+        "type_npm": "gói npm",
+        "type_vpn": "dịch vụ VPN",
+        "based_on_dims": "dựa trên {dims} chiều dữ liệu độc lập",
+        "with_trust_score": "với Điểm tin cậy Nerq {score}/100 ({grade})",
+        "is_a_type": "là một {type}",
+        "rec_wordpress": "được khuyến nghị sử dụng trong WordPress",
+        "rec_use": "được khuyến nghị sử dụng",
+        "rec_play": "được khuyến nghị để chơi",
+        "rec_general": "được khuyến nghị sử dụng chung",
+        "rec_production": "được khuyến nghị sử dụng trong sản xuất",
+        "rec_privacy": "được khuyến nghị cho người dùng quan tâm đến quyền riêng tư",
         "title_safe": "{name} có an toàn không? Phân tích tin cậy và bảo mật độc lập {year} | Nerq",
         "title_safe_visit": "{name} có an toàn để ghé thăm không? Điểm bảo mật {year} &amp; Hướng dẫn du lịch | Nerq",
         "title_charity": "{name} có phải tổ chức từ thiện đáng tin cậy không? Phân tích tin cậy {year} | Nerq",
@@ -1728,6 +2834,47 @@ _TRANSLATIONS = {
         "not_analyzed_no_fabricate": "Nerq không bao giờ bịa đặt điểm số. Nếu bạn cho rằng thực thể này cần được đánh giá, nó có thể xuất hiện trong bản cập nhật tương lai.",
     },
     "nl": {
+        "vpn_sec_score": "Beveiligingsscore",
+        "privacy_score_label": "Privacyscore",
+        "vpn_outside_eyes": "buiten de Five Eyes, Nine Eyes en Fourteen Eyes surveillanceallianties",
+        "faq_q3_alts": "Wat zijn veiligere alternatieven voor {name}?",
+        "faq_q4_log": "Logt {name} mijn gegevens?",
+        "faq_q4_update": "Hoe vaak wordt de beveiligingsscore van {name} bijgewerkt?",
+        "faq_q5_vs": "{name} vs alternatieven: welke is veiliger?",
+        "faq_q5_regulated": "Kan ik {name} gebruiken in een gereguleerde omgeving?",
+        "faq_q4_vuln": "Heeft {name} bekende kwetsbaarheden?",
+        "faq_q4_kids": "Is {name} veilig voor kinderen?",
+        "faq_q4_perms": "Welke machtigingen heeft {name} nodig?",
+        "faq_q4_maintained": "Wordt {name} actief onderhouden?",
+        "faq_a4_vuln": "Nerq controleert {name} tegen NVD, OSV.dev en registerspecifieke kwetsbaarheidsdatabases. Huidige beveiligingsscore: {sec_score}.",
+        "faq_a4_kids": "{name} heeft een Nerq-score van {score}/100. Ouders moeten het volledige rapport bekijken.",
+        "faq_a4_perms": "Controleer de gevraagde machtigingen van {name} zorgvuldig. Vertrouwensscore: {score}/100.",
+        "faq_a4_maintained": "{name} onderhoudsscore: {maint_score}. Controleer het repository op recente activiteit.",
+        "faq_a5_verified": "{name} voldoet aan de Nerq-verificatiedrempel (70+). Veilig voor productiegebruik.",
+        "faq_a5_not_verified": "{name} heeft de Nerq-verificatiedrempel van 70 niet bereikt. Extra controle aanbevolen.",
+        "more_being_analyzed": "meer {type} worden geanalyseerd — kom binnenkort terug.",
+        "strong": "sterk",
+        "moderate": "matig",
+        "weak": "zwak",
+        "actively_maintained": "actief onderhouden",
+        "moderately_maintained": "matig onderhouden",
+        "low_maintenance": "lage onderhoudsactiviteit",
+        "well_documented": "goed gedocumenteerd",
+        "partial_documentation": "gedeeltelijke documentatie",
+        "limited_documentation": "beperkte documentatie",
+        "community_adoption": "gemeenschapsacceptatie",
+        "vpn_jurisdiction": "jurisdictie",
+        "vpn_operates_under": "opereert onder",
+        "xlink_add_av_vpn": "Voltooi uw beveiliging met antivirus naast uw VPN",
+        "xlink_add_av": "Antivirusbescherming toevoegen",
+        "xlink_add_pm_vpn": "Voeg een wachtwoordmanager toe aan uw VPN",
+        "xlink_complete_security": "Voltooi uw beveiliging",
+        "xlink_complete_privacy": "Voltooi uw privacy",
+        "is_a_type": "is een {type}",
+        "rec_privacy": "aanbevolen voor privacybewust gebruik",
+        "ans_trust": "{name} heeft een Nerq Trust Score van {score}/100 met het cijfer {grade}. Deze score is gebaseerd op {dims} onafhankelijk gemeten dimensies, waaronder beveiliging, onderhoud en community-adoptie.",
+        "ans_findings_strong": "Het sterkste signaal van {name} is {signal} met {signal_score}/100.",
+        "ans_no_vulns": "Er zijn geen bekende kwetsbaarheden gedetecteerd.",
         "title_safe": "Is {name} veilig? Onafhankelijke vertrouwens- en beveiligingsanalyse {year} | Nerq",
         "title_safe_visit": "Is {name} veilig om te bezoeken? Beveiligingsscore {year} &amp; Reisgids | Nerq",
         "title_charity": "Is {name} een betrouwbare liefdadigheidsinstelling? Vertrouwensanalyse {year} | Nerq",
@@ -1830,6 +2977,119 @@ _TRANSLATIONS = {
         "not_analyzed_no_fabricate": "Nerq vervalst nooit beoordelingen. Als u denkt dat deze entiteit moet worden gedekt, kan deze in een toekomstige update verschijnen.",
     },
     "sv": {
+        "dim_popularity": "Popularitet",
+        "faq_q3_alts": "Vilka är säkrare alternativ till {name}?",
+        "faq_q4_log": "Loggar {name} min data?",
+        "faq_q4_update": "Hur ofta uppdateras {name}s säkerhetspoäng?",
+        "faq_q5_vs": "{name} mot alternativ: vilken är säkrare?",
+        "faq_q5_regulated": "Kan jag använda {name} i en reglerad miljö?",
+        "faq_q4_vuln": "Har {name} kända sårbarheter?",
+        "faq_q4_kids": "Är {name} säkert för barn?",
+        "faq_q4_perms": "Vilka behörigheter behöver {name}?",
+        "faq_q4_maintained": "Underhålls {name} aktivt?",
+        "faq_a4_vuln": "Nerq kontrollerar {name} mot NVD, OSV.dev och registerspecifika sårbarhetsdatabaser. Aktuell säkerhetspoäng: {sec_score}.",
+        "faq_a4_kids": "{name} har en Nerq-poäng på {score}/100. Föräldrar bör granska den fullständiga rapporten.",
+        "faq_a4_perms": "Granska {name}s begärda behörigheter noggrant. Förtroendepoäng: {score}/100.",
+        "faq_a4_maintained": "{name} underhållspoäng: {maint_score}. Kontrollera repositoriet för senaste aktivitet.",
+        "faq_a5_verified": "{name} uppfyller Nerqs verifieringsgräns (70+). Säkert för produktionsanvändning.",
+        "faq_a5_not_verified": "{name} har inte nått Nerqs verifieringsgräns på 70. Ytterligare granskning rekommenderas.",
+        "more_being_analyzed": "fler {type} analyseras — kom tillbaka snart.",
+        "strong": "stark",
+        "moderate": "måttlig",
+        "weak": "svag",
+        "actively_maintained": "aktivt underhållen",
+        "moderately_maintained": "måttligt underhållen",
+        "low_maintenance": "låg underhållsaktivitet",
+        "well_documented": "väl dokumenterad",
+        "partial_documentation": "partiell dokumentation",
+        "limited_documentation": "begränsad dokumentation",
+        "community_adoption": "community-antagande",
+        "dim_maintenance": "Underhåll",
+        "dim_security": "Säkerhet",
+        "vpn_no_breaches": "Inga kända dataintrång kopplade till denna tjänst.",
+        "vpn_audit_none": "{name} har inte publicerat resultat från en oberoende säkerhetsgranskning. Även om detta inte indikerar ett säkerhetsproblem ger granskade VPN-tjänster högre säkerhet.",
+        "vpn_audit_verified": "Oberoende säkerhetsgranskning verifierad.",
+        "vpn_audit_positive": "Enligt oberoende granskningsrapporter har {name} genomgått tredjepartsrevisioner som verifierar dess infrastruktur och no-logs-påståenden. Detta är en stark positiv signal — de flesta VPN-leverantörer har inte granskats oberoende.",
+        "vpn_proto": "Primärt krypteringsprotokoll: {proto}, vilket anses vara branschstandard för VPN-anslutningar.",
+        "vpn_sec_score": "Säkerhetspoäng",
+        "privacy_score_label": "Integritetspoäng",
+        "sidebar_most_private": "Mest privata appar",
+        "sidebar_safest_vpns": "Säkraste VPN",
+        "audit_no": "{name} har inte publicerat en oberoende integritetsgranskning",
+        "audit_yes": "{name} har granskats av oberoende part för att verifiera sina integritetsanspråk",
+        "eyes_none": "inte medlem i Five/Nine/Fourteen Eyes-allianserna",
+        "eyes_fourteen": "inom Fourteen Eyes-övervakningsalliansen",
+        "eyes_nine": "inom Nine Eyes-övervakningsalliansen",
+        "eyes_five": "inom Five Eyes-övervakningsalliansen",
+        "eyes_outside": "utanför alla Eyes-övervakningsallianser — en integritetsfördel",
+        "undisclosed_jurisdiction": "en okänd jurisdiktion",
+        "serving_users": "Betjänar",
+        "privacy_assessment": "Integritetsbedömning",
+        "sidebar_recently": "Nyligen analyserade",
+        "sidebar_browse": "Bläddra bland kategorier",
+        "sidebar_popular_in": "Populära inom",
+        "vpn_logging_audited": "Loggningspolicy: oberoende granskad ingen-logg-policy. Enligt oberoende granskningsrapporter lagrar {name} inte anslutningsloggar, surfaktivitet eller DNS-förfrågningar.",
+        "vpn_server_infra": "Serverinfrastruktur",
+        "vpn_significant": "Detta är viktigt eftersom VPN-leverantörer i icke-allierade jurisdiktioner inte omfattas av obligatoriska datalagringslagar eller underrättelsesamarbetsavtal.",
+        "vpn_outside_eyes": "utanför Five Eyes, Nine Eyes och Fourteen Eyes övervakningsallianserna",
+        "vpn_jurisdiction": "jurisdiktion",
+        "vpn_operates_under": "verkar under",
+        "xlink_av_desc": "Oberoende antivirusrankning baserad på AV-TEST",
+        "xlink_safest_av": "Säkraste antivirusprogram",
+        "xlink_hosting_desc": "Oberoende hostingleverantörsrankning",
+        "xlink_safest_hosting": "Säkraste webbhosting",
+        "xlink_crypto_desc": "Oberoende kryptobörssäkerhetsrankning",
+        "xlink_safest_crypto": "Säkraste kryptobörser",
+        "xlink_access_secure_desc": "Använd en VPN när du använder SaaS-verktyg på offentligt Wi-Fi",
+        "xlink_access_secure": "Åtkom dina verktyg säkert",
+        "xlink_secure_saas_desc": "Använd en lösenordshanterare för dina SaaS-uppgifter",
+        "xlink_secure_saas": "Skydda dina SaaS-inloggningar",
+        "xlink_secure_creds_desc": "Använd en lösenordshanterare för hosting- och serveruppgifter",
+        "xlink_secure_creds": "Skydda dina inloggningsuppgifter",
+        "xlink_protect_server_desc": "Lägg till en VPN för säker fjärradministration",
+        "xlink_protect_server": "Skydda din server",
+        "xlink_secure_passwords_desc": "Använd en lösenordshanterare för att skydda dina konton",
+        "xlink_secure_passwords": "Skydda dina lösenord",
+        "xlink_add_vpn_av": "Lägg till en VPN för krypterad surfning",
+        "xlink_add_malware_desc": "Skydda mot tangentbordsloggare och inloggningsstöld",
+        "xlink_add_malware": "Lägg till skydd mot skadlig programvara",
+        "xlink_add_av_vpn": "Komplettera din säkerhet med antivirus tillsammans med din VPN",
+        "xlink_add_av": "Lägg till antivirusskydd",
+        "xlink_add_vpn_pm": "Lägg till en VPN till din lösenordshanterare",
+        "xlink_add_pm_vpn": "Lägg till en lösenordshanterare till din VPN för fullt skydd",
+        "xlink_complete_security": "Komplettera din säkerhet",
+        "xlink_complete_privacy": "Komplettera ditt integritetsskydd",
+        "type_wordpress": "WordPress-plugin",
+        "type_crates": "Rust-paket",
+        "type_pypi": "Python-paket",
+        "type_steam": "Steam-spel",
+        "type_android": "Android-app",
+        "type_website_builder": "webbplatsbyggare",
+        "type_crypto": "kryptobörs",
+        "type_password_manager": "lösenordshanterare",
+        "type_antivirus": "antivirusprogram",
+        "type_hosting": "webbhosting-leverantör",
+        "type_saas": "SaaS-plattform",
+        "type_npm": "npm-paket",
+        "type_vpn": "VPN-tjänst",
+        "based_on_dims": "baserat på {dims} oberoende datadimensioner",
+        "with_trust_score": "med ett Nerq-förtroendepoäng på {score}/100 ({grade})",
+        "is_a_type": "är en {type}",
+        "rec_wordpress": "rekommenderas för WordPress-användning",
+        "rec_use": "rekommenderas för användning",
+        "rec_play": "rekommenderas för spel",
+        "rec_general": "rekommenderas för allmän användning",
+        "rec_production": "rekommenderas för produktionsanvändning",
+        "rec_privacy": "rekommenderas för integritetsmedveten användning",
+        "ans_trust": "{name} har ett Nerq-förtroendepoäng på {score}/100 med betyget {grade}. Denna poäng baseras på {dims} oberoende mätta dimensioner inklusive säkerhet, underhåll och communityanvändning.",
+        "ans_findings_strong": "{name}s starkaste signal är {signal} på {signal_score}/100.",
+        "ans_no_vulns": "Inga kända sårbarheter har upptäckts.",
+        "ans_has_vulns": "{count} kända sårbarheter identifierades.",
+        "ans_verified": "Uppfyller Nerqs verifieringströskel på 70+.",
+        "ans_not_verified": "Har ännu inte nått Nerqs verifieringströskel på 70+.",
+        "data_sourced": "Data hämtad från {sources}. Senast uppdaterad: {date}.",
+        "score_based_dims": "Poäng baserad på {dims}.",
+        "yes_safe_short": "Ja, det är säkert att använda.",
         "title_safe": "Är {name} säker? Oberoende förtroende- och säkerhetsanalys {year} | Nerq",
         "title_safe_visit": "Är {name} säkert att besöka? Säkerhetsbetyg {year} &amp; Reseguide | Nerq",
         "title_charity": "Är {name} en pålitlig välgörenhetsorganisation? Förtroendeanalys {year} | Nerq",
@@ -1932,6 +3192,97 @@ _TRANSLATIONS = {
         "not_analyzed_no_fabricate": "Nerq fabricerar aldrig betyg. Om du anser att denna entitet borde finnas med kan den dyka upp i en framtida uppdatering.",
     },
     "zh": {
+        "dim_popularity": "人气度",
+        "faq_q3_alts": "{name}有哪些更安全的替代品？",
+        "faq_q4_log": "{name}会记录我的数据吗？",
+        "faq_q4_update": "{name}的安全评分多久更新一次？",
+        "faq_q5_vs": "{name}与替代品相比：哪个更安全？",
+        "faq_q5_regulated": "我可以在受监管的环境中使用{name}吗？",
+        "vpn_sec_score": "安全评分",
+        "privacy_score_label": "隐私评分",
+        "strong": "强",
+        "moderate": "中等",
+        "weak": "弱",
+        "actively_maintained": "积极维护中",
+        "moderately_maintained": "适度维护",
+        "low_maintenance": "低维护活动",
+        "well_documented": "文档完善",
+        "partial_documentation": "部分文档",
+        "limited_documentation": "有限文档",
+        "community_adoption": "社区采用",
+        "faq_q4_vuln": "{name}有已知漏洞吗？",
+        "faq_q4_kids": "{name}对儿童安全吗？",
+        "faq_q4_perms": "{name}需要哪些权限？",
+        "faq_q4_maintained": "{name}是否积极维护？",
+        "faq_a4_vuln": "Nerq检查{name}的NVD、OSV.dev和注册表特定漏洞数据库。当前安全评分：{sec_score}。",
+        "faq_a4_kids": "{name}的Nerq评分为{score}/100。家长应查看完整报告。",
+        "faq_a4_perms": "仔细审查{name}请求的权限。信任评分：{score}/100。",
+        "faq_a4_maintained": "{name}维护评分：{maint_score}。检查仓库最近的活动。",
+        "faq_a5_verified": "{name}达到Nerq验证阈值（70+）。可安全用于生产。",
+        "faq_a5_not_verified": "{name}未达到Nerq验证阈值70。建议进行额外审查。",
+        "more_being_analyzed": "更多{type}正在分析中 — 稍后再来查看。",
+        "dim_maintenance": "维护",
+        "dim_security": "安全",
+        "sidebar_most_private": "最私密的应用",
+        "sidebar_safest_vpns": "最安全的VPN",
+        "eyes_outside": "在所有Eyes监控联盟之外 — 隐私优势",
+        "serving_users": "服务",
+        "privacy_assessment": "隐私评估",
+        "sidebar_recently": "最近分析",
+        "sidebar_browse": "浏览分类",
+        "sidebar_popular_in": "热门",
+        "vpn_logging_audited": "日志策略：独立审计的无日志策略。根据独立审计报告，{name}不存储连接日志、浏览活动或DNS查询。",
+        "vpn_server_infra": "服务器基础设施",
+        "vpn_significant": "这很重要，因为非联盟管辖区的VPN提供商不受强制数据保留法或情报共享协议的约束。",
+        "vpn_outside_eyes": "在五眼、九眼和十四眼监控联盟之外",
+        "vpn_jurisdiction": "管辖权",
+        "vpn_operates_under": "在...管辖下运营",
+        "xlink_safest_crypto": "最安全的加密货币交易所",
+        "xlink_access_secure": "安全访问您的工具",
+        "xlink_secure_saas": "保护SaaS登录",
+        "xlink_protect_server": "保护您的服务器",
+        "xlink_secure_passwords_desc": "使用密码管理器保护您的账户",
+        "xlink_secure_passwords": "保护您的密码",
+        "xlink_add_vpn_av": "添加VPN进行加密浏览",
+        "xlink_add_malware_desc": "防止键盘记录器和凭证窃取",
+        "xlink_add_malware": "添加恶意软件防护",
+        "xlink_add_av_vpn": "用杀毒软件配合VPN完善安全",
+        "xlink_add_av": "添加杀毒保护",
+        "xlink_add_vpn_pm": "为密码管理器添加VPN",
+        "xlink_add_pm_vpn": "为VPN添加密码管理器",
+        "xlink_complete_security": "完善安全",
+        "xlink_complete_privacy": "完善隐私设置",
+        "type_wordpress": "WordPress插件",
+        "type_crates": "Rust crate",
+        "type_pypi": "Python包",
+        "type_steam": "Steam游戏",
+        "type_android": "Android应用",
+        "type_website_builder": "网站构建器",
+        "type_crypto": "加密货币交易所",
+        "type_password_manager": "密码管理器",
+        "type_antivirus": "杀毒软件",
+        "type_hosting": "托管服务商",
+        "type_saas": "SaaS平台",
+        "type_npm": "npm包",
+        "type_vpn": "VPN服务",
+        "based_on_dims": "基于{dims}个独立数据维度",
+        "with_trust_score": "Nerq 信任分数 {score}/100（{grade}）",
+        "is_a_type": "是一个{type}",
+        "rec_wordpress": "推荐在WordPress中使用",
+        "rec_use": "推荐使用",
+        "rec_play": "推荐游玩",
+        "rec_general": "推荐一般使用",
+        "rec_production": "推荐生产环境使用",
+        "rec_privacy": "推荐隐私敏感型使用",
+        "ans_trust": "{name} 的 Nerq 信任分数为 {score}/100，等级为 {grade}。该分数基于 {dims} 个独立测量的维度，包括安全性、维护和社区采用。",
+        "ans_findings_strong": "{name} 最强的信号是 {signal}，为 {signal_score}/100。",
+        "ans_no_vulns": "未检测到已知漏洞。",
+        "ans_has_vulns": "发现了 {count} 个已知漏洞。",
+        "ans_verified": "达到 Nerq 认证阈值 70+。",
+        "ans_not_verified": "尚未达到 Nerq 认证阈值 70+。",
+        "data_sourced": "数据来源于{sources}。最后更新：{date}。",
+        "score_based_dims": "基于{dims}的评分。",
+        "yes_safe_short": "是的，可以安全使用。",
         "title_safe": "{name}安全吗？独立信任与安全分析 {year} | Nerq",
         "title_safe_visit": "访问{name}安全吗？安全评分 {year} &amp; 旅行指南 | Nerq",
         "title_charity": "{name}是可靠的慈善机构吗？信任分析 {year} | Nerq",
@@ -2034,6 +3385,47 @@ _TRANSLATIONS = {
         "not_analyzed_no_fabricate": "Nerq 从不捏造评分。如果您认为此实体应被涵盖，它可能会在未来的更新中出现。",
     },
     "da": {
+        "vpn_outside_eyes": "uden for Five Eyes, Nine Eyes og Fourteen Eyes overvågningsalliancerne",
+        "faq_q3_alts": "Hvad er sikrere alternativer til {name}?",
+        "faq_q4_log": "Logger {name} mine data?",
+        "faq_q4_update": "Hvor ofte opdateres {name}s sikkerhedsscore?",
+        "faq_q5_vs": "{name} vs alternativer: hvad er sikrere?",
+        "faq_q5_regulated": "Kan jeg bruge {name} i et reguleret miljø?",
+        "vpn_sec_score": "Sikkerhedsscore",
+        "privacy_score_label": "Privatlivsscore",
+        "strong": "stærk",
+        "moderate": "moderat",
+        "weak": "svag",
+        "actively_maintained": "aktivt vedligeholdt",
+        "moderately_maintained": "moderat vedligeholdt",
+        "low_maintenance": "lav vedligeholdelsesaktivitet",
+        "well_documented": "godt dokumenteret",
+        "partial_documentation": "delvis dokumentation",
+        "limited_documentation": "begrænset dokumentation",
+        "community_adoption": "community-adoption",
+        "faq_q4_vuln": "Har {name} kendte sårbarheder?",
+        "faq_q4_kids": "Er {name} sikker for børn?",
+        "faq_q4_perms": "Hvilke tilladelser kræver {name}?",
+        "faq_q4_maintained": "Vedligeholdes {name} aktivt?",
+        "faq_a4_vuln": "Nerq tjekker {name} mod NVD, OSV.dev og registerspecifikke sårbarhedsdatabaser. Aktuel sikkerhedsscore: {sec_score}.",
+        "faq_a4_kids": "{name} har en Nerq-score på {score}/100. Forældre bør gennemgå den fulde rapport.",
+        "faq_a4_perms": "Gennemgå {name}s anmodede tilladelser omhyggeligt. Tillidsscore: {score}/100.",
+        "faq_a4_maintained": "{name} vedligeholdelsesscore: {maint_score}. Tjek repositoriet for nylig aktivitet.",
+        "faq_a5_verified": "{name} opfylder Nerq-verificeringstærsklen (70+). Sikkert til produktionsbrug.",
+        "faq_a5_not_verified": "{name} har ikke nået Nerq-verificeringstærsklen på 70. Yderligere gennemgang anbefales.",
+        "more_being_analyzed": "flere {type} analyseres — kom snart tilbage.",
+        "vpn_jurisdiction": "jurisdiktion",
+        "vpn_operates_under": "opererer under",
+        "xlink_add_av_vpn": "Fuldfør din sikkerhed med antivirus sammen med VPN",
+        "xlink_add_av": "Tilføj antivirusbeskyttelse",
+        "xlink_add_pm_vpn": "Tilføj en adgangskodeadministrator til din VPN",
+        "xlink_complete_security": "Fuldfør din sikkerhed",
+        "xlink_complete_privacy": "Fuldfør dit privatliv",
+        "is_a_type": "er en {type}",
+        "rec_privacy": "anbefales til privatlivsfokuseret brug",
+        "ans_trust": "{name} har en Nerq Trust Score på {score}/100 med karakteren {grade}. Denne score er baseret på {dims} uafhængigt målte dimensioner, herunder sikkerhed, vedligeholdelse og community-adoption.",
+        "ans_findings_strong": "{name}s stærkeste signal er {signal} på {signal_score}/100.",
+        "ans_no_vulns": "Ingen kendte sårbarheder er fundet.",
         "title_safe": "Er {name} sikker? Uafhængig tillids- og sikkerhedsanalyse {year} | Nerq",
         "title_safe_visit": "Er {name} sikker at besøge? Sikkerhedsscore {year} &amp; Rejseguide | Nerq",
         "title_charity": "Er {name} en pålidelig velgørenhedsorganisation? Tillidsanalyse {year} | Nerq",
@@ -2135,7 +3527,267 @@ _TRANSLATIONS = {
         "not_analyzed_no_score": "Denne side indeholder ingen tillidsscore, fordi vi endnu ikke har analyseret denne enhed.",
         "not_analyzed_no_fabricate": "Nerq fabrikerer aldrig vurderinger. Hvis du mener, denne enhed bør dækkes, kan den dukke op i en fremtidig opdatering.",
     },
+    "no": {
+        "vpn_outside_eyes": "utenfor Five Eyes, Nine Eyes og Fourteen Eyes overvåkningsalliansene",
+        "faq_q3_alts": "Hva er tryggere alternativer til {name}?",
+        "faq_q4_log": "Logger {name} mine data?",
+        "faq_q4_update": "Hvor ofte oppdateres {name}s sikkerhetspoeng?",
+        "faq_q5_vs": "{name} mot alternativer: hva er tryggere?",
+        "faq_q5_regulated": "Kan jeg bruke {name} i et regulert miljø?",
+        "vpn_sec_score": "Sikkerhetspoeng",
+        "privacy_score_label": "Personvernpoeng",
+        "strong": "sterk",
+        "moderate": "moderat",
+        "weak": "svak",
+        "actively_maintained": "aktivt vedlikeholdt",
+        "moderately_maintained": "moderat vedlikeholdt",
+        "low_maintenance": "lav vedlikeholdsaktivitet",
+        "well_documented": "vel dokumentert",
+        "partial_documentation": "delvis dokumentasjon",
+        "limited_documentation": "begrenset dokumentasjon",
+        "community_adoption": "samfunnsadopsjon",
+        "faq_q4_vuln": "Har {name} kjente sårbarheter?",
+        "faq_q4_kids": "Er {name} trygt for barn?",
+        "faq_q4_perms": "Hvilke tillatelser trenger {name}?",
+        "faq_q4_maintained": "Vedlikeholdes {name} aktivt?",
+        "faq_a4_vuln": "Nerq sjekker {name} mot NVD, OSV.dev og registerspesifikke sårbarhetsdatabaser. Nåværende sikkerhetspoeng: {sec_score}.",
+        "faq_a4_kids": "{name} har en Nerq-poeng på {score}/100. Foreldre bør gjennomgå den fullstendige rapporten.",
+        "faq_a4_perms": "Gjennomgå {name}s forespurte tillatelser nøye. Tillitspoeng: {score}/100.",
+        "faq_a4_maintained": "{name} vedlikeholdspoeng: {maint_score}. Sjekk repositoriet for nylig aktivitet.",
+        "faq_a5_verified": "{name} oppfyller Nerq-verifiseringsgrensen (70+). Trygt for produksjonsbruk.",
+        "faq_a5_not_verified": "{name} har ikke nådd Nerq-verifiseringsgrensen på 70. Ytterligere gjennomgang anbefales.",
+        "more_being_analyzed": "flere {type} analyseres — kom tilbake snart.",
+        "vpn_jurisdiction": "jurisdiksjon",
+        "vpn_operates_under": "opererer under",
+        "xlink_add_av_vpn": "Fullfør sikkerheten din med antivirus sammen med VPN",
+        "xlink_add_av": "Legg til antivirusbeskyttelse",
+        "xlink_add_pm_vpn": "Legg til en passordbehandler til VPN-en din",
+        "xlink_complete_security": "Fullfør sikkerheten din",
+        "xlink_complete_privacy": "Fullfør personvernet ditt",
+        "is_a_type": "er en {type}",
+        "rec_privacy": "anbefales for personvernfokusert bruk",
+        "ans_trust": "{name} har en Nerq-tillitspoeng på {score}/100 med karakteren {grade}. Denne poengsummen er basert på {dims} uavhengig målte dimensjoner, inkludert sikkerhet, vedlikehold og samfunnsadopsjon.",
+        "ans_findings_strong": "{name}s sterkeste signal er {signal} på {signal_score}/100.",
+        "ans_no_vulns": "Ingen kjente sårbarheter er funnet.",
+        "title_safe": "Er {name} trygt? Uavhengig tillits- og sikkerhetsanalyse {year} | Nerq",
+        "title_safe_visit": "Er {name} trygt å besøke? Sikkerhetspoeng {year} &amp; Reiseguide | Nerq",
+        "title_charity": "Er {name} en pålitelig veldedighetsorganisasjon? Tillitsanalyse {year} | Nerq",
+        "title_ingredient": "Er {name} trygt? Helse- &amp; sikkerhetsanalyse {year} | Nerq",
+        "h1_safe": "Er {name} trygt?",
+        "h1_safe_visit": "Er {name} trygt å besøke?",
+        "h1_trustworthy_charity": "Er {name} en pålitelig veldedighetsorganisasjon?",
+        "h1_ingredient_safe": "Er {name} trygt?",
+        "breadcrumb_safety": "Sikkerhetsrapporter",
+        "security_analysis": "Sikkerhetsanalyse", "privacy_report": "Personvernrapport", "similar_in_registry": "Lignende {registry} etter tillitspoeng", "see_all_best": "Se alle tryggeste {registry}",
+        "pv_grade": "Karakter {grade}", "pv_body": "Basert på analyse av {dims} tillidsdimensjoner vurderes det som {verdict}.", "pv_vulns": "med {count} kjente sårbarheter", "pv_updated": "Sist oppdatert: {date}.", "pv_safe": "trygt å bruke", "pv_generally_safe": "generelt trygt men med visse bekymringer", "pv_notable_concerns": "har merkbare sikkerhetsproblemer", "pv_significant_risks": "har betydelige sikkerhetsrisikoer", "pv_unsafe": "anses som utrygt",
+        "h2q_trust_score": "Hva er tillitspoengene til {name}?", "h2q_key_findings": "Hva er de viktigste sikkerhetsfunnene for {name}?", "h2q_details": "Hva er {name} og hvem vedlikeholder det?",
+        "trust_score_breakdown": "Tillitspoeng detaljer",
+        "safety_score_breakdown": "Sikkerhetspoeng detaljer",
+        "key_findings": "Viktigste funn",
+        "key_safety_findings": "Viktigste sikkerhetsfunn",
+        "details": "Detaljer",
+        "detailed_score_analysis": "Detaljert poenganalyse",
+        "faq": "Ofte stilte spørsmål",
+        "community_reviews": "Fellesskapsanmeldelser",
+        "regulatory_compliance": "Regulatorisk samsvar",
+        "how_calculated": "Slik beregnet vi denne poengsummen",
+        "popular_alternatives": "Populære alternativer i {category}",
+        "safer_alternatives": "Tryggere alternativer",
+        "across_platforms": "{name} på andre plattformer",
+        "safety_guide": "Sikkerhetsguide: {name}",
+        "what_is": "Hva er {name}?",
+        "key_concerns": "Viktigste sikkerhetsproblemer for {type}",
+        "how_to_verify": "Slik verifiserer du sikkerheten",
+        "trust_assessment": "Tillidsvurdering",
+        "what_data_collect": "Hvilke data samler {name} inn?",
+        "is_secure": "Er {name} sikkert?",
+        "is_safe_visit": "Er {name} trygt å besøke?",
+        "is_legit_charity": "Er {name} en legitim veldedighetsorganisasjon?",
+        "crime_safety": "Kriminalitet og sikkerhet i {name}",
+        "financial_transparency": "Finansiell gjennomsiktighet for {name}",
+        "yes_safe": "Ja, {name} er trygt å bruke.",
+        "use_caution": "Bruk {name} med forsiktighet.",
+        "exercise_caution": "Utvis forsiktighet med {name}.",
+        "significant_concerns": "{name} har betydelige tillitsproblemer.",
+        "safe": "Trygt",
+        "use_caution_short": "Forsiktighet",
+        "avoid": "Unngå",
+        "passes_threshold": "Oppfyller Nerqs verifiserte terskel",
+        "below_threshold": "Under Nerqs verifiserte terskel",
+        "significant_gaps": "Betydelige tillitsgap oppdaget",
+        "meets_threshold_detail": "Oppfyller Nerqs tillitsterskel med sterke signaler innen sikkerhet, vedlikehold og fellesskapsadopsjon",
+        "not_reached_threshold": "og har ennå ikke nådd Nerqs tillitsterskel (70+).",
+        "score_based_on": "Denne poengsummen er basert på automatisert analyse av sikkerhets-, vedlikeholds-, fellesskaps- og kvalitetssignaler.",
+        "recommended_production": "Anbefalt for produksjonsbruk",
+        "last_analyzed": "Sist analysert:",
+        "author_label": "Utvikler",
+        "category_label": "Kategori",
+        "stars_label": "Stjerner",
+        "global_rank_label": "Global rangering",
+        "source_label": "Kilde",
+        "machine_readable": "Maskinlesbare data (JSON)",
+        "full_analysis": "Full analyse:",
+        "privacy_report": "{name} personvernrapport",
+        "security_report": "{name} sikkerhetsrapport",
+        "write_review": "Skriv en anmeldelse",
+        "no_reviews": "Ingen anmeldelser ennå.",
+        "be_first_review": "Vær den første til å anmelde {name}",
+        "security": "Sikkerhet",
+        "compliance": "Samsvar",
+        "maintenance": "Vedlikehold",
+        "documentation": "Dokumentasjon",
+        "popularity": "Popularitet",
+        "overall_trust": "Samlet tillit",
+        "privacy": "Personvern",
+        "reliability": "Pålitelighet",
+        "transparency": "Gjennomsiktighet",
+        "disclaimer": "Nerqs tillitspoeng er automatiserte vurderinger basert på offentlig tilgjengelige signaler. De utgjør ikke anbefalinger eller garantier. Utfør alltid din egen verifisering.",
+        "same_developer": "Samme utvikler/selskap i andre registre:",
+        "methodology_entities": "Nerq analyserer over 7,5 millioner enheter i 26 registre med samme metodikk, noe som muliggjør direkte sammenligning mellom enheter.",
+        "scores_updated_continuously": "Poeng oppdateres kontinuerlig etter hvert som nye data blir tilgjengelige.",
+        "strongest_signal": "Sterkeste signal:",
+        "in_category": "I kategorien {category},",
+        "check_back_soon": "kom tilbake snart",
+        "safe_solo": "Er {name} trygt for solorejsende?",
+        "safe_women": "Er {name} trygt for kvinner?",
+        "safe_lgbtq": "Er {name} trygt for LHBTQ+-reisende?",
+        "safe_families": "Er {name} trygt for familier?",
+        "safe_visit_now": "Er {name} trygt å besøke akkurat nå?",
+        "tap_water_safe": "Er kranvannet i {name} trygt å drikke?",
+        "need_vaccinations": "Trenger jeg vaksinasjoner for {name}?",
+        "what_are_side_effects": "Hva er bivirkningene av {name}?",
+        "what_are_safer_alts": "Hva er tryggere alternativer til {name}?",
+        "interact_medications": "Interagerer {name} med medisiner?",
+        "cause_irritation": "Kan {name} forårsake hudirritasjon?",
+        "health_disclaimer": "Denne informasjonen er kun til opplæringsformål og utgjør ikke medisinsk rådgivning. Konsulter en kvalifisert helsepersonell før du tar helsebeslutninger.",
+        "not_analyzed_title": "{name} — Ennå ikke analysert | Nerq",
+        "not_analyzed_h1": "{name} — Ennå ikke analysert",
+        "not_analyzed_msg": "Nerq har ennå ikke gjennomført en tillitsanalyse av {name}. Vi analyserer over 7,5 millioner enheter — denne kan snart bli lagt til.",
+        "not_analyzed_meanwhile": "I mellomtiden kan du:",
+        "not_analyzed_search": "Prøv å søke med en annen stavemåte",
+        "not_analyzed_api": "Sjekk API-et direkte",
+        "not_analyzed_browse": "Bla gjennom enheter vi allerede har analysert",
+        "not_analyzed_no_score": "Denne siden inneholder ingen tillitspoeng fordi vi ennå ikke har analysert denne enheten.",
+        "not_analyzed_no_fabricate": "Nerq fabrikkerer aldri vurderinger. Hvis du mener denne enheten bør dekkes, kan den dukke opp i en fremtidig oppdatering.",
+        "with_trust_score": "har en Nerq-tillitspoeng på {score}/100 ({grade})",
+        "score_based_dims": "Poeng basert på {dims}.",
+        "scores_update": "Poeng oppdateres når nye data er tilgjengelige.",
+        "yes_safe_short": "Ja, det er trygt å bruke.",
+        "use_caution_faq": "Bruk med forsiktighet.",
+        "exercise_caution_faq": "Utvis forsiktighet.",
+        "significant_concerns_faq": "Betydelige tillitsproblemer.",
+        "dim_popularity": "Popularitet",
+        "dim_maintenance": "Vedlikehold",
+        "dim_security": "Sikkerhet",
+    },
     "ar": {
+        "faq_q3_alts": "ما هي البدائل الأكثر أمانًا لـ {name}؟",
+        "faq_q4_log": "هل يسجل {name} بياناتي؟",
+        "faq_q4_update": "كم مرة يتم تحديث درجة أمان {name}؟",
+        "faq_q5_vs": "{name} مقابل البدائل: أيهما أكثر أمانًا؟",
+        "faq_q5_regulated": "هل يمكنني استخدام {name} في بيئة منظمة؟",
+        "faq_q4_vuln": "هل لدى {name} ثغرات أمنية معروفة؟",
+        "faq_q4_kids": "هل {name} آمن للأطفال؟",
+        "faq_q4_perms": "ما الأذونات التي يحتاجها {name}؟",
+        "faq_q4_maintained": "هل يتم صيانة {name} بنشاط؟",
+        "faq_a4_vuln": "يتحقق Nerq من {name} مقابل NVD وOSV.dev وقواعد بيانات الثغرات. درجة الأمان الحالية: {sec_score}.",
+        "faq_a4_kids": "{name} لديه درجة Nerq {score}/100. يجب على الآباء مراجعة التقرير الكامل.",
+        "faq_a4_perms": "راجع الأذونات المطلوبة من {name} بعناية. درجة الثقة: {score}/100.",
+        "faq_a4_maintained": "درجة صيانة {name}: {maint_score}. تحقق من النشاط الأخير للمستودع.",
+        "faq_a5_verified": "{name} يستوفي عتبة التحقق من Nerq (70+). آمن للاستخدام.",
+        "faq_a5_not_verified": "{name} لم يصل إلى عتبة التحقق من Nerq البالغة 70. يوصى بمراجعة إضافية.",
+        "with_trust_score": "لديه درجة ثقة Nerq تبلغ {score}/100 ({grade})",
+        "strongest_signal": "أقوى إشارة:",
+        "score_based_dims": "التقييم مبني على {dims}.",
+        "scores_update": "يتم تحديث النتائج عند توفر بيانات جديدة.",
+        "in_category": "في فئة {category}،",
+        "more_being_analyzed": "المزيد من {type} قيد التحليل — عد قريباً.",
+        "higher_rated_alts": "البدائل الأعلى تقييمًا تشمل {alts}.",
+        "yes_safe_short": "نعم، هو آمن للاستخدام.",
+        "use_caution_faq": "استخدم بحذر.",
+        "exercise_caution_faq": "توخَّ الحذر.",
+        "significant_concerns_faq": "مخاوف ثقة كبيرة.",
+        "h2q_trust_score": "ما هي درجة ثقة {name}؟",
+        "dim_popularity": "الشعبية",
+        "strong": "قوي",
+        "moderate": "متوسط",
+        "weak": "ضعيف",
+        "actively_maintained": "يتم صيانته بنشاط",
+        "moderately_maintained": "صيانة متوسطة",
+        "low_maintenance": "نشاط صيانة منخفض",
+        "well_documented": "موثق جيداً",
+        "partial_documentation": "توثيق جزئي",
+        "limited_documentation": "توثيق محدود",
+        "community_adoption": "اعتماد المجتمع",
+        "dim_maintenance": "الصيانة",
+        "dim_security": "الأمان",
+        "below_threshold": "أقل من العتبة الموصى بها 70.",
+        "vpn_sec_score": "درجة الأمان",
+        "privacy_score_label": "درجة الخصوصية",
+        "sidebar_most_private": "أكثر التطبيقات خصوصية",
+        "sidebar_safest_vpns": "أكثر VPN أمانًا",
+        "audit_no": "لم ينشر {name} تدقيقاً مستقلاً للخصوصية",
+        "audit_yes": "تم تدقيق {name} بشكل مستقل للتحقق من ادعاءات الخصوصية",
+        "eyes_five": "ضمن تحالف Five Eyes للمراقبة",
+        "eyes_outside": "خارج جميع تحالفات Eyes للمراقبة — ميزة للخصوصية",
+        "undisclosed_jurisdiction": "ولاية قضائية غير معلنة",
+        "serving_users": "يخدم",
+        "privacy_assessment": "تقييم الخصوصية",
+        "sidebar_recently": "تم تحليلها مؤخراً",
+        "sidebar_browse": "تصفح الفئات",
+        "sidebar_popular_in": "شائع في",
+        "vpn_logging_audited": "سياسة التسجيل: سياسة عدم الاحتفاظ بالسجلات مدققة بشكل مستقل. وفقًا لتقارير التدقيق المستقلة، لا يقوم {name} بتخزين سجلات الاتصال أو نشاط التصفح أو استعلامات DNS.",
+        "vpn_server_infra": "البنية التحتية للخوادم",
+        "vpn_significant": "هذا أمر مهم لأن مزودي VPN في الولايات القضائية غير المتحالفة لا يخضعون لقوانين الاحتفاظ بالبيانات الإلزامية أو اتفاقيات تبادل المعلومات الاستخباراتية.",
+        "vpn_outside_eyes": "خارج تحالفات المراقبة العيون الخمس والتسع والأربع عشرة",
+        "vpn_jurisdiction": "الولاية القضائية",
+        "vpn_operates_under": "يعمل تحت",
+        "xlink_av_desc": "تصنيف مضادات الفيروسات المستقل بناءً على AV-TEST",
+        "xlink_safest_av": "أكثر برامج مكافحة الفيروسات أمانًا",
+        "xlink_hosting_desc": "تصنيف مزودي الاستضافة المستقل",
+        "xlink_safest_hosting": "أكثر خدمات الاستضافة أمانًا",
+        "xlink_crypto_desc": "تصنيف أمان بورصات الكريبتو المستقل",
+        "xlink_safest_crypto": "أكثر بورصات الكريبتو أمانًا",
+        "xlink_access_secure_desc": "استخدم VPN عند الوصول إلى أدوات SaaS على Wi-Fi عام",
+        "xlink_access_secure": "الوصول إلى أدواتك بأمان",
+        "xlink_secure_saas_desc": "استخدم مدير كلمات مرور لبيانات اعتماد SaaS",
+        "xlink_secure_saas": "أمّن تسجيلات دخول SaaS",
+        "xlink_secure_creds_desc": "استخدم مدير كلمات مرور لبيانات اعتماد الاستضافة والخادم",
+        "xlink_secure_creds": "أمّن بيانات اعتمادك",
+        "xlink_protect_server_desc": "أضف VPN للإدارة عن بُعد الآمنة",
+        "xlink_protect_server": "احمِ خادمك",
+        "xlink_secure_passwords_desc": "استخدم مدير كلمات مرور لحماية حساباتك",
+        "xlink_secure_passwords": "أمّن كلمات المرور الخاصة بك",
+        "xlink_add_vpn_av": "أضف VPN للتصفح المشفر مع مضاد الفيروسات",
+        "xlink_add_malware_desc": "الحماية من مسجلات المفاتيح وسرقة بيانات الاعتماد",
+        "xlink_add_malware": "إضافة حماية من البرمجيات الخبيثة",
+        "xlink_add_av_vpn": "أكمل أمانك بمضاد الفيروسات مع VPN الخاص بك",
+        "xlink_add_av": "إضافة حماية مضاد الفيروسات",
+        "xlink_add_vpn_pm": "أضف VPN إلى مدير كلمات المرور الخاص بك",
+        "xlink_add_pm_vpn": "أضف مدير كلمات مرور إلى VPN الخاص بك للحماية الكاملة",
+        "xlink_complete_security": "أكمل أمانك",
+        "xlink_complete_privacy": "أكمل إعداد خصوصيتك",
+        "type_steam": "لعبة Steam",
+        "type_android": "تطبيق Android",
+        "type_website_builder": "منشئ مواقع",
+        "type_crypto": "بورصة عملات مشفرة",
+        "type_password_manager": "مدير كلمات المرور",
+        "type_antivirus": "برنامج مكافحة فيروسات",
+        "type_hosting": "مزود استضافة",
+        "type_saas": "منصة SaaS",
+        "type_npm": "حزمة npm",
+        "type_vpn": "خدمة VPN",
+        "based_on_dims": "بناءً على {dims} أبعاد بيانات مستقلة",
+        "with_trust_score": "بدرجة ثقة Nerq {score}/100 ({grade})",
+        "is_a_type": "هو {type}",
+        "rec_wordpress": "موصى به للاستخدام في WordPress",
+        "rec_use": "موصى به للاستخدام",
+        "rec_play": "موصى به للعب",
+        "rec_general": "موصى به للاستخدام العام",
+        "rec_production": "موصى به للاستخدام في الإنتاج",
+        "rec_privacy": "موصى به للاستخدام المراعي للخصوصية",
+        "score_based_dims": "التقييم مبني على {dims}.",
+        "yes_safe_short": "نعم، هو آمن للاستخدام.",
         "security_analysis": "تحليل الأمان", "privacy_report": "تقرير الخصوصية", "similar_in_registry": "{registry} مشابهة حسب درجة الثقة", "see_all_best": "عرض جميع {registry} الأكثر أمانًا",
         "pv_grade": "الدرجة {grade}", "pv_body": "بناءً على تحليل {dims} أبعاد للثقة، يُعتبر {verdict}.", "pv_vulns": "مع {count} ثغرات أمنية معروفة", "pv_updated": "آخر تحديث: {date}.", "pv_safe": "آمنًا للاستخدام", "pv_generally_safe": "آمنًا بشكل عام مع بعض المخاوف", "pv_notable_concerns": "لديه مخاوف أمنية ملحوظة", "pv_significant_risks": "لديه مخاطر أمنية كبيرة", "pv_unsafe": "غير آمن",
         "h2q_trust_score": "ما هي درجة ثقة {name}؟", "h2q_key_findings": "ما هي النتائج الأمنية الرئيسية لـ {name}؟", "h2q_details": "ما هو {name} ومن يديره؟",
@@ -2865,8 +4517,16 @@ _CONSUMER_OVERRIDES = {
     "nordvpn": ("vpn", "NordVPN"),
     "expressvpn": ("vpn", "ExpressVPN"),
     "mullvad": ("vpn", "Mullvad VPN"),
+    "mullvadvpn": ("vpn", "Mullvad VPN"),
     "protonvpn": ("vpn", "ProtonVPN"),
     "surfshark": ("vpn", "Surfshark"),
+    "private-internet-access": ("vpn", "PIA"),
+    "privateinternetaccess": ("vpn", "PIA"),
+    "pia": ("vpn", "PIA"),
+    "ivpn": ("vpn", "IVPN"),
+    "cyberghost": ("vpn", "CyberGhost%"),
+    "windscribe": ("vpn", "Windscribe%"),
+    "tunnelbear": ("vpn", "TunnelBear%"),
     "minecraft": ("android", "Minecraft%"),
     "fortnite": ("android", "Fortnite"),
     "roblox": ("android", "Roblox"),
@@ -2892,6 +4552,142 @@ _CONSUMER_OVERRIDES = {
     "tinder": ("android", "Tinder%"),
     "bumble": ("android", "Bumble%"),
     "hinge": ("android", "Hinge%"),
+    # Password managers — resolve to password_manager registry, not chrome extensions
+    "1password": ("password_manager", "1Password"),
+    "bitwarden": ("password_manager", "Bitwarden"),
+    "lastpass": ("password_manager", "LastPass"),
+    "dashlane": ("password_manager", "Dashlane"),
+    "keeper": ("password_manager", "Keeper"),
+    "nordpass": ("password_manager", "NordPass"),
+    "keepass": ("password_manager", "KeePass"),
+    "protonpass": ("password_manager", "Proton Pass"),
+    "proton-pass": ("password_manager", "Proton Pass"),
+    "roboform": ("password_manager", "RoboForm"),
+    "enpass": ("password_manager", "Enpass"),
+    "keepassxc": ("password_manager", "KeePassXC"),
+    "true-key": ("password_manager", "True Key"),
+    # Hosting providers — resolve to hosting registry
+    "wpengine": ("hosting", "WP Engine"),
+    "wp-engine": ("hosting", "WP Engine"),
+    "siteground": ("hosting", "SiteGround"),
+    "bluehost": ("hosting", "Bluehost"),
+    "hostinger": ("hosting", "Hostinger"),
+    "godaddy": ("hosting", "GoDaddy"),
+    "namecheap": ("hosting", "Namecheap"),
+    "dreamhost": ("hosting", "DreamHost"),
+    "hostgator": ("hosting", "HostGator"),
+    "digitalocean": ("hosting", "DigitalOcean"),
+    "hetzner": ("hosting", "Hetzner"),
+    "netlify": ("hosting", "Netlify"),
+    "vercel": ("hosting", "Vercel"),
+    "heroku": ("hosting", "Heroku"),
+    "kinsta": ("hosting", "Kinsta"),
+    "vultr": ("hosting", "Vultr"),
+    "linode": ("hosting", "Linode%"),
+    "render": ("hosting", "Render"),
+    "railway": ("hosting", "Railway"),
+    "pantheon": ("hosting", "Pantheon"),
+    "liquid-web": ("hosting", "Liquid Web"),
+    "liquidweb": ("hosting", "Liquid Web"),
+    "flywheel": ("hosting", "Flywheel"),
+    "a2-hosting": ("hosting", "A2 Hosting"),
+    "inmotion-hosting": ("hosting", "InMotion Hosting"),
+    "github-pages": ("hosting", "GitHub Pages"),
+    "cloudflare-pages": ("hosting", "Cloudflare Pages"),
+    # Antivirus — resolve to antivirus registry
+    "norton": ("antivirus", "Norton 360"),
+    "norton360": ("antivirus", "Norton 360"),
+    "norton-antivirus": ("antivirus", "Norton 360"),
+    "mcafee": ("antivirus", "McAfee Total Protection"),
+    "mcafee-antivirus": ("antivirus", "McAfee Total Protection"),
+    "bitdefender": ("antivirus", "Bitdefender Total Security"),
+    "malwarebytes": ("antivirus", "Malwarebytes"),
+    "kaspersky": ("antivirus", "Kaspersky"),
+    "kaspersky-antivirus": ("antivirus", "Kaspersky"),
+    "avast": ("antivirus", "Avast/AVG"),
+    "avg": ("antivirus", "Avast/AVG"),
+    "avg-antivirus": ("antivirus", "Avast/AVG"),
+    "eset": ("antivirus", "ESET NOD32"),
+    "eset-nod32": ("antivirus", "ESET NOD32"),
+    "windows-defender": ("antivirus", "Windows Defender"),
+    "microsoft-defender": ("antivirus", "Windows Defender"),
+    "crowdstrike": ("antivirus", "CrowdStrike Falcon"),
+    "sentinelone": ("antivirus", "SentinelOne"),
+    "trend-micro": ("antivirus", "Trend Micro"),
+    "f-secure": ("antivirus", "F-Secure"),
+    "avira": ("antivirus", "Avira Free Antivirus"),
+    "sophos": ("antivirus", "Sophos Home"),
+    "webroot": ("antivirus", "Webroot"),
+    "totalav": ("antivirus", "TotalAV"),
+    "intego": ("antivirus", "Intego"),
+    "comodo": ("antivirus", "Comodo"),
+    "panda-security": ("antivirus", "Panda Security"),
+    "surfshark-antivirus": ("antivirus", "Surfshark Antivirus"),
+    # SaaS platforms — resolve to saas registry
+    "hubspot": ("saas", "HubSpot"),
+    "salesforce": ("saas", "Salesforce"),
+    "asana": ("saas", "Asana"),
+    "monday": ("saas", "Monday.com"),
+    "clickup": ("saas", "ClickUp"),
+    "notion": ("saas", "Notion"),
+    "trello": ("saas", "Trello"),
+    "jira": ("saas", "Jira"),
+    "linear": ("saas", "Linear"),
+    "slack": ("saas", "Slack"),
+    "zoom": ("saas", "Zoom"),
+    "microsoft-teams": ("saas", "Microsoft Teams"),
+    "mailchimp": ("saas", "Mailchimp"),
+    "zendesk": ("saas", "Zendesk"),
+    "intercom": ("saas", "Intercom"),
+    "freshdesk": ("saas", "Freshdesk"),
+    "figma": ("saas", "Figma"),
+    "canva": ("saas", "Canva"),
+    "miro": ("saas", "Miro"),
+    "xero": ("saas", "Xero"),
+    "freshbooks": ("saas", "FreshBooks"),
+    "github": ("saas", "GitHub"),
+    "gitlab": ("saas", "GitLab"),
+    "datadog": ("saas", "Datadog"),
+    "gusto": ("saas", "Gusto"),
+    "bamboohr": ("saas", "BambooHR"),
+    "rippling": ("saas", "Rippling"),
+    "deel": ("saas", "Deel"),
+    "stripe": ("saas", "Stripe"),
+    "shopify": ("saas", "Shopify"),
+    "twilio": ("saas", "Twilio"),
+    # Website Builders
+    "shopify": ("website_builder", "Shopify"),
+    "wix": ("website_builder", "Wix"),
+    "squarespace": ("website_builder", "Squarespace"),
+    "wordpress-com": ("website_builder", "WordPress.com"),
+    "webflow": ("website_builder", "Webflow"),
+    "ghost": ("website_builder", "Ghost"),
+    "ghost-cms": ("website_builder", "Ghost"),
+    "weebly": ("website_builder", "Weebly"),
+    "carrd": ("website_builder", "Carrd"),
+    "framer": ("website_builder", "Framer"),
+    "bubble": ("website_builder", "Bubble"),
+    "duda": ("website_builder", "Duda"),
+    "jimdo": ("website_builder", "Jimdo"),
+    "site123": ("website_builder", "SITE123"),
+    "strikingly": ("website_builder", "Strikingly"),
+    "godaddy-builder": ("website_builder", "GoDaddy Website Builder"),
+    "elementor": ("website_builder", "Elementor"),
+    "bigcommerce": ("website_builder", "BigCommerce"),
+    # Crypto Exchanges
+    "binance": ("crypto", "Binance"),
+    "coinbase": ("crypto", "Coinbase"),
+    "kraken": ("crypto", "Kraken"),
+    "okx": ("crypto", "OKX"),
+    "bybit": ("crypto", "Bybit"),
+    "kucoin": ("crypto", "KuCoin"),
+    "gemini": ("crypto", "Gemini"),
+    "bitstamp": ("crypto", "Bitstamp"),
+    "crypto-com": ("crypto", "Crypto.com"),
+    "gate-io": ("crypto", "Gate.io"),
+    "ftx": ("crypto", "FTX"),
+    "uniswap": ("crypto", "Uniswap"),
+    "robinhood-crypto": ("crypto", "Robinhood Crypto"),
 }
 
 
@@ -2906,6 +4702,12 @@ def _resolve_entity(slug):
     """
     import time as _t_mod
     _cache_key = slug.lower().strip()
+
+    # Reject absurdly long slugs — bot spam (apakah-ist-apakah... patterns)
+    if len(_cache_key) > 200:
+        _entity_cache[_cache_key] = (None, _t_mod.time())
+        return None
+
     if _cache_key in _entity_cache:
         _cached, _ts = _entity_cache[_cache_key]
         if _t_mod.time() - _ts < _ENTITY_CACHE_TTL:
@@ -2914,6 +4716,7 @@ def _resolve_entity(slug):
     session = get_session()
     try:
         session.execute(text("SET LOCAL statement_timeout = '3s'"))
+        session.execute(text("SET LOCAL work_mem = '2MB'"))
         sl = slug.lower().strip()
         norm = sl.replace("-", "").replace("_", "").replace(" ", "")
 
@@ -2953,41 +4756,27 @@ def _resolve_entity(slug):
                 "regulatory": r.get("regulatory"),
             }
 
+        # Two-phase helper: fetch full row by PK after lightweight ID lookup
+        _SR_COLS = "name, slug, registry, trust_score, trust_grade, downloads, stars, description, author, license, enriched_at, weekly_downloads, cve_count, security_score, maintenance_score, popularity_score, community_score, quality_score, is_king, privacy_score, transparency_score, reliability_score, jurisdiction, has_independent_audit, tracker_count, king_version, dimensions, regulatory"
+
+        def _sr_fetch_by_id(entity_id):
+            """Phase 2: Fetch full row by PK (1 row, no scan)."""
+            r = session.execute(text(f"SELECT {_SR_COLS} FROM software_registry WHERE id = :id"), {"id": entity_id}).fetchone()
+            if r:
+                _r = _to_result(dict(r._mapping)); _entity_cache[_cache_key] = (_r, _t_mod.time()); return _r
+            return None
+
         # 0. CONSUMER OVERRIDE for well-known products
-        # Try both raw slug and normalized (no hyphens/spaces)
         override = _CONSUMER_OVERRIDES.get(sl) or _CONSUMER_OVERRIDES.get(norm)
         if override:
             reg, name_pat = override
-            # Use = for exact matches, LIKE only for patterns with %
             if "%" in name_pat:
-                orow = session.execute(text("""
-                    SELECT name, slug, registry, trust_score, trust_grade, downloads, description, author, license, enriched_at, weekly_downloads, cve_count, security_score, maintenance_score, popularity_score, community_score, quality_score, is_king, privacy_score, transparency_score, reliability_score, jurisdiction, has_independent_audit, tracker_count, king_version, dimensions, regulatory
-                    FROM software_registry
-                    WHERE registry = :reg AND name LIKE :pat
-                    ORDER BY downloads DESC NULLS LAST LIMIT 1
-                """), {"reg": reg, "pat": name_pat}).fetchone()
+                oid = session.execute(text("SELECT id FROM software_registry WHERE registry = :reg AND name LIKE :pat ORDER BY downloads DESC NULLS LAST LIMIT 1"), {"reg": reg, "pat": name_pat}).fetchone()
             else:
-                orow = session.execute(text("""
-                    SELECT name, slug, registry, trust_score, trust_grade, downloads, description, author, license, enriched_at, weekly_downloads, cve_count, security_score, maintenance_score, popularity_score, community_score, quality_score, is_king, privacy_score, transparency_score, reliability_score, jurisdiction, has_independent_audit, tracker_count, king_version, dimensions, regulatory
-                    FROM software_registry
-                    WHERE registry = :reg AND name = :pat
-                    ORDER BY downloads DESC NULLS LAST LIMIT 1
-                """), {"reg": reg, "pat": name_pat}).fetchone()
-            if orow:
-                _r = _to_result(dict(orow._mapping)); _entity_cache[_cache_key] = (_r, _t_mod.time()); return _r
-
-        # Try both raw slug and normalized for all lookups
-        _slugs = list(dict.fromkeys([sl, norm]))  # unique, preserve order
-
-        # 1+2 combined: EXACT name across ALL registries with registry priority
-        # VPN/SaaS/ai_tool take priority over generic app stores
-        for s in _slugs:
-            all_exact = session.execute(text("""
-                SELECT name, slug, registry, trust_score, trust_grade, downloads, description, author, license, enriched_at, weekly_downloads, cve_count, security_score, maintenance_score, popularity_score, community_score, quality_score, is_king, privacy_score, transparency_score, reliability_score, jurisdiction, has_independent_audit, tracker_count, king_version, dimensions, regulatory
-                FROM software_registry
-                WHERE slug = :slug OR lower(name) = :name OR lower(replace(replace(name, ' ', ''), '-', '')) = :norm
-                ORDER BY
-                    is_king DESC NULLS LAST,
+                oid = session.execute(text("SELECT id FROM software_registry WHERE registry = :reg AND name = :pat ORDER BY downloads DESC NULLS LAST LIMIT 1"), {"reg": reg, "pat": name_pat}).fetchone()
+            if oid:
+                return _sr_fetch_by_id(oid[0])
+        _SR_ORDER = """ORDER BY is_king DESC NULLS LAST,
                     CASE registry
                         WHEN 'vpn' THEN 1 WHEN 'country' THEN 2 WHEN 'city' THEN 2 WHEN 'charity' THEN 3
                         WHEN 'ingredient' THEN 3 WHEN 'supplement' THEN 3 WHEN 'cosmetic_ingredient' THEN 3
@@ -2998,24 +4787,40 @@ def _resolve_entity(slug):
                         WHEN 'ios' THEN 13 WHEN 'android' THEN 14
                         WHEN 'steam' THEN 15 WHEN 'crypto' THEN 16
                         ELSE 20
-                    END,
-                    trust_score DESC NULLS LAST
-                LIMIT 1
-            """), {"slug": s, "name": s, "norm": s.replace("-", "").replace(" ", "")}).fetchone()
-            if all_exact:
-                _r = _to_result(dict(all_exact._mapping)); _entity_cache[_cache_key] = (_r, _t_mod.time()); return _r
+                    END, trust_score DESC NULLS LAST LIMIT 1"""
+
+        # Phase 1: Lightweight ID lookups (index-only scans)
+        _slugs = list(dict.fromkeys([sl, norm]))
+
+        # 1. Slug lookup (uses idx_sr_slug — instant)
+        for s in _slugs:
+            row = session.execute(text(f"SELECT id FROM software_registry WHERE slug = :slug {_SR_ORDER}"), {"slug": s}).fetchone()
+            if row:
+                return _sr_fetch_by_id(row[0])
+
+        # 2. Exact lower(name) lookup (uses idx_sr_lower_name)
+        for s in _slugs:
+            row = session.execute(text(f"SELECT id FROM software_registry WHERE lower(name) = :name {_SR_ORDER}"), {"name": s}).fetchone()
+            if row:
+                return _sr_fetch_by_id(row[0])
+
+        # 3. Normalized name lookup (uses idx_sr_name_normalized)
+        for s in _slugs:
+            _n = s.replace("-", "").replace(" ", "")
+            row = session.execute(text(f"SELECT id FROM software_registry WHERE lower(replace(replace(name, ' ', ''), '-', '')) = :norm {_SR_ORDER}"), {"norm": _n}).fetchone()
+            if row:
+                return _sr_fetch_by_id(row[0])
 
         # 4. Fuzzy: starts-with in consumer registries with high downloads (>1M)
-        fuzzy_consumer = session.execute(text("""
-            SELECT name, slug, registry, trust_score, trust_grade, downloads, description, author, license, enriched_at, weekly_downloads, cve_count, security_score, maintenance_score, popularity_score, community_score, quality_score, is_king, privacy_score, transparency_score, reliability_score, jurisdiction, has_independent_audit, tracker_count, king_version, dimensions, regulatory
-            FROM software_registry
+        fuzzy_id = session.execute(text("""
+            SELECT id FROM software_registry
             WHERE lower(name) LIKE :starts
             AND registry IN ('android', 'ios', 'vpn')
             AND COALESCE(downloads, 0) > 1000000
             ORDER BY downloads DESC NULLS LAST LIMIT 1
         """), {"starts": sl + "%"}).fetchone()
-        if fuzzy_consumer:
-            _r = _to_result(dict(fuzzy_consumer._mapping)); _entity_cache[_cache_key] = (_r, _t_mod.time()); return _r
+        if fuzzy_id:
+            return _sr_fetch_by_id(fuzzy_id[0])
 
         # 3. WEBSITE check
         domain = sl if "." in sl else sl + ".com"
@@ -3035,27 +4840,18 @@ def _resolve_entity(slug):
             }
 
         # 4. Developer packages: exact name in npm/pypi/crates/nuget/go/packagist/gems
-        #    These often have 0 downloads but ARE the right entity
-        row = session.execute(text("""
-            SELECT name, slug, registry, trust_score, trust_grade, downloads, description, author, license, enriched_at, weekly_downloads, cve_count, security_score, maintenance_score, popularity_score, community_score, quality_score, is_king, privacy_score, transparency_score, reliability_score, jurisdiction, has_independent_audit, tracker_count, king_version, dimensions, regulatory
-            FROM software_registry
+        dev_id = session.execute(text("""
+            SELECT id FROM software_registry
             WHERE lower(name) = :name
             AND registry IN ('npm', 'pypi', 'crates', 'nuget', 'go', 'packagist', 'gems', 'homebrew')
             LIMIT 1
         """), {"name": sl}).fetchone()
-        if row:
-            _r = _to_result(dict(row._mapping)); _entity_cache[_cache_key] = (_r, _t_mod.time()); return _r
+        if dev_id:
+            _r = _sr_fetch_by_id(dev_id[0])
+            if _r: return _r
 
-        # 5. Broad fuzzy: any software_registry with high downloads
-        row = session.execute(text("""
-            SELECT name, slug, registry, trust_score, trust_grade, downloads, description, author, license, enriched_at, weekly_downloads, cve_count, security_score, maintenance_score, popularity_score, community_score, quality_score, is_king, privacy_score, transparency_score, reliability_score, jurisdiction, has_independent_audit, tracker_count, king_version, dimensions, regulatory
-            FROM software_registry
-            WHERE lower(name) LIKE :pattern
-            AND COALESCE(downloads, 0) > 10000
-            ORDER BY downloads DESC NULLS LAST LIMIT 1
-        """), {"pattern": f"%{sl}%"}).fetchone()
-        if row:
-            _r = _to_result(dict(row._mapping)); _entity_cache[_cache_key] = (_r, _t_mod.time()); return _r
+        # 5. Broad fuzzy REMOVED — was doing LIKE '%slug%' on 2.5M rows (seq scan → zombie PG)
+        # Exact slug/name/normalized lookups above catch 99%+ of real entities.
 
         # 4. agents table: quality agents only (stars > 50)
         # Use existing _lookup_agent but it already does this
@@ -3073,6 +4869,9 @@ def _lookup_agent(name):
     Uses _SLUG_OVERRIDES for top tools, then falls back to DB matching
     with rank-first ordering to prefer exact matches over fuzzy ones.
     """
+    # Reject absurdly long names — bot spam
+    if len(name) > 200:
+        return None
     # Check manual overrides first (slug or clean name, both with and without hyphens)
     override_key = name.lower().strip()
     if override_key in _SLUG_OVERRIDES:
@@ -3085,33 +4884,38 @@ def _lookup_agent(name):
 
     session = get_session()
     try:
+        session.execute(text("SET LOCAL statement_timeout = '3s'"))
+        session.execute(text("SET LOCAL work_mem = '2MB'"))
         clean = name.replace("-", " ").replace("_", " ")
+
+        # Short-circuit: try exact match FIRST (uses index, <1ms)
+        # Uses entity_lookup (2.9GB) instead of agents (17GB) to avoid zombie PG backends
         row = session.execute(text(f"""
-            SELECT {_TRUST_COLS} FROM (
-                SELECT *, 1 AS _rank FROM agents
-                WHERE LOWER(name) = LOWER(:name) AND is_active = true
-              UNION ALL
-                SELECT *, 1 AS _rank FROM agents
-                WHERE LOWER(name) = LOWER(:clean) AND is_active = true
-                AND :clean != :name
-              UNION ALL
-                SELECT *, 2 AS _rank FROM agents
-                WHERE lower(name::text) LIKE lower(:suffix) AND is_active = true
-              UNION ALL
-                SELECT *, 3 AS _rank FROM agents
-                WHERE lower(name::text) LIKE lower(:pattern) AND is_active = true
-            ) sub
-            ORDER BY _rank ASC,
-                     COALESCE(trust_score_v2, trust_score) DESC NULLS LAST,
-                     stars DESC NULLS LAST
+            SELECT {_TRUST_COLS} FROM entity_lookup
+            WHERE (name_lower = LOWER(:name) OR name_lower = LOWER(:clean))
+              AND is_active = true
+            ORDER BY COALESCE(trust_score_v2, trust_score) DESC NULLS LAST
             LIMIT 1
-        """), {
-            "name": name,
-            "clean": clean,
-            "suffix": f"%/{name}",
-            "pattern": f"%{name}%",
-        }).fetchone()
-        return dict(row._mapping) if row else None
+        """), {"name": name, "clean": clean}).fetchone()
+        if row:
+            return dict(row._mapping)
+
+        # Suffix match: org/name pattern — two-phase (ID via index, then full fetch)
+        _suffix_id = session.execute(text("""
+            SELECT id FROM entity_lookup
+            WHERE name_lower LIKE lower(:suffix) AND is_active = true
+            ORDER BY COALESCE(trust_score_v2, trust_score) DESC NULLS LAST
+            LIMIT 1
+        """), {"suffix": f"%/{name}"}).fetchone()
+        if _suffix_id:
+            row = session.execute(text(f"SELECT {_TRUST_COLS} FROM entity_lookup WHERE id = :id"),
+                                  {"id": _suffix_id[0]}).fetchone()
+            if row:
+                return dict(row._mapping)
+
+        # Broad fuzzy LIKE '%name%' REMOVED — was scanning 5M rows, creating zombie PG backends.
+        # Exact + suffix lookups above catch real entities; fuzzy matched noise.
+        return None
     finally:
         session.close()
 
@@ -3151,8 +4955,27 @@ _REGISTRY_GUIDE = {
 def _safety_guide_registry(dn, name, registry, score, grade, stars, description, is_verified, alternatives, slug,
                             security_score, activity_score, doc_score, popularity_score, compliance_score):
     """Generate a registry-appropriate safety guide (NOT AI-focused)."""
-    info = _REGISTRY_GUIDE.get(registry, {"cat": "software", "verify": "Review the project for recent activity and known issues.", "concerns": "maintenance status, security"})
+    info = _REGISTRY_GUIDE.get(registry, {"cat": "software tool", "verify": "Review the project for recent activity and known issues.", "concerns": "maintenance status, security"})
     cat = info["cat"]
+    # Add registry-specific entries for commercial verticals missing from _REGISTRY_GUIDE
+    if registry == "password_manager":
+        info = {"cat": "password manager", "verify": "Check breach history. Verify encryption standard. Review independent audit status.", "concerns": "breach history, encryption standard, audit status, jurisdiction"}
+        cat = info["cat"]
+    elif registry == "antivirus":
+        info = {"cat": "antivirus software", "verify": "Check AV-TEST lab results. Review incident history and privacy policy.", "concerns": "detection rate, system impact, privacy practices, jurisdiction"}
+        cat = info["cat"]
+    elif registry == "hosting":
+        info = {"cat": "web hosting provider", "verify": "Check uptime history. Review security compliance and data center locations.", "concerns": "uptime reliability, security compliance, breach history, data location"}
+        cat = info["cat"]
+    elif registry == "website_builder":
+        info = {"cat": "website builder", "verify": "Check security certifications. Review ecommerce payment compliance.", "concerns": "security certifications, payment compliance, data location"}
+        cat = info["cat"]
+    elif registry == "saas":
+        info = {"cat": "SaaS platform", "verify": "Check SOC 2 compliance. Review data handling and incident history.", "concerns": "data security, compliance certifications, incident history"}
+        cat = info["cat"]
+    elif registry == "crypto":
+        info = {"cat": "crypto exchange", "verify": "Check regulatory status. Verify Proof of Reserves. Review incident history.", "concerns": "regulatory compliance, security incidents, Proof of Reserves, jurisdiction"}
+        cat = info["cat"]
     verified_label = "meets Nerq trust threshold" if is_verified else "has not yet reached Nerq trust threshold (70+)"
 
     alts_html = ""
@@ -3175,7 +4998,7 @@ def _safety_guide_registry(dn, name, registry, score, grade, stars, description,
 <p>{info["verify"]}</p>
 <p>You can also check the trust score via API: <code>GET /v1/preflight?target={_esc(name)}</code></p>
 
-<h3>Key Safety Concerns for {cat}s</h3>
+<h3>Key Safety Concerns for {cat}</h3>
 <p>When evaluating any {cat}, watch for: {info["concerns"]}.</p>
 
 <h3>Trust Assessment</h3>
@@ -3675,13 +5498,21 @@ def _get_discovery_links(registry, current_slug):
                 _s, _n, _ts, _g = r
                 _dn = _esc(_n.split("/")[-1].replace("-", " ").replace("_", " ").title()[:30])
                 items += f'<a href="/safe/{_esc(_s)}" class="disc-link">{_dn} <span>{_ts:.0f}</span></a>'
-            pop_html = f'<div class="disc-section"><h3 style="font-size:14px;font-weight:600;margin:0 0 8px">Popular in {_esc(registry)}</h3><div class="disc-grid">{items}</div></div>'
+            _disc_reg = _REGISTRY_DISPLAY.get(registry, registry.replace("_", " ").title() if registry else "")
+            pop_html = f'<div class="disc-section"><h3 style="font-size:14px;font-weight:600;margin:0 0 8px">Popular in {_esc(_disc_reg)}</h3><div class="disc-grid">{items}</div></div>'
 
-        # B) Recently analyzed (latest 10 across all registries)
-        recent_rows = session.execute(text("""
+        # B) Recently analyzed (latest 10 from published registries only)
+        try:
+            from agentindex.quality_gate import get_publishable_registries
+            _pub_regs = get_publishable_registries()
+        except Exception:
+            _pub_regs = {"npm", "pypi", "crates", "android", "ios", "steam", "vpn", "wordpress"}
+        _pub_list = ",".join(f"'{r}'" for r in _pub_regs) if _pub_regs else "'npm'"
+        recent_rows = session.execute(text(f"""
             SELECT slug, name, registry, trust_score FROM software_registry
             WHERE enriched_at IS NOT NULL AND description IS NOT NULL AND LENGTH(description) > 20
               AND trust_score IS NOT NULL AND trust_score > 30
+              AND registry IN ({_pub_list})
             ORDER BY enriched_at DESC LIMIT 10
         """)).fetchall()
 
@@ -3735,6 +5566,116 @@ def _get_discovery_links(registry, current_slug):
         session.close()
 
 
+# ── See Also i18n ────────────────────────────────────────────
+_SEE_ALSO_I18N = {
+    "es": ("Ver también", "Alternativas a {name}", "Mejores {category} 2026"),
+    "de": ("Siehe auch", "Alternativen zu {name}", "Beste {category} 2026"),
+    "fr": ("Voir aussi", "Alternatives à {name}", "Meilleurs {category} 2026"),
+    "ja": ("関連項目", "{name}の代替", "最高の{category} 2026"),
+    "pt": ("Veja também", "Alternativas a {name}", "Melhores {category} 2026"),
+    "id": ("Lihat juga", "Alternatif untuk {name}", "{category} Terbaik 2026"),
+    "cs": ("Viz také", "Alternativy k {name}", "Nejlepší {category} 2026"),
+    "th": ("ดูเพิ่มเติม", "ทางเลือกแทน {name}", "{category} ที่ดีที่สุด 2026"),
+    "tr": ("Ayrıca bakınız", "{name} alternatifleri", "En iyi {category} 2026"),
+    "ro": ("Vezi și", "Alternative la {name}", "Cele mai bune {category} 2026"),
+    "hi": ("यह भी देखें", "{name} के विकल्प", "सर्वश्रेष्ठ {category} 2026"),
+    "ru": ("См. также", "Альтернативы {name}", "Лучшие {category} 2026"),
+    "pl": ("Zobacz także", "Alternatywy dla {name}", "Najlepsze {category} 2026"),
+    "ko": ("참고 항목", "{name} 대안", "최고의 {category} 2026"),
+    "it": ("Vedi anche", "Alternative a {name}", "Migliori {category} 2026"),
+    "vi": ("Xem thêm", "Lựa chọn thay thế cho {name}", "{category} tốt nhất 2026"),
+    "nl": ("Zie ook", "Alternatieven voor {name}", "Beste {category} 2026"),
+    "sv": ("Se även", "Alternativ till {name}", "Bästa {category} 2026"),
+    "zh": ("另请参阅", "{name}的替代品", "最佳{category} 2026"),
+    "da": ("Se også", "Alternativer til {name}", "Bedste {category} 2026"),
+    "no": ("Se også", "Alternativer til {name}", "Beste {category} 2026"),
+    "ar": ("انظر أيضاً", "بدائل {name}", "أفضل {category} 2026"),
+}
+
+# Cross-vertical link config: registry → list of (best_slug, label_en)
+_SEE_ALSO_CROSS = {
+    "vpn": [("safest-password-managers", "Password Managers"), ("safest-antivirus-software", "Antivirus")],
+    "password_manager": [("safest-vpns", "VPNs"), ("safest-antivirus-software", "Antivirus")],
+    "antivirus": [("safest-vpns", "VPNs"), ("safest-password-managers", "Password Managers")],
+    "hosting": [("safest-website-builders", "Website Builders")],
+    "website_builder": [("safest-web-hosting", "Web Hosting")],
+    "npm": [("safest-pypi-packages", "Python Packages")],
+    "pypi": [("safest-npm-packages", "npm Packages")],
+    "crates": [("safest-npm-packages", "npm Packages")],
+    "crypto": [("safest-vpns", "VPNs")],
+}
+
+
+_REGISTRY_DISPLAY = {
+    "vpn": "VPNs", "password_manager": "Password Managers", "antivirus": "Antivirus",
+    "hosting": "Web Hosting", "website_builder": "Website Builders", "saas": "SaaS",
+    "crypto": "Crypto Exchanges", "npm": "npm Packages", "pypi": "Python Packages",
+    "crates": "Rust Crates", "chrome": "Chrome Extensions", "firefox": "Firefox Add-ons",
+    "vscode": "VS Code Extensions", "wordpress": "WordPress Plugins",
+    "ios": "iOS Apps", "android": "Android Apps", "steam": "Steam Games",
+    "nuget": "NuGet Packages", "go": "Go Packages", "gems": "Ruby Gems",
+    "packagist": "PHP Packages", "homebrew": "Homebrew",
+    "website": "Websites", "country": "Countries",
+}
+
+
+_CROSS_CAT_I18N = {
+    "Password Managers": {"es":"Gestores de contraseñas","de":"Passwort-Manager","fr":"Gestionnaires de mots de passe","ja":"パスワードマネージャー","pt":"Gerenciadores de senhas","id":"Pengelola kata sandi","cs":"Správci hesel","th":"โปรแกรมจัดการรหัสผ่าน","tr":"Şifre yöneticileri","ro":"Managere de parole","hi":"पासवर्ड मैनेजर","ru":"Менеджеры паролей","pl":"Menedżery haseł","ko":"비밀번호 관리자","it":"Gestori di password","vi":"Trình quản lý mật khẩu","nl":"Wachtwoordmanagers","sv":"Lösenordshanterare","zh":"密码管理器","da":"Adgangskodeadministratorer","no":"Passordbehandlere","ar":"مديرو كلمات المرور"},
+    "Antivirus": {"es":"Antivirus","de":"Antivirus","fr":"Antivirus","ja":"アンチウイルス","pt":"Antivírus","id":"Antivirus","cs":"Antivirus","th":"แอนตี้ไวรัส","tr":"Antivirüs","ro":"Antivirus","hi":"एंटीवायरस","ru":"Антивирус","pl":"Antywirus","ko":"안티바이러스","it":"Antivirus","vi":"Phần mềm diệt virus","nl":"Antivirus","sv":"Antivirus","zh":"杀毒软件","da":"Antivirus","no":"Antivirus","ar":"مضاد الفيروسات"},
+    "VPNs": {"es":"VPNs","de":"VPNs","fr":"VPN","ja":"VPN","pt":"VPNs","id":"VPN","cs":"VPN","th":"VPN","tr":"VPN","ro":"VPN-uri","hi":"VPN","ru":"VPN","pl":"VPN","ko":"VPN","it":"VPN","vi":"VPN","nl":"VPN's","sv":"VPN","zh":"VPN","da":"VPN","no":"VPN-er","ar":"VPN"},
+    "Website Builders": {"es":"Creadores de sitios web","de":"Website-Baukästen","fr":"Constructeurs de sites","ja":"ウェブサイトビルダー","pt":"Construtores de sites","id":"Pembuat situs","cs":"Stavitelé webů","th":"เครื่องมือสร้างเว็บไซต์","tr":"Web sitesi oluşturucular","ro":"Constructori de site-uri","hi":"वेबसाइट बिल्डर","ru":"Конструкторы сайтов","pl":"Kreatory stron","ko":"웹사이트 빌더","it":"Costruttori di siti","vi":"Trình tạo website","nl":"Websitebouwers","sv":"Webbplatsbyggare","zh":"网站构建器","da":"Webstedbyggere","no":"Nettstedsbyggere","ar":"أدوات بناء المواقع"},
+    "Web Hosting": {"es":"Hosting web","de":"Web-Hosting","fr":"Hébergement web","ja":"Webホスティング","pt":"Hospedagem web","id":"Hosting web","cs":"Webhosting","th":"เว็บโฮสติ้ง","tr":"Web barındırma","ro":"Găzduire web","hi":"वेब होस्टिंग","ru":"Веб-хостинг","pl":"Hosting","ko":"웹 호스팅","it":"Hosting web","vi":"Hosting web","nl":"Webhosting","sv":"Webbhotell","zh":"虚拟主机","da":"Webhosting","no":"Webhotell","ar":"استضافة الويب"},
+    "Python Packages": {"es":"Paquetes Python","de":"Python-Pakete","fr":"Paquets Python","ja":"Pythonパッケージ","pt":"Pacotes Python","id":"Paket Python","cs":"Python balíčky","th":"แพ็คเกจ Python","tr":"Python paketleri","ro":"Pachete Python","hi":"Python पैकेज","ru":"Пакеты Python","pl":"Pakiety Python","ko":"Python 패키지","it":"Pacchetti Python","vi":"Gói Python","nl":"Python-pakketten","sv":"Python-paket","zh":"Python包","da":"Python-pakker","no":"Python-pakker","ar":"حزم Python"},
+    "npm Packages": {"es":"Paquetes npm","de":"npm-Pakete","fr":"Paquets npm","ja":"npmパッケージ","pt":"Pacotes npm","id":"Paket npm","cs":"npm balíčky","th":"แพ็คเกจ npm","tr":"npm paketleri","ro":"Pachete npm","hi":"npm पैकेज","ru":"Пакеты npm","pl":"Pakiety npm","ko":"npm 패키지","it":"Pacchetti npm","vi":"Gói npm","nl":"npm-pakketten","sv":"npm-paket","zh":"npm包","da":"npm-pakker","no":"npm-pakker","ar":"حزم npm"},
+}
+
+
+def _build_see_also(slug, display_name, source, sim_rows, best_slug, lang="en"):
+    """Build a See Also section with contextual links."""
+    i18n = _SEE_ALSO_I18N.get(lang, ("See Also", "Alternatives to {name}", "Best {category} 2026"))
+    heading = i18n[0]
+    alts_label = i18n[1].format(name=_esc(display_name))
+    _lp = f"/{lang}" if lang != "en" else ""
+    _reg_display_en = _REGISTRY_DISPLAY.get(source, source.replace("_", " ").title() if source else "Tools")
+    # Localize registry display name for the best-in-category link
+    _reg_display = _CROSS_CAT_I18N.get(_reg_display_en, {}).get(lang, _reg_display_en) if lang != "en" else _reg_display_en
+    best_label = i18n[2].format(category=_reg_display)
+
+    links = []
+    # 1. Compare with top 2 similar entities
+    if sim_rows:
+        for r in sim_rows[:2]:
+            r_slug = r[0]
+            r_name = r[1]
+            links.append(f'<li><a href="{_lp}/compare/{_esc(slug)}-vs-{_esc(r_slug)}">{_esc(display_name)} vs {_esc(r_name)}</a></li>')
+
+    # 2. Alternatives page
+    links.append(f'<li><a href="{_lp}/alternatives/{_esc(slug)}">{alts_label}</a></li>')
+
+    # 3. Best in category
+    if best_slug:
+        links.append(f'<li><a href="{_lp}/best/{best_slug}">{best_label}</a></li>')
+
+    # 4. Cross-vertical links (localized category names)
+    cross = _SEE_ALSO_CROSS.get(source, [])
+    for c_slug, c_label in cross[:1]:  # max 1 cross-vertical to stay at 5 links
+        _loc_label = _CROSS_CAT_I18N.get(c_label, {}).get(lang, c_label)
+        c_best_label = i18n[2].format(category=_loc_label)
+        links.append(f'<li><a href="{_lp}/best/{c_slug}">{c_best_label}</a></li>')
+
+    if not links:
+        return ""
+
+    items = "\n    ".join(links)
+    return f'''<section class="see-also" style="margin-top:28px;padding-top:20px;border-top:1px solid #e2e8f0">
+  <h2 style="font-size:15px;font-weight:600;color:#334155;margin:0 0 10px">{heading}</h2>
+  <ul style="margin:0;padding:0;list-style:none">
+    {items}
+  </ul>
+  <style>.see-also a{{color:#2563eb;text-decoration:none;font-size:14px;line-height:2}}.see-also a:hover{{text-decoration:underline}}</style>
+</section>'''
+
+
 def _get_alternatives(category, current_name, current_score, limit=5):
     """Get popular alternatives in same category, ordered by stars then score."""
     session = get_session()
@@ -3742,10 +5683,10 @@ def _get_alternatives(category, current_name, current_score, limit=5):
         rows = session.execute(text("""
             SELECT name, COALESCE(trust_score_v2, trust_score) as trust_score,
                    trust_grade, category, source, stars
-            FROM agents
+            FROM entity_lookup
             WHERE is_active = true
               AND category = :cat
-              AND LOWER(name) != LOWER(:name)
+              AND name_lower != LOWER(:name)
               AND COALESCE(trust_score_v2, trust_score) IS NOT NULL
               AND agent_type IN ('agent', 'mcp_server', 'tool')
             ORDER BY stars DESC NULLS LAST, COALESCE(trust_score_v2, trust_score) DESC
@@ -5675,11 +7616,12 @@ def _render_agent_page(slug, agent_info, lang="en"):
     else:
         _verdict_prefix = _t("significant_concerns", lang, name=_esc(display_name))
     _n_dims = len([s for s in [security_score, activity_score, popularity_score, doc_score, compliance_score] if s is not None])
+    _entity_type_local = _t(f"type_{source}", lang) if _t(f"type_{source}", lang) != f"type_{source}" else _entity_word
     definition_lead = (
         f"{_verdict_prefix} "
-        f"{_esc(display_name)} is {_article} {_entity_word}"
-        f"{_desc_suffix}{_rank_text} with a Nerq Trust Score of {score_str}/100 ({_esc(grade)})"
-        f"{', based on ' + str(max(_n_dims, 3)) + ' independent data dimensions' if _n_dims else ''}"
+        f"{_esc(display_name)} {_t('is_a_type', lang, type=_entity_type_local)}"
+        f"{_desc_suffix}{_rank_text} {_t('with_trust_score', lang, score=score_str, grade=_esc(grade))}"
+        f"{', ' + _t('based_on_dims', lang, dims=str(max(_n_dims, 3))) if _n_dims else ''}"
         f".{_extra_lead}"
     )
 
@@ -5799,14 +7741,15 @@ def _render_agent_page(slug, agent_info, lang="en"):
         )
 
     # ── CTA buttons for security/privacy deep-dive ──
-    _sec_label = _t("security_analysis", lang)
-    _pri_label = _t("privacy_report", lang)
+    _sec_label = _t("security_analysis", lang, name=_esc(display_name))
+    _pri_label = _t("privacy_report", lang, name=_esc(display_name))
     cta_buttons = f"""<div style="display:flex;gap:10px;margin:16px 0">
 <a href="/safe/{_esc(slug)}/security" style="flex:1;padding:12px;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;text-decoration:none;text-align:center;color:#991b1b;font-weight:600;font-size:14px">{_sec_label} &rarr;</a>
 <a href="/safe/{_esc(slug)}/privacy" style="flex:1;padding:12px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;text-decoration:none;text-align:center;color:#1e40af;font-weight:600;font-size:14px">{_pri_label} &rarr;</a>
 </div>"""
 
     # ── Similar entities from same registry ──
+    _sim_rows = []
     similar_entities_html = ""
     _REGISTRY_BEST_MAP = {
         "npm": "npm-packages", "pypi": "python-packages", "crates": "best-rust-crates",
@@ -5814,7 +7757,9 @@ def _render_agent_page(slug, agent_info, lang="en"):
         "wordpress": "best-wordpress-plugins", "chrome": "chrome-extensions",
         "firefox": "firefox-addons", "vscode": "best-vscode-extensions",
         "ios": "ios-apps", "android": "android-apps", "steam": "steam-games",
-        "vpn": "safest-vpns", "homebrew": "homebrew-cli-tools",
+        "vpn": "safest-vpns", "password_manager": "safest-password-managers",
+        "antivirus": "safest-antivirus-software", "hosting": "safest-web-hosting",
+        "website_builder": "safest-website-builders", "homebrew": "homebrew-cli-tools",
         "gems": "ruby-web-frameworks", "packagist": "php-web-frameworks",
         "website": "safest-websites", "saas": "saas-tools",
         "country": "safest-countries", "city": "safest-cities",
@@ -5844,6 +7789,13 @@ def _render_agent_page(slug, agent_info, lang="en"):
             if _best_slug:
                 similar_entities_html += f'<div style="margin-top:10px"><a href="/best/{_best_slug}" style="font-size:13px;color:#2563eb">{_t("see_all_best", lang, registry=_esc(_reg_display))} &rarr;</a></div>'
             similar_entities_html += '</div>'
+            # Compare links from similar entities
+            _cmp_links = "".join(
+                f'<a href="/compare/{_esc(slug)}-vs-{_esc(r[0])}" style="display:inline-block;padding:6px 14px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px;text-decoration:none;color:#334155;margin:3px">{_esc(display_name)} vs {_esc(r[1])}</a>'
+                for r in _sim_rows[:3]
+            )
+            if _cmp_links:
+                similar_entities_html += f'<div style="margin:12px 0 20px"><h3 style="font-size:14px;font-weight:600;margin-bottom:8px">Compare</h3><div style="display:flex;flex-wrap:wrap;gap:4px">{_cmp_links}</div></div>'
     except Exception:
         pass
 
@@ -5871,101 +7823,137 @@ def _render_agent_page(slug, agent_info, lang="en"):
     best_signal = max(signals, key=lambda x: float(x[1]) if x[1].replace('.', '').isdigit() else 0) if signals else ("Overall", score_str, "")
     _dn_esc = _esc(display_name)
     _n_esc = _esc(name)
-    _rec_text = _rp.get("recommendation", "recommended for use")
+    _rec_text_en = _rp.get("recommendation", "recommended for use")
+    # Translate recommendation via _t() key mapping
+    _REC_KEYS = {
+        "recommended for privacy-conscious use": "rec_privacy",
+        "recommended for production use": "rec_production",
+        "recommended for general use": "rec_general",
+        "recommended for play": "rec_play",
+        "recommended for use": "rec_use",
+        "recommended for use in WordPress": "rec_wordpress",
+    }
+    _rec_key = _REC_KEYS.get(_rec_text_en, "rec_use")
+    _rec_text = _t(_rec_key, lang) if lang != "en" else _rec_text_en
 
-    # Build score dimensions list (only non-hidden ones)
+    # Build score dimensions list (only non-hidden ones) — localized
     _score_dims = []
     if security_score is not None:
-        _score_dims.append(f"security ({security_score:.0f}/100)")
+        _score_dims.append(f"{_t('dim_security', lang)} ({security_score:.0f}/100)")
     if "maintenance" not in _hidden and activity_score is not None:
-        _score_dims.append(f"maintenance ({activity_score:.0f}/100)")
+        _score_dims.append(f"{_t('dim_maintenance', lang)} ({activity_score:.0f}/100)")
     if popularity_score is not None:
-        _score_dims.append(f"popularity ({popularity_score:.0f}/100)")
+        _score_dims.append(f"{_t('dim_popularity', lang)} ({popularity_score:.0f}/100)")
     if "documentation" not in _hidden and doc_score is not None:
-        _score_dims.append(f"documentation ({doc_score:.0f}/100)")
+        _score_dims.append(f"{_t('documentation', lang)} ({doc_score:.0f}/100)")
     _dims_text = ", ".join(_score_dims) if _score_dims else "multiple trust dimensions"
 
-    # FAQ Q1: "Is X safe?" — verdict-first answer
-    faq_q1 = _rp["faq_q1"].format(name=_dn_esc)
-    _faq_verdict = "Yes, it is safe to use." if float(score) >= 70 else "Use with some caution." if float(score) >= 50 else "Exercise caution." if float(score) >= 30 else "Significant trust concerns."
+    # FAQ Q1: "Is X safe?" — verdict-first answer (localized)
+    faq_q1 = _t("h1_safe", lang, name=_dn_esc)
+    _faq_verdict = _t("yes_safe_short", lang) if float(score) >= 70 else _t("use_caution_faq", lang) if float(score) >= 50 else _t("exercise_caution_faq", lang) if float(score) >= 30 else _t("significant_concerns_faq", lang)
     faq_a1 = (
         f"{_faq_verdict} "
-        f"{_n_esc} has a Nerq Trust Score of {score_str}/100 ({_esc(grade)}). "
-        f"Strongest signal: {best_signal[0].lower()} ({best_signal[1]}/100). "
-        f"Score based on {_dims_text}."
+        f"{_n_esc} {_t('with_trust_score', lang, score=score_str, grade=_esc(grade))}. "
+        f"{_t('strongest_signal', lang)} {best_signal[0].lower()} ({best_signal[1]}/100). "
+        f"{_t('score_based_dims', lang, dims=_dims_text)}"
     )
 
-    # FAQ Q2: "What is X's trust score?"
-    faq_q2 = _rp["faq_q2"].format(name=_dn_esc)
+    # FAQ Q2: "What is X's trust score?" (localized)
+    faq_q2 = _t("h2q_trust_score", lang, name=_dn_esc)
     faq_a2 = (
         f"{_n_esc}: {score_str}/100 ({_esc(grade)}). "
-        f"Score based on: {_dims_text}. "
+        f"{_t('score_based_dims', lang, dims=_dims_text)} "
         f"{'Compliance: ' + str(round(compliance_score)) + '/100. ' if compliance_score else ''}"
-        f"Scores update as new data becomes available. "
+        f"{_t('scores_update', lang)} "
         f"API: GET nerq.ai/v1/preflight?target={_esc(name)}"
     )
 
-    # FAQ Q3: Alternatives
+    # FAQ Q3: Alternatives (localized)
     alt_names = ", ".join(f"{_esc(a['name'])} ({a.get('trust_score', 0):.0f}/100)" for a in alternatives[:3]) if alternatives else ""
-    faq_q3 = _rp["faq_q3"].format(name=_dn_esc)
+    # Use _t() for common FAQ questions, fall back to English registry-specific
+    _faq_q3_t = _t("faq_q3_alts", lang, name=_dn_esc)
+    faq_q3 = _faq_q3_t if _faq_q3_t != "faq_q3_alts" else _rp["faq_q3"].format(name=_dn_esc)
+    _faq_cat_en = _REGISTRY_DISPLAY.get(category, category.replace("_", " ").title() if category else "")
+    _faq_cat = _CROSS_CAT_I18N.get(_faq_cat_en, {}).get(lang, _faq_cat_en) if lang != "en" else _faq_cat_en
     faq_a3 = (
-        f"In the {_esc(category)} category, "
-        + (f"higher-rated alternatives include {alt_names}. " if alternatives else f"more {_entity_word}s are being analyzed — check back soon. ")
+        f"{_t('in_category', lang, category=_esc(_faq_cat))} "
+        + (f"{_t('higher_rated_alts', lang, alts=alt_names)} " if alternatives else f"{_t('more_being_analyzed', lang, type=_entity_word)} ")
         + f"{_n_esc} scores {score_str}/100."
     )
 
-    # FAQ Q4: Registry-specific question
+    # FAQ Q4: Registry-specific question (fully localized)
     _top_alt = alternatives[0] if alternatives else None
-    faq_q4 = _rp.get("faq_q4", "How often is {name}'s score updated?").format(
-        name=_dn_esc, alt=_esc(_top_alt["name"]) if _top_alt else "alternatives"
-    )
-    # Generate answer based on question topic
-    _q4_key = _rp.get("faq_q4", "")
-    if "log" in _q4_key.lower() or "track" in _q4_key.lower() or "collect" in _q4_key.lower():
-        faq_a4 = f"Nerq assesses {_dn_esc}'s data practices as part of its trust score ({score_str}/100). Security score: {f'{security_score:.0f}/100' if security_score is not None else 'N/A'}. Review the full safety report for detailed privacy analysis."
-    elif "kid" in _q4_key.lower():
-        faq_a4 = f"{_dn_esc} has a Nerq Trust Score of {score_str}/100. Parents should review the full safety report, check permissions and content ratings, and apply appropriate parental controls before allowing children to use it."
-    elif "vulnerabilit" in _q4_key.lower():
-        faq_a4 = f"Nerq checks {_dn_esc} against NVD, OSV.dev, and registry-specific vulnerability databases. Current security score: {f'{security_score:.0f}/100' if security_score is not None else 'N/A'}. Run your package manager's audit command for the latest findings."
-    elif "permission" in _q4_key.lower():
-        faq_a4 = f"Review {_dn_esc}'s requested permissions carefully. Extensions requesting 'Read and change all data on all websites' carry the highest risk. Current trust score: {score_str}/100."
-    elif "microtransaction" in _q4_key.lower():
-        faq_a4 = f"Check {_dn_esc}'s store page for microtransaction and loot box details. Nerq assesses monetization practices as part of the trust score ({score_str}/100)."
-    elif "verified" in _q4_key.lower() or "publisher" in _q4_key.lower():
-        faq_a4 = f"{_dn_esc} has a trust score of {score_str}/100. Publisher verification status is factored into the overall trust assessment."
-    elif "maintained" in _q4_key.lower():
-        faq_a4 = f"{_dn_esc} maintenance score: {f'{activity_score:.0f}/100' if activity_score is not None else 'N/A'}. Check the repository for recent commit activity and issue responsiveness."
-    elif "compatible" in _q4_key.lower():
-        faq_a4 = f"Check {_dn_esc}'s listing for version compatibility information. Trust score: {score_str}/100. Last analyzed: {datetime.now().strftime('%Y-%m-%d')}."
+    _q4_en = _rp.get("faq_q4", "How often is {name}'s safety score updated?")
+    _q4_key = _q4_en.lower()
+    # Map English pattern → _t() key
+    _Q4_MAP = [
+        ("log", "faq_q4_log"), ("track", "faq_q4_log"), ("collect", "faq_q4_log"),
+        ("vulnerabilit", "faq_q4_vuln"), ("kid", "faq_q4_kids"),
+        ("permission", "faq_q4_perms"), ("maintained", "faq_q4_maintained"),
+        ("scam", "faq_q4_scam"), ("telemetry", "faq_q4_telemetry"),
+        ("gdpr", "faq_q4_gdpr"), ("training", "faq_q4_training"),
+        ("updated", "faq_q4_update"),
+    ]
+    _q4_tkey = None
+    for _pat, _key in _Q4_MAP:
+        if _pat in _q4_key:
+            _q4_tkey = _key
+            break
+    if _q4_tkey:
+        _q4_t = _t(_q4_tkey, lang, name=_dn_esc)
+        faq_q4 = _q4_t if _q4_t != _q4_tkey else _q4_en.format(name=_dn_esc, alt=_esc(_top_alt["name"]) if _top_alt else "alternatives")
+    else:
+        faq_q4 = _q4_en.format(name=_dn_esc, alt=_esc(_top_alt["name"]) if _top_alt else "alternatives")
+    # Generate answer based on question topic (localized)
+    _sec_str = f'{security_score:.0f}/100' if security_score is not None else 'N/A'
+    _maint_str = f'{activity_score:.0f}/100' if activity_score is not None else 'N/A'
+    if "log" in _q4_key or "track" in _q4_key or "collect" in _q4_key:
+        faq_a4 = f"Nerq assesses {_dn_esc}'s data practices as part of its trust score ({score_str}/100). {_t('vpn_sec_score', lang)}: {_sec_str}. Review the full safety report for detailed privacy analysis."
+    elif "vulnerabilit" in _q4_key:
+        faq_a4 = _t("faq_a4_vuln", lang, name=_dn_esc, sec_score=_sec_str)
+    elif "kid" in _q4_key:
+        faq_a4 = _t("faq_a4_kids", lang, name=_dn_esc, score=score_str)
+    elif "permission" in _q4_key:
+        faq_a4 = _t("faq_a4_perms", lang, name=_dn_esc, score=score_str)
+    elif "maintained" in _q4_key:
+        faq_a4 = _t("faq_a4_maintained", lang, name=_dn_esc, maint_score=_maint_str)
     else:
         faq_a4 = (
             f"Nerq continuously monitors {_dn_esc} and updates its trust score as new data becomes available. "
-            f"Data sourced from {_rp.get('data_sources', 'multiple public sources')}. "
             f"Current: {score_str}/100 ({_esc(grade)}), last verified {datetime.now().strftime('%Y-%m-%d')}. "
             f"API: GET nerq.ai/v1/preflight?target={_esc(name)}"
         )
 
-    # FAQ Q5: Registry-specific question
-    faq_q5 = _rp.get("faq_q5", "Can I use {name} in a regulated environment?").format(
-        name=_dn_esc, alt=_esc(_top_alt["name"]) if _top_alt else "alternatives",
-        alt_slug=_make_slug(_top_alt["name"]) if _top_alt else ""
-    )
-    _q5_key = _rp.get("faq_q5", "")
-    if "vs" in _q5_key.lower() or "which is safer" in _q5_key.lower():
+    # FAQ Q5: Registry-specific question (fully localized)
+    _q5_en = _rp.get("faq_q5", "Can I use {name} in a regulated environment?")
+    _q5_key = _q5_en.lower()
+    _Q5_MAP = [
+        ("vs", "faq_q5_vs"), ("which is safer", "faq_q5_vs"),
+        ("regulated", "faq_q5_regulated"),
+        ("maintained", "faq_q4_maintained"), ("scam", "faq_q4_scam"),
+        ("telemetry", "faq_q4_telemetry"), ("gdpr", "faq_q4_gdpr"),
+        ("training", "faq_q4_training"),
+    ]
+    _q5_tkey = None
+    for _pat, _key in _Q5_MAP:
+        if _pat in _q5_key:
+            _q5_tkey = _key
+            break
+    if _q5_tkey:
+        _q5_t = _t(_q5_tkey, lang, name=_dn_esc)
+        faq_q5 = _q5_t if _q5_t != _q5_tkey else _q5_en.format(name=_dn_esc, alt=_esc(_top_alt["name"]) if _top_alt else "alternatives", alt_slug=_make_slug(_top_alt["name"]) if _top_alt else "")
+    else:
+        faq_q5 = _q5_en.format(name=_dn_esc, alt=_esc(_top_alt["name"]) if _top_alt else "alternatives", alt_slug=_make_slug(_top_alt["name"]) if _top_alt else "")
+    if "vs" in _q5_key or "which is safer" in _q5_key:
         if _top_alt:
-            faq_a5 = f"{_dn_esc}: {score_str}/100. {_esc(_top_alt['name'])}: {_top_alt.get('trust_score', 0):.0f}/100. Full comparison: nerq.ai/compare/{_esc(slug)}-vs-{_esc(_make_slug(_top_alt['name']))}"
+            faq_a5 = f"{_dn_esc}: {score_str}/100. {_esc(_top_alt['name'])}: {_top_alt.get('trust_score', 0):.0f}/100."
         else:
-            faq_a5 = f"{_dn_esc} scores {score_str}/100. More {_entity_word}s are being analyzed for comparison."
-    elif "regulated" in _q5_key.lower():
-        if is_verified:
-            faq_a5 = f"Yes — {_dn_esc} meets the Nerq Verified threshold (70+). Combine this with your internal security review for regulated deployments."
-        else:
-            faq_a5 = f"{_dn_esc} has not reached the Nerq Verified threshold of 70. Additional due diligence is recommended for regulated environments."
-    elif "scam" in _q5_key.lower():
-        faq_a5 = f"{_dn_esc} has a trust score of {score_str}/100 ({_esc(grade)}). {'This score indicates it is generally trustworthy.' if float(score) >= 60 else 'Exercise caution and verify independently.'}"
-    elif "open source" in _q5_key.lower() or "source" in _q5_key.lower():
-        faq_a5 = f"Check {_dn_esc}'s listing for source code availability. Open-source {_entity_word}s can be independently audited. Trust score: {score_str}/100."
-    elif "telemetry" in _q5_key.lower():
+            faq_a5 = f"{_dn_esc} scores {score_str}/100."
+    elif "regulated" in _q5_key:
+        faq_a5 = _t("faq_a5_verified", lang, name=_dn_esc) if is_verified else _t("faq_a5_not_verified", lang, name=_dn_esc)
+    elif "maintained" in _q5_key:
+        faq_a5 = _t("faq_a4_maintained", lang, name=_dn_esc, maint_score=_maint_str)
+    elif "telemetry" in _q5_key:
         faq_a5 = f"Review {_dn_esc}'s documentation for telemetry settings. Trust score: {score_str}/100. Check the extension's settings for opt-out options."
     elif "unsafe" in _q5_key.lower():
         faq_a5 = f"Check {_dn_esc}'s crate documentation for unsafe code usage. Trust score: {score_str}/100. Fewer unsafe blocks generally indicates better memory safety."
@@ -5976,7 +7964,7 @@ def _render_agent_page(slug, agent_info, lang="en"):
     elif "reviewed" in _q5_key.lower():
         faq_a5 = f"Nerq analyzes {_dn_esc} using data from {_rp.get('data_sources', 'multiple sources')}. Trust score: {score_str}/100 ({_esc(grade)})."
     else:
-        faq_a5 = f"{_dn_esc} has a trust score of {score_str}/100 ({_esc(grade)}). {'Meets Nerq Verified threshold.' if is_verified else 'Below Nerq Verified threshold — conduct additional review.'}"
+        faq_a5 = _t("faq_a5_verified", lang, name=_dn_esc) if is_verified else _t("faq_a5_not_verified", lang, name=_dn_esc)
 
     # Build FAQ HTML section
     _faq_items = [
@@ -5992,8 +7980,8 @@ def _render_agent_page(slug, agent_info, lang="en"):
     webpage_jsonld = json.dumps({
         "@context": "https://schema.org",
         "@type": "WebPage",
-        "name": f"Is {display_name} Safe? Trust Score {score_str}/100",
-        "description": f"{display_name} is a {_entity_word} with a Nerq Trust Score of {score_str}/100 ({grade}).",
+        "name": f"{_t('h1_safe', lang, name=display_name)} — {_t('trust_score_breakdown', lang)} {score_str}/100",
+        "description": f"{display_name} — {_entity_type_local} — Nerq Trust Score {score_str}/100 ({grade}).",
         "url": f"https://nerq.ai/safe/{slug}",
         "dateModified": datetime.now().strftime("%Y-%m-%d"),
         "publisher": {"@type": "Organization", "name": "Nerq", "url": "https://nerq.ai"},
@@ -6009,7 +7997,7 @@ def _render_agent_page(slug, agent_info, lang="en"):
              "acceptedAnswer": {"@type": "Answer", "text": fa.replace("&mdash;", "—")}}
             for fq, fa in _faq_items
         ]
-    })
+    }, separators=(',', ':'))
 
     # JSON-LD: BreadcrumbList
     breadcrumb_jsonld = json.dumps({
@@ -6160,20 +8148,21 @@ def _render_agent_page(slug, agent_info, lang="en"):
     # ── Why This Score bullets ──
     _why_bullets = []
     if security_score is not None:
-        _sec_label = "strong" if security_score >= 70 else "moderate" if security_score >= 40 else "weak"
-        _why_bullets.append(f"<li>Security score: {security_score:.0f}/100 ({_sec_label})</li>")
+        _sec_label = _t("strong", lang) if security_score >= 70 else _t("moderate", lang) if security_score >= 40 else _t("weak", lang)
+        _why_bullets.append(f"<li>{_t('vpn_sec_score', lang)}: {security_score:.0f}/100 ({_sec_label})</li>")
     if activity_score is not None:
-        _act_label = "actively maintained" if activity_score >= 70 else "moderately maintained" if activity_score >= 40 else "low maintenance activity"
-        _why_bullets.append(f"<li>Maintenance: {activity_score:.0f}/100 \u2014 {_act_label}</li>")
+        _act_label = _t("actively_maintained", lang) if activity_score >= 70 else _t("moderately_maintained", lang) if activity_score >= 40 else _t("low_maintenance", lang)
+        _why_bullets.append(f"<li>{_t('maintenance', lang)}: {activity_score:.0f}/100 \u2014 {_act_label}</li>")
     if compliance_score is not None:
         _comp_label = f"covers {int(compliance_score * 52 / 100)} of 52 jurisdictions"
-        _why_bullets.append(f"<li>Compliance: {compliance_score:.0f}/100 \u2014 {_comp_label}</li>")
+        _why_bullets.append(f"<li>{_t('compliance', lang)}: {compliance_score:.0f}/100 \u2014 {_comp_label}</li>")
     if doc_score is not None:
-        _doc_label = "well-documented" if doc_score >= 70 else "partial documentation" if doc_score >= 40 else "limited documentation"
-        _why_bullets.append(f"<li>Documentation: {doc_score:.0f}/100 \u2014 {_doc_label}</li>")
+        _doc_label = _t("well_documented", lang) if doc_score >= 70 else _t("partial_documentation", lang) if doc_score >= 40 else _t("limited_documentation", lang)
+        _why_bullets.append(f"<li>{_t('documentation', lang)}: {doc_score:.0f}/100 \u2014 {_doc_label}</li>")
     if popularity_score is not None:
+        _reg_disp = _REGISTRY_DISPLAY.get(source, source.replace("_", " ") if source else "")
         _pop_label = {
-            "vpn": "widely used VPN service",
+            "vpn": _t("widely_used_vpn", lang) if lang != "en" and _t("widely_used_vpn", lang) != "widely_used_vpn" else "widely used VPN service",
             "ios": f"{stars:,} App Store installs" if stars else "App Store presence",
             "android": f"{stars:,} Google Play installs" if stars else "Google Play presence",
             "steam": f"{stars:,} players" if stars else "Steam community",
@@ -6182,8 +8171,8 @@ def _render_agent_page(slug, agent_info, lang="en"):
             "vscode": f"{stars:,} VS Code installs" if stars else "VS Code Marketplace",
             "wordpress": f"{stars:,} active installs" if stars else "WordPress.org",
             "website": f"Tranco rank {stars}" if stars else "web presence",
-        }.get(source, f"{stars:,} stars on {_esc(source)}" if stars else "community adoption")
-        _why_bullets.append(f"<li>Popularity: {popularity_score:.0f}/100 \u2014 {_pop_label}</li>")
+        }.get(source, f"{stars:,} stars on {_esc(_reg_disp)}" if stars else _t("community_adoption", lang) if lang != "en" and _t("community_adoption", lang) != "community_adoption" else "community adoption")
+        _why_bullets.append(f"<li>{_t('popularity', lang)}: {popularity_score:.0f}/100 \u2014 {_pop_label}</li>")
     if not _why_bullets:
         _why_bullets.append(f"<li>Composite trust score: {score_str}/100 across all available signals</li>")
     why_this_score_bullets = "\n".join(_why_bullets)
@@ -6389,14 +8378,15 @@ def _render_agent_page(slug, agent_info, lang="en"):
             _m = _re.search(r'(\d[\d,]*)\s+servers?\s+in\s+(\d+)\s+countries', _desc, _re.I)
             if _m: _servers = f"{_m.group(1)} servers across {_m.group(2)} countries"
             _five_eyes = _jur.lower() in ('panama','bvi','gibraltar','switzerland','sweden','romania','isle of man','finland')
-            _priv_p.append(f"{_dn_k} operates under <b>{_esc(_jur)}</b> jurisdiction{' — outside the Five Eyes, Nine Eyes, and Fourteen Eyes surveillance alliances' if _five_eyes else ''}. This is significant because VPN providers in non-allied jurisdictions are not subject to mandatory data retention laws or intelligence-sharing agreements.")
-            if _servers: _priv_p.append(f"Server infrastructure: {_servers}.")
+            _eyes_text = _t("vpn_outside_eyes", lang) if _five_eyes else ""
+            _priv_p.append(f"{_dn_k} {_t('vpn_operates_under', lang)} <b>{_esc(_jur)}</b> {_t('vpn_jurisdiction', lang)}{(' — ' + _eyes_text) if _eyes_text else ''}. {_t('vpn_significant', lang)}")
+            if _servers: _priv_p.append(f"{_t('vpn_server_infra', lang)}: {_servers}.")
             if _has_audit:
-                _priv_p.append(f"Logging policy: independently audited no-logs policy. According to independent audit reports, {_dn_k} does not store connection logs, browsing activity, or DNS queries.")
+                _priv_p.append(f"{_t('vpn_logging_audited', lang, name=_dn_k)}")
                 _ext_cite.append(f"Independent audit confirms {_dn_k} no-logs policy.")
             else:
                 _priv_p.append("Logging policy: claims no-logs but no independent audit has been published to verify this claim.")
-            _priv_p.append(f"Privacy score: <b>{_privacy_score:.0f}/100</b>.")
+            _priv_p.append(f"{_t('privacy_score_label', lang)}: <b>{_privacy_score:.0f}/100</b>.")
         elif source in ("ios", "android"):
             _store = "App Store" if source == "ios" else "Google Play"
             _priv_p.append(f"{_dn_k} is published by {_esc(author)} on {_store}{f', with approximately {_dl:,} downloads' if _dl else ''}.")
@@ -6435,13 +8425,14 @@ def _render_agent_page(slug, agent_info, lang="en"):
             _proto = ""
             if "wireguard" in _desc.lower(): _proto = "WireGuard"
             elif "openvpn" in _desc.lower(): _proto = "OpenVPN"
-            _sec_p.append(f"Security score: <b>{_sec_val}</b>.{f' Primary encryption protocol: {_proto}, which is considered industry-standard for VPN connections.' if _proto else ''}")
+            _proto_text = (" " + _t("vpn_proto", lang).format(proto=_proto)) if _proto else ""
+            _sec_p.append(f"{_t('vpn_sec_score', lang)}: <b>{_sec_val}</b>.{_proto_text}")
             if _has_audit:
-                _sec_p.append(f"According to independent audit reports, {_dn_k} has undergone third-party security audits verifying its infrastructure and no-logs claims. This is a strong positive signal — most VPN providers have not been independently audited.")
-                _ext_cite.append("Independent security audit verified.")
+                _sec_p.append(_t("vpn_audit_positive", lang, name=_dn_k))
+                _ext_cite.append(_t("vpn_audit_verified", lang))
             else:
-                _sec_p.append(f"{_dn_k} has not published results from an independent security audit. While this does not indicate a security issue, audited VPNs provide higher assurance.")
-            _sec_p.append("No known data breaches associated with this service.")
+                _sec_p.append(_t("vpn_audit_none", lang, name=_dn_k))
+            _sec_p.append(_t("vpn_no_breaches", lang))
         elif source in ("npm", "pypi", "crates"):
             _cve = agent.get("cve_count") or 0
             _sec_p.append(f"Security score: <b>{_sec_val}</b>. {_dn_k} has {_cve} known vulnerabilities (CVEs) in the National Vulnerability Database.{' This is a clean record.' if _cve == 0 else ' Review advisories and update to the latest version.'}")
@@ -6487,14 +8478,444 @@ def _render_agent_page(slug, agent_info, lang="en"):
 <p style="font-size:14px;color:#64748b"><a href="/methodology">Full methodology documentation</a> · <a href="/v1/preflight?target={_esc(name)}">Machine-readable data (JSON API)</a></p>
 </div>"""
 
+    # ── VPN-specific details (only for registry=vpn) ──
+    vpn_details = ""
+    if source in ("vpn",):
+        _juris = agent.get("jurisdiction", "")
+        _audited = agent.get("has_independent_audit", False)
+        _priv = agent.get("privacy_score")
+        _trans = agent.get("transparency_score")
+        _dl = agent.get("downloads") or 0
+
+        _five_eyes = {"usa", "uk", "canada", "australia", "new zealand"}
+        _nine_eyes = _five_eyes | {"denmark", "france", "netherlands", "norway"}
+        _fourteen = _nine_eyes | {"germany", "belgium", "italy", "sweden", "spain"}
+        _juris_lower = _juris.lower() if _juris else ""
+
+        _eyes_text = ""
+        if _juris_lower in _five_eyes:
+            _eyes_text = _t("eyes_five", lang)
+        elif _juris_lower in _nine_eyes:
+            _eyes_text = _t("eyes_nine", lang)
+        elif _juris_lower in _fourteen:
+            _eyes_text = _t("eyes_fourteen", lang)
+        elif _juris_lower in ("panama", "british virgin islands", "bvi", "gibraltar", "seychelles", "cayman islands"):
+            _eyes_text = _t("eyes_outside", lang)
+        elif _juris_lower:
+            _eyes_text = _t("eyes_none", lang)
+
+        _audit_text = _t("audit_yes", lang, name=_esc(display_name)) if _audited else _t("audit_no", lang, name=_esc(display_name))
+
+        _priv_bar = f'<div style="margin:8px 0"><span style="font-size:13px;color:#64748b">Privacy Score</span> <strong>{_priv:.0f}</strong>/100 <div style="background:#e2e8f0;height:6px;border-radius:3px;margin-top:4px"><div style="background:{"#16a34a" if _priv >= 70 else "#d97706" if _priv >= 50 else "#dc2626"};height:6px;border-radius:3px;width:{_priv}%"></div></div></div>' if _priv else ""
+        _trans_bar = f'<div style="margin:8px 0"><span style="font-size:13px;color:#64748b">Transparency Score</span> <strong>{_trans:.0f}</strong>/100 <div style="background:#e2e8f0;height:6px;border-radius:3px;margin-top:4px"><div style="background:{"#16a34a" if _trans >= 70 else "#d97706" if _trans >= 50 else "#dc2626"};height:6px;border-radius:3px;width:{_trans}%"></div></div></div>' if _trans else ""
+
+        vpn_details = f'''<div class="section vpn-details" style="margin:20px 0;padding:20px;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc">
+<h2 style="font-size:1.15em;font-weight:600;margin:0 0 12px">{_t("privacy_assessment", lang)}</h2>
+<p style="font-size:15px;line-height:1.7;color:#334155;margin:0 0 12px">{_esc(display_name)} {_t("vpn_operates_under", lang)} <strong>{_esc(_juris) if _juris else _t("undisclosed_jurisdiction", lang)}</strong>{(", " + _eyes_text) if _eyes_text else ""}. {_audit_text}.</p>
+{_priv_bar}{_trans_bar}
+{"<p style='font-size:13px;color:#64748b;margin:8px 0 0'>" + _t("serving_users", lang) + " " + f'{_dl:,}' + "+</p>" if _dl > 100000 else ""}
+</div>'''
+
+    # ── Password Manager-specific details ──
+    if source == "password_manager":
+        _pm_desc = (agent.get("description") or "").lower()
+        _pm_juris = agent.get("jurisdiction") or "Unknown"
+        _pm_audited = agent.get("has_independent_audit", False)
+        _pm_stars = agent.get("stars") or 0
+        _pm_sec = agent.get("security_score")
+        _pm_priv = agent.get("privacy_score")
+
+        _breach_texts = {
+            "lastpass-pm": "LastPass suffered major data breaches in August and December 2022. Encrypted vault data and customer information were stolen. While master passwords were not directly compromised, the stolen encrypted vaults remain vulnerable to brute-force attacks for users with weak master passwords.",
+            "norton-password-manager-pm": "Norton Password Manager was affected by a credential stuffing attack in December 2022.",
+            "norton-pm": "Norton was affected by a credential stuffing attack in December 2022.",
+        }
+        _breach_html = ""
+        _slug_key = agent.get("slug") or slug
+        _breach_key = _slug_key if _slug_key in _breach_texts else (f"{_slug_key}-pm" if f"{_slug_key}-pm" in _breach_texts else _slug_key)
+        if _breach_key in _breach_texts:
+            _breach_html = f'<div style="margin:10px 0"><h3 style="color:#dc2626;font-size:1em;margin:0 0 6px">Breach History</h3><p style="font-size:14px;line-height:1.6;color:#334155">{_breach_texts[_breach_key]}</p></div>'
+        elif _pm_audited:
+            _breach_html = f'<div style="margin:10px 0"><h3 style="font-size:1em;margin:0 0 6px">Breach History</h3><p style="font-size:14px;color:#334155">{_esc(display_name)} has no known data breaches and has been independently audited.</p></div>'
+
+        # Encryption detection — check description + known facts
+        _enc_items = []
+        _pm_enc_known = {
+            "bitwarden-pm": [("AES-256-CBC", "industry standard"), ("Argon2id", "brute-force resistant key derivation")],
+            "1password-pm": [("AES-256-GCM", "authenticated encryption"), ("Argon2id", "brute-force resistant key derivation")],
+            "keepass-pm": [("AES-256", "industry standard"), ("ChaCha20", "modern stream cipher"), ("Argon2d", "key derivation")],
+            "keepassxc-pm": [("AES-256", "industry standard"), ("ChaCha20", "modern stream cipher"), ("Argon2id", "key derivation")],
+            "proton-pass-pm": [("AES-256-GCM", "authenticated encryption"), ("Argon2", "key derivation"), ("SRP", "zero-knowledge authentication")],
+            "dashlane-pm": [("AES-256", "industry standard"), ("Argon2d", "key derivation")],
+            "nordpass-pm": [("XChaCha20", "modern high-performance cipher"), ("Argon2id", "key derivation")],
+            "lastpass-pm": [("AES-256-CBC", "industry standard"), ("PBKDF2-SHA256", "key derivation")],
+            "keeper-pm": [("AES-256", "industry standard"), ("PBKDF2-HMAC-SHA512", "key derivation")],
+            "roboform-pm": [("AES-256", "industry standard"), ("PBKDF2", "key derivation")],
+            "enpass-pm": [("AES-256", "industry standard"), ("SQLCipher", "database encryption")],
+        }
+        _slug_key = agent.get("slug") or slug
+        # Try both the exact slug and with -pm suffix (consumer overrides like /safe/bitwarden)
+        _pm_key = _slug_key if _slug_key in _pm_enc_known else (f"{_slug_key}-pm" if f"{_slug_key}-pm" in _pm_enc_known else _slug_key)
+        if _pm_key in _pm_enc_known:
+            _enc_items = [f"{algo} ({note})" for algo, note in _pm_enc_known[_pm_key]]
+        else:
+            if 'xchacha20' in _pm_desc: _enc_items.append('XChaCha20 (modern, high-performance)')
+            elif 'aes-256' in _pm_desc or 'aes256' in _pm_desc: _enc_items.append('AES-256 (industry standard)')
+            elif 'encryption' in _pm_desc: _enc_items.append('Encrypted storage')
+            if 'argon2' in _pm_desc: _enc_items.append('Argon2 key derivation (brute-force resistant)')
+            elif 'pbkdf2' in _pm_desc: _enc_items.append('PBKDF2 key derivation')
+        _enc_html = f'<div style="margin:10px 0"><h3 style="font-size:1em;margin:0 0 6px">Encryption</h3><p style="font-size:14px;color:#334155">{_esc(display_name)} uses {", ".join(_enc_items)}.</p></div>' if _enc_items else ""
+
+        _oss_html = f'<div style="margin:10px 0"><h3 style="font-size:1em;margin:0 0 6px">Open Source</h3><p style="font-size:14px;color:#334155">{_esc(display_name)} is open source with {_pm_stars:,} GitHub stars.</p></div>' if _pm_stars > 0 else ""
+
+        # Zero-knowledge architecture note
+        _zk_known = {"bitwarden-pm", "1password-pm", "proton-pass-pm", "keepass-pm", "keepassxc-pm", "nordpass-pm", "dashlane-pm"}
+        _zk_html = f'<div style="margin:10px 0"><h3 style="font-size:1em;margin:0 0 6px">Zero-Knowledge Architecture</h3><p style="font-size:14px;color:#334155">{_esc(display_name)} uses a zero-knowledge architecture — your master password and vault data are encrypted locally and never sent to the server in plaintext.</p></div>' if (_pm_key in _zk_known) else ""
+
+        _sec_bar = f'<div style="margin:8px 0"><span style="font-size:13px;color:#64748b">Security</span> <strong>{_pm_sec:.0f}</strong>/100 <div style="background:#e2e8f0;height:6px;border-radius:3px;margin-top:4px"><div style="background:{"#16a34a" if _pm_sec >= 70 else "#d97706" if _pm_sec >= 50 else "#dc2626"};height:6px;border-radius:3px;width:{_pm_sec}%"></div></div></div>' if _pm_sec else ""
+
+        vpn_details = f'''<div class="section vpn-details" style="margin:20px 0;padding:20px;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc">
+<h2 style="font-size:1.15em;font-weight:600;margin:0 0 12px">Security Assessment</h2>
+{_breach_html}{_enc_html}{_zk_html}{_oss_html}{_sec_bar}
+<p style="font-size:14px;color:#334155;margin:8px 0">Based in <strong>{_esc(_pm_juris)}</strong>. {"Independently audited." if _pm_audited else "No published independent audit."}</p>
+</div>'''
+
+    # ── Hosting-specific details ──
+    if source == "hosting":
+        _h_desc = (agent.get("description") or "").lower()
+        _h_juris = agent.get("jurisdiction") or "Unknown"
+        _h_audited = agent.get("has_independent_audit", False)
+        _h_dl = agent.get("downloads") or 0
+        _h_slug = agent.get("slug") or slug
+
+        _HOSTING_BREACHES = {
+            "godaddy-hosting": "GoDaddy experienced a major data breach in November 2021 that exposed 1.2 million WordPress customer email addresses and passwords. Additional breaches were disclosed in 2022 and 2023, suggesting ongoing security challenges.",
+        }
+
+        # Infrastructure
+        _infra = []
+        if 'google cloud' in _h_desc: _infra.append('Google Cloud Platform')
+        if 'aws' in _h_desc or 'amazon web services' in _h_desc: _infra.append('Amazon Web Services')
+        if 'akamai' in _h_desc: _infra.append("Akamai's global network")
+        if 'own data centers' in _h_desc or 'operates own' in _h_desc: _infra.append('Own data centers')
+        if 'cloudflare' in _h_desc and 'cdn' in _h_desc: _infra.append('Cloudflare CDN')
+        _infra_html = f'<div style="margin:10px 0"><h3 style="font-size:1em;margin:0 0 6px">Infrastructure</h3><p style="font-size:14px;color:#334155">{_esc(display_name)} runs on {", ".join(_infra)}.</p></div>' if _infra else ""
+
+        # Security & Compliance
+        _sec_items = []
+        if _h_audited: _sec_items.append('SOC 2 certified')
+        if 'hipaa' in _h_desc: _sec_items.append('HIPAA compliant')
+        if 'iso 27001' in _h_desc: _sec_items.append('ISO 27001 certified')
+        if 'waf' in _h_desc: _sec_items.append('Web Application Firewall')
+        if 'ddos' in _h_desc: _sec_items.append('DDoS protection')
+        _sec_html = f'<div style="margin:10px 0"><h3 style="font-size:1em;margin:0 0 6px">Security & Compliance</h3><p style="font-size:14px;color:#334155">{_esc(display_name)}: {", ".join(_sec_items)}.</p></div>' if _sec_items else ""
+
+        # Breach history — check both URL slug and DB slug with -hosting suffix
+        _h_breach_html = ""
+        _h_breach_key = _h_slug if _h_slug in _HOSTING_BREACHES else (f"{_h_slug}-hosting" if f"{_h_slug}-hosting" in _HOSTING_BREACHES else _h_slug)
+        if _h_breach_key in _HOSTING_BREACHES:
+            _h_breach_html = f'<div style="margin:10px 0"><h3 style="color:#dc2626;font-size:1em;margin:0 0 6px">Security Incidents</h3><p style="font-size:14px;line-height:1.6;color:#334155">{_HOSTING_BREACHES[_h_breach_key]}</p></div>'
+        elif _h_audited:
+            _h_breach_html = f'<div style="margin:10px 0"><h3 style="font-size:1em;margin:0 0 6px">Security Track Record</h3><p style="font-size:14px;color:#334155">{_esc(display_name)} has no known major data breaches and maintains independent security certification.</p></div>'
+
+        # Data location / GDPR
+        _eu_countries = {'germany', 'finland', 'bulgaria', 'lithuania', 'czech republic', 'netherlands', 'france', 'sweden', 'ireland'}
+        _gdpr_html = ""
+        if _h_juris.lower() in _eu_countries:
+            _gdpr_html = f'<div style="margin:10px 0"><h3 style="font-size:1em;margin:0 0 6px">Data Location & GDPR</h3><p style="font-size:14px;color:#334155">{_esc(display_name)} is based in {_esc(_h_juris)}, within the EU. Data stored in EU data centers is subject to GDPR protection — relevant for businesses with European customers.</p></div>'
+
+        # Scale
+        _scale_html = ""
+        if _h_dl > 1_000_000:
+            _scale_html = f'<p style="font-size:13px;color:#64748b;margin:8px 0 0">Serving {_h_dl:,}+ websites</p>'
+
+        vpn_details = f'''<div class="section vpn-details" style="margin:20px 0;padding:20px;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc">
+<h2 style="font-size:1.15em;font-weight:600;margin:0 0 12px">Hosting Assessment</h2>
+{_infra_html}{_sec_html}{_h_breach_html}{_gdpr_html}
+<p style="font-size:14px;color:#334155;margin:8px 0">Based in <strong>{_esc(_h_juris)}</strong>. {"Independently audited." if _h_audited else "No published independent audit."}</p>
+{_scale_html}
+</div>'''
+
+    # ── Antivirus-specific details ──
+    if source == "antivirus":
+        _av_desc = (agent.get("description") or "").lower()
+        _av_juris = agent.get("jurisdiction") or "Unknown"
+        _av_slug = agent.get("slug") or slug
+
+        _AV_TEST_P = {'norton-360': 6.0, 'bitdefender': 6.0, 'kaspersky': 6.0, 'mcafee': 6.0,
+                      'malwarebytes': 6.0, 'eset': 6.0, 'avast': 6.0, 'windows-defender': 6.0,
+                      'trend-micro': 6.0, 'f-secure': 6.0, 'avira': 6.0, 'panda-security': 5.5,
+                      'g-data': 6.0, 'k7-security': 6.0, 'ahnlab': 6.0}
+        _AV_TEST_PF = {'norton-360': 5.5, 'bitdefender': 6.0, 'kaspersky': 6.0, 'mcafee': 5.5,
+                       'malwarebytes': 5.5, 'eset': 6.0, 'avast': 5.5, 'windows-defender': 5.5,
+                       'trend-micro': 5.5, 'f-secure': 5.5, 'avira': 5.5, 'panda-security': 6.0}
+
+        _av_sections = []
+
+        # AV-TEST results
+        _av_key = _av_slug if _av_slug in _AV_TEST_P else (slug if slug in _AV_TEST_P else None)
+        if _av_key:
+            _prot = _AV_TEST_P[_av_key]
+            _perf = _AV_TEST_PF.get(_av_key, 0)
+            _prot_note = "Perfect protection score." if _prot >= 6.0 else "Near-perfect protection."
+            _perf_note = "" if _perf >= 6.0 else " Slightly higher system impact than top performers."
+            _av_sections.append(f'<div style="margin:10px 0"><h3 style="font-size:1em;margin:0 0 6px">Independent Lab Results (AV-TEST)</h3><p style="font-size:14px;line-height:1.6;color:#334155">{_esc(display_name)} scored <strong>{_prot}/6</strong> on protection and <strong>{_perf}/6</strong> on performance in AV-TEST independent testing. {_prot_note}{_perf_note}</p></div>')
+
+        # Incident/scandal content
+        _AV_INCIDENTS = {
+            'avast': '<div style="margin:10px 0"><h3 style="color:#dc2626;font-size:1em;margin:0 0 6px">Privacy Incident: Jumpshot Scandal</h3><p style="font-size:14px;line-height:1.6;color:#334155">In 2020, Avast subsidiary Jumpshot was found selling detailed browsing data from approximately 100 million users to third parties including Google, Microsoft, and hedge funds. Jumpshot was shut down after the exposure. Avast has since reformed data practices under new Gen Digital ownership.</p></div>',
+            'kaspersky': '<div style="margin:10px 0"><h3 style="color:#dc2626;font-size:1em;margin:0 0 6px">Jurisdiction Concern: Russia &amp; US Ban</h3><p style="font-size:14px;line-height:1.6;color:#334155">Kaspersky is headquartered in Moscow, Russia. US government agencies have been banned from using Kaspersky products since 2017 due to national security concerns. In 2024, the US Commerce Department banned Kaspersky software sales in the US entirely. Kaspersky moved some data processing to Switzerland in 2018 through its Global Transparency Initiative, but concerns remain.</p></div>',
+            'norton-360': '<div style="margin:10px 0"><h3 style="color:#d97706;font-size:1em;margin:0 0 6px">Security Incident: Credential Stuffing (2022)</h3><p style="font-size:14px;line-height:1.6;color:#334155">In December 2022, Norton reported that approximately 925,000 Norton Password Manager accounts were targeted in a credential stuffing attack. No Norton systems were breached — attackers used previously leaked credentials from other sites to access accounts with reused passwords.</p></div>',
+            'crowdstrike': '<div style="margin:10px 0"><h3 style="color:#dc2626;font-size:1em;margin:0 0 6px">Global IT Outage (July 2024)</h3><p style="font-size:14px;line-height:1.6;color:#334155">On July 19, 2024, a faulty CrowdStrike Falcon content update caused a worldwide IT outage affecting approximately 8.5 million Windows devices. Airlines grounded flights, hospitals postponed procedures, and banks experienced disruptions. CrowdStrike has since implemented additional testing safeguards and a phased rollout process for content updates.</p></div>',
+        }
+        _inc_key = _av_slug if _av_slug in _AV_INCIDENTS else (slug if slug in _AV_INCIDENTS else None)
+        if _inc_key:
+            _av_sections.append(_AV_INCIDENTS[_inc_key])
+        else:
+            _av_sections.append(f'<div style="margin:10px 0"><h3 style="font-size:1em;margin:0 0 6px">Security Track Record</h3><p style="font-size:14px;color:#334155">{_esc(display_name)} has no known major security incidents or privacy scandals.</p></div>')
+
+        # Jurisdiction
+        _eu_av = {'romania', 'finland', 'slovakia', 'czech republic', 'germany', 'spain', 'netherlands', 'denmark'}
+        if _av_juris.lower() in _eu_av:
+            _av_sections.append(f'<div style="margin:10px 0"><h3 style="font-size:1em;margin:0 0 6px">Jurisdiction</h3><p style="font-size:14px;color:#334155">{_esc(display_name)} is based in {_esc(_av_juris)}, within the EU. User data is subject to GDPR protection.</p></div>')
+        elif _av_juris.lower() == 'russia':
+            _av_sections.append(f'<div style="margin:10px 0"><h3 style="color:#dc2626;font-size:1em;margin:0 0 6px">Jurisdiction: Russia</h3><p style="font-size:14px;color:#334155">{_esc(display_name)} is based in Russia. This has led to government bans in several countries including the United States.</p></div>')
+
+        vpn_details = f'''<div class="section vpn-details" style="margin:20px 0;padding:20px;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc">
+<h2 style="font-size:1.15em;font-weight:600;margin:0 0 12px">Antivirus Assessment</h2>
+{"".join(_av_sections)}
+</div>'''
+
+    # ── SaaS-specific details ──
+    if source == "saas":
+        _saas_desc = (agent.get("description") or "").lower()
+        _saas_juris = agent.get("jurisdiction") or "Unknown"
+        _saas_audit = agent.get("has_independent_audit", False)
+        _saas_stars = agent.get("stars") or 0
+
+        _saas_sections = []
+
+        # Security & compliance certs
+        _certs = []
+        if 'soc 2' in _saas_desc or 'soc2' in _saas_desc: _certs.append('SOC 2')
+        if 'iso 27001' in _saas_desc: _certs.append('ISO 27001')
+        if 'hipaa' in _saas_desc: _certs.append('HIPAA')
+        if 'fedramp' in _saas_desc: _certs.append('FedRAMP')
+        if 'pci' in _saas_desc: _certs.append('PCI DSS')
+        if 'gdpr' in _saas_desc: _certs.append('GDPR compliant')
+        if _certs:
+            _saas_sections.append(f'<div style="margin:10px 0"><h3 style="font-size:1em;margin:0 0 6px">Security & Compliance</h3><p style="font-size:14px;color:#334155">{_esc(display_name)} holds: {", ".join(_certs)}.</p></div>')
+
+        # Open source
+        if _saas_stars > 100:
+            _saas_sections.append(f'<div style="margin:10px 0"><h3 style="font-size:1em;margin:0 0 6px">Open Source</h3><p style="font-size:14px;color:#334155">{_esc(display_name)} is open source with {_saas_stars:,} GitHub stars.</p></div>')
+
+        # Incidents
+        _SAAS_INC = {
+            'zoom': 'Zoom faced security concerns in 2020 including "Zoombombing" and routing through Chinese servers. Has since implemented end-to-end encryption and improved security controls.',
+            'slack': 'In 2023, Slack disclosed that employee tokens were stolen via a compromised GitHub repository. No customer data was affected.',
+        }
+        _saas_slug = agent.get("slug") or slug
+        if _saas_slug in _SAAS_INC:
+            _saas_sections.append(f'<div style="margin:10px 0"><h3 style="color:#d97706;font-size:1em;margin:0 0 6px">Security History</h3><p style="font-size:14px;line-height:1.6;color:#334155">{_SAAS_INC[_saas_slug]}</p></div>')
+        elif _saas_audit:
+            _saas_sections.append(f'<div style="margin:10px 0"><h3 style="font-size:1em;margin:0 0 6px">Security Track Record</h3><p style="font-size:14px;color:#334155">{_esc(display_name)} has no known major security incidents and maintains independent security certification.</p></div>')
+
+        # Data location
+        _eu_saas = {'germany', 'finland', 'sweden', 'switzerland', 'netherlands', 'new zealand', 'australia', 'ireland'}
+        if _saas_juris.lower() in _eu_saas:
+            _gdpr_note = " EU data protection laws (GDPR) apply." if _saas_juris.lower() in ('germany', 'finland', 'sweden', 'netherlands', 'ireland') else ""
+            _saas_sections.append(f'<div style="margin:10px 0"><h3 style="font-size:1em;margin:0 0 6px">Data Location</h3><p style="font-size:14px;color:#334155">{_esc(display_name)} is based in {_esc(_saas_juris)}.{_gdpr_note}</p></div>')
+
+        if _saas_sections:
+            vpn_details = f'''<div class="section vpn-details" style="margin:20px 0;padding:20px;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc">
+<h2 style="font-size:1.15em;font-weight:600;margin:0 0 12px">SaaS Assessment</h2>
+{"".join(_saas_sections)}
+</div>'''
+
+    # ── Website Builder-specific details ──
+    if source == "website_builder":
+        _wb_desc = (agent.get("description") or "").lower()
+        _wb_audit = agent.get("has_independent_audit", False)
+        _wb_stars = agent.get("stars") or 0
+        _wb_slug = agent.get("slug") or slug
+        _wb_sections = []
+
+        # Ecommerce
+        if 'ecommerce' in _wb_desc or 'online store' in _wb_desc or 'payment' in _wb_desc:
+            _pci = " PCI DSS Level 1 compliant for payment processing." if 'pci' in _wb_desc else ""
+            _wb_sections.append(f'<div style="margin:10px 0"><h3 style="font-size:1em;margin:0 0 6px">Ecommerce</h3><p style="font-size:14px;color:#334155">{_esc(display_name)} includes built-in ecommerce functionality.{_pci}</p></div>')
+        # Security
+        _certs = []
+        if 'soc 2' in _wb_desc: _certs.append('SOC 2')
+        if 'pci' in _wb_desc: _certs.append('PCI DSS')
+        if 'gdpr' in _wb_desc: _certs.append('GDPR compliant')
+        if _certs:
+            _wb_sections.append(f'<div style="margin:10px 0"><h3 style="font-size:1em;margin:0 0 6px">Security & Compliance</h3><p style="font-size:14px;color:#334155">{_esc(display_name)}: {", ".join(_certs)}.</p></div>')
+        # Open source
+        if _wb_stars > 100:
+            _wb_sections.append(f'<div style="margin:10px 0"><h3 style="font-size:1em;margin:0 0 6px">Open Source</h3><p style="font-size:14px;color:#334155">{_esc(display_name)} is open source with {_wb_stars:,} GitHub stars.</p></div>')
+        # Breach
+        if 'breach' in _wb_desc or 'data breach' in _wb_desc:
+            _wb_sections.append(f'<div style="margin:10px 0"><h3 style="color:#dc2626;font-size:1em;margin:0 0 6px">Security Incident</h3><p style="font-size:14px;color:#334155">The parent company experienced a data breach. This impacts the trust score.</p></div>')
+        if _wb_sections:
+            vpn_details = f'''<div class="section vpn-details" style="margin:20px 0;padding:20px;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc">
+<h2 style="font-size:1.15em;font-weight:600;margin:0 0 12px">Website Builder Assessment</h2>
+{"".join(_wb_sections)}
+</div>'''
+
+    # ── Crypto Exchange-specific details ──
+    if source == "crypto":
+        _ex_desc = (agent.get("description") or "").lower()
+        _ex_slug = agent.get("slug") or slug
+        _EXCHANGE_INC = {
+            'binance': '<div style="margin:10px 0"><h3 style="color:#dc2626;font-size:1em;margin:0 0 6px">Regulatory Action: $4.3B DOJ Settlement</h3><p style="font-size:14px;line-height:1.6;color:#334155">In November 2023, Binance paid $4.3 billion in fines to settle US DOJ and SEC charges for anti-money laundering violations. CEO Changpeng Zhao (CZ) stepped down and pleaded guilty.</p></div>',
+            'coinbase': '<div style="margin:10px 0"><h3 style="color:#d97706;font-size:1em;margin:0 0 6px">Regulatory: SEC Lawsuit</h3><p style="font-size:14px;line-height:1.6;color:#334155">Coinbase faced an SEC lawsuit in 2023 alleging unregistered securities trading. As a publicly traded company (NASDAQ: COIN), Coinbase provides the highest level of financial transparency of any major crypto exchange.</p></div>',
+            'ftx': '<div style="margin:10px 0"><h3 style="color:#dc2626;font-size:1em;margin:0 0 6px">Collapse: $8 Billion Missing</h3><p style="font-size:14px;line-height:1.6;color:#334155">FTX collapsed in November 2022 with approximately $8 billion in customer funds missing. Founder Sam Bankman-Fried was convicted of fraud in 2023 and sentenced to 25 years in prison.</p></div>',
+            'kucoin': '<div style="margin:10px 0"><h3 style="color:#dc2626;font-size:1em;margin:0 0 6px">Security & Regulatory Issues</h3><p style="font-size:14px;line-height:1.6;color:#334155">KuCoin was hacked in 2020 for $280 million (most recovered). Indicted by US DOJ in 2024 for anti-money laundering failures. Settled for $297 million.</p></div>',
+            'crypto-com': '<div style="margin:10px 0"><h3 style="color:#d97706;font-size:1em;margin:0 0 6px">Security Incident</h3><p style="font-size:14px;line-height:1.6;color:#334155">Crypto.com suffered a $34 million hack in January 2022. Publishes Proof of Reserves audited by Mazars.</p></div>',
+            'bybit': '<div style="margin:10px 0"><h3 style="color:#dc2626;font-size:1em;margin:0 0 6px">Major Hack: $1.5 Billion (2025)</h3><p style="font-size:14px;line-height:1.6;color:#334155">In February 2025, Bybit suffered a $1.5 billion hack — the largest crypto exchange hack in history.</p></div>',
+        }
+        _ex_sections = []
+        if _ex_slug in _EXCHANGE_INC:
+            _ex_sections.append(_EXCHANGE_INC[_ex_slug])
+        if 'proof of reserves' in _ex_desc:
+            _ex_sections.append(f'<div style="margin:10px 0"><h3 style="font-size:1em;margin:0 0 6px">Proof of Reserves</h3><p style="font-size:14px;color:#334155">{_esc(display_name)} publishes Proof of Reserves, allowing users to verify the exchange holds sufficient assets.</p></div>')
+        if _ex_sections:
+            vpn_details = f'''<div class="section vpn-details" style="margin:20px 0;padding:20px;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc">
+<h2 style="font-size:1.15em;font-weight:600;margin:0 0 12px">Exchange Assessment</h2>
+{"".join(_ex_sections)}
+</div>'''
+
+    # ── Related Safety Rankings (contextual internal links) ──
+    related_rankings = ""
+    _desc_lower = (agent.get("description") or "").lower()
+    _ranking_links = []
+    _ss_lp = f"/{lang}" if lang != "en" else ""
+    if source != "vpn":
+        _vpn_triggers = ("privacy", "vpn", "ip address", "tracking", "anonymous", "encryption", "secure connection", "surveillance")
+        if any(t in _desc_lower for t in _vpn_triggers):
+            _ranking_links.append(('<a href="/best/safest-vpns">Safest VPN Services</a>', "Independent VPN safety ranking based on Nerq Trust Scores"))
+    if source != "password_manager":
+        # PM cross-links: only for consumer-facing software, not dev packages
+        _pm_consumer_registries = ("chrome", "firefox", "vscode", "android", "ios", "website", "saas")
+        if source in ("chrome", "firefox", "vscode"):
+            _ranking_links.append(('<a href="/best/safest-password-managers">Safest Password Managers</a>', "Independent password manager safety ranking"))
+        elif source in _pm_consumer_registries:
+            _pm_triggers = ("password manager", "password vault", "credential manager", "master password")
+            if any(t in _desc_lower for t in _pm_triggers):
+                _ranking_links.append(('<a href="/best/safest-password-managers">Safest Password Managers</a>', "Independent password manager safety ranking"))
+    if source == "vpn":
+        _ranking_links.append((f'<a href="{_ss_lp}/best/safest-password-managers">{_t("xlink_complete_privacy", lang)}</a>', _t("xlink_add_pm_vpn", lang)))
+        _ranking_links.append((f'<a href="{_ss_lp}/best/safest-antivirus-software">{_t("xlink_add_av", lang)}</a>', _t("xlink_add_av_vpn", lang)))
+    if source == "password_manager":
+        _ranking_links.append((f'<a href="{_ss_lp}/best/safest-vpns">{_t("xlink_complete_privacy", lang)}</a>', _t("xlink_add_vpn_pm", lang)))
+        _ranking_links.append((f'<a href="{_ss_lp}/best/safest-antivirus-software">{_t("xlink_add_malware", lang)}</a>', _t("xlink_add_malware_desc", lang)))
+    if source != "crypto":
+        _crypto_triggers = ("crypto", "blockchain", "defi", "token", "wallet")
+        if any(t in _desc_lower for t in _crypto_triggers):
+            _ranking_links.append((f'<a href="{_ss_lp}/best/safest-crypto-exchanges">{_t("xlink_safest_crypto", lang)}</a>', _t("xlink_crypto_desc", lang)))
+    if source == "hosting":
+        _ranking_links.append((f'<a href="{_ss_lp}/best/safest-vpns">{_t("xlink_protect_server", lang)}</a>', _t("xlink_protect_server_desc", lang)))
+        _ranking_links.append((f'<a href="{_ss_lp}/best/safest-password-managers">{_t("xlink_secure_creds", lang)}</a>', _t("xlink_secure_creds_desc", lang)))
+    elif source in ("website", "wordpress") and source != "hosting":
+        _hosting_triggers = ("hosting", "server", "deploy", "uptime", "wordpress hosting", "cpanel")
+        if any(t in _desc_lower for t in _hosting_triggers):
+            _ranking_links.append((f'<a href="{_ss_lp}/best/safest-web-hosting">{_t("xlink_safest_hosting", lang)}</a>', _t("xlink_hosting_desc", lang)))
+    if source == "antivirus":
+        _ranking_links.append((f'<a href="{_ss_lp}/best/safest-vpns">{_t("xlink_complete_security", lang)}</a>', _t("xlink_add_vpn_av", lang)))
+        _ranking_links.append((f'<a href="{_ss_lp}/best/safest-password-managers">{_t("xlink_secure_passwords", lang)}</a>', _t("xlink_secure_passwords_desc", lang)))
+    elif source not in ("antivirus", "vpn", "password_manager", "hosting", "crypto"):
+        _av_triggers = ("malware", "virus", "ransomware", "trojan", "spyware", "endpoint protection", "security software")
+        if any(t in _desc_lower for t in _av_triggers):
+            _ranking_links.append((f'<a href="{_ss_lp}/best/safest-antivirus-software">{_t("xlink_safest_av", lang)}</a>', _t("xlink_av_desc", lang)))
+    if source == "saas":
+        _ranking_links.append((f'<a href="{_ss_lp}/best/safest-password-managers">{_t("xlink_secure_saas", lang)}</a>', _t("xlink_secure_saas_desc", lang)))
+        _ranking_links.append((f'<a href="{_ss_lp}/best/safest-vpns">{_t("xlink_access_secure", lang)}</a>', _t("xlink_access_secure_desc", lang)))
+    # Website Builder cross-links
+    if source == "website_builder":
+        _ranking_links.append(('<a href="/best/safest-web-hosting">Need More Control?</a>', "See our independent hosting provider rankings"))
+    elif source == "hosting":
+        _ranking_links.append(('<a href="/best/safest-website-builders">Want Something Simpler?</a>', "See website builder rankings for easy site creation"))
+    # Crypto exchange cross-links
+    if source == "crypto" and any(t in _desc_lower for t in ('exchange', 'trading', 'dex', 'swap')):
+        _ranking_links.append(('<a href="/best/safest-vpns">Protect Your Crypto</a>', "Use a VPN for secure exchange access"))
+        _ranking_links.append(('<a href="/best/safest-password-managers">Secure Your Credentials</a>', "Use a password manager for exchange accounts"))
+    if _ranking_links:
+        _items = "".join(f'<li style="margin:4px 0">{link} — <span style="font-size:13px;color:#64748b">{desc}</span></li>' for link, desc in _ranking_links)
+        related_rankings = f'''<div class="related-rankings" style="margin:20px 0;padding:16px;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc">
+<h3 style="margin:0 0 8px;font-size:1em;font-weight:600">Related Safety Rankings</h3>
+<ul style="margin:0;padding:0 0 0 20px;list-style:disc">{_items}</ul>
+</div>'''
+
+    # ── Security Stack block — bidirectional VPN + PM + AV linking ──
+    _SECURITY_STACK_REGS = {"vpn", "password_manager", "antivirus"}
+    _WEB_STACK_REGS = {"hosting", "website_builder"}
+    _security_stack = ""
+
+    if source in _SECURITY_STACK_REGS:
+        _ss_items = [
+            ("&#128274;", "Best VPNs",              f"{_ss_lp}/best/safest-vpns",                "vpn"),
+            ("&#128272;", "Best Password Managers",  f"{_ss_lp}/best/safest-password-managers",  "password_manager"),
+            ("&#128737;", "Best Antivirus",          f"{_ss_lp}/best/safest-antivirus-software", "antivirus"),
+        ]
+        _ss_links = "".join(
+            f'<a href="{u}" style="display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:8px;background:#f8fafc;border:1px solid #e2e8f0;text-decoration:none;color:#1e293b;font-size:14px;transition:box-shadow .15s"><span style="font-size:20px">{ico}</span><span style="font-weight:500">{txt}</span></a>'
+            for ico, txt, u, reg in _ss_items if reg != source
+        )
+        _security_stack = (
+            f'<div style="margin:24px 0;padding:18px;border:1px solid #d1d5db;border-radius:10px;background:#fafafa">'
+            f'<h3 style="margin:0 0 12px;font-size:15px;font-weight:600;color:#334155">Build Your Security Stack</h3>'
+            f'<p style="font-size:13px;color:#64748b;margin:0 0 12px">Combine these tools for comprehensive protection:</p>'
+            f'<div style="display:flex;flex-wrap:wrap;gap:10px">{_ss_links}</div></div>'
+        )
+    elif source in _WEB_STACK_REGS:
+        _ws_items = [
+            ("&#127760;", "Best Hosting",           f"{_ss_lp}/best/safest-web-hosting",       "hosting"),
+            ("&#128296;", "Best Website Builders",   f"{_ss_lp}/best/safest-website-builders",  "website_builder"),
+            ("&#128188;", "Best SaaS Platforms",     f"{_ss_lp}/best/safest-saas-platforms",    "saas"),
+        ]
+        _ws_links = "".join(
+            f'<a href="{u}" style="display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:8px;background:#f8fafc;border:1px solid #e2e8f0;text-decoration:none;color:#1e293b;font-size:14px;transition:box-shadow .15s"><span style="font-size:20px">{ico}</span><span style="font-weight:500">{txt}</span></a>'
+            for ico, txt, u, reg in _ws_items if reg != source
+        )
+        _security_stack = (
+            f'<div style="margin:24px 0;padding:18px;border:1px solid #d1d5db;border-radius:10px;background:#fafafa">'
+            f'<h3 style="margin:0 0 12px;font-size:15px;font-weight:600;color:#334155">Build Your Web Stack</h3>'
+            f'<p style="font-size:13px;color:#64748b;margin:0 0 12px">Complete your web presence with these tools:</p>'
+            f'<div style="display:flex;flex-wrap:wrap;gap:10px">{_ws_links}</div></div>'
+        )
+
+    # ── See Also section ──
+    _sa_best = _REGISTRY_BEST_MAP.get(source, None)
+    try:
+        _sa_sim = _sim_rows
+    except NameError:
+        _sa_sim = []
+    see_also_html = _build_see_also(slug, display_name, source, _sa_sim, _sa_best, lang=lang)
+
     # Read template and fill
     html = (TEMPLATE_DIR / "agent_safety_page.html").read_text()
     # URL prefix for localized pages
     _lang_prefix = f"/{lang}" if lang != "en" else ""
     _canonical = f"https://nerq.ai{_lang_prefix}/safe/{slug}"
 
+    # Quality gate: noindex entities in verticals that don't meet quality thresholds
+    _qg_index = True
+    if agent.get("trust_score") and float(agent.get("trust_score", 0)) < 30:
+        _qg_index = False
+    else:
+        try:
+            from agentindex.quality_gate import get_publishable_registries
+            _pub = get_publishable_registries()
+            if _pub and source and source not in _pub:
+                _qg_index = False
+        except Exception:
+            pass  # If quality gate not available, default to index
+    _robots_meta = '<meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">' if _qg_index else '<meta name="robots" content="noindex, follow">'
+
     replacements = {
-        "{{ robots_meta }}": '<meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">' if (agent.get("trust_score") and float(agent.get("trust_score", 0)) >= 30) else '<meta name="robots" content="noindex, follow">',
+        "{{ robots_meta }}": _robots_meta,
         "{{ html_lang }}": lang,
         "{{ canonical_url }}": _canonical,
         "{{ page_title }}": _t("title_safe", lang, name=_esc(display_name), year=YEAR),
@@ -6519,7 +8940,7 @@ def _render_agent_page(slug, agent_info, lang="en"):
         "{{ slug }}": _esc(slug),
         "{{ score }}": score_str,
         "{{ grade }}": _esc(grade),
-        "{{ category }}": _esc(category),
+        "{{ category }}": _esc(_REGISTRY_DISPLAY.get(category, category.replace("_", " ").title() if category else "")),
         "{{ source }}": _esc(source),
         "{{ author }}": _esc(author),
         "{{ stars_row }}": (
@@ -6539,10 +8960,10 @@ def _render_agent_page(slug, agent_info, lang="en"):
         "{{ assessment_short }}": assessment_short,
         "{{ ai_summary }}": ai_summary,
         "{{ citation_detail }}": (
-            (f"It is {_rec_text}. " if is_verified else "It is below the recommended threshold of 70. ")
-            + (f"Security: {security_score:.0f}/100. " if security_score is not None else "")
-            + (f"{'Maintenance: ' + f'{activity_score:.0f}/100. ' if 'maintenance' not in _hidden and activity_score is not None else ''}")
-            + (f"{'Popularity: ' + f'{popularity_score:.0f}/100. ' if popularity_score is not None else ''}")
+            (f"{_rec_text.capitalize()}. " if is_verified else _t("below_threshold", lang) + " ")
+            + (f"{_t('dim_security', lang)}: {security_score:.0f}/100. " if security_score is not None else "")
+            + (f"{_t('dim_maintenance', lang)}: {activity_score:.0f}/100. " if 'maintenance' not in _hidden and activity_score is not None else "")
+            + (f"{_t('dim_popularity', lang)}: {popularity_score:.0f}/100. " if popularity_score is not None else "")
         ),
         "{{ last_updated }}": datetime.now().strftime("%Y-%m-%d"),
         "{{ grade_pill }}": pill_class,
@@ -6555,6 +8976,8 @@ def _render_agent_page(slug, agent_info, lang="en"):
         "{{ compliance_section }}": compliance_section,
         "{{ cta_buttons }}": cta_buttons,
         "{{ alternatives_section }}": alternatives_section,
+        "{{ vpn_details }}": vpn_details,
+        "{{ related_rankings }}": related_rankings + _security_stack,
         "{{ cross_product_html }}": cross_product_html,
         "{{ similar_entities }}": similar_entities_html,
         "{{ king_sections }}": king_sections,
@@ -6630,10 +9053,11 @@ def _render_agent_page(slug, agent_info, lang="en"):
         "{{ signals_breakdown_html }}": signals_breakdown_html,
         "{{ why_this_score_findings }}": why_this_score_findings,
         "{{ cross_links_html }}": cross_links_html,
-        "{{ discovery_links }}": _get_discovery_links(source, slug),
+        "{{ discovery_links }}": _get_discovery_links(source, slug).replace("Popular in ", _t("sidebar_popular_in", lang) + " ").replace("Browse Categories", _t("sidebar_browse", lang)).replace("Recently Analyzed", _t("sidebar_recently", lang)).replace("Safest VPNs", _t("sidebar_safest_vpns", lang)).replace("Most Private Apps", _t("sidebar_most_private", lang)),
+        "{{ see_also }}": see_also_html,
         "{{ nerq_css }}": NERQ_CSS,
-        "{{ nerq_nav }}": NERQ_NAV,
-        "{{ nerq_footer }}": NERQ_FOOTER,
+        "{{ nerq_nav }}": render_nav(lang=lang),
+        "{{ nerq_footer }}": render_footer(lang=lang),
         "{{ hreflang_tags }}": render_hreflang(f"/safe/{slug}"),
     }
     for key, val in replacements.items():
@@ -6650,7 +9074,7 @@ def _render_hub_page():
         rows = session.execute(text("""
             SELECT name, COALESCE(trust_score_v2, trust_score) as trust_score,
                    trust_grade, category, source, stars, is_verified
-            FROM agents
+            FROM entity_lookup
             WHERE is_active = true
               AND agent_type IN ('agent', 'mcp_server', 'tool')
               AND COALESCE(trust_score_v2, trust_score) IS NOT NULL
@@ -6798,14 +9222,15 @@ def mount_agent_safety_pages(app):
             if not agent_info or not agent_info.get("name"):
                 session = get_session()
                 try:
+                    # Exact name match only — no broad LIKE (was scanning 5M rows)
                     row = session.execute(text("""
                         SELECT name, COALESCE(trust_score_v2, trust_score) as trust_score,
                                trust_grade, category, stars, description,
                                author, source_url, license, agent_type
-                        FROM agents
-                        WHERE LOWER(name) LIKE :pattern AND is_active = true
+                        FROM entity_lookup
+                        WHERE (name_lower = :slug OR name_lower = :dehyphen) AND is_active = true
                         ORDER BY COALESCE(stars, 0) DESC LIMIT 1
-                    """), {"pattern": f"%{slug.replace('-', '%')}%"}).fetchone()
+                    """), {"slug": slug, "dehyphen": slug.replace('-', ' ')}).fetchone()
                     if row:
                         agent_info = {
                             "name": row[0], "slug": slug,

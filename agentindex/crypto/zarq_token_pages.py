@@ -51,6 +51,11 @@ SLUGS_PATH = Path(__file__).parent / "token_slugs.json"
 # Staged rollout: which tiers are enabled for individual pages
 ENABLED_TIERS = {"T1", "T2", "T4"}  # T3, T5 added later
 
+_SECURITY_CHECK_JS = """<script>
+async function runSecurityCheck(){var btn=document.querySelector('.security-check-btn');var cta=document.querySelector('.security-check-cta');btn.textContent='Checking...';btn.disabled=true;if(localStorage.getItem('ck_ok')){navigator.sendBeacon('/v1/event',JSON.stringify({event:'security_check_click',path:location.pathname}));}try{var r=await fetch('/my/check');var h=await r.text();cta.innerHTML=h;if(localStorage.getItem('ck_ok')){var m=h.match(/(\\d+)\\/100/);navigator.sendBeacon('/v1/event',JSON.stringify({event:'security_check_complete',path:location.pathname,score:m?parseInt(m[1]):null}));}}catch(e){btn.textContent='Get my score \\u2192';btn.disabled=false;}}
+if(localStorage.getItem('ck_ok')&&document.querySelector('.security-check-cta')){navigator.sendBeacon('/v1/event',JSON.stringify({event:'cta_impression',path:location.pathname}));}
+</script>"""
+
 # Load slug mapping once
 _slug_map = {}    # token_id -> {symbol, name, tier, risk_grade}
 _slug_ids = set() # all known token_ids
@@ -1064,6 +1069,12 @@ footer a {{ color: var(--warm); text-decoration: none; }}
     </div>
   </div>
 
+  <div class="security-check-cta" style="margin:24px 0;padding:20px 24px;border:1px solid var(--gray-200);border-radius:12px;background:var(--gray-100);text-align:center">
+    <p style="font-size:1.1em;font-weight:600;margin:0 0 6px;font-family:var(--sans)">This token scores <strong>{trust_score:.0f}</strong>/100. What&#39;s yours?</p>
+    <p style="font-size:0.9em;color:var(--gray-500);margin:0 0 14px;font-family:var(--sans)">Free security check, 2 seconds, nothing stored.</p>
+    <button onclick="runSecurityCheck()" class="security-check-btn" style="background:var(--warm);color:white;border:none;padding:10px 24px;border-radius:8px;font-size:0.95em;font-weight:500;cursor:pointer;font-family:var(--sans)">Get my score &rarr;</button>
+  </div>
+
   {vitality_html_t2}
 
   {structural_warning}
@@ -1125,7 +1136,7 @@ footer a {{ color: var(--warm); text-decoration: none; }}
 </footer>
 </body>
 </html>'''
-
+    html = html.replace('</body>', _SECURITY_CHECK_JS + '</body>')
     return html
 
 
@@ -1703,6 +1714,22 @@ def _render_token_page(slug, token_id, token_info):
             },
         }),
         "{{ ai_summary }}": ai_summary,
+        "{{ security_check_cta }}": f'''<div class="security-check-cta" style="
+            margin:24px 0;padding:20px 24px;border:1px solid var(--gray-200);
+            border-radius:12px;background:var(--gray-100);text-align:center">
+            <p style="font-size:1.1em;font-weight:600;margin:0 0 6px;font-family:var(--sans)">
+                This token scores <strong>{_fmt_score(score)}</strong>/100.
+                What&#39;s yours?
+            </p>
+            <p style="font-size:0.9em;color:var(--gray-500);margin:0 0 14px;font-family:var(--sans)">
+                Free security check, 2 seconds, nothing stored.
+            </p>
+            <button onclick="runSecurityCheck()" class="security-check-btn" style="
+                background:var(--warm);color:white;border:none;padding:10px 24px;
+                border-radius:8px;font-size:0.95em;font-weight:500;cursor:pointer;font-family:var(--sans)">
+                Get my score &rarr;
+            </button>
+        </div>''',
     }
 
     for key, val in replacements.items():

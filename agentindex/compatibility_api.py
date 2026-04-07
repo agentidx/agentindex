@@ -80,7 +80,7 @@ def mount_compatibility(app):
                 for fw in agent_fws[:5]:
                     rows = session.execute(text("""
                         SELECT name, COALESCE(trust_score_v2, trust_score) as trust_score, trust_grade
-                        FROM agents
+                        FROM entity_lookup
                         WHERE is_active = true AND agent_type = 'mcp_server'
                           AND frameworks::text ILIKE :fw
                         ORDER BY COALESCE(trust_score_v2, trust_score) DESC NULLS LAST
@@ -109,7 +109,7 @@ def mount_compatibility(app):
             session = get_session()
             try:
                 row = session.execute(text(
-                    "SELECT COALESCE(trust_score_v2, trust_score) as ts FROM agents WHERE name = :n AND is_active = true LIMIT 1"
+                    "SELECT COALESCE(trust_score_v2, trust_score) as ts FROM entity_lookup WHERE name = :n AND is_active = true LIMIT 1"
                 ), {"n": s["name"]}).fetchone()
                 ts = round(float(row[0]), 1) if row and row[0] else 0
             finally:
@@ -260,7 +260,7 @@ def mount_compatibility(app):
                 rows = session.execute(text(f"""
                     SELECT name, COALESCE(trust_score_v2, trust_score) as trust_score,
                            trust_grade, source_url
-                    FROM agents
+                    FROM entity_lookup
                     WHERE name IN ({placeholders})
                       AND is_active = true
                       AND COALESCE(trust_score_v2, trust_score) >= :min_ts
@@ -417,7 +417,7 @@ GET /v1/mcp/compatible/cursor   — MCP servers for a client</pre>
                 rows = session.execute(text(f"""
                     SELECT name, COALESCE(trust_score_v2, trust_score) as trust_score,
                            trust_grade, category, stars
-                    FROM agents WHERE name IN ({placeholders}) AND is_active = true
+                    FROM entity_lookup WHERE name IN ({placeholders}) AND is_active = true
                     ORDER BY COALESCE(trust_score_v2, trust_score) DESC NULLS LAST
                 """), params).fetchall()
                 agent_rows = [dict(r._mapping) for r in rows]
@@ -534,7 +534,7 @@ GET /v1/mcp/compatible/cursor   — MCP servers for a client</pre>
                     rows = session.execute(text(f"""
                         SELECT name, COALESCE(trust_score_v2, trust_score) as trust_score,
                                trust_grade, source_url
-                        FROM agents WHERE name IN ({placeholders}) AND is_active = true
+                        FROM entity_lookup WHERE name IN ({placeholders}) AND is_active = true
                         ORDER BY COALESCE(trust_score_v2, trust_score) DESC NULLS LAST
                     """), params).fetchall()
                     servers.extend([dict(r._mapping) for r in rows])

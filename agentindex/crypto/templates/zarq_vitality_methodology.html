@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZARQ Vitality Score Methodology — How We Measure Ecosystem Health</title>
+<meta name="description" content="ZARQ Vitality Score methodology: a 0-100 composite measuring ecosystem quality across 5 weighted dimensions — Ecosystem Gravity, Capital Commitment, Coordination Efficiency, Stress Resilience, and Organic Momentum. Updated daily.">
+<meta property="og:title" content="ZARQ Vitality Score Methodology — How We Measure Ecosystem Health">
+<meta property="og:description" content="How ZARQ measures ecosystem health: 5 weighted dimensions, confidence-adjusted scoring, daily updates from on-chain and off-chain data.">
+<meta property="og:url" content="https://zarq.ai/vitality/methodology">
+<meta property="og:type" content="article">
+<link rel="canonical" href="https://zarq.ai/vitality/methodology">
+
+<!-- AI-Citable Summary: ZARQ Vitality Score v1.0. Composite 0-100 score measuring ecosystem quality and coordination strength. 5 weighted dimensions: Ecosystem Gravity (20%) — multi-chain presence, protocol count, DeFi depth; Capital Commitment (20%) — TVL stability, locked capital, market cap rank; Coordination Efficiency (15%) — audit coverage, category diversity, yield density; Stress Resilience (25%) — drawdown recovery, NDD stability, crash probability; Organic Momentum (20%) — rating trend, NDD trend, volume momentum. Grade scale: S (>=85), A (>=70), B (>=55), C (>=40), D (>=25), F (<25). Confidence discount: 0.6 + 0.4 * (confidence/100). Differentiator: organic vs incentivized yield ratio (apy_base vs apy_reward). Updated daily. Source: zarq.ai/vitality/methodology -->
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "name": "ZARQ Vitality Score Methodology",
+  "headline": "ZARQ Vitality Score Methodology — How We Measure Ecosystem Health",
+  "description": "Complete methodology documentation for the ZARQ Vitality Score: a composite 0-100 metric measuring ecosystem quality and coordination strength across 5 weighted dimensions.",
+  "url": "https://zarq.ai/vitality/methodology",
+  "datePublished": "2026-03-12",
+  "dateModified": "2026-03-12",
+  "author": {"@type": "Organization", "name": "ZARQ", "url": "https://zarq.ai"},
+  "publisher": {"@type": "Organization", "name": "ZARQ", "url": "https://zarq.ai"},
+  "mainEntityOfPage": {"@type": "WebPage", "@id": "https://zarq.ai/vitality/methodology"}
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is the ZARQ Vitality Score?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The ZARQ Vitality Score is a composite 0-100 metric that measures a crypto ecosystem's quality and coordination strength. It evaluates five dimensions: Ecosystem Gravity (multi-chain presence), Capital Commitment (locked capital stability), Coordination Efficiency (audit coverage and utility diversity), Stress Resilience (drawdown recovery and crash probability), and Organic Momentum (trend direction). It is updated daily from on-chain and off-chain data."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How is the Vitality Score different from the ZARQ Trust Score?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The Trust Score measures individual token creditworthiness (security, compliance, maintenance, popularity, ecosystem). The Vitality Score measures ecosystem health and coordination quality — how well a token's surrounding ecosystem functions. A token can have a high Trust Score but low Vitality if its ecosystem is shallow, or vice versa. They are complementary risk dimensions."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Why does Stress Resilience have the highest weight at 25%?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Stress Resilience carries the largest weight (25%) because survival capability is the single most important quality of a healthy ecosystem. An ecosystem can have deep liquidity and strong momentum, but if it collapses under stress, none of those qualities matter. ZARQ's historical data shows that drawdown recovery speed and NDD stability are the strongest predictors of long-term ecosystem survival."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is the confidence discount and why does it matter?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The confidence discount penalizes tokens with incomplete data coverage. If ZARQ only has data for 3 out of 5 dimensions, the raw score is multiplied by a confidence factor (0.6 + 0.4 * confidence/100). This prevents partial-data tokens from outranking fully-covered tokens. A token with data on all 5 dimensions and a raw score of 70 will always outrank a token with only 2 dimensions and the same raw score."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How does ZARQ distinguish organic from incentivized yield?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "ZARQ tracks two yield components: apy_base (organic yield from protocol fees and trading activity) and apy_reward (incentivized yield from token emissions and liquidity mining). The organic yield ratio (apy_base / total APY) is a key input to the Coordination Efficiency dimension. Ecosystems with high organic yield ratios demonstrate genuine utility demand, while those dependent on incentivized yield face sustainability risks when rewards expire."
+      }
+    }
+  ]
+}
+</script>
+
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --white: #fafaf9; --black: #0a0a0a;
+  --gray-100: #f5f5f4; --gray-200: #e7e5e4; --gray-300: #d6d3d1;
+  --gray-400: #a8a29e; --gray-500: #78716c; --gray-600: #57534e;
+  --gray-700: #44403c; --gray-800: #292524; --gray-900: #1c1917;
+  --warm: #c2956b; --warm-light: rgba(194,149,107,0.08);
+  --red: #dc2626; --red-light: rgba(220,38,38,0.06);
+  --amber: #d97706; --amber-light: rgba(217,119,6,0.06);
+  --green: #16a34a; --green-light: rgba(22,163,74,0.06);
+  --blue: #2563eb; --blue-light: rgba(37,99,235,0.06);
+  --serif: 'DM Serif Display', Georgia, serif;
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'DM Sans', sans-serif;
+  --wide: 1120px;
+  --measure: 720px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+::selection { background: var(--warm); color: var(--black); }
+html { font-size: 17px; -webkit-font-smoothing: antialiased; }
+body { background: var(--white); color: var(--gray-800); font-family: var(--sans); line-height: 1.7; }
+
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  padding: 20px 40px; display: flex; justify-content: space-between; align-items: center;
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  background: rgba(250,250,249,0.85); border-bottom: 1px solid rgba(0,0,0,0.04);
+}
+.nav-mark { font-family: var(--mono); font-weight: 500; font-size: 15px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--black); text-decoration: none; }
+.nav-links { display: flex; gap: 32px; align-items: center; }
+.nav-links a { font-family: var(--mono); font-size: 12px; letter-spacing: 0.05em; color: var(--gray-600); text-decoration: none; }
+.nav-links a:hover { color: var(--black); }
+.nav-api { font-family: var(--mono); font-size: 11px; letter-spacing: 0.05em; color: var(--warm); border: 1px solid var(--warm); padding: 6px 16px; text-decoration: none; transition: all 0.2s; }
+.nav-api:hover { background: var(--warm); color: var(--white); }
+.nav-dropdown { position: relative; }
+.nav-dropdown-trigger { cursor: pointer; }
+.nav-dropdown-menu { display: none; position: absolute; top: 100%; right: 0; background: var(--white); border: 1px solid var(--gray-200); box-shadow: 0 8px 24px rgba(0,0,0,0.08); padding: 8px 0; min-width: 180px; z-index: 200; }
+.nav-dropdown:hover .nav-dropdown-menu { display: block; }
+.nav-dropdown-menu a { display: block; padding: 8px 20px; font-family: var(--mono); font-size: 12px; letter-spacing: 0.05em; color: var(--gray-600); text-decoration: none; white-space: nowrap; }
+.nav-dropdown-menu a:hover { background: var(--warm-light); color: var(--black); }
+.nav-toggle-input { display: none; }
+.nav-hamburger { display: none; cursor: pointer; flex-direction: column; gap: 5px; }
+.nav-hamburger span { display: block; width: 22px; height: 2px; background: var(--black); transition: all 0.3s; }
+
+.container { max-width: var(--wide); margin: 0 auto; padding: 140px 40px 80px; }
+.content { max-width: var(--measure); }
+
+h1 { font-family: var(--serif); font-weight: 400; font-size: clamp(32px, 4vw, 48px); line-height: 1.1; color: var(--black); letter-spacing: -0.02em; margin-bottom: 8px; }
+.subtitle { font-family: var(--mono); font-size: 12px; letter-spacing: 0.05em; color: var(--gray-500); margin-bottom: 48px; }
+h2 { font-family: var(--serif); font-weight: 400; font-size: clamp(22px, 3vw, 30px); line-height: 1.2; color: var(--black); letter-spacing: -0.01em; margin-top: 64px; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--gray-200); }
+h3 { font-family: var(--sans); font-weight: 600; font-size: 16px; color: var(--black); margin-top: 36px; margin-bottom: 12px; }
+p { margin-bottom: 16px; color: var(--gray-700); font-size: 15px; }
+strong { color: var(--black); font-weight: 600; }
+
+.table-wrap { overflow-x: auto; margin: 20px 0 28px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; font-family: var(--sans); }
+thead th { font-family: var(--mono); font-size: 11px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--gray-500); padding: 10px 16px; text-align: left; border-bottom: 2px solid var(--gray-200); white-space: nowrap; }
+tbody td { padding: 10px 16px; border-bottom: 1px solid var(--gray-100); color: var(--gray-700); }
+tbody tr:hover { background: var(--warm-light); }
+
+.note { padding: 20px 24px; margin: 24px 0; font-size: 13px; line-height: 1.6; border: 1px solid; border-left-width: 3px; }
+.note-warn { background: var(--amber-light); border-color: rgba(217,119,6,0.2); color: var(--gray-700); }
+.note-info { background: var(--warm-light); border-color: rgba(194,149,107,0.2); color: var(--gray-700); }
+.note-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 600; margin-bottom: 8px; display: block; }
+.note-warn .note-label { color: var(--amber); }
+.note-info .note-label { color: var(--warm); }
+
+code { font-family: var(--mono); font-size: 12px; background: var(--gray-100); padding: 2px 6px; border-radius: 3px; color: var(--gray-700); }
+
+.formula { font-family: var(--mono); font-size: 13px; background: var(--gray-100); padding: 16px 24px; margin: 16px 0 24px; border-left: 3px solid var(--warm); line-height: 1.8; color: var(--gray-800); overflow-x: auto; }
+
+.toc { background: var(--gray-100); padding: 24px 28px; margin-bottom: 48px; }
+.toc-title { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gray-500); margin-bottom: 12px; }
+.toc a { display: block; font-family: var(--sans); font-size: 14px; color: var(--gray-600); text-decoration: none; padding: 4px 0; }
+.toc a:hover { color: var(--warm); }
+.toc-num { font-family: var(--mono); font-size: 12px; color: var(--warm); margin-right: 8px; }
+
+/* Weight breakdown visualization */
+.weight-bar { display: flex; height: 40px; border-radius: 4px; overflow: hidden; margin: 20px 0 8px; font-family: var(--mono); font-size: 11px; }
+.weight-bar div { display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 500; letter-spacing: 0.03em; }
+.wb-gravity { background: #6366f1; }
+.wb-capital { background: #0891b2; }
+.wb-coordination { background: var(--warm); }
+.wb-stress { background: #dc2626; }
+.wb-momentum { background: #16a34a; }
+
+.weight-legend { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 32px; font-size: 12px; font-family: var(--sans); color: var(--gray-600); }
+.weight-legend span { display: flex; align-items: center; gap: 6px; }
+.weight-legend .dot { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+
+/* Dimension cards */
+.dim-card { border: 1px solid var(--gray-200); padding: 24px 28px; margin: 20px 0; background: var(--white); }
+.dim-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.dim-name { font-family: var(--serif); font-size: 20px; color: var(--black); }
+.dim-weight { font-family: var(--mono); font-size: 13px; color: var(--warm); background: var(--warm-light); padding: 4px 12px; border-radius: 3px; }
+.dim-desc { font-size: 14px; color: var(--gray-600); margin-bottom: 16px; }
+.dim-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.dim-input { font-family: var(--mono); font-size: 12px; color: var(--gray-600); padding: 6px 10px; background: var(--gray-100); border-radius: 3px; }
+
+/* Grade badge */
+.grade-badge { font-family: var(--mono); font-weight: 600; font-size: 14px; padding: 4px 12px; border-radius: 3px; display: inline-block; }
+.grade-s { background: #7c3aed; color: #fff; }
+.grade-a { background: #16a34a; color: #fff; }
+.grade-b { background: #65a30d; color: #fff; }
+.grade-c { background: var(--warm); color: #fff; }
+.grade-d { background: #d97706; color: #fff; }
+.grade-f { background: #dc2626; color: #fff; }
+
+ul { margin: 8px 0 16px 24px; }
+li { font-size: 14px; color: var(--gray-700); margin-bottom: 6px; }
+
+footer {
+  border-top: 1px solid var(--gray-200); padding: 40px;
+  display: flex; justify-content: space-between; align-items: center;
+  font-family: var(--mono); font-size: 11px; color: var(--gray-500);
+}
+.foot-right { display: flex; gap: 24px; }
+.foot-right a { color: var(--gray-500); text-decoration: none; }
+.foot-right a:hover { color: var(--warm); }
+
+@media (max-width: 768px) {
+  nav { padding: 16px 20px; }
+  .nav-links { display: none; flex-direction: column; position: absolute; top: 100%; left: 0; right: 0; background: var(--white); padding: 20px; border-bottom: 1px solid var(--gray-200); gap: 16px; }
+  .nav-toggle-input:checked ~ .nav-links { display: flex; }
+  .nav-hamburger { display: flex; }
+  .nav-dropdown-trigger { display: none; }
+  .container { padding: 120px 20px 60px; }
+  .dim-inputs { grid-template-columns: 1fr; }
+  .weight-legend { gap: 10px; }
+  table { font-size: 12px; }
+  thead th, tbody td { padding: 8px 10px; }
+  footer { flex-direction: column; gap: 16px; padding: 40px 20px; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-mark">zarq</a>
+  <input type="checkbox" id="nav-toggle" class="nav-toggle-input">
+  <label for="nav-toggle" class="nav-hamburger"><span></span><span></span><span></span></label>
+  <div class="nav-links">
+    <a href="/scan">Scan</a>
+    <a href="/crypto">Ratings</a>
+    <a href="/tokens">Token Ratings</a>
+    <a href="/crash-watch">Crash Watch</a>
+    <div class="nav-dropdown">
+      <a href="#" class="nav-dropdown-trigger">More &#9662;</a>
+      <div class="nav-dropdown-menu">
+        <a href="/yield-risk">Yield Risk</a>
+        <a href="/compare">Compare</a>
+        <a href="/learn">Learn</a>
+        <a href="/track-record">Track Record</a>
+        <a href="/paper-trading">Paper Trading</a>
+        <a href="/press">Press</a>
+        <a href="/methodology">Methodology</a>
+      </div>
+    </div>
+    <a href="/docs" class="nav-api">API</a>
+  </div>
+</nav>
+
+<div class="container">
+<div class="content">
+
+<h1>ZARQ Vitality Score Methodology</h1>
+<div class="subtitle">How We Measure Ecosystem Health &middot; v1.0 &middot; March 2026</div>
+
+<div class="toc">
+  <div class="toc-title">Contents</div>
+  <a href="#overview"><span class="toc-num">1.</span> Overview</a>
+  <a href="#dimensions"><span class="toc-num">2.</span> Five Dimensions</a>
+  <a href="#gravity"><span class="toc-num">2.1</span> Ecosystem Gravity</a>
+  <a href="#capital"><span class="toc-num">2.2</span> Capital Commitment</a>
+  <a href="#coordination"><span class="toc-num">2.3</span> Coordination Efficiency</a>
+  <a href="#stress"><span class="toc-num">2.4</span> Stress Resilience</a>
+  <a href="#momentum"><span class="toc-num">2.5</span> Organic Momentum</a>
+  <a href="#weight-breakdown"><span class="toc-num">3.</span> Weight Breakdown</a>
+  <a href="#grades"><span class="toc-num">4.</span> Grade Scale</a>
+  <a href="#confidence"><span class="toc-num">5.</span> Confidence Scoring</a>
+  <a href="#organic-yield"><span class="toc-num">6.</span> Organic vs Incentivized Yield</a>
+  <a href="#why-it-matters"><span class="toc-num">7.</span> Why Vitality Score Matters</a>
+  <a href="#faq"><span class="toc-num">8.</span> FAQ</a>
+</div>
+
+<!-- Section 1: Overview -->
+<h2 id="overview">1. Overview</h2>
+
+<p>The <strong>ZARQ Vitality Score</strong> is a composite metric ranging from 0 to 100 that measures <strong>ecosystem quality and coordination strength</strong> for crypto tokens. While the ZARQ Trust Score evaluates individual token creditworthiness, the Vitality Score answers a different question: <em>how healthy is the ecosystem surrounding this token?</em></p>
+
+<p>A token can have strong fundamentals (high Trust Score) but exist in a shallow ecosystem with thin liquidity, no audit coverage, and fragile DeFi integrations. Conversely, a newer token might inhabit a robust, well-coordinated ecosystem. The Vitality Score captures this ecosystem dimension that individual token metrics miss.</p>
+
+<p>The score is computed daily from existing ZARQ data pipelines and synthesizes on-chain, off-chain, and structural signals into five weighted dimensions.</p>
+
+<div class="formula">
+Vitality = (Gravity &times; 0.20) + (Capital &times; 0.20) + (Coordination &times; 0.15) + (Stress &times; 0.25) + (Momentum &times; 0.20)
+</div>
+
+<div class="note note-info">
+  <span class="note-label">Design principle</span>
+  The Vitality Score is deliberately <strong>complementary</strong> to the Trust Score, not redundant. A token's Trust Score can be high while its Vitality is low (strong token, weak ecosystem) or vice versa. Together they provide a two-dimensional view of risk.
+</div>
+
+
+<!-- Section 2: Five Dimensions -->
+<h2 id="dimensions">2. Five Dimensions</h2>
+
+<p>Each dimension evaluates a distinct aspect of ecosystem health. Sub-scores within each dimension are normalized to 0&ndash;100 before weighting.</p>
+
+
+<!-- 2.1 Ecosystem Gravity -->
+<h3 id="gravity">2.1 Ecosystem Gravity (20%)</h3>
+
+<div class="dim-card">
+  <div class="dim-header">
+    <div class="dim-name">Ecosystem Gravity</div>
+    <div class="dim-weight">20% weight</div>
+  </div>
+  <div class="dim-desc">Measures the breadth and depth of a token's ecosystem footprint. Tokens deployed across multiple chains with deep DeFi integrations exert stronger gravitational pull on capital and developers.</div>
+  <div class="dim-inputs">
+    <div class="dim-input">Multi-chain presence</div>
+    <div class="dim-input">Protocol count</div>
+    <div class="dim-input">DeFi depth</div>
+    <div class="dim-input">Integration breadth</div>
+  </div>
+</div>
+
+<p><strong>Multi-chain presence</strong> counts the number of blockchains where the token has active deployments with meaningful liquidity. A token on 8 chains scores higher than one on 2, because multi-chain presence indicates broader ecosystem integration and reduces single-chain dependency risk.</p>
+
+<p><strong>Protocol count</strong> measures how many distinct DeFi protocols integrate the token. This includes lending platforms, DEXs, yield aggregators, and derivatives venues. More integrations mean more utility pathways and greater ecosystem stickiness.</p>
+
+<p><strong>DeFi depth</strong> evaluates the sophistication of integrations &mdash; is the token merely listed on a DEX, or does it serve as collateral, governance power, and yield-bearing asset across multiple protocol types?</p>
+
+
+<!-- 2.2 Capital Commitment -->
+<h3 id="capital">2.2 Capital Commitment (20%)</h3>
+
+<div class="dim-card">
+  <div class="dim-header">
+    <div class="dim-name">Capital Commitment</div>
+    <div class="dim-weight">20% weight</div>
+  </div>
+  <div class="dim-desc">Measures how much real capital is committed to the ecosystem and how stable that commitment is over time. High TVL with low volatility signals genuine capital conviction rather than mercenary farming.</div>
+  <div class="dim-inputs">
+    <div class="dim-input">TVL stability</div>
+    <div class="dim-input">Locked capital ratio</div>
+    <div class="dim-input">Market cap rank</div>
+    <div class="dim-input">Capital retention rate</div>
+  </div>
+</div>
+
+<p><strong>TVL stability</strong> measures the coefficient of variation of Total Value Locked over rolling 30-day and 90-day windows. Stable TVL indicates that capital is committed for fundamental reasons rather than chasing short-term incentives. Sharp TVL drops often precede ecosystem distress.</p>
+
+<p><strong>Locked capital</strong> tracks the ratio of staked/locked tokens to circulating supply. Higher lock ratios indicate long-term holder conviction and reduce the available supply that can be sold during panic events.</p>
+
+<p><strong>Market cap rank</strong> provides a size-adjusted baseline. Top-50 tokens generally have more mature ecosystems with deeper capital pools. This input is log-scaled so the difference between rank 1 and rank 50 matters more than the difference between rank 500 and rank 550.</p>
+
+
+<!-- 2.3 Coordination Efficiency -->
+<h3 id="coordination">2.3 Coordination Efficiency (15%)</h3>
+
+<div class="dim-card">
+  <div class="dim-header">
+    <div class="dim-name">Coordination Efficiency</div>
+    <div class="dim-weight">15% weight</div>
+  </div>
+  <div class="dim-desc">Measures how well the ecosystem coordinates security, utility, and risk management. Well-coordinated ecosystems have audit coverage, diverse protocol categories, and sustainable yield generation.</div>
+  <div class="dim-inputs">
+    <div class="dim-input">Audit coverage</div>
+    <div class="dim-input">Category diversity</div>
+    <div class="dim-input">Yield density</div>
+    <div class="dim-input">Organic yield ratio</div>
+  </div>
+</div>
+
+<p><strong>Audit coverage</strong> measures the percentage of protocols in the ecosystem that have been audited by recognized security firms. Ecosystems where 80%+ of protocols are audited demonstrate coordinated security standards. This is a governance signal &mdash; it shows that the ecosystem's leadership prioritizes security verification.</p>
+
+<p><strong>Category diversity</strong> evaluates how many distinct DeFi categories the token participates in (lending, DEX, yield, derivatives, insurance, bridges, etc.). Monoculture ecosystems &mdash; where all protocols are in the same category &mdash; face concentrated risk. Category diversity provides resilience through functional redundancy.</p>
+
+<p><strong>Yield density</strong> measures the number of yield-generating opportunities normalized by ecosystem size. Dense yield ecosystems offer more pathways for capital to be productive, which attracts and retains liquidity.</p>
+
+<p><strong>Organic yield ratio</strong> is a key differentiator of the Vitality Score. See <a href="#organic-yield">Section 6</a> for details.</p>
+
+
+<!-- 2.4 Stress Resilience -->
+<h3 id="stress">2.4 Stress Resilience (25%)</h3>
+
+<div class="dim-card">
+  <div class="dim-header">
+    <div class="dim-name">Stress Resilience</div>
+    <div class="dim-weight">25% weight</div>
+  </div>
+  <div class="dim-desc">The highest-weighted dimension. Measures the ecosystem's ability to absorb shocks and recover from drawdowns. This directly measures survival capability &mdash; the most important quality of any ecosystem.</div>
+  <div class="dim-inputs">
+    <div class="dim-input">Drawdown recovery speed</div>
+    <div class="dim-input">NDD stability</div>
+    <div class="dim-input">Crash probability</div>
+    <div class="dim-input">Max drawdown depth</div>
+  </div>
+</div>
+
+<p><strong>Stress Resilience carries the largest weight (25%)</strong> because survival capability is the single most important quality of a healthy ecosystem. An ecosystem can have deep liquidity, strong momentum, and perfect audit coverage &mdash; but if it collapses under stress, none of those qualities matter.</p>
+
+<p><strong>Drawdown recovery</strong> measures how quickly the token recovers from significant price drops (>20%). Fast recovery signals that the ecosystem has sufficient buy-side depth and holder conviction to absorb selling pressure. Tokens that take 180+ days to recover from drawdowns score poorly.</p>
+
+<p><strong>NDD stability</strong> uses ZARQ's proprietary Distance-to-Default metric. Stable NDD values (low variance over 4-week rolling windows) indicate consistent structural health. Volatile NDD suggests an ecosystem oscillating between health and distress.</p>
+
+<p><strong>Crash probability</strong> is drawn directly from ZARQ's crash prediction model (see <a href="/methodology">main methodology</a>). Tokens with crash probability above 30% receive severe penalties in this dimension.</p>
+
+<div class="note note-warn">
+  <span class="note-label">Why 25%?</span>
+  ZARQ's historical data shows that drawdown recovery speed and NDD stability are the strongest predictors of long-term ecosystem survival. Ecosystems that recovered from the 2022 bear market within 6 months had 4.2x higher 12-month survival rates than those that took longer.
+</div>
+
+
+<!-- 2.5 Organic Momentum -->
+<h3 id="momentum">2.5 Organic Momentum (20%)</h3>
+
+<div class="dim-card">
+  <div class="dim-header">
+    <div class="dim-name">Organic Momentum</div>
+    <div class="dim-weight">20% weight</div>
+  </div>
+  <div class="dim-desc">Measures whether ecosystem health is improving or declining. Forward-looking trends complement the snapshot metrics in other dimensions.</div>
+  <div class="dim-inputs">
+    <div class="dim-input">Rating trend (4-week)</div>
+    <div class="dim-input">NDD trend direction</div>
+    <div class="dim-input">Volume momentum</div>
+    <div class="dim-input">TVL trend</div>
+  </div>
+</div>
+
+<p><strong>Rating trend</strong> tracks the direction and magnitude of ZARQ Trust Score changes over rolling 4-week windows. Improving ratings signal that the token's fundamentals are strengthening. Degrading ratings provide early warning of ecosystem erosion.</p>
+
+<p><strong>NDD trend</strong> measures the directional change in Distance-to-Default. Rising NDD (moving away from default) is positive; declining NDD (moving toward default) is negative. The rate of change matters more than the absolute level.</p>
+
+<p><strong>Volume momentum</strong> evaluates trading volume trends relative to the token's own historical baseline. Organic volume growth (not driven by wash trading or incentive programs) indicates growing genuine interest.</p>
+
+
+<!-- Section 3: Weight Breakdown -->
+<h2 id="weight-breakdown">3. Weight Breakdown</h2>
+
+<p>The five dimensions are weighted to reflect their relative importance for ecosystem health assessment:</p>
+
+<div class="weight-bar">
+  <div class="wb-gravity" style="width:20%">20%</div>
+  <div class="wb-capital" style="width:20%">20%</div>
+  <div class="wb-coordination" style="width:15%">15%</div>
+  <div class="wb-stress" style="width:25%">25%</div>
+  <div class="wb-momentum" style="width:20%">20%</div>
+</div>
+<div class="weight-legend">
+  <span><span class="dot" style="background:#6366f1"></span> Ecosystem Gravity (20%)</span>
+  <span><span class="dot" style="background:#0891b2"></span> Capital Commitment (20%)</span>
+  <span><span class="dot" style="background:var(--warm)"></span> Coordination Efficiency (15%)</span>
+  <span><span class="dot" style="background:#dc2626"></span> Stress Resilience (25%)</span>
+  <span><span class="dot" style="background:#16a34a"></span> Organic Momentum (20%)</span>
+</div>
+
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+  <th>Dimension</th>
+  <th>Weight</th>
+  <th>Rationale</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><strong>Stress Resilience</strong></td>
+  <td><code>25%</code></td>
+  <td>Survival capability is the prerequisite for all other qualities. A dead ecosystem has zero value regardless of prior metrics.</td>
+</tr>
+<tr>
+  <td><strong>Ecosystem Gravity</strong></td>
+  <td><code>20%</code></td>
+  <td>Breadth of integration creates network effects that compound over time and make ecosystems harder to displace.</td>
+</tr>
+<tr>
+  <td><strong>Capital Commitment</strong></td>
+  <td><code>20%</code></td>
+  <td>Real capital at stake aligns incentives and provides the economic foundation for ecosystem services.</td>
+</tr>
+<tr>
+  <td><strong>Organic Momentum</strong></td>
+  <td><code>20%</code></td>
+  <td>Trend direction distinguishes improving ecosystems from deteriorating ones with similar snapshot scores.</td>
+</tr>
+<tr>
+  <td><strong>Coordination Efficiency</strong></td>
+  <td><code>15%</code></td>
+  <td>Coordination quality amplifies other dimensions but is harder to measure precisely, warranting slightly lower weight.</td>
+</tr>
+</tbody>
+</table>
+</div>
+
+
+<!-- Section 4: Grade Scale -->
+<h2 id="grades">4. Grade Scale</h2>
+
+<p>The raw Vitality Score (after confidence adjustment) maps to a letter grade for quick interpretation:</p>
+
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+  <th>Grade</th>
+  <th>Score Range</th>
+  <th>Interpretation</th>
+  <th>Typical Profile</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><span class="grade-badge grade-s">S</span></td>
+  <td><code>&ge; 85</code></td>
+  <td>Exceptional ecosystem</td>
+  <td>Multi-chain, deep DeFi, audited, stress-tested, strong momentum. BTC, ETH tier.</td>
+</tr>
+<tr>
+  <td><span class="grade-badge grade-a">A</span></td>
+  <td><code>&ge; 70</code></td>
+  <td>Strong ecosystem</td>
+  <td>Broad integrations, stable capital, good audit coverage, proven recovery. Top-20 tokens.</td>
+</tr>
+<tr>
+  <td><span class="grade-badge grade-b">B</span></td>
+  <td><code>&ge; 55</code></td>
+  <td>Healthy ecosystem</td>
+  <td>Adequate breadth and depth, some weaknesses in one or two dimensions. Mid-cap tokens.</td>
+</tr>
+<tr>
+  <td><span class="grade-badge grade-c">C</span></td>
+  <td><code>&ge; 40</code></td>
+  <td>Developing ecosystem</td>
+  <td>Emerging integrations, limited audit coverage, or stress resilience concerns. Growing projects.</td>
+</tr>
+<tr>
+  <td><span class="grade-badge grade-d">D</span></td>
+  <td><code>&ge; 25</code></td>
+  <td>Weak ecosystem</td>
+  <td>Shallow integrations, capital flight risk, poor recovery history. Micro-caps and troubled projects.</td>
+</tr>
+<tr>
+  <td><span class="grade-badge grade-f">F</span></td>
+  <td><code>&lt; 25</code></td>
+  <td>Critical ecosystem</td>
+  <td>Minimal integration, no audit coverage, structural fragility. Tokens at risk of ecosystem death.</td>
+</tr>
+</tbody>
+</table>
+</div>
+
+<p>The S grade is intentionally rare. In current data, fewer than 3% of scored tokens achieve S-tier Vitality, reflecting the high bar required for exceptional ecosystem quality across all five dimensions simultaneously.</p>
+
+
+<!-- Section 5: Confidence Scoring -->
+<h2 id="confidence">5. Confidence Scoring</h2>
+
+<p>Not all tokens have complete data across all five dimensions. A token may lack DeFi integration data, historical NDD values, or yield metrics. To prevent partial-data tokens from achieving inflated scores, ZARQ applies a <strong>confidence discount</strong>.</p>
+
+<div class="formula">
+confidence_factor = 0.6 + 0.4 &times; (confidence / 100)<br><br>
+final_vitality = raw_vitality &times; confidence_factor
+</div>
+
+<p><strong>How confidence is calculated:</strong> Each dimension has required data inputs. The confidence score (0&ndash;100) reflects the percentage of all possible inputs that are available and current. A token with data on all 5 dimensions at full coverage has confidence = 100, yielding a factor of 1.0 (no discount). A token with only 50% data coverage has confidence = 50, yielding a factor of 0.8 (20% discount).</p>
+
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+  <th>Data Coverage</th>
+  <th>Confidence</th>
+  <th>Factor</th>
+  <th>Effect on Score of 70</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Full coverage (all 5 dimensions)</td>
+  <td><code>100</code></td>
+  <td><code>1.00</code></td>
+  <td>70.0 (no discount)</td>
+</tr>
+<tr>
+  <td>Strong coverage (4 dimensions)</td>
+  <td><code>80</code></td>
+  <td><code>0.92</code></td>
+  <td>64.4</td>
+</tr>
+<tr>
+  <td>Moderate coverage (3 dimensions)</td>
+  <td><code>60</code></td>
+  <td><code>0.84</code></td>
+  <td>58.8</td>
+</tr>
+<tr>
+  <td>Limited coverage (2 dimensions)</td>
+  <td><code>40</code></td>
+  <td><code>0.76</code></td>
+  <td>53.2</td>
+</tr>
+<tr>
+  <td>Minimal coverage (1 dimension)</td>
+  <td><code>20</code></td>
+  <td><code>0.68</code></td>
+  <td>47.6</td>
+</tr>
+</tbody>
+</table>
+</div>
+
+<div class="note note-info">
+  <span class="note-label">Design rationale</span>
+  The floor factor of 0.6 (at confidence = 0) ensures that even zero-data tokens get a meaningful but heavily discounted score rather than being excluded entirely. The 0.4 range provides sufficient penalty spread to prevent gaming. A token cannot achieve grade A or above with less than 70% data coverage, regardless of raw score.
+</div>
+
+
+<!-- Section 6: Organic vs Incentivized Yield -->
+<h2 id="organic-yield">6. Organic vs Incentivized Yield</h2>
+
+<p>One of the Vitality Score's key differentiators is its decomposition of DeFi yield into <strong>organic</strong> and <strong>incentivized</strong> components. Most competitors track total APY; ZARQ tracks two separate components:</p>
+
+<ul>
+  <li><strong><code>apy_base</code></strong> &mdash; Organic yield generated from protocol fees, trading activity, and lending interest. This yield exists because of genuine economic demand for the protocol's services.</li>
+  <li><strong><code>apy_reward</code></strong> &mdash; Incentivized yield from token emissions, liquidity mining programs, and governance rewards. This yield is subsidized and may not be sustainable long-term.</li>
+</ul>
+
+<div class="formula">
+organic_ratio = apy_base / (apy_base + apy_reward)
+</div>
+
+<p>The organic yield ratio feeds into the Coordination Efficiency dimension. Ecosystems with high organic ratios (>60%) demonstrate genuine utility demand &mdash; people pay fees to use the protocol, generating sustainable yield. Ecosystems dependent on incentivized yield (organic ratio <20%) face cliff risk when reward programs end.</p>
+
+<h3>Why this matters</h3>
+
+<p>The DeFi Summer of 2020&ndash;2021 demonstrated the fragility of incentive-dependent ecosystems. Protocols offering 1,000%+ APY through token emissions attracted billions in TVL that evaporated within weeks of rewards ending. The organic yield ratio separates ecosystems with genuine utility from those running unsustainable incentive programs.</p>
+
+<p>This data point is uniquely available because ZARQ's data pipeline separates <code>apy_base</code> and <code>apy_reward</code> at the source level, a decomposition most aggregators do not perform. It provides a structural advantage in evaluating ecosystem sustainability.</p>
+
+
+<!-- Section 7: Why Vitality Score Matters -->
+<h2 id="why-it-matters">7. Why Vitality Score Matters for Investors</h2>
+
+<p>The Vitality Score provides actionable intelligence that individual token metrics cannot capture:</p>
+
+<h3>Ecosystem risk detection</h3>
+<p>A token's price can remain stable while its ecosystem deteriorates. Declining Vitality Score serves as an early warning that the token's support infrastructure is weakening &mdash; shrinking DeFi integrations, falling audit coverage, or rising stress fragility. By the time price reflects ecosystem decay, the exit window may be narrow.</p>
+
+<h3>Portfolio construction</h3>
+<p>Vitality Score adds a second dimension to portfolio analysis. Combining Trust Score (token quality) with Vitality Score (ecosystem quality) creates a 2D risk map. Tokens in the high-Trust, high-Vitality quadrant are the strongest candidates for core portfolio positions. Tokens in the low-Trust, low-Vitality quadrant require the highest risk premium.</p>
+
+<h3>Yield sustainability assessment</h3>
+<p>Before allocating capital to DeFi yield opportunities, the organic yield ratio provides a sustainability check. High total APY with low organic ratio signals that current yields are likely temporary. High organic ratio with moderate APY signals sustainable income generation.</p>
+
+<h3>Comparative ecosystem analysis</h3>
+<p>The Vitality Score enables apples-to-apples comparison across ecosystems. Is Solana's ecosystem healthier than Avalanche's? Is Arbitrum's coordination efficiency improving faster than Optimism's? The five-dimension breakdown provides granular answers that aggregate metrics cannot.</p>
+
+<div class="note note-info">
+  <span class="note-label">Integration</span>
+  The Vitality Score is available on individual token pages at <a href="/crypto" style="color:var(--warm)">/crypto/token/{id}</a>, through the <a href="/docs" style="color:var(--warm)">ZARQ API</a>, and in bulk data exports. It updates daily alongside Trust Scores and Distance-to-Default metrics.
+</div>
+
+
+<!-- Section 8: Backtest Results -->
+<h2 id="backtest">8. Backtest Results</h2>
+
+<p>We backtested the Vitality Score across three historical windows to verify its predictive power. The key finding: <strong>high-Vitality tokens lost significantly less during crashes</strong>.</p>
+
+<table style="width:100%;border-collapse:collapse;margin:24px 0;font-family:'JetBrains Mono',monospace;font-size:13px">
+<thead>
+<tr style="border-bottom:2px solid #e7e5e4;text-align:left">
+<th style="padding:8px">Window</th><th style="padding:8px">Period</th><th style="padding:8px">Tokens</th><th style="padding:8px">Q1&ndash;Q5 Spread</th><th style="padding:8px">Monotonicity</th><th style="padding:8px">p-value</th>
+</tr>
+</thead>
+<tbody>
+<tr style="border-bottom:1px solid #f5f5f4"><td style="padding:8px">A</td><td style="padding:8px">Jan 2024&rarr;Jan 2025</td><td style="padding:8px">355</td><td style="padding:8px">+9.3%</td><td style="padding:8px">2/4</td><td style="padding:8px">0.556</td></tr>
+<tr style="border-bottom:1px solid #f5f5f4"><td style="padding:8px">B</td><td style="padding:8px">Jan 2025&rarr;Jan 2026</td><td style="padding:8px">363</td><td style="padding:8px">+27.1%</td><td style="padding:8px">4/4</td><td style="padding:8px">0.392</td></tr>
+<tr style="border-bottom:1px solid #f5f5f4;background:rgba(22,163,74,0.05)"><td style="padding:8px"><strong>C</strong></td><td style="padding:8px">Jul 2025&rarr;Feb 2026</td><td style="padding:8px">412</td><td style="padding:8px"><strong>+44.3%</strong></td><td style="padding:8px"><strong>4/4</strong></td><td style="padding:8px"><strong>0.0008</strong></td></tr>
+</tbody>
+</table>
+
+<p>During the July 2025 &ndash; February 2026 crash (Window C), top-quintile Vitality tokens lost 26% (median) while bottom-quintile lost 70%. The strongest predictive dimension was <strong>Stress Resilience</strong> (+52.5% spread). Ecosystem Gravity and Coordination Efficiency showed near-zero predictive power for returns.</p>
+
+<p><a href="/vitality/backtest" style="color:#c2956b;font-weight:500">See full backtest methodology and results &rarr;</a></p>
+
+<!-- Section 9: FAQ -->
+<h2 id="faq">9. Frequently Asked Questions</h2>
+
+<h3>What is the ZARQ Vitality Score?</h3>
+<p>The ZARQ Vitality Score is a composite 0&ndash;100 metric that measures a crypto ecosystem's quality and coordination strength across five weighted dimensions: Ecosystem Gravity, Capital Commitment, Coordination Efficiency, Stress Resilience, and Organic Momentum. It is updated daily from on-chain and off-chain data.</p>
+
+<h3>How is the Vitality Score different from the ZARQ Trust Score?</h3>
+<p>The Trust Score measures individual token creditworthiness (security, compliance, maintenance, popularity, ecosystem). The Vitality Score measures ecosystem health &mdash; how well a token's surrounding ecosystem functions. A token can have a high Trust Score but low Vitality if its ecosystem is shallow, or vice versa. They are complementary risk dimensions.</p>
+
+<h3>Why does Stress Resilience have the highest weight at 25%?</h3>
+<p>Survival capability is the single most important quality of a healthy ecosystem. An ecosystem can have deep liquidity and strong momentum, but if it collapses under stress, none of those qualities matter. Historical data shows that drawdown recovery speed and NDD stability are the strongest predictors of long-term ecosystem survival.</p>
+
+<h3>What is the confidence discount and why does it matter?</h3>
+<p>The confidence discount penalizes tokens with incomplete data coverage. The formula <code>0.6 + 0.4 &times; (confidence/100)</code> ensures that partial-data tokens cannot outrank fully-covered tokens with the same raw score. A token needs at least 70% data coverage to achieve grade A or above.</p>
+
+<h3>How does ZARQ distinguish organic from incentivized yield?</h3>
+<p>ZARQ tracks two yield components: <code>apy_base</code> (organic yield from protocol fees and trading activity) and <code>apy_reward</code> (incentivized yield from token emissions). The organic yield ratio feeds into the Coordination Efficiency dimension. Ecosystems with high organic ratios demonstrate genuine utility demand, while those dependent on incentivized yield face sustainability risks when rewards expire.</p>
+
+
+</div><!-- .content -->
+</div><!-- .container -->
+
+<footer>
+  <div class="foot-left">&copy; 2026 ZARQ &middot; Crypto Intelligence</div>
+  <div class="foot-right">
+    <a href="/scan">Scan</a>
+    <a href="/crypto">Ratings</a>
+    <a href="/tokens">Token Ratings</a>
+    <a href="/crypto/alerts">Alerts</a>
+    <a href="/vitality/methodology">Vitality</a>
+    <a href="/track-record">Track Record</a>
+    <a href="/methodology">Methodology</a>
+    <a href="/docs">API</a>
+  </div>
+</footer>
+
+</body>
+</html>

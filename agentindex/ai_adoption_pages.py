@@ -298,20 +298,30 @@ Auth: None required</pre>
 
         session = get_session()
         try:
-            total = session.execute(text("SELECT COUNT(*) FROM agents WHERE is_active = true")).scalar() or 0
-            models = session.execute(text("SELECT COUNT(*) FROM agents WHERE is_active = true AND agent_type = 'model'")).scalar() or 0
-            agents_count = session.execute(text("SELECT COUNT(*) FROM agents WHERE is_active = true AND agent_type = 'agent'")).scalar() or 0
-            tools = session.execute(text("SELECT COUNT(*) FROM agents WHERE is_active = true AND agent_type = 'tool'")).scalar() or 0
-            mcp = session.execute(text("SELECT COUNT(*) FROM agents WHERE is_active = true AND agent_type = 'mcp_server'")).scalar() or 0
-            datasets = session.execute(text("SELECT COUNT(*) FROM agents WHERE is_active = true AND agent_type = 'dataset'")).scalar() or 0
-            spaces = session.execute(text("SELECT COUNT(*) FROM agents WHERE is_active = true AND agent_type = 'space'")).scalar() or 0
-            containers = session.execute(text("SELECT COUNT(*) FROM agents WHERE is_active = true AND agent_type = 'container'")).scalar() or 0
-            with_trust = session.execute(text("SELECT COUNT(*) FROM agents WHERE is_active = true AND trust_score_v2 > 0")).scalar() or 0
-            avg_trust = session.execute(text("SELECT AVG(trust_score_v2) FROM agents WHERE is_active = true AND trust_score_v2 > 0")).scalar() or 0
+            # Single sampled query instead of 13 full-table scans (TABLESAMPLE ~1% = ~50K rows)
+            session.execute(text("SET LOCAL statement_timeout = '3s'"))
+            _sample = session.execute(text("""
+                SELECT agent_type, COUNT(*) as cnt,
+                  SUM(CASE WHEN trust_score_v2 > 0 THEN 1 ELSE 0 END) as with_trust,
+                  AVG(CASE WHEN trust_score_v2 > 0 THEN trust_score_v2 END) as avg_trust
+                FROM entity_lookup TABLESAMPLE SYSTEM(1) WHERE is_active = true
+                GROUP BY agent_type
+            """)).fetchall()
+            _type_counts = {r[0]: r[1] * 100 for r in _sample}  # Scale up from 1%
+            total = sum(_type_counts.values())
+            models = _type_counts.get("model", 0)
+            agents_count = _type_counts.get("agent", 0)
+            tools = _type_counts.get("tool", 0)
+            mcp = _type_counts.get("mcp_server", 0)
+            datasets = _type_counts.get("dataset", 0)
+            spaces = _type_counts.get("space", 0)
+            containers = _type_counts.get("container", 0)
+            with_trust = sum(r[2] * 100 for r in _sample if r[2])
+            avg_trust = next((r[3] for r in _sample if r[3]), 0)
 
-            # Grade distribution
             grades = session.execute(text("""
-                SELECT trust_grade, COUNT(*) FROM agents WHERE is_active = true AND trust_grade IS NOT NULL
+                SELECT trust_grade, COUNT(*) * 100 FROM entity_lookup TABLESAMPLE SYSTEM(1)
+                WHERE is_active = true AND trust_grade IS NOT NULL
                 GROUP BY trust_grade ORDER BY COUNT(*) DESC LIMIT 10
             """)).fetchall()
         finally:
@@ -361,9 +371,16 @@ Auth: None required</pre>
 
         session = get_session()
         try:
-            total = session.execute(text("SELECT COUNT(*) FROM agents WHERE is_active = true AND agent_type = 'mcp_server'")).scalar() or 0
-            trusted = session.execute(text("SELECT COUNT(*) FROM agents WHERE is_active = true AND agent_type = 'mcp_server' AND trust_score_v2 >= 70")).scalar() or 0
-            avg = session.execute(text("SELECT AVG(trust_score_v2) FROM agents WHERE is_active = true AND agent_type = 'mcp_server' AND trust_score_v2 > 0")).scalar() or 0
+            session.execute(text("SET LOCAL statement_timeout = '3s'"))
+            _r = session.execute(text("""
+                SELECT COUNT(*), COUNT(*) FILTER (WHERE trust_score_v2 >= 70),
+                  AVG(CASE WHEN trust_score_v2 > 0 THEN trust_score_v2 END)
+                FROM entity_lookup TABLESAMPLE SYSTEM(5)
+                WHERE is_active = true AND agent_type = 'mcp_server'
+            """)).fetchone()
+            total = (_r[0] or 0) * 20  # Scale up from 5% sample
+            trusted = (_r[1] or 0) * 20
+            avg = _r[2] or 0
         finally:
             session.close()
 
@@ -396,18 +413,20 @@ Auth: None required</pre>
 
         session = get_session()
         try:
-            total = session.execute(text("SELECT COUNT(*) FROM agents WHERE is_active = true AND trust_score_v2 > 0")).scalar() or 0
-            buckets = session.execute(text("""
+            session.execute(text("SET LOCAL statement_timeout = '3s'"))
+            _r = session.execute(text("""
                 SELECT
                     CASE WHEN trust_score_v2 >= 80 THEN '80-100 (Excellent)'
                          WHEN trust_score_v2 >= 60 THEN '60-80 (Good)'
                          WHEN trust_score_v2 >= 40 THEN '40-60 (Fair)'
                          WHEN trust_score_v2 >= 20 THEN '20-40 (Poor)'
                          ELSE '0-20 (Critical)' END as bucket,
-                    COUNT(*) as cnt
-                FROM agents WHERE is_active = true AND trust_score_v2 > 0
+                    COUNT(*) * 100 as cnt
+                FROM entity_lookup TABLESAMPLE SYSTEM(1) WHERE is_active = true AND trust_score_v2 > 0
                 GROUP BY bucket ORDER BY bucket DESC
             """)).fetchall()
+            buckets = _r
+            total = sum(b[1] for b in buckets)
         finally:
             session.close()
 

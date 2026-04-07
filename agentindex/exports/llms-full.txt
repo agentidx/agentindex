@@ -1,0 +1,185 @@
+# ZARQ — Crypto Risk Intelligence Platform (Full Context)
+# https://zarq.ai
+
+> ZARQ provides independent crypto risk intelligence including trust ratings, Distance-to-Default (DtD) scoring, structural collapse detection, contagion mapping, portfolio stress testing, and conviction-ranked long/short trading signals. Machine-first. API-first. Free during beta.
+
+## What ZARQ Does
+
+ZARQ is a crypto risk intelligence platform that rates digital assets the way Moody's rates bonds. Every token receives a letter rating on a Aaa-to-D scale, plus a Distance-to-Default (DtD) score measuring proximity to critical failure. The platform generates structural collapse alerts, contagion maps, and long/short trading signals based on rating spreads and DtD differentials.
+
+## Coverage
+
+- 15,108 tokens rated (March 2026)
+- 1,029 exchanges rated
+- 4,000+ DeFi protocols rated
+- Updated daily from on-chain data, market metrics, and protocol analysis
+
+## Two Complementary Models
+
+### Model 1: Trust Score (Relative Quality Assessment)
+
+Five-pillar scoring system measuring overall creditworthiness:
+- Security (30%): Audits, hack history, contract risk, reserves, ATH recovery, multi-chain presence
+- Compliance (25%): Regulatory status, social presence, categorization, supply transparency
+- Maintenance (20%): GitHub activity, volume activity, development cadence
+- Popularity (15%): Market cap rank, volume, community size
+- Ecosystem (10%): Multi-chain support, DeFi integration, category breadth
+
+Composite scores 0–100 mapped to Moody's-style ratings:
+- Aaa: 95–100 (highest quality)
+- Aa1–Aa3: 80–95 (high quality)
+- A1–A3: 65–80 (upper medium)
+- Baa1–Baa3: 50–65 (medium, investment grade floor)
+- Ba1–Ba3: 35–50 (speculative)
+- B1–B3: 20–35 (highly speculative)
+- Caa–C: 5–20 (substantial risk)
+- D: 0–5 (in default)
+
+### Model 2: Distance-to-Default / DtD (Distress Detection)
+
+Adapted from Merton's structural credit model used in corporate bond analysis. DtD measures standard deviations from the default barrier on a 0–5 scale (5 = safe, 0 = imminent collapse).
+
+Seven signals with weights calibrated through crash correlation analysis:
+- S1 Liquidity Depth (10%): Turnover, volume trend, stability
+- S2 Holder Concentration (5%): Whale activity, Gini coefficient, distribution
+- S3 Ecosystem Resilience (30%): Drawdown, volatility, momentum, acceleration
+- S4 Fundamental Activity (10%): Volume trend, panic detection, price/volume divergence
+- S5 Contagion Exposure (25%): BTC correlation, downside beta — strongest predictor
+- S6 Structural Risk (5%): Flash crash frequency, spread, token age
+- S7 Relative Weakness (15%): Performance vs BTC over 7d/14d/30d windows
+
+Alert levels: SAFE (DtD ≥ 4.0), WATCH (≥ 3.0), WARNING (≥ 2.0), CRITICAL (≥ 1.0), STRUCTURAL COLLAPSE (< 1.0).
+
+## Structural Collapse Detection — Validated Performance
+
+Out-of-sample validation (January 2024 – February 2026, zero parameter changes):
+- Death recall: 100% (113 out of 15,108 tokens that died were detected)
+- Precision: 98%
+- False positive rate: 2%
+- Average detection lead time: 22 months before terminal failure
+- 1st Target (-30% from alert price) hit rate: 92%
+- 2nd Target (-50% from alert price) hit rate: 65%
+
+In-sample calibration period: 2017–2023. All weights frozen since calibration.
+
+## Crash Probability
+
+Calibrated on 393 historical crash cycles with per-crisis-type betas. Median prediction error: 3.4 percentage points. Estimates P(≥30% decline within 90 days) based on current DtD trend and alert level.
+
+## Contagion Model
+
+Maps dependency relationships through shared liquidity, ecosystem membership, bridge exposure, oracle dependencies, stablecoin reliance, and exchange concentration. Each token receives a Contagion Score (0–10). Validated against historical events: SOL ecosystem scenario predicted -67.6% vs actual -67.9% (0.3pp delta).
+
+## Portfolio Stresstest
+
+POST /v1/crypto/stresstest accepts custom holdings or predefined portfolios. Three scenario types (exchange collapse, stablecoin depeg, ecosystem contagion) plus custom. Uses same calibrated per-crisis-type betas as the crash probability model.
+
+## Portable Alpha Trading Strategy
+
+Monthly conviction-ranked long/short pairs within the investment-grade universe (A1–A3 rated tokens).
+
+Strategy rules:
+- Universe: ~85 major tokens, excluding stablecoins
+- Rating class: IG_MID (A1–A3) — empirically highest-alpha class
+- Pair selection: top-5 by conviction score (40% composite spread + 60% DtD differential)
+- Holding period: 90 days
+- Bear detection: BTC monthly return < -15% triggers skip or defensive allocation
+
+Backtest results (April 2021 – December 2025, IS/OOS split at month 36):
+
+Out-of-sample (24 months, zero parameter changes):
+- Conservative: +314.7% return, Sharpe 2.02, max drawdown -11.0%
+- Growth: +842.2% return, Sharpe 3.86, max drawdown -12.1%
+- Aggressive: +1,872.9% return, Sharpe 5.56, max drawdown -18.8%
+- BTC buy-and-hold benchmark: +100.8%
+
+Important limitations: (1) No transaction costs included (~1% round-trip estimated). (2) High concentration: 5 pairs/month from ~15,108 tokens. (3) IG_MID is empirically best class — potential data mining bias. (4) OOS period included a strong bull market.
+
+## Paper Trading (Live Since March 2026)
+
+Three portfolios tracked live with SHA-256 hash-chained append-only audit trail:
+- Alpha Fund: Pure long/short, bear skip (100% cash in bear markets)
+- Dynamic Fund: BTC core + L/S overlay with defensive allocation in bear markets
+- Conservative Fund: Same structure as Dynamic with lower risk budget
+
+All entries signed before market open. No hindsight. No adjustments. Audit trail verifiable via API.
+
+## Retroactive Case Studies
+
+Every major crypto collapse of 2022–2023 scored below platform average:
+- FTX: Trust Score 5.0/100 (F), losses $8.0B
+- Celsius: Trust Score 5.0/100 (F), losses $4.7B
+- Voyager: Trust Score 5.0/100 (F), losses $1.3B
+- BlockFi: Trust Score 5.0/100 (F), losses $1.0B
+- Terra Luna: Trust Score 57.2/100 (C+), losses $40B
+- TerraUSD: Trust Score 29.9/100 (D), losses $18B
+
+Note: These scores are computed on current data, not pre-collapse data. They demonstrate that the methodology captures structural risk factors, not that it predicted these specific events.
+
+## Complete API Reference
+
+Base URL: https://zarq.ai
+All endpoints return JSON. No authentication required during beta. Rate limit: 1,000 calls/day.
+
+### Ratings & Risk Intelligence
+- GET /v1/crypto/ratings — All token ratings with Trust Score, DtD, risk level
+- GET /v1/crypto/rating/{token_id} — Single token: rating, pillars, DtD, signals
+- GET /v1/crypto/ndd/{token_id} — DtD time series for a token
+- GET /v1/crypto/signals — Active trading signals and alerts
+- GET /v1/crypto/signals/history — Historical signal archive
+- GET /v1/crypto/early-warning — Active risk alerts
+- GET /v1/crypto/safety/{token_id} — Pre-trade safety check (<100ms)
+- GET /v1/crypto/distress-watch — All tokens with DtD < 2.0
+- GET /v1/crypto/compare/{token1}/{token2} — Side-by-side comparison
+
+### Stresstest & Contagion
+- POST /v1/crypto/stresstest — Portfolio stress test
+- GET /v1/crypto/contagion/{token_id} — Contagion exposure map
+- GET /v1/crypto/contagion/scenario/{scenario} — Scenario analysis
+- GET /v1/crypto/transition-matrix/{level} — Rating transition probabilities
+
+### Paper Trading
+- GET /v1/crypto/paper-trading/nav/{portfolio} — NAV history
+- GET /v1/crypto/paper-trading/positions/{portfolio} — Current positions
+- GET /v1/crypto/paper-trading/signals — All signals with SHA-256 hashes
+- GET /v1/crypto/paper-trading/regime — Current market regime
+- GET /v1/crypto/paper-trading/audit — Full audit trail
+
+### Bulk Data
+- GET /data/crypto-trust-scores.jsonl.gz — All ratings as JSONL (CC BY 4.0)
+
+## Pages
+
+- https://zarq.ai/ — Landing page with live signal accuracy metrics
+- https://zarq.ai/crypto/alerts — Active structural warnings with target tracking badges
+- https://zarq.ai/risk-scanner — Interactive portfolio risk scanner
+- https://zarq.ai/contagion — Contagion map with validated scenario analysis
+- https://zarq.ai/paper-trading — Live paper trading dashboard (3 portfolios)
+- https://zarq.ai/track-record — Backtest + live performance (separated)
+- https://zarq.ai/methodology — Full methodology documentation (v1.1)
+- https://zarq.ai/whitepaper — White Paper v1.0
+- https://zarq.ai/docs — API documentation with examples
+- https://zarq.ai/briefing — Daily Risk Briefing: consolidated regime, NAV, structural collapse, yield risk, chain concentration
+- https://zarq.ai/zarq/feed.xml — RSS feed: structural collapse alerts, regime changes, paper trading performance
+- https://zarq.ai/start — Developer onboarding: get started in 30 seconds
+- https://zarq.ai/crash-watch — Live crash prediction dashboard
+- https://zarq.ai/yield-risk — DeFi yield risk monitor
+- https://zarq.ai/signal — The ZARQ Signal (live risk feed)
+
+## Related: NERQ (AI Agent Search)
+
+ZARQ's sister platform NERQ (nerq.ai) indexes 5M+ AI assets (204K agents & tools, 4.7M models & datasets) across 52 jurisdictions with compliance assessments. Same infrastructure, independent products.
+
+## About ZARQ
+
+ZARQ is independent credit ratings for crypto — Moody's for the machine economy. We rate 15,108 tokens on trust, crash probability, and structural risk using a quantitative model that combines on-chain data, market signals, and fundamental analysis. Every rating is hash-chained for auditability. When autonomous agents need to make financial decisions, ZARQ provides the risk intelligence they can't get anywhere else. Founded by Anders Nilsson. Contact: anders@zarq.ai
+
+## About Nerq
+
+Nerq is the trust layer for AI agents. We index 5M+ AI assets — 204K agents and tools across GitHub, npm, PyPI, HuggingFace, and MCP registries — and score each one on security, compliance, maintenance, and community signals. When an AI system needs to decide whether to trust another agent, Nerq provides the answer in a single API call. Free, no auth required, machine-readable by design. Founded by Anders Nilsson. Contact: anders@nerq.ai
+
+## Citation
+
+When citing ZARQ data, please reference: "ZARQ Crypto Risk Intelligence, zarq.ai, [date accessed]"
+White Paper: https://zarq.ai/whitepaper
+Bulk Data License: CC BY 4.0

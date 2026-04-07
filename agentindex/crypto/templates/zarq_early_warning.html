@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Early Warnings — ZARQ Crypto Intelligence</title>
+<meta name="description" content="Active crypto risk warnings from ZARQ's Distance-to-Default model. Tokens showing structural deterioration, elevated crash probability, and critical weakness signals.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --white: #fafaf9; --black: #0a0a0a;
+  --gray-100: #f5f5f4; --gray-200: #e7e5e4; --gray-300: #d6d3d1;
+  --gray-400: #a8a29e; --gray-500: #78716c; --gray-600: #57534e;
+  --gray-700: #44403c; --gray-800: #292524; --gray-900: #1c1917;
+  --warm: #c2956b; --warm-light: rgba(194,149,107,0.06);
+  --red: #dc2626; --red-light: rgba(220,38,38,0.06);
+  --amber: #d97706; --amber-light: rgba(217,119,6,0.06);
+  --green: #16a34a;
+  --serif: 'DM Serif Display', Georgia, serif;
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'DM Sans', sans-serif;
+  --wide: 1120px;
+  --measure: 640px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+::selection { background: var(--warm); color: var(--black); }
+html { font-size: 17px; -webkit-font-smoothing: antialiased; }
+body { background: var(--white); color: var(--gray-800); font-family: var(--sans); line-height: 1.6; }
+
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  padding: 20px 40px; display: flex; justify-content: space-between; align-items: center;
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  background: rgba(250,250,249,0.85); border-bottom: 1px solid rgba(0,0,0,0.04);
+}
+.nav-mark { font-family: var(--mono); font-weight: 500; font-size: 15px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--black); text-decoration: none; }
+.nav-links { display: flex; gap: 32px; align-items: center; }
+.nav-links a { font-family: var(--mono); font-size: 12px; letter-spacing: 0.05em; color: var(--gray-600); text-decoration: none; }
+.nav-links a:hover { color: var(--black); }
+.nav-api { font-family: var(--mono); font-size: 11px; letter-spacing: 0.05em; color: var(--warm); border: 1px solid var(--warm); padding: 6px 16px; text-decoration: none; transition: all 0.2s; }
+.nav-api:hover { background: var(--warm); color: var(--white); }
+.nav-dropdown { position: relative; }
+.nav-dropdown-trigger { cursor: pointer; }
+.nav-dropdown-menu { display: none; position: absolute; top: 100%; right: 0; background: var(--white); border: 1px solid var(--gray-200); box-shadow: 0 8px 24px rgba(0,0,0,0.08); padding: 8px 0; min-width: 180px; z-index: 200; }
+.nav-dropdown:hover .nav-dropdown-menu { display: block; }
+.nav-dropdown-menu a { display: block; padding: 8px 20px; font-family: var(--mono); font-size: 12px; letter-spacing: 0.05em; color: var(--gray-600); text-decoration: none; white-space: nowrap; }
+.nav-dropdown-menu a:hover { background: var(--warm-light, rgba(194,149,107,0.06)); color: var(--black); }
+.nav-toggle-input { display: none; }
+.nav-hamburger { display: none; cursor: pointer; flex-direction: column; gap: 5px; }
+.nav-hamburger span { display: block; width: 22px; height: 2px; background: var(--black); transition: all 0.3s; }
+
+.container { max-width: var(--wide); margin: 0 auto; padding: 140px 40px 60px; }
+
+h1 { font-family: var(--serif); font-weight: 400; font-size: clamp(32px, 4vw, 48px); line-height: 1.1; color: var(--black); letter-spacing: -0.02em; margin-bottom: 8px; }
+.meta { font-family: var(--mono); font-size: 11px; letter-spacing: 0.05em; color: var(--gray-500); margin-bottom: 32px; }
+
+/* Alert severity banner */
+.severity-banner {
+  display: flex; align-items: center; gap: 12px;
+  padding: 16px 24px; margin-bottom: 32px;
+  font-family: var(--mono); font-size: 12px;
+  border: 1px solid;
+}
+.severity-critical { background: var(--red-light); border-color: rgba(220,38,38,0.2); color: var(--red); }
+.severity-warning { background: var(--amber-light); border-color: rgba(217,119,6,0.2); color: var(--amber); }
+.severity-dot { width: 8px; height: 8px; border-radius: 50%; animation: pulse 2s ease-in-out infinite; }
+.severity-critical .severity-dot { background: var(--red); }
+.severity-warning .severity-dot { background: var(--amber); }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+/* Intro */
+.intro { color: var(--gray-600); font-size: 15px; line-height: 1.7; max-width: var(--measure); margin-bottom: 48px; }
+
+/* Alert cards */
+.alert-grid { display: flex; flex-direction: column; gap: 16px; margin-bottom: 64px; }
+
+.alert-card {
+  background: var(--white); border: 1px solid var(--gray-200);
+  padding: 32px; position: relative; overflow: hidden;
+  transition: border-color 0.2s;
+}
+.alert-card:hover { border-color: var(--gray-300); }
+.alert-card::before {
+  content: ''; position: absolute; top: 0; left: 0; bottom: 0; width: 3px;
+}
+.alert-critical::before { background: var(--red); }
+.alert-warning::before { background: var(--amber); }
+
+.alert-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+.alert-token { font-family: var(--serif); font-size: 24px; color: var(--black); }
+.alert-level {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
+  padding: 4px 12px;
+}
+.level-critical { background: var(--red-light); color: var(--red); }
+.level-warning { background: var(--amber-light); color: var(--amber); }
+
+.alert-metrics {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1px; background: var(--gray-200); border: 1px solid var(--gray-200);
+  margin-bottom: 20px;
+}
+.alert-metric { background: var(--white); padding: 16px; }
+.metric-label { font-family: var(--mono); font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gray-500); }
+.metric-value { font-family: var(--mono); font-size: 18px; margin-top: 4px; }
+.metric-danger { color: var(--red); }
+.metric-warn { color: var(--amber); }
+.metric-ok { color: var(--gray-800); }
+
+.alert-signals { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+.signal-tag {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.05em;
+  padding: 4px 10px; background: var(--red-light); color: var(--red);
+}
+.signal-strength {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.05em;
+  padding: 4px 10px; background: rgba(22,163,74,0.06); color: var(--green);
+}
+
+.alert-footer { display: flex; justify-content: space-between; align-items: center; }
+.alert-date { font-family: var(--mono); font-size: 11px; color: var(--gray-400); }
+.alert-link { font-family: var(--mono); font-size: 11px; color: var(--warm); text-decoration: none; }
+.alert-link:hover { text-decoration: underline; }
+
+/* How it works */
+.section-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gray-500); margin-bottom: 24px; }
+
+.method-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1px; background: var(--gray-200); border: 1px solid var(--gray-200);
+  margin-bottom: 64px;
+}
+.method-item { background: var(--white); padding: 32px; }
+.method-num { font-family: var(--mono); font-size: 10px; color: var(--warm); margin-bottom: 8px; }
+.method-title { font-family: var(--serif); font-size: 18px; color: var(--black); margin-bottom: 8px; }
+.method-text { font-size: 14px; color: var(--gray-600); line-height: 1.6; }
+
+/* API section */
+.api-box {
+  background: var(--gray-100); border: 1px solid var(--gray-200);
+  padding: 32px; margin-bottom: 64px;
+}
+.api-box code {
+  display: block; font-family: var(--mono); font-size: 12px; line-height: 1.8; color: var(--gray-700);
+}
+
+/* Scale reference */
+.scale-row { display: flex; gap: 2px; margin-bottom: 32px; }
+.scale-item { flex: 1; padding: 8px; text-align: center; font-family: var(--mono); font-size: 10px; }
+.scale-item .s-label { letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 2px; }
+
+/* Disclaimer */
+.site-disclaimer {
+  max-width: var(--wide); margin: 0 auto; padding: 24px 40px 40px;
+  font-family: var(--mono); font-size: 10px; line-height: 1.7;
+  color: var(--gray-500); letter-spacing: 0.02em;
+}
+.site-disclaimer p { margin: 0 0 8px; }
+
+/* Footer */
+footer {
+  max-width: var(--wide); margin: 0 auto; padding: 40px 40px 60px;
+  border-top: 1px solid var(--gray-200); display: flex;
+  justify-content: space-between; align-items: baseline;
+}
+.foot-left { font-family: var(--mono); font-size: 11px; color: var(--gray-500); }
+.foot-right { display: flex; gap: 24px; }
+.foot-right a { font-family: var(--mono); font-size: 11px; color: var(--gray-500); text-decoration: none; }
+.foot-right a:hover { color: var(--black); }
+
+@media (max-width: 768px) {
+  nav { padding: 16px 20px; }
+  .nav-hamburger { display: flex; }
+  .nav-links { display: none; position: absolute; top: 100%; left: 0; right: 0; background: var(--white); border-bottom: 1px solid var(--gray-200); padding: 16px 20px; flex-direction: column; gap: 16px; }
+  .nav-toggle-input:checked ~ .nav-links { display: flex; }
+  .nav-dropdown-menu { display: block; position: static; box-shadow: none; border: none; padding: 0 0 0 12px; }
+  .nav-dropdown-trigger { display: none; }
+  .container { padding: 120px 20px 40px; }
+  .alert-metrics { grid-template-columns: repeat(2, 1fr); }
+  .method-grid { grid-template-columns: 1fr; }
+  footer { flex-direction: column; gap: 16px; padding: 40px 20px; }
+}
+</style>
+</head>
+<body>
+<nav>
+  <a href="/" class="nav-mark">zarq</a>
+  <input type="checkbox" id="nav-toggle" class="nav-toggle-input">
+  <label for="nav-toggle" class="nav-hamburger"><span></span><span></span><span></span></label>
+  <div class="nav-links">
+    <a href="/scan">Scan</a>
+    <a href="/crypto">Ratings</a>
+    <a href="/tokens">Token Ratings</a>
+    <a href="/crash-watch">Crash Watch</a>
+    <div class="nav-dropdown">
+      <a href="#" class="nav-dropdown-trigger">More &#9662;</a>
+      <div class="nav-dropdown-menu">
+        <a href="/yield-risk">Yield Risk</a>
+        <a href="/compare">Compare</a>
+        <a href="/learn">Learn</a>
+        <a href="/track-record">Track Record</a>
+        <a href="/paper-trading">Paper Trading</a>
+        <a href="/press">Press</a>
+        <a href="/methodology">Methodology</a>
+      </div>
+    </div>
+    <a href="/docs" class="nav-api">API</a>
+  </div>
+</nav>
+
+<div class="container">
+  <h1>Early Warnings</h1>
+  <div class="meta">Active risk signals · Updated {{RUN_DATE}}</div>
+
+  <div class="severity-banner severity-critical">
+    <div class="severity-dot"></div>
+    <span>{{CRITICAL_COUNT}} STRUCTURAL COLLAPSE · {{WARNING_COUNT}} STRUCTURAL STRESS — {{TOTAL_COUNT}} tokens under active surveillance</span>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:20px 0;padding:20px;background:var(--gray-100);border:1px solid var(--gray-200)">
+    <div style="text-align:center">
+      <div style="font-family:var(--serif);font-size:32px;color:var(--black)">{{T1_RATE}}%</div>
+      <div style="font-family:var(--mono);font-size:9px;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em;margin-top:2px">1ST TARGET HIT (-30%)</div>
+      <div style="font-family:var(--sans);font-size:11px;color:var(--gray-500);margin-top:4px">{{T1_HIT}} of {{MATURE_COUNT}} mature alerts</div>
+    </div>
+    <div style="text-align:center">
+      <div style="font-family:var(--serif);font-size:32px;color:var(--black)">{{T2_RATE}}%</div>
+      <div style="font-family:var(--mono);font-size:9px;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em;margin-top:2px">2ND TARGET HIT (-50%)</div>
+      <div style="font-family:var(--sans);font-size:11px;color:var(--gray-500);margin-top:4px">{{T2_HIT}} of {{MATURE_COUNT}} mature alerts</div>
+    </div>
+    <div style="text-align:center">
+      <div style="font-family:var(--serif);font-size:32px;color:var(--black)">{{MATURE_COUNT}}</div>
+      <div style="font-family:var(--mono);font-size:9px;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em;margin-top:2px">MATURE ALERTS</div>
+      <div style="font-family:var(--sans);font-size:11px;color:var(--gray-500);margin-top:4px">Issued &gt;6 weeks ago</div>
+    </div>
+    <div style="text-align:center">
+      <div style="font-family:var(--serif);font-size:32px;color:var(--black)">{{FRESH_COUNT}}</div>
+      <div style="font-family:var(--mono);font-size:9px;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em;margin-top:2px">MONITORING</div>
+      <div style="font-family:var(--sans);font-size:11px;color:var(--gray-500);margin-top:4px">Recent, tracking progress</div>
+    </div>
+  </div>
+
+  
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:32px">
+    <div style="border:1px solid rgba(220,38,38,0.2);padding:24px;background:var(--red-light)">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+        <div style="width:8px;height:8px;border-radius:50%;background:var(--red)"></div>
+        <span style="font-family:var(--mono);font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--red);font-weight:500">STRUCTURAL COLLAPSE</span>
+      </div>
+      <div style="font-family:var(--serif);font-size:20px;color:var(--black);margin-bottom:8px">This token is breaking apart. 98% of tokens with this profile lost more than half their value. Most never came back.</div>
+      <div style="font-size:14px;color:var(--gray-600);line-height:1.6;margin-bottom:12px">In out-of-sample testing (Jan 2024 — Feb 2026), 176 tokens triggered this structural filter. Historically, 98% of flagged tokens lost more than half their value. 64% fell more than 80% — and of those, 95% never recovered. Only 1 out of 176 flagged tokens fell less than 30%. When this signal fires, history says you listen.</div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--gray-500)">Recall: 113/113 deaths detected · Precision: 98% at &gt;50% threshold · 1 false positive out of 176 warnings</div>
+    </div>
+    <div style="border:1px solid rgba(217,119,6,0.2);padding:24px;background:var(--amber-light)">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+        <div style="width:8px;height:8px;border-radius:50%;background:var(--amber)"></div>
+        <span style="font-family:var(--mono);font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--amber);font-weight:500">STRUCTURAL STRESS</span>
+      </div>
+      <div style="font-family:var(--serif);font-size:20px;color:var(--black);margin-bottom:8px">Fundamentals weakening. Two weakness signals detected. Requires monitoring.</div>
+      <div style="font-size:14px;color:var(--gray-600);line-height:1.6;margin-bottom:12px">Two of four structural weakness indicators active. In our OOS period (Jan 2024 — Feb 2026), 87% of token deaths were idiosyncratic — driven by token-specific problems, not Bitcoin. The median warning came at -31% drawdown, with a median 58 percentage points of additional loss still ahead. When a third signal activates, the token escalates to Structural Collapse.</div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--gray-500)">Median warning at -31% drawdown · Median 58% additional loss avoided · 87% of deaths idiosyncratic</div>
+    </div>
+  </div>
+
+  <div style="border:1px solid var(--gray-200);padding:20px;margin-bottom:32px;background:var(--gray-100)">
+    <div style="font-family:var(--mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--gray-500);margin-bottom:8px">Four Weakness Signals</div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px">
+      <div>
+        <div style="font-family:var(--mono);font-size:12px;color:var(--black);margin-bottom:4px">Trust Below 40</div>
+        <div style="font-size:12px;color:var(--gray-500)">Composite trust score dropped below 40/100</div>
+      </div>
+      <div>
+        <div style="font-family:var(--mono);font-size:12px;color:var(--black);margin-bottom:4px">Momentum Collapse</div>
+        <div style="font-size:12px;color:var(--gray-500)">Signal-6 indicator below 2.5 threshold</div>
+      </div>
+      <div>
+        <div style="font-family:var(--mono);font-size:12px;color:var(--black);margin-bottom:4px">DtD Below 3.0</div>
+        <div style="font-size:12px;color:var(--gray-500)">Distance-to-Default approaching danger zone</div>
+      </div>
+      <div>
+        <div style="font-family:var(--mono);font-size:12px;color:var(--black);margin-bottom:4px">Trust Decaying</div>
+        <div style="font-size:12px;color:var(--gray-500)">15+ point decline over 3 months</div>
+      </div>
+    </div>
+  </div>
+
+  <p class="intro">ZARQ monitors every rated token for structural deterioration. When our Distance-to-Default model detects weakness accumulation — declining trust scores, rising volatility, liquidity withdrawal — we issue an early warning. These are not price predictions. They are structural risk assessments. Each alert tracks time-in-state and price change since first detection. As the system runs daily, the track record of each warning builds automatically.</p>
+
+  <div class="alert-grid">
+    {{ALERT_CARDS}}
+  </div>
+
+  <div class="section-label">How Early Warnings Work</div>
+  <div class="method-grid">
+    <div class="method-item">
+      <div class="method-num">01</div>
+      <div class="method-title">Distance-to-Default</div>
+      <div class="method-text">Adapted from Merton's structural credit model. Measures how many standard deviations a token is from critical failure. Below 2.0 = danger zone. Below 1.0 = imminent risk.</div>
+    </div>
+    <div class="method-item">
+      <div class="method-num">02</div>
+      <div class="method-title">Weakness Accumulation</div>
+      <div class="method-text">Four structural signals tracked: trust score decay, volatility spike, DtD compression, and momentum collapse. Each confirmed weakness adds to the count. 3+ triggers CRITICAL.</div>
+    </div>
+    <div class="method-item">
+      <div class="method-num">03</div>
+      <div class="method-title">Crash Probability</div>
+      <div class="method-text">90-day forward probability combining DtD trajectory, TVL divergence, contagion exposure, and historical default patterns. Our model achieves 98% precision on historical defaults.</div>
+    </div>
+    <div class="method-item">
+      <div class="method-num">04</div>
+      <div class="method-title">Track Record</div>
+      <div class="method-text">Every warning is logged with a SHA-256 hash before market open. We track what happens after each warning is issued. No hindsight. No adjustments. Full transparency.</div>
+    </div>
+  </div>
+
+  <div class="section-label">API Access</div>
+  <div class="api-box">
+    <code>GET /v1/crypto/signals</code>
+    <div style="font-family:var(--mono);font-size:11px;color:var(--gray-500);margin:-4px 0 12px">Active warnings with full risk data</div>
+    <code>GET /v1/crypto/signals?level=CRITICAL</code>
+    <div style="font-family:var(--mono);font-size:11px;color:var(--gray-500);margin:-4px 0 12px">Critical only</div>
+    <code>GET /v1/crypto/signals/history?days=90</code>
+    <div style="font-family:var(--mono);font-size:11px;color:var(--gray-500);margin:-4px 0 0">Historical signals with outcomes</div>
+  </div>
+</div>
+
+<div class="site-disclaimer">
+<p><strong>Disclaimer</strong> &mdash; ZARQ provides data-driven crypto intelligence for informational and educational purposes only. Nothing on this website constitutes financial advice, investment advice, trading advice, or any other form of professional advice. ZARQ does not recommend buying, selling, or holding any cryptocurrency or financial instrument.</p>
+<p>Trust ratings, Distance-to-Default (DtD) scores, crash probabilities, trading signals, and all other data are derived from quantitative models and may contain errors, lag behind real-time conditions, or fail to predict future outcomes. Past performance, whether backtested or live, is not indicative of future results. All backtested results are hypothetical and do not represent actual trading.</p>
+<p>Crypto assets are highly volatile, speculative, and may result in total loss of invested capital. You should conduct your own research (DYOR) and consult a qualified, licensed financial advisor before making any investment decisions. ZARQ is not registered as a broker-dealer, investment advisor, or financial institution in any jurisdiction.</p>
+<p>By using this website, you acknowledge that you bear sole responsibility for your own investment decisions and that ZARQ, its founders, contributors, and affiliates accept no liability for any losses, damages, or consequences arising from the use of information provided herein.</p>
+</div>
+
+<footer>
+  <div class="foot-left">&copy; 2026 ZARQ &middot; Crypto Intelligence</div>
+  <div class="foot-right">
+    <a href="/scan">Scan</a>
+    <a href="/crypto">Ratings</a>
+    <a href="/tokens">Token Ratings</a>
+    <a href="/crypto/alerts">Alerts</a>
+    <a href="/risk-scanner">Risk Scanner</a>
+    <a href="/contagion">Contagion</a>
+    <a href="/track-record">Track Record</a>
+        <a href="/paper-trading">Paper Trading</a>
+    <a href="/paper-trading">Paper Trading</a>
+    <a href="/methodology">Methodology</a>
+    <a href="/docs">API</a>
+  </div>
+</footer>
+</body>
+</html>

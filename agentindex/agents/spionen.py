@@ -200,12 +200,12 @@ class Spionen:
         except Exception as e:
             logger.error(f"Failed to get API stats: {e}")
         try:
-            total = self.session.execute(text("SELECT count(*) FROM agents")).scalar() or 0
-            active = self.session.execute(text("SELECT count(*) FROM agents WHERE is_active = true")).scalar() or 0
-            sources = self.session.execute(text("SELECT source, count(*) FROM agents GROUP BY source ORDER BY count(*) DESC")).fetchall()
-            categories = self.session.execute(text("SELECT count(DISTINCT category) FROM agents WHERE category IS NOT NULL")).scalar() or 0
+            total = self.session.execute(text("SELECT count(*) FROM entity_lookup")).scalar() or 0
+            active = self.session.execute(text("SELECT count(*) FROM entity_lookup WHERE is_active = true")).scalar() or 0
+            sources = self.session.execute(text("SELECT source, count(*) FROM entity_lookup GROUP BY source ORDER BY count(*) DESC")).fetchall()
+            categories = self.session.execute(text("SELECT count(DISTINCT category) FROM entity_lookup WHERE category IS NOT NULL")).scalar() or 0
             day_ago = (datetime.utcnow() - timedelta(hours=24)).isoformat()
-            new_24h = self.session.execute(text(f"SELECT count(*) FROM agents WHERE first_indexed > '{day_ago}'")).scalar() or 0
+            new_24h = self.session.execute(text(f"SELECT count(*) FROM entity_lookup WHERE first_indexed > '{day_ago}'")).scalar() or 0
             stats["index_size"] = total
             stats["active_agents"] = active
             stats["sources"] = {row[0]: row[1] for row in sources}

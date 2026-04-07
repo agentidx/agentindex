@@ -174,9 +174,9 @@ def mount_seo_dynamic(app):
             # Trending: highest stars among recently updated
             rows = session.execute(text("""
                 SELECT name, trust_score_v2, trust_grade, stars, description, category
-                FROM agents
+                FROM entity_lookup
                 WHERE is_active = true AND trust_score_v2 IS NOT NULL
-                  AND last_crawled > NOW() - INTERVAL '7 days'
+                  AND updated_at > NOW() - INTERVAL '7 days'
                 ORDER BY COALESCE(stars, 0) DESC
                 LIMIT 50
             """)).fetchall()
@@ -216,7 +216,7 @@ def mount_seo_dynamic(app):
             rows = session.execute(text("""
                 SELECT name, trust_score_v2, trust_grade, stars, description, category,
                        TO_CHAR(first_indexed, 'YYYY-MM-DD') as added
-                FROM agents
+                FROM entity_lookup
                 WHERE is_active = true AND trust_score_v2 IS NOT NULL
                   AND first_indexed > NOW() - INTERVAL '14 days'
                 ORDER BY first_indexed DESC
@@ -251,7 +251,7 @@ def mount_seo_dynamic(app):
         with get_db_session() as session:
             rows = session.execute(text("""
                 SELECT name, trust_score_v2, trust_grade, stars, description, category
-                FROM agents
+                FROM entity_lookup
                 WHERE is_active = true AND trust_score_v2 IS NOT NULL
                 ORDER BY trust_score_v2 DESC
                 LIMIT 100
@@ -294,7 +294,7 @@ def mount_seo_dynamic(app):
         with get_db_session() as session:
             rows = session.execute(text("""
                 SELECT name, trust_score_v2, trust_grade, stars, description
-                FROM agents
+                FROM entity_lookup
                 WHERE is_active = true AND trust_score_v2 IS NOT NULL
                   AND LOWER(COALESCE(category, '')) LIKE :pat
                 ORDER BY trust_score_v2 DESC
@@ -407,6 +407,8 @@ def mount_seo_dynamic(app):
             return HTMLResponse(cached)
 
         with get_db_session() as session:
+            # language column needed, not in entity_lookup — use agents with guards
+            session.execute(text("SET LOCAL work_mem = '2MB'; SET LOCAL statement_timeout = '5s'"))
             # Try exact name match first
             row = session.execute(text("""
                 SELECT id, name, trust_score_v2, trust_grade, stars, description,
@@ -464,7 +466,7 @@ def mount_seo_dynamic(app):
             # Get similar models
             similar_rows = session.execute(text("""
                 SELECT name, trust_score_v2, trust_grade, stars, description
-                FROM agents
+                FROM entity_lookup
                 WHERE is_active = true AND trust_score_v2 IS NOT NULL
                   AND id != CAST(:tid AS uuid)
                   AND (source = :src OR category = :cat)
@@ -565,7 +567,7 @@ def mount_seo_dynamic(app):
         with get_db_session() as session:
             rows = session.execute(text("""
                 SELECT name, trust_score_v2, trust_grade, stars, description
-                FROM agents
+                FROM entity_lookup
                 WHERE is_active = true AND trust_score_v2 IS NOT NULL
                   AND (source = 'huggingface' OR agent_type IN ('model', 'dataset')
                        OR category IN ('model', 'dataset'))
@@ -574,7 +576,7 @@ def mount_seo_dynamic(app):
             """)).fetchall()
 
             total = session.execute(text("""
-                SELECT COUNT(*) FROM agents
+                SELECT COUNT(*) FROM entity_lookup
                 WHERE is_active = true
                   AND (source = 'huggingface' OR agent_type IN ('model', 'dataset')
                        OR category IN ('model', 'dataset'))
@@ -630,7 +632,7 @@ def mount_seo_dynamic(app):
         offset = chunk * 50000
         with get_db_session() as session:
             rows = session.execute(text("""
-                SELECT name FROM agents
+                SELECT name FROM entity_lookup
                 WHERE is_active = true AND trust_score_v2 IS NOT NULL
                   AND (agent_type = 'model' OR (source LIKE '%%huggingface%%' AND agent_type IN ('model', 'space')))
                   AND description IS NOT NULL AND LENGTH(description) > 10
@@ -671,7 +673,7 @@ def _generate_blog_posts() -> list[dict]:
         # Post 1: Weekly Top 10
         top10 = session.execute(text("""
             SELECT name, trust_score_v2, trust_grade, stars
-            FROM agents WHERE is_active = true AND trust_score_v2 IS NOT NULL
+            FROM entity_lookup WHERE is_active = true AND trust_score_v2 IS NOT NULL
             ORDER BY trust_score_v2 DESC LIMIT 10
         """)).fetchall()
 
@@ -696,7 +698,7 @@ def _generate_blog_posts() -> list[dict]:
         # Post 2: New arrivals
         new_agents = session.execute(text("""
             SELECT name, trust_score_v2, trust_grade, category
-            FROM agents WHERE is_active = true AND trust_score_v2 IS NOT NULL
+            FROM entity_lookup WHERE is_active = true AND trust_score_v2 IS NOT NULL
               AND first_indexed > NOW() - INTERVAL '7 days'
             ORDER BY COALESCE(stars, 0) DESC LIMIT 10
         """)).fetchall()
@@ -720,7 +722,7 @@ def _generate_blog_posts() -> list[dict]:
         # Post 3: Category spotlight
         cat_data = session.execute(text("""
             SELECT category, COUNT(*) as cnt, AVG(trust_score_v2) as avg_score
-            FROM agents WHERE is_active = true AND trust_score_v2 IS NOT NULL AND category IS NOT NULL
+            FROM entity_lookup WHERE is_active = true AND trust_score_v2 IS NOT NULL AND category IS NOT NULL
             GROUP BY category ORDER BY cnt DESC LIMIT 10
         """)).fetchall()
 
@@ -745,7 +747,7 @@ def _generate_blog_posts() -> list[dict]:
         # Post 4: Trust grade distribution
         grade_data = session.execute(text("""
             SELECT trust_grade, COUNT(*) as cnt
-            FROM agents WHERE is_active = true AND trust_grade IS NOT NULL
+            FROM entity_lookup WHERE is_active = true AND trust_grade IS NOT NULL
             GROUP BY trust_grade ORDER BY cnt DESC
         """)).fetchall()
 

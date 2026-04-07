@@ -124,6 +124,42 @@ def _query_data():
         ai_errors[sc][day] = cnt
     data["aiErrors"] = ai_errors
 
+    # New AI platform crawls per bot per day (all status codes)
+    rows = conn.execute("""
+        SELECT date(ts) as day,
+          CASE
+            WHEN user_agent LIKE '%Grok%' THEN 'Grok'
+            WHEN user_agent LIKE '%DeepSeek%' THEN 'DeepSeek'
+            WHEN user_agent LIKE '%MistralAI%' THEN 'Mistral'
+            WHEN user_agent LIKE '%Sogou%' THEN 'Sogou'
+            WHEN user_agent LIKE '%Baiduspider%' THEN 'Baidu'
+            WHEN user_agent LIKE '%Yeti%' THEN 'Naver'
+            WHEN user_agent LIKE '%DuckDuckBot%' THEN 'DuckDuckBot'
+            WHEN user_agent LIKE '%coccocbot%' THEN 'CocCoc'
+            WHEN user_agent LIKE '%LinkedInBot%' THEN 'LinkedIn'
+            WHEN user_agent LIKE '%NotebookLM%' THEN 'NotebookLM'
+            WHEN user_agent LIKE '%BraveSearch%' THEN 'Brave'
+            WHEN user_agent LIKE '%kagi%' THEN 'Kagi'
+            ELSE NULL
+          END as bot, COUNT(*) as cnt
+        FROM requests
+        WHERE ts > datetime('now', '-30 days')
+          AND (user_agent LIKE '%Grok%' OR user_agent LIKE '%DeepSeek%'
+            OR user_agent LIKE '%MistralAI%' OR user_agent LIKE '%Sogou%'
+            OR user_agent LIKE '%Baiduspider%' OR user_agent LIKE '%Yeti%'
+            OR user_agent LIKE '%DuckDuckBot%' OR user_agent LIKE '%coccocbot%'
+            OR user_agent LIKE '%LinkedInBot%' OR user_agent LIKE '%NotebookLM%'
+            OR user_agent LIKE '%BraveSearch%' OR user_agent LIKE '%kagi%')
+        GROUP BY day, bot ORDER BY day, bot
+    """).fetchall()
+    new_ai = {}
+    for day, bot, cnt in rows:
+        if bot and bot != 'NULL':
+            if bot not in new_ai:
+                new_ai[bot] = {}
+            new_ai[bot][day] = cnt
+    data["newAiPlatforms"] = new_ai
+
     # SEO/Other crawlers breakdown by user_agent
     rows = conn.execute("""
         SELECT date(ts) as day,
@@ -262,7 +298,7 @@ def _query_data():
             WHEN path LIKE '/ko/%' THEN 'ko' WHEN path LIKE '/vi/%' THEN 'vi'
             WHEN path LIKE '/nl/%' THEN 'nl' WHEN path LIKE '/sv/%' THEN 'sv'
             WHEN path LIKE '/zh/%' THEN 'zh' WHEN path LIKE '/da/%' THEN 'da'
-            WHEN path LIKE '/ar/%' THEN 'ar'
+            WHEN path LIKE '/ar/%' THEN 'ar' WHEN path LIKE '/no/%' THEN 'no'
             ELSE 'en'
         END
     """
@@ -352,7 +388,7 @@ def _render_html(data):
     )
 
     # Build lang rows
-    lang_order = ['en', 'id', 'cs', 'th', 'de', 'es', 'fr', 'ja', 'pt', 'ro', 'hi', 'ru', 'tr', 'pl', 'it', 'ko', 'vi', 'nl', 'sv', 'da', 'zh', 'ar']
+    lang_order = ['en', 'id', 'cs', 'th', 'de', 'es', 'fr', 'ja', 'pt', 'ro', 'hi', 'ru', 'tr', 'pl', 'it', 'ko', 'vi', 'nl', 'sv', 'da', 'zh', 'ar', 'no']
     ai_lang = data.get("aiByLang", {})
     human_lang = data.get("humanByLang", {})
     ai_lang_rows = ",\n".join(
@@ -424,6 +460,7 @@ const humanVisits = {json.dumps(data.get('humanVisits', {}))};
 const humanByCountry = {json.dumps(data.get('humanByCountry', {}))};
 const aiByLang = {json.dumps(data.get('aiByLang', {}))};
 const humanByLang = {json.dumps(data.get('humanByLang', {}))};
+const newAiPlatforms = {json.dumps(data.get('newAiPlatforms', {}))};
 
 function fmt(n) {{
   if (n === 0) return '<span class="zero">–</span>';
@@ -522,6 +559,24 @@ out += buildTable('citations', 'AI Citations (answering user queries)', [
 out += buildTable('indexing', 'AI Indexing (GPTBot)', [
   {{ key: 'gptbot', label: 'GPTBot', data: aiIndexing }},
 ], {{ dotColors: {{ gptbot: '#10a37f' }}}});
+
+// 3b. NEW AI PLATFORMS
+const newAi = newAiPlatforms || {{}};
+out += buildTable('newai', 'AI Crawling &mdash; New Platforms (all status codes)', [
+  {{ key: 'sogou', label: 'Sogou', data: newAi['Sogou'] || {{}} }},
+  {{ key: 'duckduckbot', label: 'DuckDuckBot', data: newAi['DuckDuckBot'] || {{}} }},
+  {{ key: 'baidu', label: 'Baidu', data: newAi['Baidu'] || {{}} }},
+  {{ key: 'notebooklm', label: 'NotebookLM', data: newAi['NotebookLM'] || {{}} }},
+  {{ key: 'coccoc', label: 'CocCoc', data: newAi['CocCoc'] || {{}} }},
+  {{ key: 'naver', label: 'Naver', data: newAi['Naver'] || {{}} }},
+  {{ key: 'linkedin', label: 'LinkedIn', data: newAi['LinkedIn'] || {{}} }},
+  {{ key: 'grok', label: 'Grok', data: newAi['Grok'] || {{}} }},
+  {{ key: 'deepseek', label: 'DeepSeek', data: newAi['DeepSeek'] || {{}} }},
+  {{ key: 'mistral', label: 'Mistral', data: newAi['Mistral'] || {{}} }},
+  {{ key: 'brave', label: 'Brave', data: newAi['Brave'] || {{}} }},
+  {{ key: 'kagi', label: 'Kagi', data: newAi['Kagi'] || {{}} }},
+  {{ type: 'total', label: 'TOTAL NEW AI PLATFORMS' }}
+], {{ dotColors: {{ sogou: '#8B4513', duckduckbot: '#de5833', baidu: '#2319dc', notebooklm: '#4285f4', coccoc: '#00b14f', naver: '#03c75a', linkedin: '#0a66c2', grok: '#1da1f2', deepseek: '#0066ff', mistral: '#ff6b35', brave: '#fb542b', kagi: '#6b21a8' }}}});
 
 // 4. AI ERRORS (by status code)
 out += buildTable('aierrors', 'AI Errors (non-200 by status code)', [

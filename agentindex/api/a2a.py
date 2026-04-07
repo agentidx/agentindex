@@ -226,6 +226,8 @@ def _execute_skill(skill_id: str, params: dict) -> dict:
     from sqlalchemy import select, func
 
     session = get_session()
+    session.execute(text("SET LOCAL statement_timeout = '3s'"))
+    session.execute(text("SET LOCAL work_mem = '2MB'"))
 
     try:
         if skill_id == "index_stats":
@@ -267,13 +269,19 @@ def _execute_skill(skill_id: str, params: dict) -> dict:
 
         elif skill_id == "search_by_category":
             category = params.get("category", "")
-            agents = session.execute(
-                select(Agent).where(
-                    Agent.is_active == True,
-                    Agent.category == category,
-                    Agent.crawl_status.in_(["parsed", "classified", "ranked"]),
-                ).order_by(Agent.quality_score.desc()).limit(10)
-            ).scalars().all()
+            # Two-phase: IDs from entity_lookup, then full Agent by PK
+            _cat_ids = session.execute(text("""
+                SELECT id FROM entity_lookup
+                WHERE is_active = true AND category = :cat
+                  AND crawl_status IN ('parsed', 'classified', 'ranked')
+                ORDER BY COALESCE(trust_score_v2, trust_score, 0) DESC
+                LIMIT 10
+            """), {"cat": category}).fetchall()
+            agents = []
+            if _cat_ids:
+                agents = session.execute(
+                    select(Agent).where(Agent.id.in_([r[0] for r in _cat_ids]))
+                ).scalars().all()
             return {
                 "category": category,
                 "count": len(agents),
@@ -316,19 +324,20 @@ def _execute_skill(skill_id: str, params: dict) -> dict:
             except Exception as e:
                 logger.error(f"Semantic search in A2A failed: {e}")
 
-            # Fallback: FTS
-            from sqlalchemy.sql import text as sql_text
-            agents = session.execute(
-                select(Agent).where(
-                    Agent.is_active == True,
-                    Agent.crawl_status.in_(["parsed", "classified", "ranked"]),
-                    sql_text(
-                        "to_tsvector('english', coalesce(name, '') || ' ' || "
-                        "coalesce(description, '') || ' ' || "
-                        "coalesce(category, '')) @@ plainto_tsquery('english', :search)"
-                    ).bindparams(search=need)
-                ).order_by(Agent.quality_score.desc()).limit(10)
-            ).scalars().all()
+            # Fallback: FTS — two-phase (IDs from agents FTS index, then full fetch by PK)
+            _fts_ids = session.execute(text("""
+                SELECT id FROM agents WHERE is_active = true
+                  AND crawl_status IN ('parsed', 'classified', 'ranked')
+                  AND to_tsvector('english', coalesce(name, '') || ' ' || coalesce(description, '') || ' ' || coalesce(category, ''))
+                      @@ plainto_tsquery('english', :search)
+                ORDER BY COALESCE(trust_score, quality_score * 100, 0) DESC
+                LIMIT 10
+            """), {"search": need}).fetchall()
+            agents = []
+            if _fts_ids:
+                agents = session.execute(
+                    select(Agent).where(Agent.id.in_([r[0] for r in _fts_ids]))
+                ).scalars().all()
             return {
                 "query": need,
                 "search_method": "fts",

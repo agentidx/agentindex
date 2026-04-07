@@ -31,12 +31,15 @@ def scan_all_agents(batch_size=500, use_llm=False):
     stats = {"total": 0, "minimal": 0, "limited": 0, "high": 0, "unacceptable": 0, "errors": 0}
     
     try:
+        # capabilities not in entity_lookup; use agents with guard
+        session.execute(text("SET LOCAL work_mem = '2MB'"))
+        session.execute(text("SET LOCAL statement_timeout = '5s'"))
         # Get unchecked agents
         if use_llm:
             # Phase 2: only re-check non-minimal agents with LLM
             query = text("""
-                SELECT id, name, description, capabilities, category 
-                FROM agents 
+                SELECT id, name, description, capabilities, category
+                FROM agents
                 WHERE eu_risk_class IS NOT NULL AND eu_risk_class != 'minimal'
                 AND (last_compliance_check IS NULL OR last_compliance_check < NOW() - interval '30 days')
                 ORDER BY stars DESC NULLS LAST
@@ -45,8 +48,8 @@ def scan_all_agents(batch_size=500, use_llm=False):
         else:
             # Phase 1: all unchecked agents
             query = text("""
-                SELECT id, name, description, capabilities, category 
-                FROM agents 
+                SELECT id, name, description, capabilities, category
+                FROM agents
                 WHERE eu_risk_class IS NULL AND is_active = TRUE
                 ORDER BY stars DESC NULLS LAST
                 LIMIT :limit

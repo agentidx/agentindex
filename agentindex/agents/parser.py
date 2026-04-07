@@ -12,7 +12,7 @@ from datetime import datetime
 from typing import Optional
 from ollama import Client
 from agentindex.db.models import Agent, get_session
-from sqlalchemy import select
+from sqlalchemy import select, text
 import os
 
 logger = logging.getLogger("agentindex.parser")
@@ -52,12 +52,20 @@ class Parser:
         """
         stats = {"parsed": 0, "skipped": 0, "errors": 0}
 
-        agents = self.session.execute(
-            select(Agent)
-            .where(Agent.crawl_status == "indexed").order_by(Agent.stars.desc().nullslast())
-            .order_by(Agent.stars.desc())  # prioritize popular repos
-            .limit(batch_size)
-        ).scalars().all()
+        self.session.execute(text("SET LOCAL work_mem = '2MB'"))
+        self.session.execute(text("SET LOCAL statement_timeout = '30s'"))
+        # Two-phase: IDs from entity_lookup (2.9GB), full Agent by PK
+        _ids = self.session.execute(text("""
+            SELECT id FROM entity_lookup
+            WHERE crawl_status = 'indexed'
+            ORDER BY stars DESC NULLS LAST
+            LIMIT :lim
+        """), {"lim": batch_size}).fetchall()
+        agents = []
+        if _ids:
+            agents = self.session.execute(
+                select(Agent).where(Agent.id.in_([r[0] for r in _ids]))
+            ).scalars().all()
 
         for agent in agents:
             try:
@@ -83,7 +91,37 @@ class Parser:
         """Parse a single agent using local LLM."""
         metadata = agent.raw_metadata or {}
 
-        # Build prompt
+        # MCP RULE: MCP servers are ALWAYS agents by definition
+        text_content = f"{agent.name} {agent.description or ''} {' '.join(agent.tags or [])}"
+        is_mcp = ("mcp" in text_content.lower() or 
+                  "model context protocol" in text_content.lower() or
+                  agent.source == "mcp")
+
+        if is_mcp:
+            logger.info(f"Auto-classifying MCP server as agent: {agent.name}")
+            # Direct classification without LLM
+            agent.capabilities = ["mcp-server", "tool-integration", "api-access"]
+            agent.category = "infrastructure" 
+            agent.description = agent.description or f"MCP server: {agent.name}"
+            
+            # Quality scoring for MCP servers
+            agent.documentation_score = self._score_documentation(agent)
+            agent.activity_score = self._score_activity(agent) 
+            agent.popularity_score = self._score_popularity(agent)
+            agent.capability_depth_score = 0.6  # MCP servers are specialized tools
+            
+            agent.quality_score = (
+                agent.documentation_score * 0.2 +
+                agent.activity_score * 0.25 +
+                agent.popularity_score * 0.2 +
+                agent.capability_depth_score * 0.2 +
+                0.7 * 0.15  # High confidence for MCP servers
+            )
+            
+            agent.crawl_status = "parsed"
+            return True
+
+        # Build prompt for non-MCP agents
         prompt = PARSE_PROMPT.format(
             name=agent.name,
             description=agent.description or "N/A",

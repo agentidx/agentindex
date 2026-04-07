@@ -52,13 +52,13 @@ def collect_data() -> dict:
                 COUNT(*) FILTER (WHERE agent_type IN ('agent','tool','mcp_server')) AS agents_tools,
                 COUNT(*) FILTER (WHERE agent_type IN ('model','dataset')) AS models_datasets,
                 COUNT(*) AS total
-            FROM agents WHERE is_active = true
+            FROM entity_lookup WHERE is_active = true
         """)).fetchone()
 
         # 2. New agents this week (top 10 by trust)
         new_agents = session.execute(text("""
             SELECT name, source, category, trust_score_v2, stars, agent_type
-            FROM agents
+            FROM entity_lookup
             WHERE is_active = true
               AND first_indexed >= :week_ago
               AND agent_type IN ('agent','tool','mcp_server')
@@ -68,7 +68,7 @@ def collect_data() -> dict:
         """), {"week_ago": week_ago.isoformat()}).fetchall()
 
         new_count = session.execute(text("""
-            SELECT COUNT(*) FROM agents
+            SELECT COUNT(*) FROM entity_lookup
             WHERE is_active = true
               AND first_indexed >= :week_ago
               AND agent_type IN ('agent','tool','mcp_server')
@@ -79,7 +79,7 @@ def collect_data() -> dict:
             WITH fw AS (
                 SELECT unnest(frameworks) AS framework,
                        CASE WHEN first_indexed >= :week_ago THEN 1 ELSE 0 END AS is_new
-                FROM agents
+                FROM entity_lookup
                 WHERE is_active = true
                   AND agent_type IN ('agent','tool','mcp_server')
                   AND frameworks IS NOT NULL
@@ -97,7 +97,7 @@ def collect_data() -> dict:
             SELECT category,
                    COUNT(*) AS total,
                    COUNT(*) FILTER (WHERE first_indexed >= :week_ago) AS new_this_week
-            FROM agents
+            FROM entity_lookup
             WHERE is_active = true
               AND agent_type IN ('agent','tool','mcp_server')
               AND category IS NOT NULL AND category != ''
@@ -109,7 +109,7 @@ def collect_data() -> dict:
         # 5. New MCP servers
         new_mcp = session.execute(text("""
             SELECT name, source, trust_score_v2, description
-            FROM agents
+            FROM entity_lookup
             WHERE is_active = true
               AND agent_type = 'mcp_server'
               AND first_indexed >= :week_ago
@@ -119,7 +119,7 @@ def collect_data() -> dict:
         """), {"week_ago": week_ago.isoformat()}).fetchall()
 
         new_mcp_count = session.execute(text("""
-            SELECT COUNT(*) FROM agents
+            SELECT COUNT(*) FROM entity_lookup
             WHERE is_active = true AND agent_type = 'mcp_server'
               AND first_indexed >= :week_ago
         """), {"week_ago": week_ago.isoformat()}).scalar() or 0
@@ -127,7 +127,7 @@ def collect_data() -> dict:
         # 6. Agent of the week (highest trust newcomer)
         agent_of_week = session.execute(text("""
             SELECT name, source, category, trust_score_v2, stars, description, source_url
-            FROM agents
+            FROM entity_lookup
             WHERE is_active = true
               AND first_indexed >= :week_ago
               AND agent_type IN ('agent','tool','mcp_server')
@@ -143,7 +143,7 @@ def collect_data() -> dict:
                 COUNT(*) FILTER (WHERE trust_score_v2 >= 40 AND trust_score_v2 < 70) AS medium,
                 COUNT(*) FILTER (WHERE trust_score_v2 < 40) AS low,
                 ROUND(AVG(trust_score_v2)::numeric, 1) AS avg_trust
-            FROM agents
+            FROM entity_lookup
             WHERE is_active = true
               AND agent_type IN ('agent','tool','mcp_server')
               AND trust_score_v2 IS NOT NULL
@@ -152,7 +152,7 @@ def collect_data() -> dict:
         # 8. Source platform breakdown
         sources = session.execute(text("""
             SELECT source, COUNT(*) AS cnt
-            FROM agents
+            FROM entity_lookup
             WHERE is_active = true AND agent_type IN ('agent','tool','mcp_server')
             GROUP BY source ORDER BY cnt DESC LIMIT 8
         """)).fetchall()

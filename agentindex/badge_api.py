@@ -69,24 +69,33 @@ def _lookup_agent(name: str) -> tuple:
     """
     session = get_session()
     try:
-        row = session.execute(text("""
-            SELECT trust_score_v2, trust_grade, match_rank FROM (
-                SELECT trust_score_v2, trust_grade, 1 AS match_rank FROM agents
-                WHERE is_active = true AND LOWER(name) = LOWER(:name)
-                AND agent_type IN ('agent', 'tool', 'mcp_server')
-              UNION ALL
-                SELECT trust_score_v2, trust_grade, 2 AS match_rank FROM agents
-                WHERE is_active = true AND lower(name::text) LIKE lower(:suffix)
-                AND agent_type IN ('agent', 'tool', 'mcp_server')
-              UNION ALL
-                SELECT trust_score_v2, trust_grade, 3 AS match_rank FROM agents
-                WHERE is_active = true AND lower(name::text) LIKE lower(:pattern)
-                AND agent_type IN ('agent', 'tool', 'mcp_server')
-            ) sub
-            WHERE trust_score_v2 IS NOT NULL
-            ORDER BY trust_score_v2 DESC
-            LIMIT 1
-        """), {"name": name, "suffix": f"%/{name}", "pattern": f"%{name}%"}).fetchone()
+        session.execute(text("SET LOCAL statement_timeout = '3s'"))
+        _at_filter = "AND agent_type IN ('agent', 'tool', 'mcp_server')"
+        # Short-circuit: exact match first
+        row = session.execute(text(f"""
+            SELECT trust_score_v2, trust_grade FROM entity_lookup
+            WHERE is_active = true AND name_lower = LOWER(:name)
+            {_at_filter} AND trust_score_v2 IS NOT NULL
+            ORDER BY trust_score_v2 DESC LIMIT 1
+        """), {"name": name}).fetchone()
+        if row and row[0] is not None:
+            return (row[0], row[1])
+        # Suffix: org/name
+        row = session.execute(text(f"""
+            SELECT trust_score_v2, trust_grade FROM entity_lookup
+            WHERE is_active = true AND name_lower LIKE lower(:suffix)
+            {_at_filter} AND trust_score_v2 IS NOT NULL
+            ORDER BY trust_score_v2 DESC LIMIT 1
+        """), {"suffix": f"%/{name}"}).fetchone()
+        if row and row[0] is not None:
+            return (row[0], row[1])
+        # Fuzzy (last resort)
+        row = session.execute(text(f"""
+            SELECT trust_score_v2, trust_grade FROM entity_lookup
+            WHERE is_active = true AND name_lower LIKE lower(:pattern)
+            {_at_filter} AND trust_score_v2 IS NOT NULL
+            ORDER BY trust_score_v2 DESC LIMIT 1
+        """), {"pattern": f"%{name}%"}).fetchone()
         if row and row[0] is not None:
             return (row[0], row[1])
         return (None, None)
@@ -99,9 +108,9 @@ def _lookup_by_source(pkg: str, source_prefix: str) -> tuple:
     session = get_session()
     try:
         row = session.execute(text("""
-            SELECT trust_score_v2, trust_grade FROM agents
+            SELECT trust_score_v2, trust_grade FROM entity_lookup
             WHERE is_active = true AND source LIKE :src
-            AND (name = :name OR lower(name::text) LIKE lower(:iname))
+            AND (name = :name OR name_lower LIKE lower(:iname))
             ORDER BY trust_score_v2 DESC NULLS LAST LIMIT 1
         """), {"src": f"{source_prefix}%", "name": pkg, "iname": f"%{pkg}%"}).fetchone()
         if row and row[0] is not None:
@@ -381,7 +390,7 @@ async def sitemap_badges():
     session = get_session()
     try:
         rows = session.execute(text("""
-            SELECT name FROM agents
+            SELECT name FROM entity_lookup
             WHERE is_active = true AND trust_score_v2 IS NOT NULL AND trust_score_v2 > 0
             ORDER BY COALESCE(stars, 0) DESC LIMIT 200
         """)).fetchall()

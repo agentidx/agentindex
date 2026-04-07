@@ -1,0 +1,310 @@
+openapi: "3.0.3"
+info:
+  title: NERQ Crypto Risk Intelligence API
+  description: |
+    Machine-First crypto risk intelligence. Trust Scores, NDD distress
+    detection, crash signals, and pre-trade safety checks for AI agents,
+    trading bots, and DeFi protocols.
+
+    ## Authentication
+    Free tier: 1,000 requests/day, no key required.
+    Pro/Enterprise: API key via `X-API-Key` header.
+
+    ## Response Format
+    All endpoints return: `{ "data": {...}, "meta": {"version", "cache_ttl", "response_ms"} }`
+
+    ## Rate Limits
+    | Tier | Requests/day | Latency |
+    |------|-------------|---------|
+    | Free | 1,000 | Best effort |
+    | Pro | 5,000 | <200ms |
+    | Enterprise | Unlimited | <100ms |
+  version: "1.0.0"
+  contact:
+    name: NERQ
+    url: https://nerq.ai
+  license:
+    name: Proprietary
+    url: https://nerq.ai/terms
+
+servers:
+  - url: https://nerq.ai
+    description: Production
+  - url: http://localhost:8002
+    description: Local dev
+
+tags:
+  - name: Ratings
+    description: Trust Score credit ratings
+  - name: NDD
+    description: Nearness to Distress/Default
+  - name: Signals
+    description: HC Alerts, Bottlefish recovery signals
+  - name: Safety
+    description: Pre-trade safety checks for bots/agents
+
+paths:
+  /v1/crypto/rating/{token_id}:
+    get:
+      summary: Get Trust Score for a token
+      tags: [Ratings]
+      parameters:
+        - name: token_id
+          in: path
+          required: true
+          schema: { type: string }
+          example: bitcoin
+      responses:
+        "200":
+          description: Rating data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/RatingData"
+                  meta:
+                    $ref: "#/components/schemas/Meta"
+        "404":
+          description: Token not found
+
+  /v1/crypto/ndd/{token_id}:
+    get:
+      summary: Get NDD distress score for a token
+      tags: [NDD]
+      parameters:
+        - name: token_id
+          in: path
+          required: true
+          schema: { type: string }
+          example: bitcoin
+      responses:
+        "200":
+          description: NDD data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/NDDData"
+                  meta:
+                    $ref: "#/components/schemas/Meta"
+        "404":
+          description: Token not found
+
+  /v1/crypto/ratings:
+    get:
+      summary: All current ratings (sortable, filterable)
+      tags: [Ratings]
+      parameters:
+        - name: sort
+          in: query
+          schema: { type: string, enum: [score, market_cap_rank, name, ndd], default: score }
+        - name: order
+          in: query
+          schema: { type: string, enum: [asc, desc], default: desc }
+        - name: min_score
+          in: query
+          schema: { type: number }
+        - name: max_score
+          in: query
+          schema: { type: number }
+        - name: alert_level
+          in: query
+          schema: { type: string, enum: [SAFE, WATCH, WARNING, DISTRESS, CRITICAL] }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 200, maximum: 1000 }
+        - name: offset
+          in: query
+          schema: { type: integer, default: 0 }
+      responses:
+        "200":
+          description: List of ratings
+
+  /v1/crypto/compare/{token1}/{token2}:
+    get:
+      summary: Compare two tokens side-by-side
+      tags: [Ratings]
+      parameters:
+        - name: token1
+          in: path
+          required: true
+          schema: { type: string }
+          example: bitcoin
+        - name: token2
+          in: path
+          required: true
+          schema: { type: string }
+          example: ethereum
+      responses:
+        "200":
+          description: Comparison data
+
+  /v1/crypto/distress-watch:
+    get:
+      summary: All tokens with NDD below 2.0
+      tags: [NDD]
+      responses:
+        "200":
+          description: Distress watch list
+
+  /v1/crypto/signals:
+    get:
+      summary: Active HC Alerts and Bottlefish signals
+      tags: [Signals]
+      responses:
+        "200":
+          description: Active signals with running scoreboard
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      active_signals:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Signal"
+                      hc_alert_count:
+                        type: integer
+                      bottlefish_count:
+                        type: integer
+                      scoreboard:
+                        type: object
+
+  /v1/crypto/signals/history:
+    get:
+      summary: Historical signals with outcomes
+      tags: [Signals]
+      parameters:
+        - name: signal_type
+          in: query
+          schema: { type: string, enum: [HC_ALERT, BOTTLEFISH], default: HC_ALERT }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 50, maximum: 500 }
+        - name: offset
+          in: query
+          schema: { type: integer, default: 0 }
+      responses:
+        "200":
+          description: Historical signals with price outcomes
+
+  /v1/crypto/safety/{token_id}:
+    get:
+      summary: Pre-trade safety check (<100ms)
+      description: |
+        Quick GO/NO-GO check for trading bots and AI agents.
+        Aggregates Trust Score + NDD + HC Alert into a single
+        safe/unsafe decision with risk flags.
+      tags: [Safety]
+      parameters:
+        - name: token_id
+          in: path
+          required: true
+          schema: { type: string }
+          example: bitcoin
+      responses:
+        "200":
+          description: Safety check result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/SafetyData"
+                  meta:
+                    $ref: "#/components/schemas/Meta"
+        "404":
+          description: Token not found
+
+components:
+  schemas:
+    Meta:
+      type: object
+      properties:
+        version: { type: string, example: "v1" }
+        cache_ttl: { type: integer, example: 3600 }
+        response_ms: { type: number, example: 12.3 }
+        generated_at: { type: string, format: date-time }
+
+    RatingData:
+      type: object
+      properties:
+        token_id: { type: string }
+        symbol: { type: string }
+        name: { type: string }
+        market_cap_rank: { type: integer }
+        trust_score: { type: number, example: 87.3 }
+        trust_grade: { type: string, example: "A" }
+        pillars:
+          type: object
+          properties:
+            security: { $ref: "#/components/schemas/Pillar" }
+            compliance: { $ref: "#/components/schemas/Pillar" }
+            maintenance: { $ref: "#/components/schemas/Pillar" }
+            popularity: { $ref: "#/components/schemas/Pillar" }
+            ecosystem: { $ref: "#/components/schemas/Pillar" }
+        price_usd: { type: number }
+        scored_at: { type: string }
+
+    Pillar:
+      type: object
+      properties:
+        score: { type: number }
+        weight: { type: number }
+
+    NDDData:
+      type: object
+      properties:
+        token_id: { type: string }
+        ndd: { type: number, example: 1.50 }
+        alert_level: { type: string, enum: [SAFE, WATCH, WARNING, DISTRESS, CRITICAL] }
+        ndd_trend: { type: string, enum: [FREEFALL, FALLING, SLIDING, STABLE, IMPROVING] }
+        ndd_change_4w: { type: number }
+        crash_probability_30pct: { type: number }
+        signals:
+          type: object
+        hc_alert: { type: boolean }
+        hc_streak_weeks: { type: integer }
+
+    Signal:
+      type: object
+      properties:
+        type: { type: string, enum: [HC_ALERT, BOTTLEFISH] }
+        token_id: { type: string }
+        symbol: { type: string }
+        ndd: { type: number }
+        alert_level: { type: string }
+        crash_probability: { type: number }
+        sha256: { type: string }
+        status: { type: string, enum: [ACTIVE, RESOLVED_CORRECT, RESOLVED_FALSE] }
+
+    SafetyData:
+      type: object
+      properties:
+        token_id: { type: string }
+        safe: { type: boolean, example: true }
+        risk_level: { type: string, enum: [LOW, MEDIUM, HIGH, CRITICAL] }
+        trust_score: { type: number }
+        trust_grade: { type: string }
+        ndd: { type: number }
+        alert_level: { type: string }
+        hc_alert: { type: boolean }
+        crash_probability: { type: number }
+        flags:
+          type: array
+          items: { type: string }
+          example: ["HC_ALERT_ACTIVE", "FREEFALL_TREND"]
+
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key

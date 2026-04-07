@@ -200,16 +200,19 @@ def _lookup_agent(name: str, session) -> dict | None:
     row = session.execute(text("""
         SELECT id::text, name, COALESCE(trust_score_v2, trust_score) as trust_score,
                trust_grade, category, source, stars, description, is_verified,
-               source_url, last_source_update
+               source_url, updated_at as last_source_update
         FROM (
-            SELECT *, 1 AS _r FROM agents
-            WHERE LOWER(name) = LOWER(:name) AND is_active = true
+            SELECT id, name, trust_score, trust_score_v2, trust_grade, category, source, stars,
+                   description, is_verified, source_url, updated_at, 1 AS _r
+            FROM entity_lookup WHERE name_lower = lower(:name) AND is_active = true
           UNION ALL
-            SELECT *, 2 AS _r FROM agents
-            WHERE lower(name::text) LIKE lower(:suffix) AND is_active = true
+            SELECT id, name, trust_score, trust_score_v2, trust_grade, category, source, stars,
+                   description, is_verified, source_url, updated_at, 2 AS _r
+            FROM entity_lookup WHERE name_lower LIKE lower(:suffix) AND is_active = true
           UNION ALL
-            SELECT *, 3 AS _r FROM agents
-            WHERE lower(name::text) LIKE lower(:pattern) AND is_active = true
+            SELECT id, name, trust_score, trust_score_v2, trust_grade, category, source, stars,
+                   description, is_verified, source_url, updated_at, 3 AS _r
+            FROM entity_lookup WHERE name_lower LIKE lower(:pattern) AND is_active = true
         ) sub
         ORDER BY _r ASC, COALESCE(trust_score_v2, trust_score) DESC NULLS LAST
         LIMIT 1
@@ -225,9 +228,9 @@ def _get_cheaper_alternatives(agent_name: str, category: str, trust_score: float
     try:
         rows = session.execute(text("""
             SELECT name, COALESCE(trust_score_v2, trust_score) as ts, source
-            FROM agents
+            FROM entity_lookup
             WHERE is_active = true
-              AND LOWER(name) != LOWER(:name)
+              AND name_lower != lower(:name)
               AND category = :cat
               AND COALESCE(trust_score_v2, trust_score) >= :min_ts
             ORDER BY COALESCE(trust_score_v2, trust_score) DESC

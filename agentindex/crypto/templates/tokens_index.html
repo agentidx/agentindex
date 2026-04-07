@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Crypto Risk Ratings — {{ total }} Tokens Rated — ZARQ</title>
+<meta name="description" content="Independent crypto risk ratings for {{ total }} tokens. Trust scores, crash probabilities, and structural analysis. Updated daily by ZARQ.">
+<link rel="canonical" href="https://zarq.ai/tokens">
+<meta property="og:title" content="Crypto Risk Ratings — {{ total }} Tokens Rated — ZARQ">
+<meta property="og:description" content="Independent risk ratings for {{ total }} crypto tokens. Trust scores, crash probabilities, structural collapse detection.">
+<meta property="og:url" content="https://zarq.ai/tokens">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="ZARQ">
+<meta name="robots" content="index, follow">
+
+<script type="application/ld+json">
+{{ itemlist_jsonld }}
+</script>
+
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --white: #fafaf9;
+  --black: #0a0a0a;
+  --gray-100: #f5f5f4;
+  --gray-200: #e7e5e4;
+  --gray-400: #a8a29e;
+  --gray-500: #78716c;
+  --gray-600: #57534e;
+  --gray-700: #44403c;
+  --gray-800: #292524;
+  --gray-900: #1c1917;
+  --warm: #c2956b;
+  --warm-light: rgba(194, 149, 107, 0.08);
+  --green: #16a34a;
+  --red: #dc2626;
+  --yellow: #ca8a04;
+  --serif: 'DM Serif Display', Georgia, serif;
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'DM Sans', sans-serif;
+  --measure: 680px;
+  --wide: 1120px;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+::selection { background: var(--warm); color: var(--black); }
+html { font-size: 17px; -webkit-font-smoothing: antialiased; }
+body { background: var(--white); color: var(--gray-800); font-family: var(--sans); line-height: 1.6; }
+
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  padding: 20px 40px; display: flex; justify-content: space-between; align-items: center;
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  background: rgba(250, 250, 249, 0.85); border-bottom: 1px solid rgba(0,0,0,0.04);
+}
+.nav-mark { font-family: var(--mono); font-weight: 500; font-size: 15px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--black); text-decoration: none; }
+.nav-links { display: flex; gap: 32px; align-items: center; }
+.nav-links a { font-family: var(--mono); font-size: 12px; letter-spacing: 0.05em; color: var(--gray-600); text-decoration: none; transition: color 0.2s; }
+.nav-links a:hover { color: var(--black); }
+.nav-api { font-family: var(--mono); font-size: 11px; letter-spacing: 0.05em; color: var(--warm); border: 1px solid var(--warm); padding: 6px 16px; text-decoration: none; transition: all 0.2s; }
+.nav-api:hover { background: var(--warm); color: var(--white); }
+.nav-dropdown { position: relative; }
+.nav-dropdown-trigger { cursor: pointer; }
+.nav-dropdown-menu { display: none; position: absolute; top: 100%; right: 0; background: var(--white); border: 1px solid var(--gray-200); box-shadow: 0 8px 24px rgba(0,0,0,0.08); padding: 8px 0; min-width: 180px; z-index: 200; }
+.nav-dropdown:hover .nav-dropdown-menu { display: block; }
+.nav-dropdown-menu a { display: block; padding: 8px 20px; font-family: var(--mono); font-size: 12px; letter-spacing: 0.05em; color: var(--gray-600); text-decoration: none; white-space: nowrap; }
+.nav-dropdown-menu a:hover { background: var(--warm-light); color: var(--black); }
+.nav-toggle-input { display: none; }
+.nav-hamburger { display: none; cursor: pointer; flex-direction: column; gap: 5px; }
+.nav-hamburger span { display: block; width: 22px; height: 2px; background: var(--black); transition: all 0.3s; }
+
+.container { max-width: var(--wide); margin: 0 auto; padding: 120px 40px 80px; }
+
+h1 { font-family: var(--serif); font-size: 2.4rem; color: var(--black); line-height: 1.2; margin-bottom: 16px; }
+.subtitle { font-family: var(--sans); font-size: 1rem; color: var(--gray-600); margin-bottom: 32px; }
+
+.search-box {
+  width: 100%; padding: 14px 20px; font-family: var(--mono); font-size: 14px;
+  border: 1px solid var(--gray-200); background: var(--gray-100); color: var(--black);
+  outline: none; margin-bottom: 32px; transition: border-color 0.2s;
+}
+.search-box:focus { border-color: var(--warm); }
+.search-box::placeholder { color: var(--gray-400); }
+
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+th {
+  font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em;
+  color: var(--gray-500); text-align: left; padding: 12px 16px; border-bottom: 2px solid var(--gray-200);
+  cursor: pointer; user-select: none; white-space: nowrap;
+}
+th:hover { color: var(--black); }
+th .sort-arrow { font-size: 10px; margin-left: 4px; }
+td {
+  padding: 14px 16px; border-bottom: 1px solid var(--gray-200); font-size: 14px;
+}
+tr:hover { background: var(--warm-light); }
+td a { color: var(--black); text-decoration: none; font-weight: 500; }
+td a:hover { color: var(--warm); }
+.mono { font-family: var(--mono); font-size: 13px; }
+.rating-badge { font-family: var(--mono); font-size: 12px; font-weight: 500; padding: 2px 8px; display: inline-block; }
+
+.status-safe { color: var(--green); }
+.status-watch { color: var(--yellow); }
+.status-warning { color: #ea580c; }
+.status-critical { color: var(--red); }
+
+footer { border-top: 1px solid var(--gray-200); padding: 40px; text-align: center; }
+footer p { font-family: var(--mono); font-size: 11px; color: var(--gray-500); }
+footer a { color: var(--warm); text-decoration: none; }
+
+@media (max-width: 768px) {
+  nav { padding: 16px 20px; }
+  .nav-hamburger { display: flex; }
+  .nav-links { display: none; position: absolute; top: 100%; left: 0; right: 0; background: var(--white); border-bottom: 1px solid var(--gray-200); padding: 16px 20px; flex-direction: column; gap: 16px; }
+  .nav-toggle-input:checked ~ .nav-links { display: flex; }
+  .nav-dropdown-menu { display: block; position: static; box-shadow: none; border: none; padding: 0 0 0 12px; }
+  .nav-dropdown-trigger { display: none; }
+  .container { padding: 100px 20px 60px; }
+  h1 { font-size: 1.8rem; }
+}
+</style>
+</head>
+<body>
+<nav>
+  <a href="/" class="nav-mark">zarq</a>
+  <input type="checkbox" id="nav-toggle" class="nav-toggle-input">
+  <label for="nav-toggle" class="nav-hamburger"><span></span><span></span><span></span></label>
+  <div class="nav-links">
+    <a href="/scan">Scan</a>
+    <a href="/crypto">Ratings</a>
+    <a href="/tokens">Token Ratings</a>
+    <a href="/crash-watch">Crash Watch</a>
+    <div class="nav-dropdown">
+      <a href="#" class="nav-dropdown-trigger">More &#9662;</a>
+      <div class="nav-dropdown-menu">
+        <a href="/yield-risk">Yield Risk</a>
+        <a href="/compare">Compare</a>
+        <a href="/learn">Learn</a>
+        <a href="/track-record">Track Record</a>
+        <a href="/paper-trading">Paper Trading</a>
+        <a href="/press">Press</a>
+        <a href="/methodology">Methodology</a>
+      </div>
+    </div>
+    <a href="/docs" class="nav-api">API</a>
+  </div>
+</nav>
+
+<div class="container">
+  <h1>Crypto Risk Ratings — {{ total }} Tokens Rated</h1>
+  <p class="subtitle">Independent trust scores, crash probabilities, and structural analysis for {{ total }} crypto tokens. Updated daily.</p>
+
+  <input type="text" class="search-box" id="searchInput" placeholder="Search by name, symbol, or rating...">
+
+  <div class="table-wrap">
+    <table id="tokensTable">
+      <thead>
+        <tr>
+          <th data-col="0">Name <span class="sort-arrow"></span></th>
+          <th data-col="1">Symbol <span class="sort-arrow"></span></th>
+          <th data-col="2">Rating <span class="sort-arrow"></span></th>
+          <th data-col="3">Score <span class="sort-arrow"></span></th>
+          <th data-col="4">Crash Prob <span class="sort-arrow"></span></th>
+          <th data-col="5">Status <span class="sort-arrow"></span></th>
+          <th data-col="6">Price <span class="sort-arrow"></span></th>
+        </tr>
+      </thead>
+      <tbody>
+        {{ table_rows }}
+      </tbody>
+    </table>
+  </div>
+
+  <div style="margin-top:48px;padding:24px;background:var(--gray-100);border:1px solid var(--gray-200);font-family:var(--mono);font-size:12px;color:var(--gray-600)">
+    <strong>Disclaimer:</strong> ZARQ ratings are quantitative risk assessments, not investment advice. Past performance does not predict future results.
+  </div>
+</div>
+
+<footer>
+  <p>&copy; 2026 <a href="https://zarq.ai">ZARQ</a> — Independent crypto risk intelligence</p>
+</footer>
+
+<script>
+(function() {
+  var input = document.getElementById('searchInput');
+  var table = document.getElementById('tokensTable');
+  var tbody = table.querySelector('tbody');
+  var rows = Array.from(tbody.querySelectorAll('tr'));
+
+  input.addEventListener('input', function() {
+    var q = this.value.toLowerCase();
+    rows.forEach(function(row) {
+      var text = row.textContent.toLowerCase();
+      row.style.display = text.indexOf(q) > -1 ? '' : 'none';
+    });
+  });
+
+  var sortDir = {};
+  table.querySelector('thead').addEventListener('click', function(e) {
+    var th = e.target.closest('th');
+    if (!th) return;
+    var col = parseInt(th.getAttribute('data-col'));
+    sortDir[col] = !sortDir[col];
+    var dir = sortDir[col] ? 1 : -1;
+
+    rows.sort(function(a, b) {
+      var av = a.children[col].getAttribute('data-sort') || a.children[col].textContent.trim();
+      var bv = b.children[col].getAttribute('data-sort') || b.children[col].textContent.trim();
+      var an = parseFloat(av), bn = parseFloat(bv);
+      if (!isNaN(an) && !isNaN(bn)) return (an - bn) * dir;
+      return av.localeCompare(bv) * dir;
+    });
+
+    rows.forEach(function(row) { tbody.appendChild(row); });
+  });
+})();
+</script>
+</body>
+</html>

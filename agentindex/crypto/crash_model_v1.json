@@ -1,0 +1,91 @@
+{
+  "version": "ndd_v4_candidate_1",
+  "run_date": "2026-03-01T20:21:05.633152",
+  "features": [
+    "vol_30d",
+    "trust_p3_maintenance",
+    "sig6_str",
+    "ndd_min_4w",
+    "sig5_cont",
+    "sig3_res",
+    "drawdown_90d",
+    "btc_vol_30d"
+  ],
+  "weights": [
+    0.008514595646069684,
+    -1.2152367194028357,
+    0.11050638642912385,
+    -0.018612708369172264,
+    -0.1829907622318713,
+    -0.39570207057877493,
+    0.9193594889759664,
+    0.14044592567790792
+  ],
+  "bias": -0.6141612901446948,
+  "feature_means": [
+    0.9891005855516103,
+    55.567544100636205,
+    4.4380704164256795,
+    2.7774985540775017,
+    2.734511278195489,
+    3.1014372469635627,
+    -0.2823675309833881,
+    0.5606932538509973
+  ],
+  "feature_stds": [
+    3.6104603704915554,
+    27.113007611270728,
+    0.5271122508546364,
+    0.7086845116020293,
+    0.9923507727206079,
+    0.9302797605426247,
+    0.21206986403192982,
+    0.2020386000802059
+  ],
+  "is_auc": 0.24510942394909818,
+  "oos_auc": 0.27115060992873863,
+  "oos_f1": 0.6382552313586797,
+  "best_threshold": 0.3,
+  "feature_importance": [
+    {
+      "feature": "trust_p3_maintenance",
+      "weight": -1.2152367194028357,
+      "direction": "lower\u2192crash"
+    },
+    {
+      "feature": "drawdown_90d",
+      "weight": 0.9193594889759664,
+      "direction": "higher\u2192crash"
+    },
+    {
+      "feature": "sig3_res",
+      "weight": -0.39570207057877493,
+      "direction": "lower\u2192crash"
+    },
+    {
+      "feature": "sig5_cont",
+      "weight": -0.1829907622318713,
+      "direction": "lower\u2192crash"
+    },
+    {
+      "feature": "btc_vol_30d",
+      "weight": 0.14044592567790792,
+      "direction": "higher\u2192crash"
+    },
+    {
+      "feature": "sig6_str",
+      "weight": 0.11050638642912385,
+      "direction": "higher\u2192crash"
+    },
+    {
+      "feature": "ndd_min_4w",
+      "weight": -0.018612708369172264,
+      "direction": "lower\u2192crash"
+    },
+    {
+      "feature": "vol_30d",
+      "weight": 0.008514595646069684,
+      "direction": "higher\u2192crash"
+    }
+  ]
+}

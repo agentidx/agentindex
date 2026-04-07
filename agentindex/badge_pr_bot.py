@@ -226,7 +226,7 @@ def run(max_prs=MAX_PRS):
     try:
         rows = session.execute(text("""
             SELECT name, COALESCE(trust_score_v2, trust_score) as ts, trust_grade, source_url
-            FROM agents
+            FROM entity_lookup
             WHERE is_active = true
               AND COALESCE(trust_score_v2, trust_score) >= 80
               AND (source = 'github' OR source_url LIKE '%github.com%')
@@ -294,7 +294,7 @@ def dry_run(limit=20):
     try:
         rows = session.execute(text("""
             SELECT name, COALESCE(trust_score_v2, trust_score) as ts, trust_grade, source_url, stars
-            FROM agents
+            FROM entity_lookup
             WHERE is_active = true
               AND COALESCE(trust_score_v2, trust_score) >= 80
               AND (source = 'github' OR source_url LIKE '%github.com%')

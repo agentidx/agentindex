@@ -29,7 +29,7 @@ def _query_weekly() -> dict:
     try:
         # New assets indexed this week (all types, including unclassified)
         total_new = session.execute(text("""
-            SELECT COUNT(*) FROM agents
+            SELECT COUNT(*) FROM entity_lookup
             WHERE is_active = true
             AND first_indexed >= NOW() - INTERVAL '7 days'
         """)).scalar() or 0
@@ -37,7 +37,7 @@ def _query_weekly() -> dict:
         # Breakdown by type (may be 0 if new entries are unclassified)
         type_breakdown = session.execute(text("""
             SELECT COALESCE(agent_type, 'unclassified') as atype, COUNT(*)
-            FROM agents
+            FROM entity_lookup
             WHERE is_active = true
             AND first_indexed >= NOW() - INTERVAL '7 days'
             GROUP BY atype ORDER BY COUNT(*) DESC
@@ -48,7 +48,9 @@ def _query_weekly() -> dict:
         new_tools = type_map.get("tool", 0)
         new_mcp = type_map.get("mcp_server", 0)
 
-        # Active this week — recently crawled/updated agents
+        # Active this week — recently crawled/updated agents (last_crawled not in entity_lookup)
+        session.execute(text("SET LOCAL work_mem = '2MB'"))
+        session.execute(text("SET LOCAL statement_timeout = '5s'"))
         active_this_week = session.execute(text("""
             SELECT COUNT(*) FROM agents
             WHERE is_active = true AND last_crawled >= NOW() - INTERVAL '7 days'
@@ -59,7 +61,7 @@ def _query_weekly() -> dict:
         # Prefer recently indexed, but fall back to highest trust overall
         aotw_row = session.execute(text("""
             SELECT name, trust_score_v2, trust_grade, agent_type, stars, source_url, category
-            FROM agents
+            FROM entity_lookup
             WHERE is_active = true AND trust_score_v2 IS NOT NULL
             AND agent_type IN ('agent', 'mcp_server', 'tool')
             ORDER BY trust_score_v2 DESC
@@ -77,7 +79,7 @@ def _query_weekly() -> dict:
         # Top 10 agents — highest trust scores in the index
         top_agents = session.execute(text("""
             SELECT name, trust_score_v2, trust_grade, agent_type, stars, source_url, category
-            FROM agents
+            FROM entity_lookup
             WHERE is_active = true AND trust_score_v2 IS NOT NULL
             AND agent_type IN ('agent', 'mcp_server', 'tool')
             ORDER BY trust_score_v2 DESC
@@ -94,7 +96,7 @@ def _query_weekly() -> dict:
         trust_changes = session.execute(text("""
             SELECT name, trust_score_v2, trust_score, trust_grade, agent_type,
                    (trust_score_v2 - trust_score) as delta
-            FROM agents
+            FROM entity_lookup
             WHERE is_active = true
             AND trust_score_v2 IS NOT NULL AND trust_score IS NOT NULL
             AND ABS(trust_score_v2 - trust_score) > 5
@@ -112,7 +114,7 @@ def _query_weekly() -> dict:
         # Trending frameworks — by total adoption
         fw_all = session.execute(text("""
             SELECT unnest(frameworks) as fw, COUNT(*) as cnt
-            FROM agents
+            FROM entity_lookup
             WHERE is_active = true AND frameworks IS NOT NULL
             AND agent_type IN ('agent', 'mcp_server', 'tool')
             GROUP BY fw
@@ -128,7 +130,7 @@ def _query_weekly() -> dict:
         # Top categories by agent count
         cat_top = session.execute(text("""
             SELECT category, COUNT(*) as cnt
-            FROM agents
+            FROM entity_lookup
             WHERE is_active = true
             AND category IS NOT NULL AND category != ''
             AND agent_type IN ('agent', 'mcp_server', 'tool')
@@ -150,7 +152,7 @@ def _query_weekly() -> dict:
                 COUNT(*) FILTER (WHERE agent_type = 'mcp_server') as mcp,
                 COUNT(*) as total,
                 ROUND(AVG(trust_score_v2)::numeric, 1) as avg_trust
-            FROM agents WHERE is_active = true
+            FROM entity_lookup WHERE is_active = true
             AND agent_type IN ('agent', 'mcp_server', 'tool')
         """)).fetchone()
 

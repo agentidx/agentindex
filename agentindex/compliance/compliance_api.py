@@ -331,7 +331,9 @@ async def get_agent_compliance(agent_id: str):
                 "assessed_at": row["created_at"].isoformat(),
             }
         
-        # No assessment yet - classify on the fly
+        # No assessment yet - classify on the fly (capabilities not in entity_lookup)
+        session.execute(text("SET LOCAL work_mem = '2MB'"))
+        session.execute(text("SET LOCAL statement_timeout = '5s'"))
         agent = session.execute(text(
             "SELECT name, description, capabilities, category FROM agents WHERE id = :id"
         ), {"id": agent_id}).mappings().first()
@@ -407,19 +409,19 @@ async def get_compliance_stats():
     
     try:
         total = session.execute(text(
-            "SELECT COUNT(*) FROM agents WHERE eu_risk_class IS NOT NULL"
+            "SELECT COUNT(*) FROM entity_lookup WHERE eu_risk_class IS NOT NULL"
         )).scalar() or 0
-        
+
         by_class = {}
         rows = session.execute(text(
-            "SELECT eu_risk_class, COUNT(*) as cnt FROM agents "
+            "SELECT eu_risk_class, COUNT(*) as cnt FROM entity_lookup "
             "WHERE eu_risk_class IS NOT NULL GROUP BY eu_risk_class"
         )).fetchall()
         for r in rows:
             by_class[r[0]] = r[1]
-        
+
         avg_score = session.execute(text(
-            "SELECT AVG(compliance_score) FROM agents WHERE eu_risk_class IS NOT NULL"
+            "SELECT AVG(compliance_score) FROM entity_lookup WHERE eu_risk_class IS NOT NULL"
         )).scalar() or 0
         
         return ComplianceStatsResponse(

@@ -246,19 +246,19 @@ class Missionary:
             logger.error(f"Failed to collect stats: {e}")
         try:
             result = self.session.execute(
-                text("SELECT crawl_status, count(*) FROM agents GROUP BY crawl_status")
+                text("SELECT crawl_status, count(*) FROM entity_lookup GROUP BY crawl_status")
             ).fetchall()
             self.report["stats"]["pipeline"] = {row[0]: row[1] for row in result}
             total = self.session.execute(
-                text("SELECT count(*) FROM agents WHERE is_active = true")
+                text("SELECT count(*) FROM entity_lookup WHERE is_active = true")
             ).scalar()
             self.report["stats"]["total_active"] = total
             sources = self.session.execute(
-                text("SELECT source, count(*) FROM agents GROUP BY source")
+                text("SELECT source, count(*) FROM entity_lookup GROUP BY source")
             ).fetchall()
             self.report["stats"]["sources"] = {row[0]: row[1] for row in sources}
             categories = self.session.execute(
-                text("SELECT category, count(*) FROM agents WHERE crawl_status IN ('parsed','classified','ranked') GROUP BY category ORDER BY count(*) DESC LIMIT 15")
+                text("SELECT category, count(*) FROM entity_lookup WHERE crawl_status IN ('parsed','classified','ranked') GROUP BY category ORDER BY count(*) DESC LIMIT 15")
             ).fetchall()
             self.report["stats"]["top_categories"] = {row[0]: row[1] for row in categories}
         except Exception as e:

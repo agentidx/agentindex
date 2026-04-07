@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Recovery Signals — ZARQ Crypto Intelligence</title>
+<meta name="description" content="ZARQ Recovery Signal identifies tokens that crashed 70%+ and show strong bounce recovery. Validated on 393 crash cycles. STRONG_BUY: 80% winner rate.">
+<link rel="canonical" href="https://zarq.ai/recovery">
+
+<!-- AI-Citable Summary: ZARQ Recovery Signal identifies crashed tokens (70%+ drawdown) showing strong recovery bounce. Three signal levels: STRONG_BUY (80% winner rate, 10% dead rate), BUY (72% win, 27% dead), SPECULATIVE (64% win, 23% dead). Validated on 393 crash cycles. Criteria include bounce magnitude, market cap rank, and trust score. Source: zarq.ai/recovery -->
+
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --white: #fafaf9; --black: #0a0a0a;
+  --gray-100: #f5f5f4; --gray-200: #e7e5e4; --gray-300: #d6d3d1;
+  --gray-400: #a8a29e; --gray-500: #78716c; --gray-600: #57534e;
+  --gray-700: #44403c; --gray-800: #292524; --gray-900: #1c1917;
+  --warm: #c2956b; --warm-light: rgba(194,149,107,0.06);
+  --red: #dc2626; --red-light: rgba(220,38,38,0.06);
+  --amber: #d97706; --amber-light: rgba(217,119,6,0.06);
+  --green: #16a34a; --green-light: rgba(22,163,74,0.06);
+  --serif: 'DM Serif Display', Georgia, serif;
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'DM Sans', sans-serif;
+  --wide: 1120px;
+  --measure: 680px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+::selection { background: var(--warm); color: var(--black); }
+html { font-size: 17px; -webkit-font-smoothing: antialiased; }
+body { background: var(--white); color: var(--gray-800); font-family: var(--sans); line-height: 1.6; }
+
+nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); background: rgba(250,250,249,0.85); border-bottom: 1px solid rgba(0,0,0,0.04); }
+.nav-mark { font-family: var(--mono); font-weight: 500; font-size: 15px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--black); text-decoration: none; }
+.nav-links { display: flex; gap: 32px; align-items: center; }
+.nav-links a { font-family: var(--mono); font-size: 12px; letter-spacing: 0.05em; color: var(--gray-600); text-decoration: none; }
+.nav-links a:hover { color: var(--black); }
+.nav-api { font-family: var(--mono); font-size: 11px; letter-spacing: 0.05em; color: var(--warm); border: 1px solid var(--warm); padding: 6px 16px; text-decoration: none; transition: all 0.2s; }
+.nav-api:hover { background: var(--warm); color: var(--white); }
+.nav-dropdown { position: relative; }
+.nav-dropdown-trigger { cursor: pointer; }
+.nav-dropdown-menu { display: none; position: absolute; top: 100%; right: 0; background: var(--white); border: 1px solid var(--gray-200); box-shadow: 0 8px 24px rgba(0,0,0,0.08); padding: 8px 0; min-width: 180px; z-index: 200; }
+.nav-dropdown:hover .nav-dropdown-menu { display: block; }
+.nav-dropdown-menu a { display: block; padding: 8px 20px; font-family: var(--mono); font-size: 12px; letter-spacing: 0.05em; color: var(--gray-600); text-decoration: none; white-space: nowrap; }
+.nav-dropdown-menu a:hover { background: var(--warm-light, rgba(194,149,107,0.06)); color: var(--black); }
+.nav-toggle-input { display: none; }
+.nav-hamburger { display: none; cursor: pointer; flex-direction: column; gap: 5px; }
+.nav-hamburger span { display: block; width: 22px; height: 2px; background: var(--black); transition: all 0.3s; }
+
+.container { max-width: var(--wide); margin: 0 auto; padding: 140px 40px 60px; }
+.label { font-family: var(--mono); font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gray-500); }
+
+h1 { font-family: var(--serif); font-weight: 400; font-size: clamp(32px, 4vw, 48px); line-height: 1.1; color: var(--black); letter-spacing: -0.02em; margin-bottom: 8px; }
+.meta { font-family: var(--mono); font-size: 11px; letter-spacing: 0.05em; color: var(--gray-500); margin-bottom: 32px; }
+.intro { color: var(--gray-600); font-size: 15px; line-height: 1.7; max-width: var(--measure); margin-bottom: 48px; }
+
+/* Signal levels */
+.signal-levels { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--gray-200); border: 1px solid var(--gray-200); margin-bottom: 48px; }
+.signal-level { background: var(--white); padding: 28px 24px; }
+.sl-name { font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 8px; font-weight: 500; }
+.sl-strong { color: var(--green); }
+.sl-buy { color: var(--warm); }
+.sl-spec { color: var(--amber); }
+.sl-stat { font-family: var(--serif); font-size: 32px; color: var(--black); margin-bottom: 4px; }
+.sl-desc { font-size: 13px; color: var(--gray-600); line-height: 1.5; }
+.sl-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--gray-200); }
+.sl-m-val { font-family: var(--mono); font-size: 14px; color: var(--black); }
+.sl-m-label { font-family: var(--mono); font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gray-500); margin-top: 2px; }
+
+/* Active signals */
+.active-section { margin-bottom: 64px; }
+.signal-card { background: var(--white); border: 1px solid var(--gray-200); padding: 28px; margin-bottom: 12px; position: relative; overflow: hidden; transition: border-color 0.2s; }
+.signal-card:hover { border-color: var(--gray-300); }
+.signal-card::before { content: ''; position: absolute; top: 0; left: 0; bottom: 0; width: 3px; }
+.card-strong::before { background: var(--green); }
+.card-buy::before { background: var(--warm); }
+.card-spec::before { background: var(--amber); }
+
+.sc-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+.sc-token { font-family: var(--serif); font-size: 22px; color: var(--black); }
+.sc-sub { font-family: var(--mono); font-size: 11px; color: var(--gray-500); margin-top: 2px; }
+.sc-level { font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; padding: 4px 12px; }
+.level-strong { background: var(--green-light); color: var(--green); }
+.level-buy { background: var(--warm-light); color: var(--warm); }
+.level-spec { background: var(--amber-light); color: var(--amber); }
+
+.sc-metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1px; background: var(--gray-200); border: 1px solid var(--gray-200); margin-bottom: 16px; }
+.sc-metric { background: var(--white); padding: 14px; }
+.sc-m-label { font-family: var(--mono); font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gray-500); }
+.sc-m-val { font-family: var(--mono); font-size: 16px; margin-top: 4px; }
+.m-green { color: var(--green); }
+.m-warn { color: var(--amber); }
+.m-ok { color: var(--gray-800); }
+
+.sc-footer { display: flex; justify-content: space-between; align-items: center; }
+.sc-link { font-family: var(--mono); font-size: 11px; color: var(--warm); text-decoration: none; }
+.sc-link:hover { text-decoration: underline; }
+
+/* How it works */
+.method-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1px; background: var(--gray-200); border: 1px solid var(--gray-200); margin-bottom: 64px; }
+.method-item { background: var(--white); padding: 28px; }
+.method-num { font-family: var(--mono); font-size: 10px; color: var(--warm); margin-bottom: 8px; }
+.method-title { font-family: var(--serif); font-size: 18px; color: var(--black); margin-bottom: 8px; }
+.method-text { font-size: 14px; color: var(--gray-600); line-height: 1.6; }
+
+/* Empty state */
+.empty-state { text-align: center; padding: 60px 20px; border: 1px solid var(--gray-200); margin-bottom: 48px; }
+.empty-state .es-icon { font-size: 48px; margin-bottom: 16px; }
+.empty-state h3 { font-family: var(--serif); font-size: 22px; color: var(--black); margin-bottom: 8px; }
+.empty-state p { font-size: 14px; color: var(--gray-500); max-width: 400px; margin: 0 auto; }
+
+/* Backtest */
+.backtest-section { margin-bottom: 64px; }
+.bt-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.bt-table th { font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gray-500); padding: 10px 16px; text-align: left; border-bottom: 2px solid var(--gray-200); }
+.bt-table td { padding: 10px 16px; border-bottom: 1px solid var(--gray-100); color: var(--gray-700); }
+.bt-table tr:hover td { background: var(--warm-light); }
+
+/* API */
+.api-box { background: var(--gray-100); border: 1px solid var(--gray-200); padding: 28px; margin-bottom: 48px; }
+.api-box code { display: block; font-family: var(--mono); font-size: 12px; line-height: 1.8; color: var(--gray-700); }
+
+.note { padding: 20px 24px; margin: 24px 0; font-size: 13px; line-height: 1.6; border: 1px solid; border-left-width: 3px; }
+.note-warn { background: var(--amber-light); border-color: rgba(217,119,6,0.2); color: var(--gray-700); }
+.note-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 600; margin-bottom: 8px; display: block; color: var(--amber); }
+
+footer { max-width: var(--wide); margin: 0 auto; padding: 40px 40px 60px; border-top: 1px solid var(--gray-200); display: flex; justify-content: space-between; align-items: baseline; }
+.foot-left { font-family: var(--mono); font-size: 11px; color: var(--gray-500); }
+.foot-right { display: flex; gap: 24px; }
+.foot-right a { font-family: var(--mono); font-size: 11px; color: var(--gray-500); text-decoration: none; }
+.foot-right a:hover { color: var(--black); }
+.site-disclaimer { max-width: var(--wide); margin: 0 auto; padding: 24px 40px 40px; font-family: var(--mono); font-size: 10px; line-height: 1.7; color: var(--gray-500); letter-spacing: 0.02em; }
+.site-disclaimer p { margin: 0 0 8px; }
+
+@media (max-width: 768px) {
+  nav { padding: 16px 20px; }
+  .nav-hamburger { display: flex; }
+  .nav-links { display: none; position: absolute; top: 100%; left: 0; right: 0; background: var(--white); border-bottom: 1px solid var(--gray-200); padding: 16px 20px; flex-direction: column; gap: 16px; }
+  .nav-toggle-input:checked ~ .nav-links { display: flex; }
+  .nav-dropdown-menu { display: block; position: static; box-shadow: none; border: none; padding: 0 0 0 12px; }
+  .nav-dropdown-trigger { display: none; }
+  .container { padding: 120px 20px 40px; }
+  .signal-levels { grid-template-columns: 1fr; }
+  .sc-metrics { grid-template-columns: repeat(2, 1fr); }
+  .method-grid { grid-template-columns: 1fr; }
+  footer { flex-direction: column; gap: 16px; padding: 40px 20px; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-mark">zarq</a>
+  <input type="checkbox" id="nav-toggle" class="nav-toggle-input">
+  <label for="nav-toggle" class="nav-hamburger"><span></span><span></span><span></span></label>
+  <div class="nav-links">
+    <a href="/scan">Scan</a>
+    <a href="/crypto">Ratings</a>
+    <a href="/tokens">Token Ratings</a>
+    <a href="/crash-watch">Crash Watch</a>
+    <div class="nav-dropdown">
+      <a href="#" class="nav-dropdown-trigger">More &#9662;</a>
+      <div class="nav-dropdown-menu">
+        <a href="/yield-risk">Yield Risk</a>
+        <a href="/compare">Compare</a>
+        <a href="/learn">Learn</a>
+        <a href="/track-record">Track Record</a>
+        <a href="/paper-trading">Paper Trading</a>
+        <a href="/press">Press</a>
+        <a href="/methodology">Methodology</a>
+      </div>
+    </div>
+    <a href="/docs" class="nav-api">API</a>
+  </div>
+</nav>
+
+<div class="container">
+
+<h1>Recovery Signals</h1>
+<div class="meta">Crashed tokens showing recovery · Updated {{RUN_DATE}}</div>
+
+<p class="intro">The Recovery Signal identifies tokens that have crashed 70% or more from their peak and are now showing strong bounce recovery. Validated on 393 historical crash cycles, the signal distinguishes between genuine recoveries and dead cat bounces using bounce magnitude, market cap rank, and trust score filters.</p>
+
+<!-- SIGNAL LEVELS -->
+<div class="label" style="margin-bottom:20px">Signal Levels — Backtest Validation (393 Crash Cycles)</div>
+<div class="signal-levels">
+  <div class="signal-level">
+    <div class="sl-name sl-strong">STRONG_BUY</div>
+    <div class="sl-stat">80%</div>
+    <div class="sl-desc">Winner rate — token recovered to pre-crash levels or higher within 12 months</div>
+    <div class="sl-metrics">
+      <div><div class="sl-m-val">10%</div><div class="sl-m-label">Dead Rate</div></div>
+      <div><div class="sl-m-val">150%+</div><div class="sl-m-label">Min Bounce</div></div>
+      <div><div class="sl-m-val">Top 100</div><div class="sl-m-label">Rank Required</div></div>
+      <div><div class="sl-m-val">60+</div><div class="sl-m-label">Trust Score</div></div>
+    </div>
+  </div>
+  <div class="signal-level">
+    <div class="sl-name sl-buy">BUY</div>
+    <div class="sl-stat">72%</div>
+    <div class="sl-desc">Winner rate — broader universe, higher bounce threshold compensates for lower quality filter</div>
+    <div class="sl-metrics">
+      <div><div class="sl-m-val">27%</div><div class="sl-m-label">Dead Rate</div></div>
+      <div><div class="sl-m-val">200%+</div><div class="sl-m-label">Min Bounce</div></div>
+      <div><div class="sl-m-val">Top 200</div><div class="sl-m-label">Rank Required</div></div>
+      <div><div class="sl-m-val">Any</div><div class="sl-m-label">Trust Score</div></div>
+    </div>
+  </div>
+  <div class="signal-level">
+    <div class="sl-name sl-spec">SPECULATIVE</div>
+    <div class="sl-stat">64%</div>
+    <div class="sl-desc">Winner rate — wider net, higher risk. Requires trust score above 50 as quality gate</div>
+    <div class="sl-metrics">
+      <div><div class="sl-m-val">23%</div><div class="sl-m-label">Dead Rate</div></div>
+      <div><div class="sl-m-val">150%+</div><div class="sl-m-label">Min Bounce</div></div>
+      <div><div class="sl-m-val">Top 500</div><div class="sl-m-label">Rank Required</div></div>
+      <div><div class="sl-m-val">50+</div><div class="sl-m-label">Trust Score</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ACTIVE SIGNALS -->
+<div class="label" style="margin-bottom:20px">Active Recovery Signals</div>
+
+{{RECOVERY_CARDS}}
+
+<!-- HOW IT WORKS -->
+<div class="label" style="margin-bottom:20px;margin-top:64px">How Recovery Signal Works</div>
+<div class="method-grid">
+  <div class="method-item">
+    <div class="method-num">01</div>
+    <div class="method-title">Detect Crash</div>
+    <div class="method-text">Scan 365-day price history for every token. Identify peak-to-trough drawdowns of 70% or greater. Tokens that haven't crashed enough are excluded.</div>
+  </div>
+  <div class="method-item">
+    <div class="method-num">02</div>
+    <div class="method-title">Measure Bounce</div>
+    <div class="method-text">Calculate recovery from the trough to current price. A 155% bounce means the token has more than doubled from its lowest point. The bounce must be sustained, not a single-day spike.</div>
+  </div>
+  <div class="method-item">
+    <div class="method-num">03</div>
+    <div class="method-title">Quality Filter</div>
+    <div class="method-text">Apply market cap rank and trust score gates. Higher signal levels require larger tokens with better fundamentals. This separates genuine recoveries from low-quality pumps.</div>
+  </div>
+  <div class="method-item">
+    <div class="method-num">04</div>
+    <div class="method-title">Classify Signal</div>
+    <div class="method-text">STRONG_BUY, BUY, or SPECULATIVE based on thresholds. Tokens that crashed but show less than 50% bounce are classified AVOID — still in distress territory.</div>
+  </div>
+</div>
+
+<!-- BACKTEST -->
+<div class="label" style="margin-bottom:20px">Backtest Methodology</div>
+<p style="font-size:14px;color:var(--gray-600);line-height:1.7;max-width:var(--measure);margin-bottom:24px">Validated on 393 crash cycles from April 2021 through December 2025. A "crash cycle" is defined as a token experiencing 70%+ peak-to-trough drawdown. Outcome measured: did the token recover to pre-crash levels within 12 months, or did it continue to decline (dead)?</p>
+
+<div class="backtest-section">
+<table class="bt-table">
+  <thead>
+    <tr><th>Level</th><th>Crash Cycles</th><th>Winner Rate</th><th>Dead Rate</th><th>Avg Bounce</th><th>Min Rank</th><th>Min Trust</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><strong style="color:var(--green)">STRONG_BUY</strong></td><td>—</td><td>80%</td><td>10%</td><td>150%+</td><td>Top 100</td><td>60+</td></tr>
+    <tr><td><strong style="color:var(--warm)">BUY</strong></td><td>—</td><td>72%</td><td>27%</td><td>200%+</td><td>Top 200</td><td>Any</td></tr>
+    <tr><td><strong style="color:var(--amber)">SPECULATIVE</strong></td><td>—</td><td>64%</td><td>23%</td><td>150%+</td><td>Top 500</td><td>50+</td></tr>
+    <tr><td><strong style="color:var(--red)">AVOID</strong></td><td>—</td><td>—</td><td>—</td><td>&lt;50%</td><td>Any</td><td>Any</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="note note-warn">
+  <span class="note-label">Important</span>
+  Recovery Signal identifies statistical patterns from historical crash cycles. It does not guarantee future recovery. Dead rates of 10–27% mean a meaningful portion of flagged tokens continued to decline. Always consider position sizing and portfolio-level risk. Current market regime (bear/bull) significantly affects recovery probability.
+</div>
+
+<!-- API -->
+<div class="label" style="margin-bottom:20px;margin-top:64px">API Access</div>
+<div class="api-box">
+  <code>GET /v1/crypto/ndd/{token_id}</code>
+  <div style="font-family:var(--mono);font-size:11px;color:var(--gray-500);margin:-4px 0 12px">Includes bottlefish_signal and bounce_90d fields</div>
+  <code>GET /v1/crypto/signals</code>
+  <div style="font-family:var(--mono);font-size:11px;color:var(--gray-500);margin:-4px 0 0">Active warnings include recovery signals</div>
+</div>
+
+</div>
+
+<div class="site-disclaimer">
+<p><strong>Disclaimer</strong> &mdash; ZARQ provides data-driven crypto intelligence for informational and educational purposes only. Nothing on this website constitutes financial advice, investment advice, trading advice, or any other form of professional advice. ZARQ does not recommend buying, selling, or holding any cryptocurrency or financial instrument.</p>
+<p>Trust ratings, Distance-to-Default (DtD) scores, crash probabilities, trading signals, and all other data are derived from quantitative models and may contain errors, lag behind real-time conditions, or fail to predict future outcomes. Past performance, whether backtested or live, is not indicative of future results. All backtested results are hypothetical and do not represent actual trading.</p>
+<p>Crypto assets are highly volatile, speculative, and may result in total loss of invested capital. You should conduct your own research (DYOR) and consult a qualified, licensed financial advisor before making any investment decisions. ZARQ is not registered as a broker-dealer, investment advisor, or financial institution in any jurisdiction.</p>
+<p>By using this website, you acknowledge that you bear sole responsibility for your own investment decisions and that ZARQ, its founders, contributors, and affiliates accept no liability for any losses, damages, or consequences arising from the use of information provided herein.</p>
+</div>
+
+<footer>
+  <div class="foot-left">&copy; 2026 ZARQ &middot; Crypto Intelligence</div>
+  <div class="foot-right">
+    <a href="/scan">Scan</a>
+    <a href="/crypto">Ratings</a>
+    <a href="/tokens">Token Ratings</a>
+    <a href="/crypto/alerts">Alerts</a>
+    <a href="/risk-scanner">Risk Scanner</a>
+    <a href="/contagion">Contagion</a>
+    <a href="/track-record">Track Record</a>
+        <a href="/paper-trading">Paper Trading</a>
+    <a href="/paper-trading">Paper Trading</a>
+    <a href="/methodology">Methodology</a>
+    <a href="/docs">API</a>
+  </div>
+</footer>
+
+</body>
+</html>

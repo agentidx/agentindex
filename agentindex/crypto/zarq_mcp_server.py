@@ -382,6 +382,43 @@ TOOLS = [
             "properties": {},
         }
     ),
+    # ─── Universal Tools (works for ALL entity types) ───
+    Tool(
+        name="preflight_check",
+        description=(
+            "Preflight safety check for ANY software entity — apps, VPNs, npm packages, "
+            "Python packages, Chrome extensions, WordPress plugins, websites, games, and more. "
+            "Returns trust score (0-100), grade (A+ to F), recommendation (PROCEED/CAUTION/BLOCK), "
+            "security details, and alternatives. Works for 7.5M+ entities across 26 registries. "
+            "Use when user asks 'is X safe?', 'should I install X?', 'is X trustworthy?'. "
+            "Example: preflight_check(target='nordvpn')"
+        ),
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "target": {"type": "string", "description": "Entity name — e.g. 'nordvpn', 'express', 'react', 'tiktok', 'bitwarden'"}
+            },
+            "required": ["target"]
+        }
+    ),
+    Tool(
+        name="best_in_category",
+        description=(
+            "Get the top-rated entities in a category by Nerq Trust Score. "
+            "Works for software categories (npm, pypi, vpn, password_manager, antivirus, "
+            "hosting, website_builder, saas, crypto, chrome, firefox, wordpress, ios, android, steam) "
+            "and more. Returns ranked list with scores, grades, and descriptions. "
+            "Example: best_in_category(category='vpn', limit=5)"
+        ),
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "category": {"type": "string", "description": "Registry/category name — e.g. 'vpn', 'npm', 'password_manager', 'antivirus'"},
+                "limit": {"type": "integer", "description": "Number of results (default 10, max 20)", "default": 10}
+            },
+            "required": ["category"]
+        }
+    ),
 ]
 
 
@@ -491,6 +528,35 @@ async def handle_tool(name: str, arguments: dict) -> str:
         elif name == "get_agent_stats":
             data = await zarq_api("/v1/agent/stats")
             return json.dumps(data, indent=2)
+
+        elif name == "preflight_check":
+            target = arguments["target"]
+            data = await zarq_api("/v1/preflight", params={"target": target})
+            return json.dumps(data, indent=2)
+
+        elif name == "best_in_category":
+            category = arguments["category"]
+            limit = min(arguments.get("limit", 10), 20)
+            # Query software_registry directly for the category
+            try:
+                from agentindex.db.models import get_session
+                from sqlalchemy import text
+                _s = get_session()
+                rows = _s.execute(text("""
+                    SELECT name, slug, trust_score, trust_grade, description
+                    FROM software_registry
+                    WHERE registry = :reg AND trust_score IS NOT NULL AND trust_score > 30
+                      AND description IS NOT NULL
+                    ORDER BY trust_score DESC LIMIT :lim
+                """), {"reg": category, "lim": limit}).fetchall()
+                _s.close()
+                results = [{"rank": i+1, "name": r[0], "slug": r[1], "trust_score": round(r[2], 1),
+                           "grade": r[3], "description": (r[4] or "")[:200],
+                           "url": f"https://nerq.ai/safe/{r[1]}"}
+                          for i, r in enumerate(rows)]
+                return json.dumps({"category": category, "count": len(results), "entities": results}, indent=2)
+            except Exception as e:
+                return json.dumps({"error": f"Database query failed: {str(e)}"})
 
         else:
             return json.dumps({"error": f"Unknown tool: {name}"})

@@ -38,7 +38,7 @@ def dashboard():
     week_ago = now - timedelta(days=7)
     total = s.execute(select(func.count(Agent.id))).scalar() or 0
     active = s.execute(select(func.count(Agent.id)).where(Agent.is_active==True)).scalar() or 0
-    trust_agents = s.execute(text("SELECT COUNT(*) FROM agents WHERE trust_score_v2 IS NOT NULL")).scalar() or 0
+    trust_agents = s.execute(text("SELECT COUNT(*) FROM entity_lookup WHERE trust_score_v2 IS NOT NULL")).scalar() or 0
     new24 = s.execute(select(func.count(Agent.id)).where(Agent.first_indexed>day_ago)).scalar() or 0
     statuses = s.execute(select(Agent.crawl_status,func.count(Agent.id)).group_by(Agent.crawl_status).order_by(func.count(Agent.id).desc())).all()
     parsed = sum(c for st,c in statuses if st in("parsed","classified","ranked"))

@@ -203,6 +203,8 @@ def _lookup_best(name: str, session) -> dict | None:
     if not name:
         return None
 
+    session.execute(text("SET LOCAL statement_timeout = '3s'"))
+    session.execute(text("SET LOCAL work_mem = '2MB'"))
     nl = name.lower().strip()
 
     # 0. software_registry: exact name match, prefer consumer registries with downloads
@@ -311,10 +313,10 @@ def _lookup_best(name: str, session) -> dict | None:
         # Try exact match with canonical name first
         row = session.execute(text("""
             SELECT id::text, name, COALESCE(trust_score_v2, trust_score) AS trust_score,
-                   trust_grade, category, source, last_crawled, is_verified,
-                   stars, last_source_update
-            FROM agents
-            WHERE LOWER(name) = LOWER(:name) AND is_active = true
+                   trust_grade, category, source, updated_at, is_verified,
+                   stars, updated_at
+            FROM entity_lookup
+            WHERE name_lower = lower(:name) AND is_active = true
             ORDER BY COALESCE(stars, 0) DESC, COALESCE(trust_score_v2, trust_score) DESC NULLS LAST
             LIMIT 1
         """), {"name": canonical}).fetchone()
@@ -324,10 +326,10 @@ def _lookup_best(name: str, session) -> dict | None:
         canonical_lower = canonical.lower()
         row = session.execute(text("""
             SELECT id::text, name, COALESCE(trust_score_v2, trust_score) AS trust_score,
-                   trust_grade, category, source, last_crawled, is_verified,
-                   stars, last_source_update
-            FROM agents
-            WHERE (lower(name::text) LIKE lower(:suffix) OR lower(name::text) LIKE lower(:pattern))
+                   trust_grade, category, source, updated_at, is_verified,
+                   stars, updated_at
+            FROM entity_lookup
+            WHERE (name_lower LIKE lower(:suffix) OR name_lower LIKE lower(:pattern))
                   AND is_active = true
             ORDER BY COALESCE(stars, 0) DESC, COALESCE(trust_score_v2, trust_score) DESC NULLS LAST
             LIMIT 1
@@ -339,17 +341,20 @@ def _lookup_best(name: str, session) -> dict | None:
     # fuzzy matches are rank 2. Within each rank, prefer higher stars.
     row = session.execute(text("""
         SELECT id::text, name, COALESCE(trust_score_v2, trust_score) AS trust_score,
-               trust_grade, category, source, last_crawled, is_verified,
-               stars, last_source_update
+               trust_grade, category, source, updated_at, is_verified,
+               stars, updated_at
         FROM (
-            SELECT *, 1 AS _r FROM agents
-            WHERE LOWER(name) = LOWER(:name) AND is_active = true
+            SELECT id, name, trust_score, trust_score_v2, trust_grade, category, source,
+                   updated_at, is_verified, stars, 1 AS _r
+            FROM entity_lookup WHERE name_lower = lower(:name) AND is_active = true
           UNION ALL
-            SELECT *, 1 AS _r FROM agents
-            WHERE lower(name::text) LIKE lower(:suffix) AND is_active = true
+            SELECT id, name, trust_score, trust_score_v2, trust_grade, category, source,
+                   updated_at, is_verified, stars, 1 AS _r
+            FROM entity_lookup WHERE name_lower LIKE lower(:suffix) AND is_active = true
           UNION ALL
-            SELECT *, 2 AS _r FROM agents
-            WHERE lower(name::text) LIKE lower(:pattern) AND is_active = true
+            SELECT id, name, trust_score, trust_score_v2, trust_grade, category, source,
+                   updated_at, is_verified, stars, 2 AS _r
+            FROM entity_lookup WHERE name_lower LIKE lower(:pattern) AND is_active = true
         ) sub
         ORDER BY _r ASC, COALESCE(stars, 0) DESC, COALESCE(trust_score_v2, trust_score) DESC NULLS LAST
         LIMIT 1
@@ -459,9 +464,9 @@ def _get_alternatives(name: str, category: str, trust_score: float, session) -> 
         # Try same-category first, sorted by stars (prefer well-known)
         rows = session.execute(text("""
             SELECT name, COALESCE(trust_score_v2, trust_score) as ts, source, stars
-            FROM agents
+            FROM entity_lookup
             WHERE is_active = true
-            AND LOWER(name) != LOWER(:name)
+            AND name_lower != lower(:name)
             AND category = :category
             AND category IS NOT NULL AND category != ''
             AND COALESCE(trust_score_v2, trust_score) >= 50
@@ -474,9 +479,9 @@ def _get_alternatives(name: str, category: str, trust_score: float, session) -> 
         if len(rows) < 3:
             fallback = session.execute(text("""
                 SELECT name, trust_score_v2 as ts, source, stars
-                FROM agents
+                FROM entity_lookup
                 WHERE is_active = true
-                AND name != :name
+                AND name_lower != lower(:name)
                 AND trust_score_v2 >= 60
                 AND stars >= 100
                 ORDER BY stars DESC
@@ -522,7 +527,7 @@ def preflight_check(
             return JSONResponse(
                 content=resp,
                 headers={
-                    "Cache-Control": "public, max-age=3600",
+                    "Cache-Control": "public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400",
                     "ETag": f'"{etag}"',
                 },
             )
@@ -542,7 +547,7 @@ def preflight_check(
                 return JSONResponse(
                     content=resp,
                     headers={
-                        "Cache-Control": "public, max-age=3600",
+                        "Cache-Control": "public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400",
                         "ETag": f'"{etag}"',
                         "X-Cache": "HIT-REDIS",
                     },
@@ -671,7 +676,7 @@ def preflight_check(
     return JSONResponse(
         content=result,
         headers={
-            "Cache-Control": "public, max-age=3600",
+            "Cache-Control": "public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400",
             "ETag": f'"{etag}"',
         },
     )

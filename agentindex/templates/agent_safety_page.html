@@ -6,6 +6,7 @@
 <title>{{ page_title }}</title>
 <meta name="description" content="{{ display_name }} has a Nerq Trust Score of {{ score }}/100 ({{ grade }}). {{ cve_text }} License: {{ license_text }}. Independent security analysis of {{ display_name }} — trust signals, vulnerabilities, compliance, and safer alternatives.">
 <link rel="canonical" href="{{ canonical_url }}">
+<link rel="alternate" type="application/atom+xml" href="/feed/recent" title="Nerq Trust Scores">
 {{ hreflang_tags }}
 <meta property="og:title" content="{{ og_title }}">
 <meta property="og:description" content="{{ display_name }} — {{ grade }} trust grade, {{ score }}/100. Independent safety assessment by Nerq.">
@@ -131,6 +132,12 @@ a{color:#2563eb;text-decoration:none}a:hover{color:#1d4ed8;text-decoration:under
   <!-- ALTERNATIVES -->
   {{ alternatives_section }}
 
+  <!-- VPN-SPECIFIC DETAILS (only for registry=vpn) -->
+  {{ vpn_details }}
+
+  <!-- RELATED SAFETY RANKINGS (contextual links) -->
+  {{ related_rankings }}
+
   <!-- CROSS-PRODUCT TRUST MAP -->
   {{ cross_product_html }}
 
@@ -163,6 +170,8 @@ a{color:#2563eb;text-decoration:none}a:hover{color:#1d4ed8;text-decoration:under
   </div>
 
   {{ discovery_links }}
+
+  {{ see_also }}
 
   <p style="margin-top:24px;font-size:12px;color:#94a3b8">
     <strong>Disclaimer:</strong> {{ t_disclaimer }}

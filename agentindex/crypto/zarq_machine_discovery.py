@@ -212,6 +212,109 @@ Allow: /
 User-agent: CCBot
 Allow: /
 
+# Baidu (ERNIE Bot — 200M MAU in China)
+User-agent: Baiduspider
+Allow: /
+
+User-agent: ERNIEBot
+Allow: /
+
+User-agent: YiyanBot
+Allow: /
+
+# DuckDuckGo
+User-agent: DuckDuckBot
+Allow: /
+
+# xAI (Grok)
+User-agent: Grok
+Allow: /
+
+# DeepSeek
+User-agent: DeepSeekBot
+Allow: /
+
+# Mistral (Le Chat)
+User-agent: MistralAI-User
+Allow: /
+
+User-agent: MistralAI-Index
+Allow: /
+
+# LinkedIn
+User-agent: LinkedInBot
+Allow: /
+
+# Naver (Korea 70% search)
+User-agent: Yeti
+Allow: /
+
+# Kakao (Korea)
+User-agent: Daum
+Allow: /
+
+# 360 Search (China)
+User-agent: 360Spider
+Allow: /
+
+# Sogou (China)
+User-agent: Sogou spider
+Allow: /
+
+# Coc Coc (Vietnam)
+User-agent: coccocbot
+Allow: /
+
+# Brave Search AI
+User-agent: BraveSearch
+Allow: /
+
+# Kagi Search
+User-agent: kagi-fetcher
+Allow: /
+
+# Meta AI (additional crawlers)
+User-agent: meta-externalfetcher
+Allow: /
+
+User-agent: meta-webindexer
+Allow: /
+
+# Google NotebookLM
+User-agent: NotebookLM
+Allow: /
+
+# Amazon Nova
+User-agent: NovaAct
+Allow: /
+
+# OpenAI Agent
+User-agent: chatgpt-operator
+Allow: /
+
+# Anthropic (additional)
+User-agent: Claude-Web
+Allow: /
+
+# Liner AI
+User-agent: LinerBot
+Allow: /
+
+User-agent: liner-bot
+Allow: /
+
+# Linkup AI
+User-agent: LinkupBot
+Allow: /
+
+# Huawei Pangu
+User-agent: PanguBot
+Allow: /
+
+# Manus AI
+User-agent: Manus-User
+Allow: /
+
 # Sitemaps
 Sitemap: https://nerq.ai/sitemap-index.xml
 Sitemap: https://nerq.ai/sitemap-safe-0.xml
@@ -219,6 +322,12 @@ Sitemap: https://nerq.ai/sitemap-safe-1.xml
 Sitemap: https://nerq.ai/sitemap-safety.xml
 Sitemap: https://nerq.ai/sitemap-localized.xml
 Sitemap: https://nerq.ai/sitemap-fresh.xml
+
+# RSS Feeds
+# Feed: https://nerq.ai/feed/recent
+# Feed: https://nerq.ai/feed/vpn
+# Feed: https://nerq.ai/feed/npm
+# Feed: https://nerq.ai/feed/crypto
 
 # AI-readable context
 # llms.txt: https://nerq.ai/llms.txt
@@ -342,7 +451,7 @@ MCP server: https://nerq.ai/mcp/sse
     @app.get("/llms.txt", response_class=PlainTextResponse)
     def llms_txt(request: Request):
         host = (request.headers.get("host") or "").lower()
-        if "nerq" in host:
+        if "zarq" not in host:  # Default to nerq (covers localhost, nerq.ai)
             # Delegate to AB test variant
             from agentindex.ab_test import get_variant, get_llms_txt_variant, _get_ip, _is_bot, _bot_name, log_ab_event
             ip = _get_ip(request)
@@ -366,7 +475,7 @@ MCP server: https://nerq.ai/mcp/sse
     @app.get("/llms-full.txt", response_class=PlainTextResponse)
     def llms_full_txt(request: Request):
         host = (request.headers.get("host") or "").lower()
-        if "nerq" in host:
+        if "zarq" not in host:  # Default to nerq
             from agentindex.seo_pages import _nerq_llms_full_txt
             return PlainTextResponse(_nerq_llms_full_txt())
         import os
@@ -458,7 +567,7 @@ MCP server: https://nerq.ai/mcp/sse
             session = get_session()
             try:
                 total_agents = int(session.execute(_sa_text(
-                    "SELECT COUNT(*) FROM agents WHERE is_active = true "
+                    "SELECT COUNT(*) FROM entity_lookup WHERE is_active = true "
                     "AND agent_type IN ('agent', 'mcp_server', 'tool') "
                     "AND name IS NOT NULL AND name != ''"
                 )).scalar() or 0)
@@ -466,7 +575,7 @@ MCP server: https://nerq.ai/mcp/sse
 
                 # Count /safe/ pages for chunking
                 safe_total = int(session.execute(_sa_text(
-                    "SELECT COUNT(*) FROM agents WHERE is_active = true "
+                    "SELECT COUNT(*) FROM entity_lookup WHERE is_active = true "
                     "AND agent_type IN ('agent', 'mcp_server', 'tool') "
                     "AND trust_score_v2 IS NOT NULL"
                 )).scalar() or 0)

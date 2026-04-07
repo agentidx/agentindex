@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cascade Risk Engine — ZARQ</title>
+<meta name="description" content="Simulate how a token collapse propagates through the crypto ecosystem. 210+ tokens mapped across dependency chains in real time.">
+<link rel="canonical" href="https://zarq.ai/cascade-risk">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --white: #fafaf9;
+  --black: #0a0a0a;
+  --gray-100: #f5f5f4;
+  --gray-200: #e7e5e4;
+  --gray-400: #a8a29e;
+  --gray-500: #78716c;
+  --gray-600: #57534e;
+  --gray-700: #44403c;
+  --gray-800: #292524;
+  --gray-900: #1c1917;
+  --warm: #c2956b;
+  --warm-light: rgba(194,149,107,0.08);
+  --red: #dc2626;
+  --red-light: rgba(220,38,38,0.08);
+  --amber: #d97706;
+  --amber-light: rgba(217,119,6,0.08);
+  --green: #16a34a;
+  --green-light: rgba(22,163,74,0.08);
+  --blue: #2563eb;
+  --blue-light: rgba(37,99,235,0.08);
+  --serif: 'DM Serif Display', Georgia, serif;
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'DM Sans', sans-serif;
+  --wide: 1120px;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html { font-size:17px; -webkit-font-smoothing:antialiased; }
+body { background:var(--white); color:var(--gray-800); font-family:var(--sans); line-height:1.6; }
+
+/* NAV */
+nav { position:fixed; top:0; left:0; right:0; z-index:100; padding:20px 40px; display:flex; justify-content:space-between; align-items:center; backdrop-filter:blur(20px); background:rgba(250,250,249,0.85); border-bottom:1px solid rgba(0,0,0,0.04); }
+.nav-mark { font-family:var(--mono); font-weight:500; font-size:15px; letter-spacing:0.15em; text-transform:uppercase; color:var(--black); text-decoration:none; }
+.nav-links { display:flex; gap:32px; align-items:center; }
+.nav-links a { font-family:var(--mono); font-size:12px; letter-spacing:0.05em; color:var(--gray-600); text-decoration:none; transition:color 0.2s; }
+.nav-links a:hover, .nav-links a.active { color:var(--black); }
+.nav-api { font-family:var(--mono); font-size:11px; letter-spacing:0.05em; color:var(--warm); border:1px solid var(--warm); padding:6px 16px; text-decoration:none; transition:all 0.2s; }
+.nav-api:hover { background:var(--warm); color:var(--white); }
+.nav-dropdown { position:relative; }
+.nav-dropdown-trigger { cursor:pointer; }
+.nav-dropdown-menu { display:none; position:absolute; top:100%; right:0; background:var(--white); border:1px solid var(--gray-200); box-shadow:0 8px 24px rgba(0,0,0,0.08); padding:8px 0; min-width:180px; z-index:200; }
+.nav-dropdown:hover .nav-dropdown-menu { display:block; }
+.nav-dropdown-menu a { display:block; padding:8px 20px; font-family:var(--mono); font-size:12px; letter-spacing:0.05em; color:var(--gray-600); text-decoration:none; white-space:nowrap; }
+.nav-dropdown-menu a:hover { background:var(--warm-light); color:var(--black); }
+.nav-toggle-input { display:none; }
+.nav-hamburger { display:none; cursor:pointer; flex-direction:column; gap:5px; }
+.nav-hamburger span { display:block; width:22px; height:2px; background:var(--black); transition:all 0.3s; }
+
+/* PAGE */
+.page { max-width:var(--wide); margin:0 auto; padding:120px 40px 80px; }
+.page-eyebrow { font-family:var(--mono); font-size:11px; letter-spacing:0.15em; text-transform:uppercase; color:var(--warm); margin-bottom:16px; }
+.page-title { font-family:var(--serif); font-size:clamp(36px,5vw,56px); line-height:1.1; color:var(--black); margin-bottom:20px; }
+.page-sub { font-size:18px; color:var(--gray-600); max-width:600px; line-height:1.7; margin-bottom:48px; }
+
+/* LIVE BADGE */
+.live-badge { display:inline-flex; align-items:center; gap:8px; font-family:var(--mono); font-size:11px; letter-spacing:0.1em; color:var(--green); border:1px solid rgba(22,163,74,0.3); padding:4px 12px; margin-bottom:32px; }
+.live-dot { width:6px; height:6px; background:var(--green); border-radius:50%; animation:pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+/* STATS */
+.stats-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--gray-200); border:1px solid var(--gray-200); margin-bottom:64px; }
+.stat-card { background:var(--white); padding:32px 28px; }
+.stat-number { font-family:var(--serif); font-size:42px; line-height:1; color:var(--black); margin-bottom:6px; }
+.stat-number.red { color:var(--red); }
+.stat-number.amber { color:var(--amber); }
+.stat-number.warm { color:var(--warm); }
+.stat-label { font-family:var(--mono); font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--gray-500); margin-bottom:4px; }
+.stat-sub { font-family:var(--mono); font-size:11px; color:var(--gray-400); }
+
+/* SECTION */
+.section { margin-bottom:64px; }
+.section-label { font-family:var(--mono); font-size:11px; letter-spacing:0.15em; text-transform:uppercase; color:var(--gray-500); margin-bottom:24px; padding-bottom:12px; border-bottom:1px solid var(--gray-200); }
+.section-title { font-family:var(--serif); font-size:28px; color:var(--black); margin-bottom:8px; }
+.section-desc { font-size:15px; color:var(--gray-600); max-width:560px; line-height:1.7; margin-bottom:32px; }
+
+/* ALERT */
+.alert-box { border:1px solid rgba(220,38,38,0.2); background:var(--red-light); padding:20px 24px; margin-bottom:32px; display:flex; gap:16px; align-items:flex-start; }
+.alert-icon { font-family:var(--mono); font-size:11px; color:var(--red); letter-spacing:0.1em; white-space:nowrap; padding-top:2px; }
+.alert-text { font-size:15px; color:var(--gray-800); line-height:1.6; }
+.alert-text strong { color:var(--red); }
+
+/* BADGE */
+.badge { display:inline-block; font-family:var(--mono); font-size:10px; letter-spacing:0.08em; padding:2px 8px; font-weight:600; }
+.badge-critical { background:var(--red-light); color:var(--red); border:1px solid rgba(220,38,38,0.2); }
+.badge-warning { background:var(--amber-light); color:var(--amber); border:1px solid rgba(217,119,6,0.2); }
+.badge-watch { background:rgba(234,179,8,0.08); color:#854d0e; border:1px solid rgba(234,179,8,0.2); }
+.badge-safe { background:var(--green-light); color:var(--green); border:1px solid rgba(22,163,74,0.2); }
+.badge-unknown { background:var(--gray-100); color:var(--gray-500); border:1px solid var(--gray-200); }
+
+/* SIMULATOR */
+.sim-grid { display:grid; grid-template-columns:320px 1fr; gap:1px; background:var(--gray-200); border:1px solid var(--gray-200); }
+.sim-controls { background:var(--white); padding:32px; }
+.sim-results { background:var(--white); padding:32px; min-height:480px; }
+
+.ctrl-label { font-family:var(--mono); font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:var(--gray-500); margin-bottom:10px; display:block; }
+.ctrl-group { margin-bottom:24px; }
+
+.token-input { width:100%; background:var(--gray-100); border:1px solid var(--gray-200); color:var(--black); font-family:var(--mono); font-size:14px; padding:12px 16px; outline:none; transition:border-color 0.2s; }
+.token-input:focus { border-color:var(--warm); background:var(--white); }
+.token-input::placeholder { color:var(--gray-400); }
+
+.scenario-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.scenario-btn { background:var(--gray-100); border:1px solid var(--gray-200); color:var(--gray-600); font-family:var(--mono); font-size:11px; letter-spacing:0.05em; padding:10px 12px; cursor:pointer; transition:all 0.15s; text-align:left; }
+.scenario-btn:hover { border-color:var(--warm); color:var(--black); background:var(--white); }
+.scenario-btn.active { border-color:var(--warm); color:var(--warm); background:var(--warm-light); }
+
+.severity-row { display:flex; align-items:center; gap:16px; }
+input[type=range] { flex:1; -webkit-appearance:none; height:2px; background:var(--gray-200); outline:none; cursor:pointer; }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:14px; height:14px; background:var(--warm); cursor:pointer; border-radius:0; }
+.severity-val { font-family:var(--mono); font-size:13px; color:var(--warm); min-width:36px; text-align:right; }
+
+.sim-btn { width:100%; background:var(--black); color:var(--white); border:none; font-family:var(--mono); font-weight:500; font-size:12px; letter-spacing:0.1em; padding:16px; cursor:pointer; transition:background 0.2s; text-transform:uppercase; }
+.sim-btn:hover { background:var(--gray-800); }
+.sim-btn:disabled { background:var(--gray-400); cursor:not-allowed; }
+
+/* RESULTS EMPTY */
+.results-empty { display:flex; flex-direction:column; align-items:center; justify-content:center; height:400px; color:var(--gray-400); text-align:center; gap:16px; }
+.results-empty p { font-family:var(--mono); font-size:12px; line-height:1.8; max-width:280px; }
+
+/* RESULTS */
+.result-trigger { margin-bottom:24px; padding-bottom:20px; border-bottom:1px solid var(--gray-200); display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px; }
+.trigger-name { font-family:var(--serif); font-size:24px; color:var(--black); margin-bottom:4px; }
+.trigger-meta { font-family:var(--mono); font-size:11px; color:var(--gray-500); }
+.elapsed-tag { font-family:var(--mono); font-size:10px; color:var(--gray-400); }
+
+.result-metrics { display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--gray-200); border:1px solid var(--gray-200); margin-bottom:28px; }
+.metric-cell { background:var(--white); padding:20px; }
+.metric-val { font-family:var(--serif); font-size:28px; line-height:1; color:var(--black); margin-bottom:4px; }
+.metric-val.red { color:var(--red); }
+.metric-val.amber { color:var(--amber); }
+.metric-val.warm { color:var(--warm); }
+.metric-lbl { font-family:var(--mono); font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:var(--gray-500); }
+
+/* CASCADE CHAIN */
+.chain-header { font-family:var(--mono); font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:var(--gray-500); margin-bottom:12px; }
+.cascade-list { display:flex; flex-direction:column; gap:3px; max-height:300px; overflow-y:auto; }
+.cascade-list::-webkit-scrollbar { width:3px; }
+.cascade-list::-webkit-scrollbar-track { background:var(--gray-100); }
+.cascade-list::-webkit-scrollbar-thumb { background:var(--gray-300); }
+
+.chain-row { display:grid; grid-template-columns:28px 1fr 100px 52px; align-items:center; gap:12px; padding:10px 14px; background:var(--gray-100); border-left:3px solid transparent; transition:background 0.1s; animation:fadeUp 0.25s ease both; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(3px)} to{opacity:1;transform:none} }
+.chain-row:hover { background:var(--gray-200); }
+.chain-row.is-trigger { background:var(--warm-light); border-left-color:var(--warm); }
+.chain-row.rl-critical { border-left-color:var(--red); }
+.chain-row.rl-warning { border-left-color:var(--amber); }
+.chain-row.rl-watch { border-left-color:#d97706; }
+.chain-row.rl-safe { border-left-color:var(--green); }
+
+.hop-num { font-family:var(--mono); font-size:10px; color:var(--gray-400); text-align:center; }
+.node-sym { font-family:var(--mono); font-size:13px; font-weight:500; color:var(--black); text-transform:uppercase; }
+.node-meta { font-family:var(--mono); font-size:10px; color:var(--gray-500); margin-top:1px; }
+
+.impact-wrap { display:flex; flex-direction:column; gap:4px; }
+.impact-track { height:3px; background:var(--gray-200); }
+.impact-fill { height:3px; background:var(--warm); }
+.chain-row.rl-critical .impact-fill { background:var(--red); }
+.chain-row.rl-warning .impact-fill { background:var(--amber); }
+.impact-num { font-family:var(--mono); font-size:10px; color:var(--gray-500); text-align:right; }
+
+/* CASCADE ALERTS */
+.cascade-alerts { margin-top:20px; display:flex; flex-direction:column; gap:8px; }
+.c-alert { display:flex; gap:12px; align-items:flex-start; padding:12px 16px; border:1px solid; font-family:var(--mono); font-size:11px; line-height:1.6; }
+.c-alert.CRITICAL { border-color:rgba(220,38,38,0.2); background:var(--red-light); color:var(--red); }
+.c-alert.HIGH { border-color:rgba(217,119,6,0.2); background:var(--amber-light); color:var(--amber); }
+.c-alert.MEDIUM { border-color:rgba(37,99,235,0.2); background:var(--blue-light); color:var(--blue); }
+.c-alert-lv { font-weight:600; flex-shrink:0; }
+
+/* HOTSPOTS */
+.hotspots-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--gray-200); border:1px solid var(--gray-200); }
+.hotspot-card { background:var(--white); padding:24px; position:relative; transition:background 0.15s; cursor:default; }
+.hotspot-card:hover { background:var(--gray-100); }
+.hs-rank { font-family:var(--mono); font-size:10px; color:var(--gray-400); letter-spacing:0.1em; margin-bottom:10px; }
+.hs-name { font-family:var(--serif); font-size:20px; color:var(--black); margin-bottom:2px; text-transform:capitalize; }
+.hs-chain { font-family:var(--mono); font-size:10px; color:var(--gray-500); margin-bottom:20px; }
+.hs-metrics { display:flex; flex-direction:column; gap:10px; }
+.hs-row { display:flex; justify-content:space-between; align-items:center; }
+.hs-key { font-family:var(--mono); font-size:10px; color:var(--gray-500); letter-spacing:0.05em; }
+.hs-val { font-family:var(--mono); font-size:12px; font-weight:500; color:var(--black); }
+.hs-val.red { color:var(--red); }
+.hs-val.amber { color:var(--amber); }
+.hs-score-row { margin-top:20px; padding-top:16px; border-top:1px solid var(--gray-200); display:flex; justify-content:space-between; align-items:baseline; }
+.hs-score-lbl { font-family:var(--mono); font-size:10px; color:var(--gray-400); letter-spacing:0.1em; text-transform:uppercase; }
+.hs-score-val { font-family:var(--serif); font-size:24px; color:var(--warm); }
+
+/* PORTFOLIO */
+.port-grid { display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--gray-200); border:1px solid var(--gray-200); }
+.port-input { background:var(--white); padding:32px; }
+.port-results { background:var(--white); padding:32px; min-height:360px; }
+
+.holding-rows { display:flex; flex-direction:column; gap:8px; margin-bottom:16px; }
+.holding-row { display:grid; grid-template-columns:1fr 72px 32px; gap:8px; align-items:center; }
+.holding-row input { background:var(--gray-100); border:1px solid var(--gray-200); color:var(--black); font-family:var(--mono); font-size:13px; padding:10px 12px; outline:none; transition:border-color 0.2s; width:100%; }
+.holding-row input:focus { border-color:var(--warm); background:var(--white); }
+.holding-row input::placeholder { color:var(--gray-400); }
+.rm-btn { background:var(--gray-100); border:1px solid var(--gray-200); color:var(--gray-500); width:32px; height:36px; cursor:pointer; font-size:16px; transition:all 0.15s; }
+.rm-btn:hover { border-color:var(--red); color:var(--red); background:var(--red-light); }
+.add-row-btn { background:none; border:1px dashed var(--gray-300); color:var(--gray-500); font-family:var(--mono); font-size:11px; letter-spacing:0.05em; padding:10px; cursor:pointer; width:100%; transition:all 0.15s; margin-bottom:16px; }
+.add-row-btn:hover { border-color:var(--warm); color:var(--warm); }
+.analyze-btn { width:100%; background:var(--black); color:var(--white); border:none; font-family:var(--mono); font-weight:500; font-size:12px; letter-spacing:0.1em; padding:14px; cursor:pointer; text-transform:uppercase; transition:background 0.2s; }
+.analyze-btn:hover { background:var(--gray-800); }
+.analyze-btn:disabled { background:var(--gray-400); cursor:not-allowed; }
+
+/* PORT RESULTS */
+.port-score-block { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:24px; padding-bottom:20px; border-bottom:1px solid var(--gray-200); }
+.port-score-num { font-family:var(--serif); font-size:56px; line-height:1; }
+.port-score-num.LOW { color:var(--green); }
+.port-score-num.MEDIUM { color:var(--amber); }
+.port-score-num.HIGH { color:var(--amber); }
+.port-score-num.CRITICAL { color:var(--red); }
+.port-score-meta { font-family:var(--mono); font-size:13px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; margin-top:6px; }
+.port-score-meta.LOW { color:var(--green); }
+.port-score-meta.MEDIUM { color:var(--amber); }
+.port-score-meta.HIGH { color:var(--amber); }
+.port-score-meta.CRITICAL { color:var(--red); }
+.port-stats-right { text-align:right; font-family:var(--mono); font-size:11px; color:var(--gray-500); line-height:2; }
+
+.holding-results { display:flex; flex-direction:column; gap:3px; margin-bottom:24px; }
+.hr-row { display:grid; grid-template-columns:1fr auto auto; gap:12px; align-items:center; padding:10px 14px; background:var(--gray-100); border-left:3px solid var(--gray-300); font-size:14px; }
+.hr-row.CRITICAL { border-left-color:var(--red); }
+.hr-row.WARNING { border-left-color:var(--amber); }
+.hr-row.WATCH { border-left-color:#d97706; }
+.hr-row.SAFE { border-left-color:var(--green); }
+.hr-sym { font-family:var(--mono); font-size:13px; font-weight:500; color:var(--black); }
+.hr-weight { font-family:var(--mono); font-size:11px; color:var(--gray-500); }
+.hr-ts { font-family:var(--mono); font-size:11px; color:var(--gray-500); }
+
+.recs-label { font-family:var(--mono); font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:var(--gray-500); margin-bottom:10px; padding-bottom:8px; border-bottom:1px solid var(--gray-200); }
+.rec-row { display:flex; gap:12px; align-items:flex-start; padding:10px 14px; border:1px solid; margin-bottom:6px; font-size:13px; line-height:1.5; }
+.rec-row.CRITICAL { border-color:rgba(220,38,38,0.2); background:var(--red-light); }
+.rec-row.HIGH { border-color:rgba(217,119,6,0.2); background:var(--amber-light); }
+.rec-badge { font-family:var(--mono); font-size:9px; letter-spacing:0.08em; text-transform:uppercase; padding:2px 6px; font-weight:600; flex-shrink:0; margin-top:2px; }
+.rec-badge.CRITICAL { background:var(--red); color:var(--white); }
+.rec-badge.HIGH { background:var(--amber); color:var(--white); }
+
+/* API GRID */
+.api-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--gray-200); border:1px solid var(--gray-200); }
+.api-card { background:var(--white); padding:24px; transition:background 0.15s; }
+.api-card:hover { background:var(--gray-100); }
+.api-method { font-family:var(--mono); font-size:10px; letter-spacing:0.1em; font-weight:600; margin-bottom:10px; display:inline-block; }
+.api-method.get { color:var(--blue); }
+.api-method.post { color:var(--warm); }
+.api-path { font-family:var(--mono); font-size:12px; color:var(--black); margin-bottom:8px; word-break:break-all; }
+.api-desc { font-size:13px; color:var(--gray-600); line-height:1.5; }
+
+.score-explain { font-family:var(--mono); font-size:10px; color:var(--gray-400); line-height:1.7; margin-top:8px; }
+
+/* TOKEN LIST */
+.tl-group { margin-bottom:24px; }
+.tl-header { display:flex; align-items:center; gap:12px; margin-bottom:12px; }
+.tl-count { font-family:var(--mono); font-size:11px; color:var(--gray-500); }
+.tl-tokens { display:flex; flex-wrap:wrap; gap:6px; }
+.tl-token { font-family:var(--mono); font-size:11px; padding:4px 10px; background:var(--gray-100); border:1px solid var(--gray-200); color:var(--gray-700); cursor:pointer; transition:all 0.15s; }
+.tl-token:hover { background:var(--warm-light); border-color:var(--warm); color:var(--warm); }
+
+/* LOADING */
+.loading-msg { display:flex; align-items:center; gap:10px; font-family:var(--mono); font-size:12px; color:var(--gray-400); padding:40px 0; }
+.spin { width:14px; height:14px; border:2px solid var(--gray-200); border-top-color:var(--warm); border-radius:50%; animation:spin 0.7s linear infinite; }
+@keyframes spin { to{transform:rotate(360deg)} }
+
+@media(max-width:900px) {
+  .sim-grid,.port-grid { grid-template-columns:1fr; }
+  .stats-grid,.hotspots-grid,.api-grid { grid-template-columns:repeat(2,1fr); }
+  .result-metrics { grid-template-columns:repeat(3,1fr); }
+  nav { padding:16px 20px; }
+  .nav-hamburger { display:flex; }
+  .nav-links { display:none; position:absolute; top:100%; left:0; right:0; background:var(--white); border-bottom:1px solid var(--gray-200); padding:16px 20px; flex-direction:column; gap:16px; }
+  .nav-toggle-input:checked ~ .nav-links { display:flex; }
+  .nav-dropdown-menu { display:block; position:static; box-shadow:none; border:none; padding:0 0 0 12px; }
+  .nav-dropdown-trigger { display:none; }
+  .page { padding:100px 20px 60px; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-mark">zarq</a>
+  <input type="checkbox" id="nav-toggle" class="nav-toggle-input">
+  <label for="nav-toggle" class="nav-hamburger"><span></span><span></span><span></span></label>
+  <div class="nav-links">
+    <a href="/scan">Scan</a>
+    <a href="/crypto">Ratings</a>
+    <a href="/tokens">Token Ratings</a>
+    <a href="/crash-watch">Crash Watch</a>
+    <div class="nav-dropdown">
+      <a href="#" class="nav-dropdown-trigger">More &#9662;</a>
+      <div class="nav-dropdown-menu">
+        <a href="/yield-risk">Yield Risk</a>
+        <a href="/compare">Compare</a>
+        <a href="/learn">Learn</a>
+        <a href="/track-record">Track Record</a>
+        <a href="/paper-trading">Paper Trading</a>
+        <a href="/press">Press</a>
+        <a href="/methodology">Methodology</a>
+      </div>
+    </div>
+    <a href="/docs" class="nav-api">API</a>
+  </div>
+</nav>
+
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="page-eyebrow">Cascade Risk Engine</div>
+  <h1 class="page-title">When one token falls,<br>who else goes down?</h1>
+  <p class="page-sub">ZARQ maps dependency chains across 210+ tokens in real time. Simulate collapse scenarios, identify systemic hotspots, and stress-test portfolios before the cascade begins.</p>
+  <div class="live-badge"><span class="live-dot"></span> Live data — updated continuously</div>
+
+  <!-- STATS -->
+  <div class="stats-grid" id="statsGrid">
+    <div class="stat-card">
+      <div class="stat-number" id="statNodes">210</div>
+      <div class="stat-label">Tokens & Chains Mapped</div>
+      <div class="stat-sub">dependency graph nodes</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number warm" id="statEdges">2,816</div>
+      <div class="stat-label">Dependency Edges</div>
+      <div class="stat-sub">ecosystem + correlation</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number red" id="statHotspots">—</div>
+      <div class="stat-label">Active Hotspots</div>
+      <div class="stat-sub">structural collapse risk</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number">&lt;100ms</div>
+      <div class="stat-label">Simulation Latency</div>
+      <div class="stat-sub">in-memory graph engine</div>
+    </div>
+  </div>
+
+  <!-- SIMULATOR -->
+  <div class="section">
+    <div class="section-label">// Cascade Simulator</div>
+    <h2 class="section-title">Run a collapse scenario</h2>
+    <p class="section-desc">Pick any token. Choose a scenario. See the full propagation chain — which tokens are pulled down, how far the impact reaches, and how much is at stake.</p>
+
+    <div class="sim-grid">
+      <div class="sim-controls">
+        <div class="ctrl-group">
+          <label class="ctrl-label">Trigger token</label>
+          <input type="text" class="token-input" id="triggerToken" placeholder="e.g. 1inch, aave, bitcoin" value="1inch">
+        </div>
+        <div class="ctrl-group">
+          <label class="ctrl-label">Scenario</label>
+          <div class="scenario-grid">
+            <button class="scenario-btn active" data-s="collapse">Structural Collapse</button>
+            <button class="scenario-btn" data-s="btc_crash">BTC −40% Crash</button>
+            <button class="scenario-btn" data-s="stablecoin">Stablecoin Depeg</button>
+            <button class="scenario-btn" data-s="exchange">Exchange Failure</button>
+          </div>
+        </div>
+        <div class="ctrl-group">
+          <label class="ctrl-label">Severity</label>
+          <div class="severity-row">
+            <input type="range" id="sevRange" min="0.1" max="1.0" step="0.1" value="1.0">
+            <span class="severity-val" id="sevVal">100%</span>
+          </div>
+        </div>
+        <button class="sim-btn" id="simBtn" onclick="runSim()">Simulate cascade →</button>
+      </div>
+      <div class="sim-results" id="simResults">
+        <div class="results-empty">
+          <p>Enter a token above and run a simulation to see how a collapse propagates through the ecosystem.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HOTSPOTS -->
+  <div class="section">
+    <div class="section-label">// Systemic Risk Hotspots</div>
+    <h2 class="section-title">The ecosystem's fault lines</h2>
+    <p class="section-desc">Tokens ranked by contagion potential — structural weakness multiplied by crash probability and graph centrality. These are the nodes that, if they fail, fail loudly.</p>
+    <div class="hotspots-grid" id="hotspotsGrid">
+      <div style="grid-column:1/-1;padding:32px"><div class="loading-msg"><div class="spin"></div> Loading hotspots...</div></div>
+    </div>
+  </div>
+
+  <!-- PORTFOLIO -->
+  <div class="section">
+    <div class="section-label">// Portfolio Risk Analyzer</div>
+    <h2 class="section-title">How exposed is your portfolio?</h2>
+    <p class="section-desc">Enter your holdings to receive a weighted risk score, identify Structural Collapse positions, and get actionable recommendations.</p>
+    <div class="port-grid">
+      <div class="port-input">
+        <label class="ctrl-label" style="margin-bottom:16px;display:block">Holdings</label>
+        <div class="holding-rows" id="holdingRows">
+          <div class="holding-row">
+            <input type="text" placeholder="Token (e.g. BTC)" class="tsym">
+            <input type="text" placeholder="Wt %" class="twt">
+            <button class="rm-btn" onclick="rmRow(this)">×</button>
+          </div>
+          <div class="holding-row">
+            <input type="text" placeholder="Token (e.g. ETH)" class="tsym">
+            <input type="text" placeholder="Wt %" class="twt">
+            <button class="rm-btn" onclick="rmRow(this)">×</button>
+          </div>
+          <div class="holding-row">
+            <input type="text" placeholder="Token (e.g. 1inch)" class="tsym">
+            <input type="text" placeholder="Wt %" class="twt">
+            <button class="rm-btn" onclick="rmRow(this)">×</button>
+          </div>
+        </div>
+        <button class="add-row-btn" onclick="addRow()">+ Add holding</button>
+        <button class="analyze-btn" onclick="analyzePort()">Analyze portfolio →</button>
+      </div>
+      <div class="port-results" id="portResults">
+        <div class="results-empty">
+          <p>Enter your holdings and click Analyze to see your portfolio risk profile.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOKEN LIST -->
+  <div class="section">
+    <div class="section-label">// Supported Tokens</div>
+    <h2 class="section-title">205 tokens available for analysis</h2>
+    <p class="section-desc">Click any token to load it in the cascade simulator. Use the exact token ID when calling the API.</p>
+    <div id="tokenList"><div class="tl-group"><div class="tl-header"><span class="badge badge-critical">CRITICAL</span><span class="tl-count">25 tokens</span></div><div class="tl-tokens"><span class="tl-token" onclick="setTrigger('1inch')">1inch</span><span class="tl-token" onclick="setTrigger('aptos')">aptos</span><span class="tl-token" onclick="setTrigger('axie-infinity')">axie-infinity</span><span class="tl-token" onclick="setTrigger('basic-attention-token')">basic-attention-token</span><span class="tl-token" onclick="setTrigger('berachain-bera')">berachain-bera</span><span class="tl-token" onclick="setTrigger('chain-2')">chain-2</span><span class="tl-token" onclick="setTrigger('dash')">dash</span><span class="tl-token" onclick="setTrigger('dexe')">dexe</span><span class="tl-token" onclick="setTrigger('fasttoken')">fasttoken</span><span class="tl-token" onclick="setTrigger('hastra-prime')">hastra-prime</span><span class="tl-token" onclick="setTrigger('helium')">helium</span><span class="tl-token" onclick="setTrigger('jito-governance-token')">jito-governance-token</span><span class="tl-token" onclick="setTrigger('kaia')">kaia</span><span class="tl-token" onclick="setTrigger('monero')">monero</span><span class="tl-token" onclick="setTrigger('newton-project')">newton-project</span><span class="tl-token" onclick="setTrigger('pippin')">pippin</span><span class="tl-token" onclick="setTrigger('river')">river</span><span class="tl-token" onclick="setTrigger('sonic-3')">sonic-3</span><span class="tl-token" onclick="setTrigger('starknet')">starknet</span><span class="tl-token" onclick="setTrigger('telcoin')">telcoin</span><span class="tl-token" onclick="setTrigger('the-sandbox')">the-sandbox</span><span class="tl-token" onclick="setTrigger('undeads-games')">undeads-games</span><span class="tl-token" onclick="setTrigger('walrus-2')">walrus-2</span><span class="tl-token" onclick="setTrigger('zcash')">zcash</span><span class="tl-token" onclick="setTrigger('zksync')">zksync</span></div></div><div class="tl-group"><div class="tl-header"><span class="badge badge-warning">WARNING</span><span class="tl-count">47 tokens</span></div><div class="tl-tokens"><span class="tl-token" onclick="setTrigger('aerodrome-finance')">aerodrome-finance</span><span class="tl-token" onclick="setTrigger('aster-2')">aster-2</span><span class="tl-token" onclick="setTrigger('bitcoin')">bitcoin</span><span class="tl-token" onclick="setTrigger('build-on')">build-on</span><span class="tl-token" onclick="setTrigger('cardano')">cardano</span><span class="tl-token" onclick="setTrigger('celestia')">celestia</span><span class="tl-token" onclick="setTrigger('chiliz')">chiliz</span><span class="tl-token" onclick="setTrigger('compound-governance-token')">compound-governance-token</span><span class="tl-token" onclick="setTrigger('dogwifcoin')">dogwifcoin</span><span class="tl-token" onclick="setTrigger('eigenlayer')">eigenlayer</span><span class="tl-token" onclick="setTrigger('elrond-erd-2')">elrond-erd-2</span><span class="tl-token" onclick="setTrigger('ethena')">ethena</span><span class="tl-token" onclick="setTrigger('fartcoin')">fartcoin</span><span class="tl-token" onclick="setTrigger('frax')">frax</span><span class="tl-token" onclick="setTrigger('gatechain-token')">gatechain-token</span><span class="tl-token" onclick="setTrigger('golem')">golem</span><span class="tl-token" onclick="setTrigger('hash-2')">hash-2</span><span class="tl-token" onclick="setTrigger('havven')">havven</span><span class="tl-token" onclick="setTrigger('humanity')">humanity</span><span class="tl-token" onclick="setTrigger('jupiter-exchange-solana')">jupiter-exchange-solana</span><span class="tl-token" onclick="setTrigger('kucoin-shares')">kucoin-shares</span><span class="tl-token" onclick="setTrigger('livepeer')">livepeer</span><span class="tl-token" onclick="setTrigger('mimblewimblecoin')">mimblewimblecoin</span><span class="tl-token" onclick="setTrigger('monad')">monad</span><span class="tl-token" onclick="setTrigger('ondo-finance')">ondo-finance</span><span class="tl-token" onclick="setTrigger('optimism')">optimism</span><span class="tl-token" onclick="setTrigger('pendle')">pendle</span><span class="tl-token" onclick="setTrigger('pepe')">pepe</span><span class="tl-token" onclick="setTrigger('plasma')">plasma</span><span class="tl-token" onclick="setTrigger('polkadot')">polkadot</span><span class="tl-token" onclick="setTrigger('power-protocol')">power-protocol</span><span class="tl-token" onclick="setTrigger('pudgy-penguins')">pudgy-penguins</span><span class="tl-token" onclick="setTrigger('pump-fun')">pump-fun</span><span class="tl-token" onclick="setTrigger('quant-network')">quant-network</span><span class="tl-token" onclick="setTrigger('quantum-resistant-ledger')">quantum-resistant-ledger</span><span class="tl-token" onclick="setTrigger('render-token')">render-token</span><span class="tl-token" onclick="setTrigger('ribbita-by-virtuals')">ribbita-by-virtuals</span><span class="tl-token" onclick="setTrigger('safepal')">safepal</span><span class="tl-token" onclick="setTrigger('siren-2')">siren-2</span><span class="tl-token" onclick="setTrigger('spx6900')">spx6900</span><span class="tl-token" onclick="setTrigger('story-2')">story-2</span><span class="tl-token" onclick="setTrigger('sui')">sui</span><span class="tl-token" onclick="setTrigger('terra-luna')">terra-luna</span><span class="tl-token" onclick="setTrigger('the-graph')">the-graph</span><span class="tl-token" onclick="setTrigger('venice-token')">venice-token</span><span class="tl-token" onclick="setTrigger('virtual-protocol')">virtual-protocol</span><span class="tl-token" onclick="setTrigger('zero-gravity')">zero-gravity</span></div></div><div class="tl-group"><div class="tl-header"><span class="badge badge-watch">WATCH</span><span class="tl-count">82 tokens</span></div><div class="tl-tokens"><span class="tl-token" onclick="setTrigger('aave')">aave</span><span class="tl-token" onclick="setTrigger('algorand')">algorand</span><span class="tl-token" onclick="setTrigger('amp-token')">amp-token</span><span class="tl-token" onclick="setTrigger('ape-and-pepe')">ape-and-pepe</span><span class="tl-token" onclick="setTrigger('arbitrum')">arbitrum</span><span class="tl-token" onclick="setTrigger('avalanche-2')">avalanche-2</span><span class="tl-token" onclick="setTrigger('binancecoin')">binancecoin</span><span class="tl-token" onclick="setTrigger('bitcoin-cash')">bitcoin-cash</span><span class="tl-token" onclick="setTrigger('bitcoin-cash-sv')">bitcoin-cash-sv</span><span class="tl-token" onclick="setTrigger('bitget-token')">bitget-token</span><span class="tl-token" onclick="setTrigger('bittensor')">bittensor</span><span class="tl-token" onclick="setTrigger('blockstack')">blockstack</span><span class="tl-token" onclick="setTrigger('bonk')">bonk</span><span class="tl-token" onclick="setTrigger('chainlink')">chainlink</span><span class="tl-token" onclick="setTrigger('conflux-token')">conflux-token</span><span class="tl-token" onclick="setTrigger('convex-finance')">convex-finance</span><span class="tl-token" onclick="setTrigger('cosmos')">cosmos</span><span class="tl-token" onclick="setTrigger('cow-protocol')">cow-protocol</span><span class="tl-token" onclick="setTrigger('curve-dao-token')">curve-dao-token</span><span class="tl-token" onclick="setTrigger('decentraland')">decentraland</span><span class="tl-token" onclick="setTrigger('decred')">decred</span><span class="tl-token" onclick="setTrigger('dogecoin')">dogecoin</span><span class="tl-token" onclick="setTrigger('doublezero')">doublezero</span><span class="tl-token" onclick="setTrigger('ecash')">ecash</span><span class="tl-token" onclick="setTrigger('ether-fi')">ether-fi</span><span class="tl-token" onclick="setTrigger('ethereum')">ethereum</span><span class="tl-token" onclick="setTrigger('ethereum-classic')">ethereum-classic</span><span class="tl-token" onclick="setTrigger('ethereum-name-service')">ethereum-name-service</span><span class="tl-token" onclick="setTrigger('fetch-ai')">fetch-ai</span><span class="tl-token" onclick="setTrigger('filecoin')">filecoin</span><span class="tl-token" onclick="setTrigger('floki')">floki</span><span class="tl-token" onclick="setTrigger('gala')">gala</span><span class="tl-token" onclick="setTrigger('gnosis')">gnosis</span><span class="tl-token" onclick="setTrigger('grass')">grass</span><span class="tl-token" onclick="setTrigger('hedera-hashgraph')">hedera-hashgraph</span><span class="tl-token" onclick="setTrigger('immutable-x')">immutable-x</span><span class="tl-token" onclick="setTrigger('injective-protocol')">injective-protocol</span><span class="tl-token" onclick="setTrigger('instadapp')">instadapp</span><span class="tl-token" onclick="setTrigger('internet-computer')">internet-computer</span><span class="tl-token" onclick="setTrigger('jasmycoin')">jasmycoin</span><span class="tl-token" onclick="setTrigger('kaspa')">kaspa</span><span class="tl-token" onclick="setTrigger('keeta')">keeta</span><span class="tl-token" onclick="setTrigger('layerzero')">layerzero</span><span class="tl-token" onclick="setTrigger('leo-token')">leo-token</span><span class="tl-token" onclick="setTrigger('lido-dao')">lido-dao</span><span class="tl-token" onclick="setTrigger('litecoin')">litecoin</span><span class="tl-token" onclick="setTrigger('loaded-lions')">loaded-lions</span><span class="tl-token" onclick="setTrigger('lombard-protocol')">lombard-protocol</span><span class="tl-token" onclick="setTrigger('near')">near</span><span class="tl-token" onclick="setTrigger('neo')">neo</span><span class="tl-token" onclick="setTrigger('nexo')">nexo</span><span class="tl-token" onclick="setTrigger('official-trump')">official-trump</span><span class="tl-token" onclick="setTrigger('okb')">okb</span><span class="tl-token" onclick="setTrigger('olympus')">olympus</span><span class="tl-token" onclick="setTrigger('origintrail')">origintrail</span><span class="tl-token" onclick="setTrigger('pancakeswap-token')">pancakeswap-token</span><span class="tl-token" onclick="setTrigger('pi-network')">pi-network</span><span class="tl-token" onclick="setTrigger('polygon-ecosystem-token')">polygon-ecosystem-token</span><span class="tl-token" onclick="setTrigger('pyth-network')">pyth-network</span><span class="tl-token" onclick="setTrigger('raydium')">raydium</span><span class="tl-token" onclick="setTrigger('reallink')">reallink</span><span class="tl-token" onclick="setTrigger('ripple')">ripple</span><span class="tl-token" onclick="setTrigger('sei-network')">sei-network</span><span class="tl-token" onclick="setTrigger('shiba-inu')">shiba-inu</span><span class="tl-token" onclick="setTrigger('solana')">solana</span><span class="tl-token" onclick="setTrigger('stellar')">stellar</span><span class="tl-token" onclick="setTrigger('sun-token')">sun-token</span><span class="tl-token" onclick="setTrigger('syrup')">syrup</span><span class="tl-token" onclick="setTrigger('tezos')">tezos</span><span class="tl-token" onclick="setTrigger('the-open-network')">the-open-network</span><span class="tl-token" onclick="setTrigger('theta-token')">theta-token</span><span class="tl-token" onclick="setTrigger('thorchain')">thorchain</span><span class="tl-token" onclick="setTrigger('trust-wallet-token')">trust-wallet-token</span><span class="tl-token" onclick="setTrigger('ultima')">ultima</span><span class="tl-token" onclick="setTrigger('unibase')">unibase</span><span class="tl-token" onclick="setTrigger('uniswap')">uniswap</span><span class="tl-token" onclick="setTrigger('vaulta')">vaulta</span><span class="tl-token" onclick="setTrigger('vechain')">vechain</span><span class="tl-token" onclick="setTrigger('vision-3')">vision-3</span><span class="tl-token" onclick="setTrigger('world-liberty-financial')">world-liberty-financial</span><span class="tl-token" onclick="setTrigger('worldcoin-wld')">worldcoin-wld</span><span class="tl-token" onclick="setTrigger('zebec-network')">zebec-network</span></div></div><div class="tl-group"><div class="tl-header"><span class="badge badge-safe">SAFE</span><span class="tl-count">51 tokens</span></div><div class="tl-tokens"><span class="tl-token" onclick="setTrigger('agora-dollar')">agora-dollar</span><span class="tl-token" onclick="setTrigger('apenft')">apenft</span><span class="tl-token" onclick="setTrigger('astherus-usdf')">astherus-usdf</span><span class="tl-token" onclick="setTrigger('beldex')">beldex</span><span class="tl-token" onclick="setTrigger('bfusd')">bfusd</span><span class="tl-token" onclick="setTrigger('bitmart-token')">bitmart-token</span><span class="tl-token" onclick="setTrigger('bittorrent')">bittorrent</span><span class="tl-token" onclick="setTrigger('btse-token')">btse-token</span><span class="tl-token" onclick="setTrigger('canton-network')">canton-network</span><span class="tl-token" onclick="setTrigger('comedian')">comedian</span><span class="tl-token" onclick="setTrigger('crvusd')">crvusd</span><span class="tl-token" onclick="setTrigger('crypto-com-chain')">crypto-com-chain</span><span class="tl-token" onclick="setTrigger('dai')">dai</span><span class="tl-token" onclick="setTrigger('ethena-usde')">ethena-usde</span><span class="tl-token" onclick="setTrigger('euro-coin')">euro-coin</span><span class="tl-token" onclick="setTrigger('falcon-finance')">falcon-finance</span><span class="tl-token" onclick="setTrigger('falcon-finance-ff')">falcon-finance-ff</span><span class="tl-token" onclick="setTrigger('first-digital-usd')">first-digital-usd</span><span class="tl-token" onclick="setTrigger('flare-networks')">flare-networks</span><span class="tl-token" onclick="setTrigger('flying-tulip')">flying-tulip</span><span class="tl-token" onclick="setTrigger('gho')">gho</span><span class="tl-token" onclick="setTrigger('global-dollar')">global-dollar</span><span class="tl-token" onclick="setTrigger('gusd')">gusd</span><span class="tl-token" onclick="setTrigger('htx-dao')">htx-dao</span><span class="tl-token" onclick="setTrigger('hyperliquid')">hyperliquid</span><span class="tl-token" onclick="setTrigger('just')">just</span><span class="tl-token" onclick="setTrigger('kite-2')">kite-2</span><span class="tl-token" onclick="setTrigger('memecore')">memecore</span><span class="tl-token" onclick="setTrigger('morpho')">morpho</span><span class="tl-token" onclick="setTrigger('mx-token')">mx-token</span><span class="tl-token" onclick="setTrigger('ondo-us-dollar-yield')">ondo-us-dollar-yield</span><span class="tl-token" onclick="setTrigger('ozone-chain')">ozone-chain</span><span class="tl-token" onclick="setTrigger('pax-gold')">pax-gold</span><span class="tl-token" onclick="setTrigger('paypal-usd')">paypal-usd</span><span class="tl-token" onclick="setTrigger('ripple-usd')">ripple-usd</span><span class="tl-token" onclick="setTrigger('sky')">sky</span><span class="tl-token" onclick="setTrigger('stasis-eurs')">stasis-eurs</span><span class="tl-token" onclick="setTrigger('swissborg')">swissborg</span><span class="tl-token" onclick="setTrigger('tether')">tether</span><span class="tl-token" onclick="setTrigger('tether-gold')">tether-gold</span><span class="tl-token" onclick="setTrigger('tron')">tron</span><span class="tl-token" onclick="setTrigger('true-usd')">true-usd</span><span class="tl-token" onclick="setTrigger('usd-coin')">usd-coin</span><span class="tl-token" onclick="setTrigger('usd1-wlfi')">usd1-wlfi</span><span class="tl-token" onclick="setTrigger('usdd')">usdd</span><span class="tl-token" onclick="setTrigger('usds')">usds</span><span class="tl-token" onclick="setTrigger('usdtb')">usdtb</span><span class="tl-token" onclick="setTrigger('wefi')">wefi</span><span class="tl-token" onclick="setTrigger('wemix-token')">wemix-token</span><span class="tl-token" onclick="setTrigger('whitebit')">whitebit</span><span class="tl-token" onclick="setTrigger('xdce-crowd-sale')">xdce-crowd-sale</span></div></div></div>
+  </div>
+
+  <!-- API -->
+  <div class="section">
+    <div class="section-label">// API Reference</div>
+    <h2 class="section-title">Machine-ready endpoints</h2>
+    <p class="section-desc">All cascade risk data available via REST API. Free during Early Access — rate limited to 1,000 calls/day.</p>
+    <div class="api-grid">
+      <div class="api-card">
+        <span class="api-method get">GET</span>
+        <div class="api-path">/v1/crypto/cascade/simulate</div>
+        <div class="api-desc">Simulate a collapse cascade from any trigger token. Returns full propagation chain with impact scores and USD exposure.</div>
+      </div>
+      <div class="api-card">
+        <span class="api-method get">GET</span>
+        <div class="api-path">/v1/crypto/cascade/hotspots</div>
+        <div class="api-desc">Top systemic risk nodes ranked by hotspot score — structural weakness × crash probability × graph degree.</div>
+      </div>
+      <div class="api-card">
+        <span class="api-method get">GET</span>
+        <div class="api-path">/v1/crypto/cascade/graph</div>
+        <div class="api-desc">Full dependency graph export in D3.js-compatible format with all nodes, edges, and risk metadata.</div>
+      </div>
+      <div class="api-card">
+        <span class="api-method post">POST</span>
+        <div class="api-path">/v1/crypto/portfolio/analyze</div>
+        <div class="api-desc">Submit holdings, receive weighted risk score, collapse exposure %, cascade simulation, and prioritized recommendations.</div>
+      </div>
+      <div class="api-card">
+        <span class="api-method post">POST</span>
+        <div class="api-path">/v1/crypto/portfolio/crash-shield</div>
+        <div class="api-desc">Register a webhook URL to receive real-time POST alerts when your holdings enter collapse conditions.</div>
+      </div>
+      <div class="api-card">
+        <span class="api-method get">GET</span>
+        <div class="api-path">/v1/crypto/cascade/stats</div>
+        <div class="api-desc">Graph engine statistics — total nodes, edge count by type, load time, and available simulation scenarios.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+let scenario = 'collapse';
+
+document.querySelectorAll('.scenario-btn').forEach(b => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('.scenario-btn').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    scenario = b.dataset.s;
+  });
+});
+
+document.getElementById('sevRange').addEventListener('input', e => {
+  document.getElementById('sevVal').textContent = Math.round(e.target.value * 100) + '%';
+});
+
+document.getElementById('triggerToken').addEventListener('keydown', e => {
+  if (e.key === 'Enter') runSim();
+});
+
+async function loadStats() {
+  try {
+    const r = await fetch('/v1/crypto/cascade/stats');
+    const d = await r.json();
+    document.getElementById('statNodes').textContent = (d.total_nodes || 210).toLocaleString();
+    document.getElementById('statEdges').textContent = (d.total_edge_entries || 2816).toLocaleString();
+  } catch(e) {}
+}
+
+async function loadHotspots() {
+  try {
+    const r = await fetch('/v1/crypto/cascade/hotspots?top_n=8');
+    const d = await r.json();
+    document.getElementById('statHotspots').textContent = d.total_hotspots_found || '—';
+    const html = (d.hotspots || []).map((h, i) => `
+      <div class="hotspot-card">
+        <div class="hs-rank">#${i+1}</div>
+        <div class="hs-name">${h.symbol}</div>
+        <div class="hs-chain">${h.chain !== 'unknown' ? h.chain : 'multi-chain'}</div>
+        <div class="hs-metrics">
+          <div class="hs-row">
+            <span class="hs-key">Risk</span>
+            <span class="badge badge-${(h.risk_level||'').toLowerCase()}">${h.risk_level}</span>
+          </div>
+          <div class="hs-row">
+            <span class="hs-key">Struct. weakness</span>
+            <span class="hs-val ${h.structural_weakness >= 3 ? 'red' : h.structural_weakness >= 2 ? 'amber' : ''}">${h.structural_weakness}/4</span>
+          </div>
+          <div class="hs-row">
+            <span class="hs-key">Crash prob</span>
+            <span class="hs-val ${h.crash_prob > 0.6 ? 'red' : h.crash_prob > 0.4 ? 'amber' : ''}">${(h.crash_prob*100).toFixed(0)}%</span>
+          </div>
+          <div class="hs-row">
+            <span class="hs-key">Connections</span>
+            <span class="hs-val">${h.graph_degree}</span>
+          </div>
+        </div>
+        <div class="hs-score-row">
+          <span class="hs-score-lbl">Hotspot score</span>
+          <span class="hs-score-val">${h.hotspot_score}</span>
+        </div>
+      </div>
+    `).join('');
+    document.getElementById('hotspotsGrid').innerHTML = html || '<div style="padding:32px;font-family:var(--mono);font-size:12px;color:var(--gray-400)">No hotspots found.</div>';
+  } catch(e) {
+    document.getElementById('hotspotsGrid').innerHTML = '<div style="padding:32px;font-family:var(--mono);font-size:12px;color:var(--gray-400)">Could not load hotspots.</div>';
+  }
+}
+
+async function runSim() {
+  const token = document.getElementById('triggerToken').value.trim();
+  if (!token) return;
+  const sev = document.getElementById('sevRange').value;
+  const btn = document.getElementById('simBtn');
+  btn.disabled = true; btn.textContent = 'Simulating...';
+  document.getElementById('simResults').innerHTML = '<div class="loading-msg"><div class="spin"></div> Running cascade simulation...</div>';
+  try {
+    const r = await fetch(`/v1/crypto/cascade/simulate?trigger=${encodeURIComponent(token)}&scenario=${scenario}&severity=${sev}&max_hops=4`);
+    const d = await r.json();
+    if (d.error) {
+      document.getElementById('simResults').innerHTML = `<div class="results-empty"><p>${d.error}<br><br>Try: 1inch, aave, bitcoin, ethereum, uniswap</p></div>`;
+    } else {
+      renderSim(d);
+    }
+  } catch(e) {
+    document.getElementById('simResults').innerHTML = '<div class="results-empty"><p>Could not reach API.</p></div>';
+  }
+  btn.disabled = false; btn.textContent = 'Simulate cascade →';
+}
+
+function renderSim(d) {
+  const s = d.simulation;
+  const chain = d.cascade_chain || [];
+  const alerts = d.alerts || [];
+
+  const metrics = `
+    <div class="result-metrics">
+      <div class="metric-cell"><div class="metric-val red">${s.nodes_affected}</div><div class="metric-lbl">Nodes Affected</div></div>
+      <div class="metric-cell"><div class="metric-val amber">$${(s.total_exposure_usd/1e6).toFixed(1)}M</div><div class="metric-lbl">Est. Exposure</div></div>
+      <div class="metric-cell"><div class="metric-val warm">${s.structural_collapses_in_path}</div><div class="metric-lbl">Collapse Tokens</div></div>
+    </div>`;
+
+  const rows = chain.slice(0,20).map((n, i) => {
+    const cls = n.is_trigger ? 'is-trigger' : `rl-${(n.risk_level||'').toLowerCase()}`;
+    return `<div class="chain-row ${cls}" style="animation-delay:${i*20}ms">
+      <span class="hop-num">${n.is_trigger ? '★' : 'H'+n.hop}</span>
+      <div><div class="node-sym">${n.symbol}</div><div class="node-meta">${n.node_type}${n.chain && n.chain !== 'unknown' ? ' · '+n.chain : ''}</div></div>
+      <div class="impact-wrap"><div class="impact-track"><div class="impact-fill" style="width:${n.impact_pct}%"></div></div><div class="impact-num">${n.impact_pct}%</div></div>
+      <span class="badge badge-${(n.risk_level||'unknown').toLowerCase()}">${n.risk_level}</span>
+    </div>`;
+  }).join('');
+
+  const alertsHtml = alerts.length ? `<div class="cascade-alerts">${alerts.map(a =>
+    `<div class="c-alert ${a.level}"><span class="c-alert-lv">${a.level}</span><span>${a.message}${a.tokens?': '+a.tokens.join(', '):''}</span></div>`
+  ).join('')}</div>` : '';
+
+  document.getElementById('simResults').innerHTML = `
+    <div class="result-trigger">
+      <div><div class="trigger-name">${d.trigger.symbol.toUpperCase()}</div><div class="trigger-meta">${d.trigger.scenario_label} · severity ${Math.round(d.trigger.severity*100)}% · ${s.max_hops_reached} hops deep</div></div>
+      <span class="elapsed-tag">${d.elapsed_ms}ms</span>
+    </div>
+    ${metrics}
+    <div class="chain-header">Propagation chain — top 20 of ${chain.length} affected nodes</div>
+    <div class="cascade-list">${rows}</div>
+    ${alertsHtml}`;
+}
+
+function addRow() {
+  const r = document.createElement('div');
+  r.className = 'holding-row';
+  r.innerHTML = `<input type="text" placeholder="Token" class="tsym"><input type="text" placeholder="Wt %" class="twt"><button class="rm-btn" onclick="rmRow(this)">×</button>`;
+  document.getElementById('holdingRows').appendChild(r);
+}
+
+function rmRow(btn) {
+  if (document.querySelectorAll('.holding-row').length > 1) btn.parentElement.remove();
+}
+
+async function analyzePort() {
+  const rows = document.querySelectorAll('.holding-row');
+  const holdings = [];
+  rows.forEach(r => {
+    const sym = r.querySelector('.tsym').value.trim();
+    const wt = parseFloat(r.querySelector('.twt').value) || 0;
+    if (sym) holdings.push({token: sym, weight: wt / 100});
+  });
+  if (!holdings.length) return;
+  const btn = document.querySelector('.analyze-btn');
+  btn.disabled = true; btn.textContent = 'Analyzing...';
+  document.getElementById('portResults').innerHTML = '<div class="loading-msg"><div class="spin"></div> Analyzing portfolio...</div>';
+  try {
+    const r = await fetch('/v1/crypto/portfolio/analyze', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({holdings, portfolio_value_usd:100000, include_cascade:false})
+    });
+    const d = await r.json();
+    renderPort(d);
+  } catch(e) {
+    document.getElementById('portResults').innerHTML = '<div class="results-empty"><p>Could not reach API.</p></div>';
+  }
+  btn.disabled = false; btn.textContent = 'Analyze portfolio →';
+}
+
+function renderPort(d) {
+  const ps = d.portfolio_summary || {};
+  const holdings = d.holdings || [];
+  const recs = d.recommendations || [];
+  const rl = ps.risk_level || 'UNKNOWN';
+
+  const holdHtml = holdings.map(h => `
+    <div class="hr-row ${h.risk_level || ''}">
+      <span class="hr-sym">${h.token}</span>
+      <span class="hr-weight">${(h.weight*100).toFixed(0)}%</span>
+      <span class="hr-ts">${h.found ? 'TS '+h.trust_score : '—'}</span>
+      <span class="badge badge-${(h.risk_level||'unknown').toLowerCase()}">${h.risk_level || 'N/A'}</span>
+    </div>`).join('');
+
+  const recsHtml = recs.length ? `<div class="recs-label">Recommendations</div>${recs.map(r =>
+    `<div class="rec-row ${r.priority}"><span class="rec-badge ${r.priority}">${r.action}</span><span>${r.token !== 'PORTFOLIO' ? r.token+' — ' : ''}${r.reason}</span></div>`
+  ).join('')}` : '';
+
+  document.getElementById('portResults').innerHTML = `
+    <div class="port-score-block">
+      <div>
+        <div class="port-score-num ${rl}">${ps.portfolio_risk_score || 0}</div>
+        <div class="port-score-meta ${rl}">${rl}</div>
+        <div class="score-explain">Portfolio Risk Score 0–100<br>weighted by position size across<br>structural weakness, crash probability<br>and distance-to-default (NDD)</div>
+      </div>
+      <div class="port-stats-right">
+        <div>${ps.structural_collapses || 0} collapse token${ps.structural_collapses!==1?'s':''}</div>
+        <div>${(ps.collapse_exposure_pct||0).toFixed(1)}% in collapse</div>
+        <div>${ps.tokens_analyzed || 0}/${holdings.length} tokens found</div>
+      </div>
+    </div>
+    <div class="holding-results">${holdHtml}</div>
+    ${recsHtml}
+    <div style="font-family:var(--mono);font-size:10px;color:var(--gray-400);margin-top:12px;text-align:right">${d.elapsed_ms}ms</div>`;
+}
+
+function setTrigger(token) {
+  document.getElementById('triggerToken').value = token;
+  document.getElementById('triggerToken').scrollIntoView({behavior:'smooth', block:'center'});
+  document.getElementById('triggerToken').focus();
+}
+
+loadStats();
+loadHotspots();
+</script>
+</body>
+</html>

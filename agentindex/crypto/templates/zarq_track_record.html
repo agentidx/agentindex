@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Track Record — ZARQ</title>
+<meta name="description" content="ZARQ Portable Alpha backtest results. Three portfolios tested April 2021 — December 2025. Out-of-sample Sharpe ratios from 2.02 to 5.56.">
+<link rel="canonical" href="https://zarq.ai/track-record">
+
+<!-- AI-Citable Summary: ZARQ Portable Alpha backtested April 2021 — December 2025 across three variants: Conservative (Sharpe 2.02, +314.7% OOS), Growth (Sharpe 3.86, +842.2% OOS), Aggressive (Sharpe 5.56, +1872.9% OOS). All variants outperformed BTC buy-and-hold (+100.8% OOS). Paper trading live since March 2026 with SHA-256 audit trail. Source: zarq.ai -->
+
+<style>
+:root {
+  --white: #fafaf9;
+  --black: #0a0a0a;
+  --gray-100: #f5f5f4;
+  --gray-200: #e7e5e4;
+  --gray-400: #a8a29e;
+  --gray-500: #78716c;
+  --gray-600: #57534e;
+  --gray-700: #44403c;
+  --gray-800: #292524;
+  --gray-900: #1c1917;
+  --warm: #c2956b;
+  --green: #4ade80;
+  --red: #f87171;
+  --blue: #93c5fd;
+  --serif: 'DM Serif Display', Georgia, serif;
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'DM Sans', sans-serif;
+  --wide: 1120px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+::selection { background: var(--warm); color: var(--black); }
+html { font-size: 17px; -webkit-font-smoothing: antialiased; }
+body { background: var(--white); color: var(--gray-800); font-family: var(--sans); line-height: 1.6; }
+
+/* Nav */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  padding: 20px 40px; display: flex; justify-content: space-between; align-items: center;
+  backdrop-filter: blur(20px); background: rgba(250,250,249,0.85);
+  border-bottom: 1px solid rgba(0,0,0,0.04);
+}
+.nav-mark { font-family: var(--mono); font-weight: 500; font-size: 15px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--black); text-decoration: none; }
+.nav-links { display: flex; gap: 32px; align-items: center; }
+.nav-links a { font-family: var(--mono); font-size: 12px; letter-spacing: 0.05em; color: var(--gray-600); text-decoration: none; }
+.nav-links a:hover { color: var(--black); }
+.nav-links a.active { color: var(--black); border-bottom: 1px solid var(--black); padding-bottom: 2px; }
+.nav-api { font-family: var(--mono); font-size: 11px; letter-spacing: 0.05em; color: var(--warm); border: 1px solid var(--warm); padding: 6px 16px; text-decoration: none; transition: all 0.2s; }
+.nav-api:hover { background: var(--warm); color: var(--white); }
+.nav-dropdown { position: relative; }
+.nav-dropdown-trigger { cursor: pointer; }
+.nav-dropdown-menu { display: none; position: absolute; top: 100%; right: 0; background: var(--white); border: 1px solid var(--gray-200); box-shadow: 0 8px 24px rgba(0,0,0,0.08); padding: 8px 0; min-width: 180px; z-index: 200; }
+.nav-dropdown:hover .nav-dropdown-menu { display: block; }
+.nav-dropdown-menu a { display: block; padding: 8px 20px; font-family: var(--mono); font-size: 12px; letter-spacing: 0.05em; color: var(--gray-600); text-decoration: none; white-space: nowrap; }
+.nav-dropdown-menu a:hover { background: var(--warm-light, rgba(194,149,107,0.08)); color: var(--black); }
+.nav-toggle-input { display: none; }
+.nav-hamburger { display: none; cursor: pointer; flex-direction: column; gap: 5px; }
+.nav-hamburger span { display: block; width: 22px; height: 2px; background: var(--black); transition: all 0.3s; }
+
+/* Header */
+.page-header {
+  max-width: var(--wide); margin: 0 auto; padding: 140px 40px 60px;
+}
+.page-header h1 {
+  font-family: var(--serif); font-weight: 400; font-size: clamp(36px, 5vw, 56px);
+  line-height: 1.1; color: var(--black); letter-spacing: -0.02em;
+}
+.page-header .subtitle {
+  font-size: 16px; color: var(--gray-600); margin-top: 16px; max-width: 600px; line-height: 1.7;
+}
+.page-header .meta {
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--gray-500); margin-top: 24px; display: flex; gap: 32px;
+}
+
+/* Summary Cards */
+.summary-section {
+  max-width: var(--wide); margin: 0 auto; padding: 0 40px 80px;
+}
+.summary-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--gray-200); border: 1px solid var(--gray-200);
+}
+.summary-card {
+  background: var(--white); padding: 32px;
+}
+.card-name {
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gray-500);
+}
+.card-return {
+  font-family: var(--serif); font-size: 42px; color: var(--black); margin: 12px 0 4px; letter-spacing: -0.02em;
+}
+.card-vs {
+  font-family: var(--mono); font-size: 12px; color: var(--gray-500);
+}
+.card-vs span { color: var(--warm); }
+.card-metrics {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 24px; padding-top: 20px;
+  border-top: 1px solid var(--gray-200);
+}
+.metric .m-val { font-family: var(--mono); font-size: 16px; color: var(--black); }
+.metric .m-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; color: var(--gray-500); margin-top: 2px; }
+
+/* Chart Section */
+.chart-section {
+  max-width: var(--wide); margin: 0 auto; padding: 0 40px 80px;
+}
+.chart-label {
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase;
+  color: var(--gray-500); margin-bottom: 24px;
+}
+.chart-box {
+  background: var(--white); padding: 40px; position: relative; overflow: hidden;
+  border: 1px solid var(--gray-200);
+}
+.chart-box::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--warm), transparent);
+}
+.chart-legend {
+  display: flex; gap: 24px; margin-bottom: 24px;
+}
+.legend-item {
+  display: flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 11px; color: var(--gray-700);
+}
+.legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+.chart-svg { width: 100%; height: 300px; }
+
+/* Monthly Table */
+.table-section {
+  max-width: var(--wide); margin: 0 auto; padding: 0 40px 80px;
+}
+.data-table {
+  width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 12px;
+}
+.data-table th {
+  text-align: left; padding: 12px 16px; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--gray-500); border-bottom: 1px solid var(--gray-200); font-weight: 400;
+}
+.data-table td {
+  padding: 10px 16px; border-bottom: 1px solid var(--gray-100); color: var(--gray-700);
+}
+.data-table tr:hover td { background: rgba(194,149,107,0.04); }
+.pos { color: #16a34a; }
+.neg { color: #dc2626; }
+
+/* Methodology */
+.method-section {
+  max-width: var(--wide); margin: 0 auto; padding: 0 40px 80px;
+  display: grid; grid-template-columns: 280px 1fr; gap: 80px;
+}
+.method-label {
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase;
+  color: var(--gray-500); position: sticky; top: 100px; align-self: start;
+}
+.method-content { max-width: 640px; }
+.method-content h3 {
+  font-family: var(--serif); font-size: 22px; font-weight: 400; color: var(--black); margin: 32px 0 8px;
+}
+.method-content h3:first-child { margin-top: 0; }
+.method-content p { font-size: 15px; color: var(--gray-600); line-height: 1.7; margin-bottom: 12px; }
+.method-content code {
+  font-family: var(--mono); font-size: 13px; background: var(--gray-100); padding: 2px 6px;
+}
+
+/* Disclaimer */
+.disclaimer {
+  max-width: var(--wide); margin: 0 auto; padding: 40px;
+  border-top: 1px solid var(--gray-200);
+  font-family: var(--mono); font-size: 11px; color: var(--gray-700); line-height: 1.8;
+}
+
+/* Footer */
+footer {
+  max-width: var(--wide); margin: 0 auto; padding: 40px 40px 60px;
+  border-top: 1px solid var(--gray-200); display: flex; justify-content: space-between; align-items: baseline;
+}
+.foot-left { font-family: var(--mono); font-size: 11px; color: var(--gray-500); }
+.foot-right { display: flex; gap: 24px; }
+.foot-right a { font-family: var(--mono); font-size: 11px; color: var(--gray-500); text-decoration: none; }
+.foot-right a:hover { color: var(--black); }
+
+@media (max-width: 768px) {
+  nav { padding: 16px 20px; }
+  .nav-hamburger { display: flex; }
+  .nav-links { display: none; position: absolute; top: 100%; left: 0; right: 0; background: var(--white); border-bottom: 1px solid var(--gray-200); padding: 16px 20px; flex-direction: column; gap: 16px; }
+  .nav-toggle-input:checked ~ .nav-links { display: flex; }
+  .nav-dropdown-menu { display: block; position: static; box-shadow: none; border: none; padding: 0 0 0 12px; }
+  .nav-dropdown-trigger { display: none; }
+  .page-header { padding: 120px 20px 40px; }
+  .summary-section, .chart-section, .table-section { padding-left: 20px; padding-right: 20px; }
+  .summary-grid { grid-template-columns: 1fr; }
+  .method-section { grid-template-columns: 1fr; gap: 24px; padding-left: 20px; padding-right: 20px; }
+  .method-label { position: static; }
+  .page-header .meta { flex-wrap: wrap; gap: 16px; }
+  footer { flex-direction: column; gap: 16px; padding: 40px 20px; }
+}
+
+.site-disclaimer {
+  max-width: var(--wide, 1120px);
+  margin: 0 auto;
+  padding: 24px 40px 40px;
+  font-family: var(--mono, 'IBM Plex Mono', monospace);
+  font-size: 10px;
+  line-height: 1.7;
+  color: var(--gray-500, #78716c);
+  letter-spacing: 0.02em;
+}
+.site-disclaimer p { margin: 0 0 8px; }
+</style>
+
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-mark">zarq</a>
+  <input type="checkbox" id="nav-toggle" class="nav-toggle-input">
+  <label for="nav-toggle" class="nav-hamburger"><span></span><span></span><span></span></label>
+  <div class="nav-links">
+    <a href="/scan">Scan</a>
+    <a href="/crypto">Ratings</a>
+    <a href="/tokens">Token Ratings</a>
+    <a href="/crash-watch">Crash Watch</a>
+    <div class="nav-dropdown">
+      <a href="#" class="nav-dropdown-trigger">More &#9662;</a>
+      <div class="nav-dropdown-menu">
+        <a href="/yield-risk">Yield Risk</a>
+        <a href="/compare">Compare</a>
+        <a href="/learn">Learn</a>
+        <a href="/track-record">Track Record</a>
+        <a href="/paper-trading">Paper Trading</a>
+        <a href="/press">Press</a>
+        <a href="/methodology">Methodology</a>
+      </div>
+    </div>
+    <a href="/docs" class="nav-api">API</a>
+  </div>
+</nav>
+
+<section class="page-header">
+  <h1>Portable Alpha — Backtest Track Record</h1>
+  <p class="subtitle">Three portfolio variants backtested across 60 months (April 2021 — December 2025). In-sample period used for model calibration. Out-of-sample period is true forward testing on unseen data.</p>
+  <div class="meta">
+    <span>In-Sample: 36 months (Apr 2021 — Mar 2024)</span>
+    <span>Out-of-Sample: 24 months (Jan 2024 — Dec 2025)</span>
+    <span>Benchmark: BTC buy-and-hold</span>
+  </div>
+</section>
+
+<!-- SUMMARY CARDS — OUT OF SAMPLE -->
+<section class="summary-section">
+  <div class="summary-grid">
+    <div class="summary-card">
+      <div class="card-name">Conservative</div>
+      <div class="card-return">+314.7%</div>
+      <div class="card-vs">vs BTC <span>+100.8%</span> · Alpha +213.9%</div>
+      <div class="card-metrics">
+        <div class="metric"><div class="m-val">2.02</div><div class="m-label">Sharpe</div></div>
+        <div class="metric"><div class="m-val">-11.0%</div><div class="m-label">Max Drawdown</div></div>
+        <div class="metric"><div class="m-val">75.0%</div><div class="m-label">Win Rate</div></div>
+        <div class="metric"><div class="m-val">24</div><div class="m-label">Months OOS</div></div>
+      </div>
+    </div>
+    <div class="summary-card">
+      <div class="card-name">Growth</div>
+      <div class="card-return">+842.2%</div>
+      <div class="card-vs">vs BTC <span>+100.8%</span> · Alpha +741.4%</div>
+      <div class="card-metrics">
+        <div class="metric"><div class="m-val">3.86</div><div class="m-label">Sharpe</div></div>
+        <div class="metric"><div class="m-val">-12.1%</div><div class="m-label">Max Drawdown</div></div>
+        <div class="metric"><div class="m-val">75.0%</div><div class="m-label">Win Rate</div></div>
+        <div class="metric"><div class="m-val">24</div><div class="m-label">Months OOS</div></div>
+      </div>
+    </div>
+    <div class="summary-card">
+      <div class="card-name">Aggressive</div>
+      <div class="card-return">+1,872.9%</div>
+      <div class="card-vs">vs BTC <span>+100.8%</span> · Alpha +1,772.1%</div>
+      <div class="card-metrics">
+        <div class="metric"><div class="m-val">5.56</div><div class="m-label">Sharpe</div></div>
+        <div class="metric"><div class="m-val">-18.8%</div><div class="m-label">Max Drawdown</div></div>
+        <div class="metric"><div class="m-val">75.0%</div><div class="m-label">Win Rate</div></div>
+        <div class="metric"><div class="m-val">24</div><div class="m-label">Months OOS</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- NAV CHART -->
+<section class="chart-section">
+  <div class="chart-label">NAV Growth — Out-of-Sample (Jan 2024 — Dec 2025)</div>
+  <div class="chart-box">
+    <div class="chart-legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#c2956b"></div>Growth</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#4ade80"></div>Conservative</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#f87171"></div>Aggressive</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#555"></div>BTC</div>
+    </div>
+    <svg class="chart-svg" viewBox="0 0 1040 300" preserveAspectRatio="none">
+      <!-- Grid lines -->
+      <line x1="0" y1="60" x2="1040" y2="60" stroke="#333" stroke-width="0.5" stroke-dasharray="4,4"/>
+      <line x1="0" y1="120" x2="1040" y2="120" stroke="#333" stroke-width="0.5" stroke-dasharray="4,4"/>
+      <line x1="0" y1="180" x2="1040" y2="180" stroke="#333" stroke-width="0.5" stroke-dasharray="4,4"/>
+      <line x1="0" y1="240" x2="1040" y2="240" stroke="#333" stroke-width="0.5" stroke-dasharray="4,4"/>
+      
+      <!-- Y-axis labels -->
+      <text x="4" y="56" fill="#666" font-family="IBM Plex Mono,monospace" font-size="9">$200k</text>
+      <text x="4" y="116" fill="#666" font-family="IBM Plex Mono,monospace" font-size="9">$150k</text>
+      <text x="4" y="176" fill="#666" font-family="IBM Plex Mono,monospace" font-size="9">$100k</text>
+      <text x="4" y="236" fill="#666" font-family="IBM Plex Mono,monospace" font-size="9">$50k</text>
+      <text x="4" y="296" fill="#666" font-family="IBM Plex Mono,monospace" font-size="9">$0</text>
+
+      <!-- BTC (gray, dashed) — scaled: 9745 to 20078, mapped to 300..0 over 200k range -->
+      <polyline fill="none" stroke="#555" stroke-width="1.5" stroke-dasharray="6,3" points="
+        20,285 63,289 107,276 150,280 193,277 237,279 280,278 323,281 367,280 410,276 453,267 497,268
+        540,266 583,271 627,271 670,267 713,264 757,264 800,262 843,263 887,260 930,263 973,271 1020,270
+      "/>
+      
+      <!-- Conservative (green) — 9643 to 41471 -->
+      <polyline fill="none" stroke="#4ade80" stroke-width="2" points="
+        20,286 63,278 107,273 150,275 193,275 237,275 280,273 323,274 367,276 410,272 453,261 497,261
+        540,256 583,259 627,259 670,253 713,252 757,250 800,242 843,243 887,232 930,230 973,238 1020,238
+      "/>
+      
+      <!-- Growth (warm/gold) — 9541 to 94221 -->
+      <polyline fill="none" stroke="#c2956b" stroke-width="2.5" points="
+        20,286 63,278 107,270 150,270 193,270 237,268 280,263 323,262 367,267 410,262 453,248 497,245
+        540,236 583,234 627,234 670,225 713,229 757,222 800,204 843,202 887,173 930,159 973,159 1020,159
+      "/>
+      
+      <!-- Aggressive (red) — 9439 to 197286 -->
+      <polyline fill="none" stroke="#f87171" stroke-width="2" points="
+        20,286 63,278 107,267 150,264 193,264 237,259 280,250 323,247 367,257 410,250 453,233 497,226
+        540,210 583,200 627,200 670,183 713,200 757,184 800,150 843,140 887,78 930,32 973,15 1020,14
+      "/>
+
+      <!-- X-axis labels -->
+      <text x="20" y="298" fill="#555" font-family="IBM Plex Mono,monospace" font-size="8">Jan 24</text>
+      <text x="237" y="298" fill="#555" font-family="IBM Plex Mono,monospace" font-size="8">Jun 24</text>
+      <text x="453" y="298" fill="#555" font-family="IBM Plex Mono,monospace" font-size="8">Nov 24</text>
+      <text x="627" y="298" fill="#555" font-family="IBM Plex Mono,monospace" font-size="8">Mar 25</text>
+      <text x="843" y="298" fill="#555" font-family="IBM Plex Mono,monospace" font-size="8">Aug 25</text>
+      <text x="990" y="298" fill="#555" font-family="IBM Plex Mono,monospace" font-size="8">Dec 25</text>
+    </svg>
+  </div>
+</section>
+
+<!-- MONTHLY TABLE -->
+<section class="table-section">
+  <div class="chart-label">Monthly Returns — Growth Portfolio (Out-of-Sample)</div>
+  <div style="overflow-x: auto;">
+  <table class="data-table">
+    <thead>
+      <tr><th>Month</th><th>Regime</th><th>Portfolio</th><th>BTC</th><th>NAV</th><th>BTC NAV</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>2024-01</td><td>BULL</td><td class="neg">-4.6%</td><td class="neg">-2.5%</td><td>$9,541</td><td>$9,746</td></tr>
+      <tr><td>2024-02</td><td>BULL</td><td class="pos">+53.2%</td><td class="pos">+44.9%</td><td>$14,615</td><td>$14,126</td></tr>
+      <tr><td>2024-03</td><td>BULL</td><td class="pos">+35.8%</td><td class="pos">+11.6%</td><td>$19,840</td><td>$15,767</td></tr>
+      <tr><td>2024-04</td><td>BULL</td><td class="pos">+0.2%</td><td class="neg">-16.4%</td><td>$19,884</td><td>$13,186</td></tr>
+      <tr><td>2024-05</td><td>BEAR</td><td class="pos">+1.9%</td><td class="pos">+16.2%</td><td>$20,271</td><td>$15,323</td></tr>
+      <tr><td>2024-06</td><td>BULL</td><td class="pos">+7.0%</td><td class="neg">-7.2%</td><td>$21,695</td><td>$14,218</td></tr>
+      <tr><td>2024-07</td><td>BULL</td><td class="pos">+15.0%</td><td class="pos">+3.9%</td><td>$24,942</td><td>$14,775</td></tr>
+      <tr><td>2024-08</td><td>BULL</td><td class="pos">+0.5%</td><td class="neg">-12.2%</td><td>$25,060</td><td>$12,968</td></tr>
+      <tr><td>2024-09</td><td>BEAR</td><td class="neg">-12.1%</td><td class="pos">+6.1%</td><td>$22,019</td><td>$13,754</td></tr>
+      <tr><td>2024-10</td><td>BULL</td><td class="pos">+14.8%</td><td class="pos">+14.3%</td><td>$25,288</td><td>$15,719</td></tr>
+      <tr><td>2024-11</td><td>BULL</td><td class="pos">+36.5%</td><td class="pos">+40.0%</td><td>$34,525</td><td>$22,009</td></tr>
+      <tr><td>2024-12</td><td>BULL</td><td class="pos">+6.5%</td><td class="neg">-3.0%</td><td>$36,777</td><td>$21,357</td></tr>
+      <tr><td>2025-01</td><td>BULL</td><td class="pos">+16.6%</td><td class="pos">+6.6%</td><td>$42,865</td><td>$22,766</td></tr>
+      <tr><td>2025-02</td><td>BULL</td><td class="pos">+2.6%</td><td class="neg">-14.5%</td><td>$43,978</td><td>$19,470</td></tr>
+      <tr><td>2025-03</td><td>BULL</td><td class="neg">-0.6%</td><td class="neg">-1.0%</td><td>$43,710</td><td>$19,271</td></tr>
+      <tr><td>2025-04</td><td>BULL</td><td class="pos">+15.5%</td><td class="pos">+13.3%</td><td>$50,484</td><td>$21,838</td></tr>
+      <tr><td>2025-05</td><td>BULL</td><td class="neg">-6.0%</td><td class="pos">+9.5%</td><td>$47,434</td><td>$23,916</td></tr>
+      <tr><td>2025-06</td><td>BULL</td><td class="pos">+10.1%</td><td class="pos">+0.0%</td><td>$52,218</td><td>$23,921</td></tr>
+      <tr><td>2025-07</td><td>BULL</td><td class="pos">+22.3%</td><td class="pos">+7.1%</td><td>$63,851</td><td>$25,627</td></tr>
+      <tr><td>2025-08</td><td>BULL</td><td class="pos">+2.8%</td><td class="neg">-3.5%</td><td>$65,642</td><td>$24,720</td></tr>
+      <tr><td>2025-09</td><td>BULL</td><td class="pos">+29.1%</td><td class="pos">+8.6%</td><td>$84,744</td><td>$26,849</td></tr>
+      <tr><td>2025-10</td><td>BULL</td><td class="pos">+11.3%</td><td class="neg">-7.2%</td><td>$94,358</td><td>$24,912</td></tr>
+      <tr><td>2025-11</td><td>BULL</td><td class="neg">-0.5%</td><td class="neg">-21.6%</td><td>$93,903</td><td>$19,527</td></tr>
+      <tr><td>2025-12</td><td>BEAR</td><td class="pos">+0.3%</td><td class="pos">+2.8%</td><td>$94,222</td><td>$20,079</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<!-- METHODOLOGY -->
+<section class="method-section">
+  <div class="method-label">Methodology</div>
+  <div class="method-content">
+    <h3>Universe</h3>
+    <p>Investment-grade tokens rated A1, A2, or A3 on the ZARQ Trust Score scale (formerly rated as MAJOR category). Stablecoins excluded. Typical universe: 25–35 tokens per month.</p>
+    
+    <h3>Signal Generation</h3>
+    <p>Composite score calculated from five pillars weighted <code>[0.10, 0.30, 0.30, 0.15, 0.15]</code>. Top quartile candidates for long positions, bottom quartile for short. Pairs formed by matching highest-rated longs with lowest-rated shorts.</p>
+    
+    <h3>Conviction Ranking</h3>
+    <p>Each pair scored: <code>40% × composite_spread + 60% × DtD_differential</code>. Top 5 pairs selected by conviction. Maximum 2 appearances per token across all pairs.</p>
+    
+    <h3>Portfolio Construction</h3>
+    <p>Three variants with regime-dependent allocation. Regime determined by BTC drawdown from 12-month ATH. Bear regime (&gt;20% DD) shifts allocation toward cash and reduces pair exposure.</p>
+    <p><strong>Conservative:</strong> BULL: 15% L/S + 35% BTC + 50% cash. BEAR: 20% L/S + 5% BTC + 75% cash.</p>
+    <p><strong>Growth:</strong> BULL: 20% L/S + 40% BTC + 40% cash. BEAR: 30% L/S + 10% BTC + 60% cash.</p>
+    <p><strong>Aggressive:</strong> BULL: 100% L/S. BEAR: 100% cash (skip month).</p>
+    
+    <h3>Execution</h3>
+    <p>Monthly rebalance. 90-day hold period per pair. Returns capped at ±100% per leg. No leverage. No transaction costs modeled (conservative assumption for institutional execution).</p>
+    
+    <h3>Validation</h3>
+    <p>In-sample period (36 months) used for parameter calibration. Out-of-sample period (24 months) represents true forward performance on unseen data. Paper trading live since March 2026 with SHA-256 hash-chained audit trail for independent verification.</p>
+  </div>
+</section>
+
+<!-- DISCLAIMER -->
+<div class="disclaimer">
+  Past performance is not indicative of future results. Backtest results are hypothetical and do not represent actual trading. Actual results may differ materially due to market conditions, slippage, fees, and execution timing. ZARQ does not provide financial advice. This information is for educational and research purposes only.
+</div>
+
+<footer>
+  <div class="foot-left">© 2026 ZARQ · Crypto Intelligence</div>
+  <div class="foot-right">
+    <a href="/">Home</a>
+    <a href="/scan">Scan</a>
+    <a href="/crypto">Ratings</a>
+    <a href="/tokens">Token Ratings</a>
+    <a href="/paper-trading">Paper Trading</a>
+    <a href="/methodology">Methodology</a>
+    <a href="/docs">API</a>
+  </div>
+</footer>
+<div class="site-disclaimer">
+<p><strong>Disclaimer</strong> &mdash; ZARQ provides data-driven crypto intelligence for informational and educational purposes only. Nothing on this website constitutes financial advice, investment advice, trading advice, or any other form of professional advice. ZARQ does not recommend buying, selling, or holding any cryptocurrency or financial instrument.</p>
+<p>Trust ratings, Distance-to-Default (DtD) scores, crash probabilities, trading signals, and all other data are derived from quantitative models and may contain errors, lag behind real-time conditions, or fail to predict future outcomes. Past performance, whether backtested or live, is not indicative of future results. All backtested results are hypothetical and do not represent actual trading.</p>
+<p>Crypto assets are highly volatile, speculative, and may result in total loss of invested capital. You should conduct your own research (DYOR) and consult a qualified, licensed financial advisor before making any investment decisions. ZARQ is not registered as a broker-dealer, investment advisor, or financial institution in any jurisdiction.</p>
+<p>By using this website, you acknowledge that you bear sole responsibility for your own investment decisions and that ZARQ, its founders, contributors, and affiliates accept no liability for any losses, damages, or consequences arising from the use of information provided herein.</p>
+<p>This website may not comply with regulatory requirements in all jurisdictions. Users are responsible for ensuring that their use of ZARQ data complies with local laws and regulations, including but not limited to MiFID II (EU), the Securities Act (US), MAS guidelines (Singapore), and FCA rules (UK).</p>
+</div>
+
+</body>
+</html>

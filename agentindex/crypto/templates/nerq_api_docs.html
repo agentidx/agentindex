@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>API Documentation — Nerq</title>
+<meta name="description" content="Nerq API documentation. Search 5M+ AI assets, check compliance across 52 jurisdictions, discover agents programmatically. Free REST API.">
+<link rel="canonical" href="https://nerq.ai/docs">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0f;--bg2:#12121a;--bg3:#1a1a26;--border:#2a2a3a;--text:#e8e8f0;--text2:#9898b0;--accent:#4af0c0;--accent2:#2ad0a0;--red:#ff4d6a;--orange:#ffaa33;--green:#4ade80;--mono:'JetBrains Mono',monospace;--sans:'DM Sans',sans-serif;--serif:'DM Serif Display',serif}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);line-height:1.6}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:1rem 2rem;background:rgba(10,10,15,0.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
+.nav-inner{max-width:900px;margin:0 auto;display:flex;align-items:center;justify-content:space-between}
+nav a.logo{font-family:var(--serif);font-size:1.5rem;color:var(--accent);text-decoration:none}
+nav a.logo span{color:var(--text2);font-size:0.55em;margin-left:2px;vertical-align:super}
+.nav-links{display:flex;gap:1.5rem;align-items:center}
+.nav-links a{color:var(--text2);text-decoration:none;font-size:0.9rem;font-weight:500}
+.nav-links a:hover{color:var(--accent)}
+.wrap{max-width:900px;margin:0 auto;padding:5rem 1.5rem 3rem}
+h1{font-family:var(--serif);font-size:2.4rem;letter-spacing:-0.02em;margin-bottom:0.5rem}
+h2{font-family:var(--serif);font-size:1.6rem;letter-spacing:-0.01em;margin:2.5rem 0 1rem;padding-top:1.5rem;border-top:1px solid var(--border)}
+h3{font-size:1.1rem;font-weight:600;margin:1.5rem 0 0.5rem;color:var(--accent)}
+.subtitle{color:var(--text2);font-size:1.05rem;margin-bottom:2rem}
+.badge{display:inline-block;padding:3px 10px;border-radius:4px;font-family:var(--mono);font-size:0.75rem;font-weight:600}
+.badge-get{background:rgba(74,240,192,0.12);color:var(--accent)}
+.badge-post{background:rgba(255,170,51,0.12);color:var(--orange)}
+.endpoint{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:1.2rem 1.5rem;margin:1rem 0;transition:border-color 0.2s}
+.endpoint:hover{border-color:rgba(74,240,192,0.2)}
+.endpoint-header{display:flex;align-items:center;gap:10px;margin-bottom:0.5rem}
+.endpoint-path{font-family:var(--mono);font-size:0.95rem;font-weight:500}
+.endpoint-desc{color:var(--text2);font-size:0.9rem}
+pre{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:1rem 1.2rem;overflow-x:auto;font-family:var(--mono);font-size:0.85rem;line-height:1.5;margin:0.8rem 0}
+code{font-family:var(--mono);font-size:0.85rem}
+.inline-code{background:var(--bg3);padding:2px 6px;border-radius:4px;font-size:0.85rem}
+.param-table{width:100%;border-collapse:collapse;margin:0.8rem 0}
+.param-table th{text-align:left;padding:8px 12px;border-bottom:1px solid var(--border);color:var(--text2);font-size:0.8rem;text-transform:uppercase;letter-spacing:0.05em}
+.param-table td{padding:8px 12px;border-bottom:1px solid rgba(42,42,58,0.5);font-size:0.9rem}
+.param-table td:first-child{font-family:var(--mono);color:var(--accent);font-size:0.85rem}
+.stat-row{display:flex;gap:1rem;margin:1.5rem 0;flex-wrap:wrap}
+.stat{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:1.2rem;flex:1;min-width:150px;text-align:center}
+.stat .num{font-family:var(--serif);font-size:2rem;color:var(--accent)}
+.stat .label{font-size:0.8rem;color:var(--text2);margin-top:4px}
+.toc{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:1.2rem 1.5rem;margin:1.5rem 0}
+.toc a{color:var(--text2);text-decoration:none;display:block;padding:4px 0;font-size:0.9rem}
+.toc a:hover{color:var(--accent)}
+footer{border-top:1px solid var(--border);padding:2rem;text-align:center;color:var(--text2);font-size:0.85rem;margin-top:3rem}
+@media(max-width:640px){.wrap{padding:4.5rem 1rem 2rem}h1{font-size:1.8rem}.stat-row{flex-direction:column}}
+</style>
+</head>
+<body>
+
+<nav>
+<div class="nav-inner">
+<a href="/" class="logo">Nerq<span>API</span></a>
+<div class="nav-links">
+<a href="/">Home</a>
+<a href="/discover">Discover</a>
+<a href="/comply">Comply</a>
+<a href="/checker">Checker</a>
+</div>
+</div>
+</nav>
+
+<div class="wrap">
+
+<h1>Nerq API Documentation</h1>
+<p class="subtitle">Search 5M+ AI assets, check compliance across 52 jurisdictions, and integrate agent discovery into your applications. Free, no auth required.</p>
+
+<div class="stat-row">
+<div class="stat"><div class="num">5M+</div><div class="label">AI Assets Indexed</div></div>
+<div class="stat"><div class="num">52</div><div class="label">Jurisdictions</div></div>
+<div class="stat"><div class="num">1,000</div><div class="label">Free Calls/Day</div></div>
+</div>
+
+<div class="toc">
+<strong style="color:var(--text);font-size:0.9rem">Contents</strong>
+<a href="#base">Base URL &amp; Rate Limits</a>
+<a href="#discover">Agent Discovery</a>
+<a href="#agent">Agent Details</a>
+<a href="#compliance">Compliance Check</a>
+<a href="#jurisdictions">Jurisdictions</a>
+<a href="#deadlines">Compliance Deadlines</a>
+<a href="#stats">Platform Stats</a>
+<a href="#mcp">MCP Discovery</a>
+<a href="#health">Health Check</a>
+</div>
+
+<h2 id="base">Base URL &amp; Rate Limits</h2>
+<p>All endpoints are served from:</p>
+<pre>https://nerq.ai</pre>
+<p style="margin-top:0.8rem">Rate limit: <code class="inline-code">1,000 calls/day</code> per IP. No authentication required. Responses are JSON.</p>
+
+<h2 id="discover">Agent Discovery</h2>
+<div class="endpoint">
+<div class="endpoint-header"><span class="badge badge-post">POST</span><span class="endpoint-path">/v1/discover</span></div>
+<div class="endpoint-desc">Search and discover AI agents by name, domain, type, or description.</div>
+</div>
+<pre>{
+  "query": "code review AI agent",
+  "limit": 10,
+  "offset": 0
+}</pre>
+<p>Response includes agent name, type, source, author, risk classification, trust score, and compliance status across jurisdictions.</p>
+
+<h2 id="agent">Agent Details</h2>
+<div class="endpoint">
+<div class="endpoint-header"><span class="badge badge-get">GET</span><span class="endpoint-path">/v1/agent/{agent_id}</span></div>
+<div class="endpoint-desc">Get full details for a specific AI agent including compliance assessment across all 52 jurisdictions.</div>
+</div>
+<table class="param-table">
+<thead><tr><th>Parameter</th><th>Type</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td>agent_id</td><td>string</td><td>Unique agent identifier (from discovery results)</td></tr>
+</tbody>
+</table>
+
+<h2 id="compliance">Compliance Check</h2>
+<div class="endpoint">
+<div class="endpoint-header"><span class="badge badge-post">POST</span><span class="endpoint-path">/compliance/check</span></div>
+<div class="endpoint-desc">Check any AI system against multiple jurisdictions. Describe your system and get instant risk classification.</div>
+</div>
+<pre>{
+  "system_name": "MyAgent",
+  "system_description": "CV screening tool using AI",
+  "jurisdictions": ["eu_ai_act", "us_co_sb205", "us_il_aivi"]
+}</pre>
+<p>Response:</p>
+<pre>{
+  "overall_risk": "high",
+  "results": {
+    "eu_ai_act":   { "risk_class": "high", "confidence": "native" },
+    "us_co_sb205": { "risk_class": "high", "confidence": "native" },
+    "us_il_aivi":  { "risk_class": "high", "confidence": "native" }
+  }
+}</pre>
+
+<h2 id="jurisdictions">List Jurisdictions</h2>
+<div class="endpoint">
+<div class="endpoint-header"><span class="badge badge-get">GET</span><span class="endpoint-path">/compliance/jurisdictions</span></div>
+<div class="endpoint-desc">List all 52 supported jurisdictions with status, effective dates, and penalty information.</div>
+</div>
+
+<h2 id="deadlines">Compliance Deadlines</h2>
+<div class="endpoint">
+<div class="endpoint-header"><span class="badge badge-get">GET</span><span class="endpoint-path">/compliance/deadlines</span></div>
+<div class="endpoint-desc">Get upcoming regulatory deadlines sorted by date. Useful for compliance monitoring dashboards.</div>
+</div>
+
+<h2 id="stats">Platform Stats</h2>
+<div class="endpoint">
+<div class="endpoint-header"><span class="badge badge-get">GET</span><span class="endpoint-path">/v1/stats</span></div>
+<div class="endpoint-desc">Platform-wide statistics: total AI assets indexed, sources crawled, jurisdictions tracked.</div>
+</div>
+<div class="endpoint">
+<div class="endpoint-header"><span class="badge badge-get">GET</span><span class="endpoint-path">/compliance/stats</span></div>
+<div class="endpoint-desc">Compliance-specific stats: assessments run, risk distribution, jurisdiction coverage.</div>
+</div>
+
+<h2 id="mcp">MCP Discovery</h2>
+<div class="endpoint">
+<div class="endpoint-header"><span class="badge badge-post">POST</span><span class="endpoint-path">/v1/mcp/discover</span></div>
+<div class="endpoint-desc">Machine-to-machine discovery endpoint for MCP (Model Context Protocol) compatible agents and servers.</div>
+</div>
+<div class="endpoint">
+<div class="endpoint-header"><span class="badge badge-get">GET</span><span class="endpoint-path">/.well-known/agent.json</span></div>
+<div class="endpoint-desc">Agent card for machine discovery. Returns Nerq's capabilities in standard agent-card format.</div>
+</div>
+
+<h2 id="health">Health Check</h2>
+<div class="endpoint">
+<div class="endpoint-header"><span class="badge badge-get">GET</span><span class="endpoint-path">/v1/health</span></div>
+<div class="endpoint-desc">Returns system status, uptime, and version information.</div>
+</div>
+
+</div>
+
+<footer>
+<p>&copy; 2026 Nerq (AgentIndex AB). The AI Asset Search Engine.</p>
+<p style="margin-top:8px">5M+ AI assets indexed & trust scored across 52 jurisdictions worldwide.</p>
+</footer>
+
+</body>
+</html>

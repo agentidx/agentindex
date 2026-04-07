@@ -57,7 +57,9 @@ MAJOR = {
     'ethereum-classic','jupiter-exchange-solana','raydium','pi-network'
 }
 
-R2C = {r: 'IG_MID' for r in ['A1', 'A2', 'A3']}
+# Investment-grade classification: A + Baa = IG (standard Moody's)
+# A1-A3 = upper IG, Baa1-Baa3 = lower IG (both eligible for L/S pairs)
+R2C = {r: 'IG_MID' for r in ['A1', 'A2', 'A3', 'Baa1', 'Baa2', 'Baa3']}
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(SCRIPT_DIR, "crypto_trust.db")

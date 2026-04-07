@@ -328,11 +328,15 @@ class TrustScorer:
         self.logger.info("🚀 Starting trust scoring batch update for all agents")
         
         session = get_session()
-        
+
         try:
+            # Memory guards to avoid zombie PG backends on 17GB agents table
+            session.execute(text("SET LOCAL work_mem = '2MB'"))
+            session.execute(text("SET LOCAL statement_timeout = '30s'"))
+
             # Check if trust_score column exists, if not add it
             await self._ensure_trust_score_column(session)
-            
+
             # Get total count
             total_count = session.execute(
                 text("SELECT COUNT(*) FROM agents WHERE is_active = true")
@@ -509,12 +513,14 @@ class TrustScorer:
         """Get top trusted agents"""
         
         session = get_session()
-        
+
         try:
+            session.execute(text("SET LOCAL work_mem = '2MB'"))
+            session.execute(text("SET LOCAL statement_timeout = '30s'"))
             query = """
                 SELECT id, name, category, trust_score, trust_explanation, source, stars
-                FROM agents 
-                WHERE trust_score IS NOT NULL 
+                FROM agents
+                WHERE trust_score IS NOT NULL
                 AND is_active = true
             """
             

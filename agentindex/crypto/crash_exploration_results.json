@@ -1,0 +1,312 @@
+{
+  "run_date": "2026-02-28T12:10:33.782391",
+  "total_rows": 32529,
+  "is_rows": 14340,
+  "oos_rows": 18189,
+  "crash_rate_is": 0.3811018131101813,
+  "crash_rate_oos": 0.40007696959700917,
+  "is_results": [
+    {
+      "feature": "vol_30d",
+      "auc": 0.7229028403868486,
+      "direction": "high_is_risky"
+    },
+    {
+      "feature": "trust_p3_maintenance",
+      "auc": 0.7205690089300671,
+      "direction": "low_is_risky"
+    },
+    {
+      "feature": "sig6_str",
+      "auc": 0.7036933108256125,
+      "direction": "low_is_risky"
+    },
+    {
+      "feature": "ndd_min_4w",
+      "auc": 0.6640275127193362,
+      "direction": "low_is_risky"
+    },
+    {
+      "feature": "trust_score",
+      "auc": 0.6612468074687834,
+      "direction": "low_is_risky"
+    },
+    {
+      "feature": "sig3_res",
+      "auc": 0.6527450742883651,
+      "direction": "low_is_risky"
+    },
+    {
+      "feature": "ndd",
+      "auc": 0.6314683298326096,
+      "direction": "low_is_risky"
+    },
+    {
+      "feature": "btc_vol_30d",
+      "auc": 0.6287860299367132,
+      "direction": "high_is_risky"
+    },
+    {
+      "feature": "trust_rating_num",
+      "auc": 0.6222408102779532,
+      "direction": "low_is_risky"
+    },
+    {
+      "feature": "sig5_cont",
+      "auc": 0.6187365127636818,
+      "direction": "low_is_risky"
+    },
+    {
+      "feature": "drawdown_90d",
+      "auc": 0.6148414649944656,
+      "direction": "low_is_risky"
+    },
+    {
+      "feature": "trust_p2_compliance",
+      "auc": 0.6093588753012126,
+      "direction": "low_is_risky"
+    },
+    {
+      "feature": "trust_p4_popularity",
+      "auc": 0.6040950375629808,
+      "direction": "low_is_risky"
+    },
+    {
+      "feature": "sig1_liq",
+      "auc": 0.579573387626767,
+      "direction": "high_is_risky"
+    },
+    {
+      "feature": "sig2_hold",
+      "auc": 0.5645384843369458,
+      "direction": "high_is_risky"
+    },
+    {
+      "feature": "trust_p1_security",
+      "auc": 0.5637665760344317,
+      "direction": "high_is_risky"
+    },
+    {
+      "feature": "ndd_below_3",
+      "auc": 0.5613649369225416,
+      "direction": "high_is_risky"
+    },
+    {
+      "feature": "vuln_vol_x_btc",
+      "auc": 0.558857842146672,
+      "direction": "high_is_risky"
+    },
+    {
+      "feature": "mcap",
+      "auc": 0.5453904884349827,
+      "direction": "low_is_risky"
+    },
+    {
+      "feature": "mcap_log",
+      "auc": 0.5453904884349827,
+      "direction": "low_is_risky"
+    },
+    {
+      "feature": "btc_mcap",
+      "auc": 0.5453093854591381,
+      "direction": "low_is_risky"
+    },
+    {
+      "feature": "btc_mcap_log",
+      "auc": 0.5453093854591381,
+      "direction": "low_is_risky"
+    },
+    {
+      "feature": "btc_ret_30d",
+      "auc": 0.5387383166274883,
+      "direction": "low_is_risky"
+    },
+    {
+      "feature": "btc_ret_90d",
+      "auc": 0.5384737870313379,
+      "direction": "high_is_risky"
+    },
+    {
+      "feature": "ret_90d",
+      "auc": 0.5376532013583536,
+      "direction": "high_is_risky"
+    },
+    {
+      "feature": "sig6_str_chg_8w",
+      "auc": 0.5369307196328645,
+      "direction": "high_is_risky"
+    },
+    {
+      "feature": "trust_score_chg",
+      "auc": 0.5351305284589514,
+      "direction": "low_is_risky"
+    },
+    {
+      "feature": "vuln_ndd_x_btc",
+      "auc": 0.5345047214653789,
+      "direction": "high_is_risky"
+    },
+    {
+      "feature": "sig4_fund_chg_8w",
+      "auc": 0.5343729007033227,
+      "direction": "low_is_risky"
+    },
+    {
+      "feature": "btc_vol_change_30d",
+      "auc": 0.5337261098934112,
+      "direction": "low_is_risky"
+    }
+  ],
+  "oos_results": [
+    {
+      "feature": "vol_30d",
+      "auc": 0.7173766409264993,
+      "direction": "high_is_risky"
+    },
+    {
+      "feature": "trust_p3_maintenance",
+      "auc": 0.7090190108069574,
+      "direction": "low_is_risky"
+    },
+    {
+      "feature": "sig5_cont",
+      "auc": 0.6893601722697593,
+      "direction": "low_is_risky"
+    },
+    {
+      "feature": "ndd_min_4w",
+      "auc": 0.6768141824734273,
+      "direction": "low_is_risky"
+    },
+    {
+      "feature": "sig6_str",
+      "auc": 0.6747434697639331,
+      "direction": "low_is_risky"
+    },
+    {
+      "feature": "ndd",
+      "auc": 0.6567912017012586,
+      "direction": "low_is_risky"
+    },
+    {
+      "feature": "trust_score",
+      "auc": 0.656411321554232,
+      "direction": "low_is_risky"
+    },
+    {
+      "feature": "sig3_res",
+      "auc": 0.6531051112310227,
+      "direction": "low_is_risky"
+    },
+    {
+      "feature": "trust_p2_compliance",
+      "auc": 0.647371521549638,
+      "direction": "low_is_risky"
+    },
+    {
+      "feature": "drawdown_90d",
+      "auc": 0.6297852113845874,
+      "direction": "low_is_risky"
+    },
+    {
+      "feature": "ndd_below_3",
+      "auc": 0.5981089688437076,
+      "direction": "high_is_risky"
+    },
+    {
+      "feature": "trust_score_chg",
+      "auc": 0.5902975424317246,
+      "direction": "low_is_risky"
+    },
+    {
+      "feature": "sig1_liq",
+      "auc": 0.5775245903918544,
+      "direction": "high_is_risky"
+    },
+    {
+      "feature": "trust_rating_num",
+      "auc": 0.5732139676407852,
+      "direction": "low_is_risky"
+    },
+    {
+      "feature": "btc_vol_30d",
+      "auc": 0.5711275422060507,
+      "direction": "low_is_risky"
+    },
+    {
+      "feature": "btc_ret_90d",
+      "auc": 0.5640109444773777,
+      "direction": "high_is_risky"
+    },
+    {
+      "feature": "trust_p1_security",
+      "auc": 0.5464520189146941,
+      "direction": "high_is_risky"
+    },
+    {
+      "feature": "ret_90d",
+      "auc": 0.543892769657869,
+      "direction": "high_is_risky"
+    },
+    {
+      "feature": "trust_p5_ecosystem",
+      "auc": 0.5417549422577139,
+      "direction": "low_is_risky"
+    },
+    {
+      "feature": "sig3_res_chg_8w",
+      "auc": 0.5400189245547934,
+      "direction": "low_is_risky"
+    },
+    {
+      "feature": "sig7_rel",
+      "auc": 0.5356471016826001,
+      "direction": "low_is_risky"
+    },
+    {
+      "feature": "sig6_str_chg_8w",
+      "auc": 0.5333606383506867,
+      "direction": "low_is_risky"
+    },
+    {
+      "feature": "btc_ret_30d",
+      "auc": 0.5332935826613155,
+      "direction": "high_is_risky"
+    },
+    {
+      "feature": "ndd_chg_8w",
+      "auc": 0.5328843434721596,
+      "direction": "low_is_risky"
+    },
+    {
+      "feature": "btc_ret_60d",
+      "auc": 0.530744210961544,
+      "direction": "high_is_risky"
+    },
+    {
+      "feature": "btc_drawdown_90d",
+      "auc": 0.5282120796370842,
+      "direction": "high_is_risky"
+    },
+    {
+      "feature": "sig3_res_chg_1w",
+      "auc": 0.5264013806108742,
+      "direction": "high_is_risky"
+    },
+    {
+      "feature": "sig2_hold",
+      "auc": 0.5252053531453497,
+      "direction": "high_is_risky"
+    },
+    {
+      "feature": "sig6_str_chg_4w",
+      "auc": 0.5231630120910424,
+      "direction": "low_is_risky"
+    },
+    {
+      "feature": "ret_14d",
+      "auc": 0.5227164898434095,
+      "direction": "low_is_risky"
+    }
+  ]
+}

@@ -31,7 +31,7 @@ def _build_digest():
         # Recently indexed agents (by highest score, as proxy for "new")
         new_agents = session.execute(text("""
             SELECT name, trust_score_v2, trust_grade, source, agent_type
-            FROM agents WHERE is_active = true AND trust_score_v2 IS NOT NULL
+            FROM entity_lookup WHERE is_active = true AND trust_score_v2 IS NOT NULL
             ORDER BY id DESC
             LIMIT 20
         """)).fetchall()
@@ -39,27 +39,27 @@ def _build_digest():
         # Top trusted agents overall
         top_trusted = session.execute(text("""
             SELECT name, trust_score_v2, trust_grade, source, stars
-            FROM agents WHERE is_active = true AND trust_score_v2 IS NOT NULL
+            FROM entity_lookup WHERE is_active = true AND trust_score_v2 IS NOT NULL
             ORDER BY trust_score_v2 DESC LIMIT 10
         """)).fetchall()
 
         # Lowest trust (caution zone)
         low_trust = session.execute(text("""
             SELECT name, trust_score_v2, trust_grade, source
-            FROM agents WHERE is_active = true AND trust_score_v2 IS NOT NULL
+            FROM entity_lookup WHERE is_active = true AND trust_score_v2 IS NOT NULL
             AND trust_score_v2 < 40 AND trust_score_v2 > 0
             ORDER BY stars DESC NULLS LAST LIMIT 10
         """)).fetchall()
 
         # Stats
         total = session.execute(text(
-            "SELECT COUNT(*) FROM agents WHERE is_active = true"
+            "SELECT COUNT(*) FROM entity_lookup WHERE is_active = true"
         )).scalar() or 0
         mcp_count = session.execute(text(
-            "SELECT COUNT(*) FROM agents WHERE is_active = true AND agent_type = 'mcp_server'"
+            "SELECT COUNT(*) FROM entity_lookup WHERE is_active = true AND agent_type = 'mcp_server'"
         )).scalar() or 0
         avg_score = session.execute(text(
-            "SELECT AVG(trust_score_v2) FROM agents WHERE is_active = true AND trust_score_v2 IS NOT NULL"
+            "SELECT AVG(trust_score_v2) FROM entity_lookup WHERE is_active = true AND trust_score_v2 IS NOT NULL"
         )).scalar() or 0
 
         return {

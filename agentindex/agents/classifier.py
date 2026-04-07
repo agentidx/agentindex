@@ -94,12 +94,20 @@ class Classifier:
         """Classify agents that have been parsed but not yet classified."""
         stats = {"classified": 0, "deprioritized": 0, "removed": 0, "errors": 0}
 
-        agents = self.session.execute(
-            select(Agent)
-            .where(Agent.crawl_status == "parsed")
-            .order_by(Agent.quality_score.desc())
-            .limit(batch_size)
-        ).scalars().all()
+        self.session.execute(text("SET LOCAL work_mem = '2MB'"))
+        self.session.execute(text("SET LOCAL statement_timeout = '30s'"))
+        # Two-phase: IDs from entity_lookup, full Agent by PK
+        _ids = self.session.execute(text("""
+            SELECT id FROM entity_lookup
+            WHERE crawl_status = 'parsed'
+            ORDER BY COALESCE(trust_score_v2, trust_score, 0) DESC
+            LIMIT :lim
+        """), {"lim": batch_size}).fetchall()
+        agents = []
+        if _ids:
+            agents = self.session.execute(
+                select(Agent).where(Agent.id.in_([r[0] for r in _ids]))
+            ).scalars().all()
 
         for agent in agents:
             try:
@@ -220,6 +228,8 @@ class Classifier:
         stats = {"checked": 0, "duplicates_found": 0, "merged": 0}
 
         # Find agents with similar names
+        self.session.execute(text("SET LOCAL work_mem = '2MB'"))
+        self.session.execute(text("SET LOCAL statement_timeout = '30s'"))
         agents = self.session.execute(
             select(Agent)
             .where(Agent.is_active == True)

@@ -18,7 +18,7 @@ from datetime import datetime
 from typing import Optional
 
 import httpx
-from sqlalchemy import select, func
+from sqlalchemy import select, func, text
 from agentindex.db.models import Agent, get_session, safe_commit
 from agentindex.agents.action_queue import add_action, ActionLevel
 
@@ -101,6 +101,8 @@ class A2AVerifier:
         # Get agents claiming A2A that we haven't verified recently
         already_verified = set(self.state["verified"].keys())
 
+        session.execute(text("SET LOCAL work_mem = '2MB'"))
+        session.execute(text("SET LOCAL statement_timeout = '30s'"))
         agents = session.execute(
             select(Agent).where(
                 Agent.protocols.any("a2a"),
@@ -263,6 +265,8 @@ class A2AVerifier:
     def _outreach_new_agents(self, session):
         """Send outreach to newly verified agents we haven't contacted."""
         logger.info("Phase 2: Outreach to new verified agents...")
+        session.execute(text("SET LOCAL work_mem = '2MB'"))
+        session.execute(text("SET LOCAL statement_timeout = '30s'"))
 
         for aid, info in self.state.get("verified", {}).items():
             if aid in self.state.get("outreach_sent", {}):

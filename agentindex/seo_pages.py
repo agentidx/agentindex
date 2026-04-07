@@ -52,7 +52,7 @@ def _get_llms_counts():
         try:
             _s = get_session()
             agent_count = _s.execute(text("SELECT reltuples::bigint FROM pg_class WHERE relname = 'agents'")).scalar() or 4900000
-            mcp_count = _s.execute(text("SELECT COUNT(*) FROM agents WHERE agent_type = 'mcp_server'")).scalar() or 17468
+            mcp_count = _s.execute(text("SELECT COUNT(*) FROM entity_lookup WHERE agent_type = 'mcp_server'")).scalar() or 17468
             _s.close()
             j_count = 52
             _llms_cache_global["counts"] = (agent_count, j_count, mcp_count)
@@ -200,15 +200,15 @@ def _nerq_llms_full_txt():
         top_agents = _s.execute(text("""
             SELECT name, agent_type, risk_class, compliance_score, stars,
                    COALESCE(trust_score_v2, trust_score) as ts, trust_grade
-            FROM agents WHERE compliance_score IS NOT NULL AND stars > 50
+            FROM entity_lookup WHERE compliance_score IS NOT NULL AND stars > 50
             ORDER BY stars DESC LIMIT 30
         """)).fetchall()
         risk_dist = _s.execute(text("""
-            SELECT risk_class, COUNT(*) as cnt FROM agents
+            SELECT risk_class, COUNT(*) as cnt FROM entity_lookup
             WHERE risk_class IS NOT NULL GROUP BY risk_class ORDER BY cnt DESC
         """)).fetchall()
         type_dist = _s.execute(text("""
-            SELECT agent_type, COUNT(*) as cnt FROM agents
+            SELECT agent_type, COUNT(*) as cnt FROM entity_lookup
             WHERE is_active = true GROUP BY agent_type ORDER BY cnt DESC
         """)).fetchall()
         _s.close()
@@ -395,7 +395,7 @@ def mount_seo_pages(app):
             # Only include actual agents, tools, and MCP servers in sitemaps (204K)
             # HuggingFace models/datasets/spaces (4.7M) are low-value for SEO
             total = int(session.execute(text(
-                "SELECT COUNT(*) FROM agents WHERE is_active = true "
+                "SELECT COUNT(*) FROM entity_lookup WHERE is_active = true "
                 "AND agent_type IN ('agent', 'mcp_server', 'tool')"
             )).scalar() or 0)
             chunks = math.ceil(total / 50000)
@@ -517,6 +517,10 @@ def mount_seo_pages(app):
             ("/best/datasets", "0.7", "weekly"),
             ("/best/npm-packages", "0.7", "weekly"),
             ("/data/trust-summary.json", "0.6", "weekly"),
+            ("/feed/recent", "0.5", "hourly"),
+            ("/feed/vpn", "0.5", "hourly"),
+            ("/feed/npm", "0.5", "hourly"),
+            ("/feed/crypto", "0.5", "hourly"),
             ("/gateway", "0.9", "weekly"),
             ("/start", "0.8", "weekly"),
             ("/index", "0.7", "weekly"),
@@ -547,7 +551,7 @@ def mount_seo_pages(app):
             offset = chunk * 50000
             # Only include actual agents, tools, and MCP servers (not models/datasets/spaces)
             rows = session.execute(text(
-                "SELECT id, name, last_crawled, trust_score_v2 FROM agents WHERE is_active = true "
+                "SELECT id, name, updated_at, trust_score_v2 FROM entity_lookup WHERE is_active = true "
                 "AND agent_type IN ('agent', 'mcp_server', 'tool') "
                 "ORDER BY COALESCE(trust_score_v2, trust_score) DESC NULLS LAST, id "
                 "LIMIT 50000 OFFSET :offset"
@@ -610,7 +614,8 @@ def mount_seo_pages(app):
             )
 
         try:
-            # Fetch agent
+            # Fetch agent (domains/tags/trust_risk_level/trust_dimensions not in entity_lookup)
+            session.execute(text("SET LOCAL work_mem = '2MB'; SET LOCAL statement_timeout = '5s'"))
             agent = session.execute(text("""
                 SELECT id, name, description, source, author, agent_type, risk_class,
                        domains, tags, stars, downloads, license, source_url,
@@ -648,7 +653,7 @@ def mount_seo_pages(app):
             category = a.get('agent_type') or a.get('risk_class') or 'unknown'
             related = session.execute(text("""
                 SELECT id, name, risk_class, agent_type
-                FROM agents
+                FROM entity_lookup
                 WHERE category = :cat
                 AND id != :agent_id
                 AND is_active = true
@@ -721,6 +726,8 @@ def mount_seo_pages(app):
         import json as _json
         try:
             session = get_session()
+            # trust_risk_level/trust_dimensions/trust_peer_rank etc. not in entity_lookup
+            session.execute(text("SET LOCAL work_mem = '2MB'; SET LOCAL statement_timeout = '5s'"))
             result = session.execute(text(
                 "SELECT name, agent_type, source, author, risk_class, "
                 "compliance_score, stars, downloads, license, "
@@ -950,6 +957,8 @@ footer { margin-top: 3em; padding-top: 1em; border-top: 1px solid #e5e7eb; color
 
         agent_type, label, desc = BEST_CATEGORIES[category]
         session = get_session()
+        # trust_dimensions not in entity_lookup
+        session.execute(text("SET LOCAL work_mem = '2MB'; SET LOCAL statement_timeout = '5s'"))
         result = session.execute(text(
             "SELECT id, name, trust_score_v2, trust_grade, author, source, stars, compliance_score, trust_dimensions "
             "FROM agents WHERE agent_type = :atype AND trust_score_v2 IS NOT NULL AND is_active = true "
@@ -1215,7 +1224,7 @@ footer { margin-top: 3em; padding-top: 1em; border-top: 1px solid #e5e7eb; color
             rows = _s.execute(text("""
                 SELECT name, agent_type, COALESCE(trust_score_v2, trust_score) as ts,
                        trust_grade, stars, description
-                FROM agents
+                FROM entity_lookup
                 WHERE is_active = true AND stars IS NOT NULL AND stars > 100
                 ORDER BY stars DESC LIMIT 30
             """)).fetchall()
@@ -1257,7 +1266,7 @@ footer { margin-top: 3em; padding-top: 1em; border-top: 1px solid #e5e7eb; color
             rows = _s.execute(text("""
                 SELECT name, agent_type, trust_score, trust_score_v2, trust_grade,
                        COALESCE(trust_score_v2, 0) - COALESCE(trust_score, 0) as delta
-                FROM agents
+                FROM entity_lookup
                 WHERE trust_score IS NOT NULL AND trust_score_v2 IS NOT NULL
                   AND ABS(COALESCE(trust_score_v2, 0) - COALESCE(trust_score, 0)) > 10
                 ORDER BY ABS(COALESCE(trust_score_v2, 0) - COALESCE(trust_score, 0)) DESC
@@ -1288,6 +1297,102 @@ footer { margin-top: 3em; padding-top: 1em; border-top: 1px solid #e5e7eb; color
   <updated>{now}</updated>
   <author><name>Nerq</name><uri>https://nerq.ai</uri></author>
 {entries}</feed>"""
+        return Response(content=xml, media_type="application/atom+xml")
+
+    # ================================================================
+    # FEEDS: Recent / per-registry
+    # ================================================================
+    def _build_recent_feed(title, subtitle, feed_id, self_url, registry_filter=None, limit=20):
+        """Build Atom feed from software_registry, optionally filtered by registry."""
+        import html as _h
+        now = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+        entries = ""
+        try:
+            _s = get_session()
+            if registry_filter:
+                rows = _s.execute(text("""
+                    SELECT name, slug, registry, trust_score, trust_grade, description, enriched_at
+                    FROM software_registry
+                    WHERE enriched_at IS NOT NULL AND trust_score IS NOT NULL AND trust_score > 0
+                      AND registry = :reg AND description IS NOT NULL
+                    ORDER BY enriched_at DESC LIMIT :lim
+                """), {"reg": registry_filter, "lim": limit}).fetchall()
+            else:
+                rows = _s.execute(text("""
+                    SELECT name, slug, registry, trust_score, trust_grade, description, enriched_at
+                    FROM software_registry
+                    WHERE enriched_at IS NOT NULL AND trust_score IS NOT NULL AND trust_score > 0
+                      AND description IS NOT NULL
+                    ORDER BY enriched_at DESC LIMIT :lim
+                """), {"lim": limit}).fetchall()
+            _s.close()
+            for r in rows:
+                d = dict(r._mapping)
+                _slug = d.get("slug") or d["name"].lower().replace("/", "").replace(" ", "-")
+                _ts = f'{d["trust_score"]:.0f}'
+                _gr = d.get("trust_grade") or "?"
+                _desc = _h.escape((d.get("description") or "")[:250])
+                _reg = d.get("registry") or ""
+                _updated = d["enriched_at"].strftime("%Y-%m-%dT%H:%M:%SZ") if d.get("enriched_at") else now
+                entries += f"""  <entry>
+    <title>{_h.escape(d["name"])} — Trust Score {_ts}/100 ({_h.escape(_gr)})</title>
+    <link href="https://nerq.ai/safe/{_h.escape(_slug)}"/>
+    <id>urn:nerq:safe:{_h.escape(_slug)}</id>
+    <updated>{_updated}</updated>
+    <summary>{_h.escape(d["name"])} has a Nerq Trust Score of {_ts}/100 ({_h.escape(_gr)}). {_desc}</summary>
+    <category term="{_h.escape(_reg)}"/>
+  </entry>
+"""
+        except Exception:
+            pass
+        return f"""<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>{title}</title>
+  <subtitle>{subtitle}</subtitle>
+  <link href="{self_url}" rel="self"/>
+  <link href="https://nerq.ai"/>
+  <id>{feed_id}</id>
+  <updated>{now}</updated>
+  <author><name>Nerq</name><uri>https://nerq.ai</uri></author>
+{entries}</feed>"""
+
+    @app.get("/feed/recent", response_class=Response)
+    def feed_recent():
+        xml = _build_recent_feed(
+            "Nerq Trust Score Updates",
+            "Latest trust score analysis from Nerq — all categories",
+            "urn:nerq:feed:recent",
+            "https://nerq.ai/feed/recent")
+        return Response(content=xml, media_type="application/atom+xml")
+
+    @app.get("/feed/vpn", response_class=Response)
+    def feed_vpn():
+        xml = _build_recent_feed(
+            "Nerq VPN Trust Scores",
+            "Latest VPN safety analysis from Nerq",
+            "urn:nerq:feed:vpn",
+            "https://nerq.ai/feed/vpn",
+            registry_filter="vpn")
+        return Response(content=xml, media_type="application/atom+xml")
+
+    @app.get("/feed/npm", response_class=Response)
+    def feed_npm():
+        xml = _build_recent_feed(
+            "Nerq npm Package Trust Scores",
+            "Latest npm package safety analysis from Nerq",
+            "urn:nerq:feed:npm",
+            "https://nerq.ai/feed/npm",
+            registry_filter="npm")
+        return Response(content=xml, media_type="application/atom+xml")
+
+    @app.get("/feed/crypto", response_class=Response)
+    def feed_crypto():
+        xml = _build_recent_feed(
+            "Nerq Crypto Exchange Trust Scores",
+            "Latest crypto exchange safety analysis from Nerq",
+            "urn:nerq:feed:crypto",
+            "https://nerq.ai/feed/crypto",
+            registry_filter="crypto")
         return Response(content=xml, media_type="application/atom+xml")
 
 # ================================================================
