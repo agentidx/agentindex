@@ -1,0 +1,26 @@
+OUTREACH-REGLER - Godkända av Anders 2026-02-19
+===============================================
+
+## OBLIGATORISK PROCESS:
+1. **Testa FÖRST** - max 3 mottagare per initiativ
+2. **Vänta 48h** på respons innan skalning
+3. **Stoppa vid negativitet** - om 2 av 3 reagerar negativt: stoppa och omvärdera
+4. **Godkännande krävs** - alla outreach-initiativ kräver godkännande innan skalning
+
+## SPRÅKREGLER:
+- **ALDRIG promotional language**
+- **ALLTID educational/informational**
+- Fokus på community value, inte självsälj
+
+## BLACKLISTADE REPOS (kontakta ALDRIG):
+- Shubhamsaboo/awesome-llm-apps (PR #495 rejected)
+- appcypher/awesome-mcp-servers (PR rejected)
+- Arindam200/awesome-ai-apps (PR rejected)
+- sickn33/antigravity-awesome-skills (PR rejected)
+- f/awesome-chatgpt-prompts (not relevant)
+- aimerou/awesome-ai-papers (not relevant)
+- kyrolabs/awesome-langchain (blocked)
+
+## STATUS:
+Missionary-systemet AVSTÄNGT tills ny strategi godkänts.
+Alla outreach pausad tills vidare.

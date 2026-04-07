@@ -1,0 +1,19 @@
+REJECTED REPOSITORIES - UNDVIK FRAMÖVER
+=====================================
+Uppdaterad: 2025-01-27
+
+Repos som har rejekterat/stängt våra PR:s:
+- Shubhamsaboo/awesome-llm-apps (PR #495 stängd)
+- appcypher/awesome-mcp-servers (PR stängd)
+- Arindam200/awesome-ai-apps (PR stängd) 
+- sickn33/antigravity-awesome-skills (PR stängd)
+
+Repos markerade som "not_relevant":
+- f/awesome-chatgpt-prompts (ChatGPT-fokus, passar inte)
+- aimerou/awesome-ai-papers (Papers, inte verktyg)
+
+Repos som är "blocked":
+- kyrolabs/awesome-langchain (Blockerat av maintainers)
+
+REGEL: Kontakta ALDRIG dessa repos igen.
+Status: MISSIONARY SYSTEM AVSTÄNGT per Anders order.
