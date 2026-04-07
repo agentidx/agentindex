@@ -259,7 +259,7 @@ def _render_html(data):
     all_weeks = sorted(set().union(*(set(v.keys()) for v in data.get("summary", {}).values() if isinstance(v, dict))))
     current_week = date.today().strftime("%Y-W%W")
 
-    lang_order = ['en', 'id', 'cs', 'th', 'de', 'es', 'fr', 'ja', 'pt', 'ro', 'hi', 'ru', 'tr', 'pl', 'it', 'ko', 'vi', 'nl', 'sv', 'da', 'zh', 'ar']
+    lang_order = ['en', 'id', 'cs', 'th', 'de', 'es', 'fr', 'ja', 'pt', 'ro', 'hi', 'ru', 'tr', 'pl', 'it', 'ko', 'vi', 'nl', 'sv', 'da', 'zh', 'ar', 'no']  # 23 langs incl Norwegian (added Dag 31)
     ai_lang = data.get("aiByLang", {})
     human_lang = data.get("humanByLang", {})
     ai_lang_rows = ",\n".join(

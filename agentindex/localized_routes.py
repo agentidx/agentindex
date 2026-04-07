@@ -12250,6 +12250,11 @@ def _render_localized_page_minimal(entity_slug, pattern, lang):
 </div>
 </main>{NERQ_FOOTER}</body></html>"""
 
+    # Localize internal links via the i18n module (same fix as _render_localized_page).
+    # Ensures fallback minimal-pages also get prefixed hrefs on non-English languages.
+    from agentindex.i18n.html_rewrite import localize_internal_links as _localize_links
+    page = _localize_links(page, lang)
+
     return _sc(ck_min, page)
 
 

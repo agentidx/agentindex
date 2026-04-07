@@ -31,9 +31,10 @@ ANALYTICS_DB = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__fi
 
 # Cache per period — file-backed for cross-worker sharing + restart survival
 _cache = {}
-_CACHE_DIR = "/tmp"
+_CACHE_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "logs", "flywheel_cache")
+os.makedirs(_CACHE_DIR, exist_ok=True)
 _GENERATING = set()  # periods currently being generated in background
-CACHE_TTLS = {"24h": 1800, "7d": 1800, "30d": 3600, "all": 3600}
+CACHE_TTLS = {"24h": 300, "7d": 1800, "30d": 3600, "all": 7200}  # 5min/30min/1h/2h — stale-while-revalidate
 
 
 def _cache_path(period):
@@ -99,7 +100,7 @@ VERTICAL_MAP = {
     "Cosmetics": {"cosmetic_ingredient"},
 }
 
-LANGS = 22
+from agentindex.i18n import LANG_COUNT as LANGS  # was: hardcoded 23
 
 
 def _esc(s):
@@ -147,7 +148,7 @@ def _get_data(period_key):
     data = {}
 
     # ── SQLite analytics ──
-    conn = sqlite3.connect(ANALYTICS_DB, timeout=5, check_same_thread=False)
+    conn = sqlite3.connect(ANALYTICS_DB, timeout=30, check_same_thread=False)
     conn.row_factory = sqlite3.Row
 
     # AI citations (200 only, excluding preflight and GPTBot indexing)
@@ -343,7 +344,7 @@ def _get_data(period_key):
         data["pipeline"] = [dict(zip(["reg","total","enriched","indexable","has_dims","has_cves","has_desc","avg"], r)) for r in rows]
 
         # agents count
-        ac = session.execute(text("SELECT COUNT(*) FROM agents WHERE is_active=true")).scalar()
+        ac = session.execute(text("SELECT COUNT(*) FROM entity_lookup WHERE is_active=true")).scalar()
         data["agents_count"] = ac or 0
 
         # Kings data
@@ -1278,14 +1279,14 @@ def _generate_in_background(period):
             html = _render(period, d)
             _write_file_cache(period, html)
             _cache[f"fw:{period}"] = (html, time.time())
-            logger.info(f"Flywheel background generation done for {period}")
+            logger.info(f"Flywheel background generation done for {period} ({len(html)} bytes)")
         except Exception as e:
-            logger.error(f"Flywheel background generation failed: {e}")
+            logger.error(f"Flywheel background generation failed for {period}: {e}", exc_info=True)
         finally:
             _GENERATING.discard(period)
 
     _GENERATING.add(period)
-    t = threading.Thread(target=_worker, daemon=True)
+    t = threading.Thread(target=_worker, daemon=True, name=f"flywheel-{period}")
     t.start()
 
 
