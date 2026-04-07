@@ -35,9 +35,11 @@ LOCALIZED_PREFIXES: Tuple[str, ...] = (
     "/does-",
     "/was-",
     "/what-is-",
+    "/what-is/",       # entity pages: /what-is/nordvpn
     "/who-owns/",
     "/review/",
     "/pros-cons/",
+    "/privacy/",       # entity pages: /privacy/nordvpn (NOT /privacy global)
     "/categories",
 )
 
@@ -235,10 +237,14 @@ def localize_url(path: str, lang: str = "en") -> str:
         return path
     if _is_already_localized(path):
         return path
-    if _is_global_path(path):
-        return path
 
+    # IMPORTANT: Check localized content BEFORE global paths.
+    # Otherwise /privacy/nordvpn matches global "/privacy" exact rule
+    # before we recognize it as an entity page under /privacy/ prefix.
     if _is_localized_content(path):
         return f"/{lang}{path}"
+
+    if _is_global_path(path):
+        return path
 
     return path

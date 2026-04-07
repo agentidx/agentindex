@@ -75,8 +75,10 @@ EXEMPT_PATHS = {
     "agentindex/i18n/urls.py",       # The definition of localize_url itself
     "agentindex/i18n/languages.py",  # The language definitions
     "agentindex/i18n/__init__.py",   # Public API
+    "agentindex/i18n/html_rewrite.py",  # Helper that calls localize_url internally
     "tests/test_i18n_urls.py",       # Tests need hardcoded URLs as inputs
     "tests/test_i18n_languages.py",
+    "tests/test_i18n_html_rewrite.py",  # Tests need hardcoded URLs as inputs
     "tests/test_no_hardcoded_links.py",  # This file itself
     "tests/conftest.py",
 }
