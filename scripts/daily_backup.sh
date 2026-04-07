@@ -13,7 +13,7 @@ log() { echo "$(date '+%Y-%m-%d %H:%M:%S') $1" >> "$LOG"; }
 log "=== Daily backup starting ==="
 
 # PostgreSQL
-if PGOPTIONS='-c statement_timeout=0' $PSQL/pg_dump -U anstudio -d agentindex --compress=9 \
+if PGOPTIONS='-c statement_timeout=0 -c application_name=nerq_backup' $PSQL/pg_dump -U anstudio -d agentindex --compress=9 \
     --file="$BACKUP_DIR/agentindex_${TODAY}.sql.gz" 2>> "$LOG"; then
     SIZE=$(du -sh "$BACKUP_DIR/agentindex_${TODAY}.sql.gz" | cut -f1)
     log "PostgreSQL OK: $SIZE"
@@ -26,7 +26,8 @@ for DB_INFO in \
     "$HOME/agentindex/logs/analytics.db:analytics" \
     "$HOME/agentindex/agentindex/crypto/crypto_trust.db:crypto_trust" \
     "$HOME/agentindex/agentindex/crypto/paper_trading.db:paper_trading" \
-    "$HOME/agentindex/logs/healthcheck.db:healthcheck"; do
+    "$HOME/agentindex/logs/healthcheck.db:healthcheck" \
+    "$HOME/agentindex/logs/check_events.db:check_events"; do
     DB_PATH="${DB_INFO%%:*}"
     DB_NAME="${DB_INFO##*:}"
     if [ -f "$DB_PATH" ]; then
