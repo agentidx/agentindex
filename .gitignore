@@ -85,3 +85,17 @@ Thumbs.db
 .pytest_cache/
 .coverage
 htmlcov/
+
+# ─── Daily auto-generated reports ─────────────────────────────
+# These regenerate daily from cron jobs (missionary.py, spionen.py).
+# We keep them on disk for local history but never commit them —
+# they would explode git history with junk.
+missionary_reports/report-*.json
+missionary_reports/report-*.md
+spionen_reports/report-*.json
+spionen_reports/report-*.md
+
+# ─── Semantic index (FAISS + numpy, regenererbart) ────────────
+semantic_index/
+watchdog_status.json
+auto_indexnow_state.json
