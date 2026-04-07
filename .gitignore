@@ -160,3 +160,7 @@ package-lock.json
 # ─── Large data and export directories ────────────────────────
 data/
 exports/
+
+# ─── Large log files (use Git LFS or external storage instead) ─
+ai_citations_log.json
+*.log.json
