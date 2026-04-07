@@ -1,0 +1,13 @@
+{
+  "name": "{{PROJECT_NAME}}",
+  "version": "0.1.0",
+  "description": "An AutoGen agent with trust-verified tools",
+  "url": "https://github.com/your-org/{{PROJECT_NAME}}",
+  "capabilities": {"streaming": false},
+  "authentication": {"schemes": ["none"]},
+  "defaultInputModes": ["text/plain"],
+  "defaultOutputModes": ["application/json"],
+  "trust_verification": "https://nerq.ai/v1/preflight",
+  "framework": "autogen",
+  "skills": [{"id": "main", "name": "{{PROJECT_NAME}}", "description": "An AutoGen agent with trust-verified tools"}]
+}

@@ -1,0 +1,33 @@
+{
+  "target": "1000+ weekly organic visitors (OKR 1)",
+  "current_baseline": "~50-100 weekly (estimated)",
+  "growth_needed": "10x increase",
+  "monitoring_frequency": "daily",
+  "key_metrics": {
+    "organic_visitors": "Google Analytics + server logs",
+    "search_rankings": "Track 'ai agent discovery' + 'find ai agents'",
+    "referral_traffic": "Monitor inbound links",
+    "conversion_rate": "API signups from organic traffic",
+    "bounce_rate": "< 40% target for quality traffic"
+  },
+  "success_milestones": [
+    {
+      "week_1": "200+ weekly visitors (4x baseline)"
+    },
+    {
+      "week_2": "400+ weekly visitors (8x baseline)"
+    },
+    {
+      "week_3": "700+ weekly visitors (14x baseline)"
+    },
+    {
+      "week_4": "1000+ weekly visitors (OKR 1 achieved)"
+    }
+  ],
+  "tracking_implementation": {
+    "server_logs": "Parse nginx/cloudflare logs for organic referrers",
+    "search_console": "Google Search Console for keyword rankings",
+    "api_analytics": "Track '/docs' and SDK download referrers",
+    "conversion_funnels": "Organic visitor \u2192 API signup flow"
+  }
+}

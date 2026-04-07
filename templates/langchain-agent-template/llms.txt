@@ -1,0 +1,10 @@
+# {{PROJECT_NAME}}
+A LangChain agent with built-in trust verification via Nerq.
+Uses dynamic tool discovery to find the best tool for any task.
+Trust-verified: every tool checked against 204K+ agent database.
+
+## Capabilities
+- Dynamic tool discovery via nerq.resolve()
+- Trust gating with configurable minimum scores
+- Framework: LangChain
+- Trust verification: nerq.ai

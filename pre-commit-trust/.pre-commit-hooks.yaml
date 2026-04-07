@@ -1,0 +1,7 @@
+- id: nerq-dependency-trust
+  name: Check dependency trust scores
+  entry: nerq-pre-commit
+  language: python
+  files: (requirements.*\.txt|package\.json|pyproject\.toml)$
+  additional_dependencies: ["nerq>=1.0.0"]
+  description: "Checks AI agent and dependency trust scores before commit"

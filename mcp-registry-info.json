@@ -1,0 +1,53 @@
+{
+  "name": "nerq-trust",
+  "display_name": "Nerq Trust Scores",
+  "description": "Check trust scores for any software, app, VPN, package, or crypto token. 7.5M+ entities across 26 registries. Free, no auth.",
+  "url": "https://nerq.ai",
+  "mcp_endpoint": "https://nerq.ai/mcp/sse",
+  "tools": [
+    {
+      "name": "preflight_check",
+      "description": "Get trust score and safety verdict for any software entity (app, VPN, npm package, website, game). 7.5M+ entities.",
+      "parameters": {
+        "target": {"type": "string", "description": "Entity name, e.g. 'nordvpn', 'express', 'react'", "required": true}
+      }
+    },
+    {
+      "name": "best_in_category",
+      "description": "Get top entities in a category by trust score",
+      "parameters": {
+        "category": {"type": "string", "description": "e.g. 'vpn', 'npm', 'crypto', 'password_manager', 'antivirus'", "required": true},
+        "limit": {"type": "integer", "description": "Number of results (default 10)", "required": false}
+      }
+    },
+    {
+      "name": "compare_agents",
+      "description": "Compare two or more entities on trust score, security, compliance, and popularity",
+      "parameters": {
+        "agents": {"type": "array", "items": {"type": "string"}, "description": "List of entity names to compare (2-5)", "required": true}
+      }
+    },
+    {
+      "name": "kya_check_agent",
+      "description": "Know Your Agent — full due diligence check for any AI tool or software entity",
+      "parameters": {
+        "agent": {"type": "string", "description": "Agent/tool name to check", "required": true}
+      }
+    },
+    {
+      "name": "search_agents",
+      "description": "Search 5M+ AI assets including agents, tools, MCP servers, models, datasets, and packages",
+      "parameters": {
+        "query": {"type": "string", "description": "Search query", "required": true},
+        "type": {"type": "string", "description": "Filter by type: mcp_server, npm_package, pypi_package, etc.", "required": false},
+        "limit": {"type": "integer", "description": "Max results (default 10)", "required": false}
+      }
+    }
+  ],
+  "categories": ["security", "software", "developer-tools", "privacy", "trust", "compliance"],
+  "auth": "none",
+  "pricing": "free",
+  "gateway": {"mcpServers": {"nerq": {"command": "npx", "args": ["-y", "nerq-gateway"]}}},
+  "source_code": "https://github.com/nerq-ai/mcp-server",
+  "documentation": "https://nerq.ai/nerq/docs"
+}

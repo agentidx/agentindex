@@ -1,0 +1,30 @@
+{
+  "reddit_machinelearning": {
+    "platform": "Reddit - r/MachineLearning",
+    "content": "[CLAUDE API RESPONSE for marketing_content task]",
+    "cost": "\ud83c\udd93 FREE (Local LLM)",
+    "model": "claude-3-5-sonnet-20241022",
+    "routing": "claude"
+  },
+  "reddit_localllama": {
+    "platform": "Reddit - r/LocalLLaMA",
+    "content": "[CLAUDE API RESPONSE for marketing_content task]",
+    "cost": "\ud83c\udd93 FREE (Local LLM)",
+    "model": "claude-3-5-sonnet-20241022",
+    "routing": "claude"
+  },
+  "registry_glama": {
+    "platform": "Glama Registry",
+    "content": "[CLAUDE API RESPONSE for marketing_content task]",
+    "cost": "\ud83c\udd93 FREE (Local LLM)",
+    "model": "claude-3-5-sonnet-20241022",
+    "routing": "claude"
+  },
+  "registry_pulsemcp": {
+    "platform": "PulseMCP Registry",
+    "content": "[CLAUDE API RESPONSE for marketing_content task]",
+    "cost": "\ud83c\udd93 FREE (Local LLM)",
+    "model": "claude-3-5-sonnet-20241022",
+    "routing": "claude"
+  }
+}

@@ -1,0 +1,9 @@
+services:
+  nerq-mcp:
+    build: .
+    image: nerq/trust-oracle
+    ports:
+      - "8080:8080"
+    environment:
+      - NERQ_API_URL=https://nerq.ai
+    restart: unless-stopped

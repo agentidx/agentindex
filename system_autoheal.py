@@ -26,6 +26,83 @@ import subprocess
 from datetime import datetime
 
 DB_PATH = os.path.expanduser("~/agentindex/logs/healthcheck.db")
+
+# ── Circuit Breaker — stop restart storms ──────────────────
+_FAILURE_STATE = os.path.expanduser("~/agentindex/logs/autoheal_failures.json")
+
+
+def _load_failures():
+    try:
+        if os.path.exists(_FAILURE_STATE):
+            with open(_FAILURE_STATE) as f:
+                return json.load(f)
+    except Exception:
+        pass
+    return {}
+
+
+def _save_failures(failures):
+    try:
+        with open(_FAILURE_STATE, 'w') as f:
+            json.dump(failures, f, indent=2)
+    except Exception:
+        pass
+
+
+def should_restart(service_name, max_consecutive=5, backoff_minutes=30):
+    """Circuit breaker: stop restarting after N consecutive failures."""
+    failures = _load_failures()
+    svc = failures.get(service_name, {"count": 0, "disabled_until": 0})
+    now = time.time()
+
+    if svc.get("disabled_until", 0) > now:
+        remaining = int((svc["disabled_until"] - now) / 60)
+        log(f"CIRCUIT BREAKER: {service_name} disabled for {remaining}min more", "WARN")
+        return False
+
+    if svc.get("count", 0) >= max_consecutive:
+        svc["disabled_until"] = now + (backoff_minutes * 60)
+        svc["count"] = 0
+        failures[service_name] = svc
+        _save_failures(failures)
+        log(f"CIRCUIT BREAKER TRIPPED: {service_name} failed {max_consecutive}x — disabled {backoff_minutes}min", "WARN")
+        return False
+
+    return True
+
+
+def record_result(service_name, success):
+    """Record restart result for circuit breaker."""
+    failures = _load_failures()
+    svc = failures.get(service_name, {"count": 0, "disabled_until": 0})
+    svc["count"] = 0 if success else svc.get("count", 0) + 1
+    svc["last"] = time.time()
+    failures[service_name] = svc
+    _save_failures(failures)
+
+
+# ── Socket Health Monitor ──────────────────────────────────
+
+def check_socket_health():
+    """Early warning for port exhaustion. Returns False if system is under socket pressure."""
+    try:
+        result = subprocess.run(["netstat", "-an"], capture_output=True, text=True, timeout=10)
+        lines = result.stdout.strip().split('\n')
+
+        time_wait = sum(1 for l in lines if 'TIME_WAIT' in l)
+        close_wait = sum(1 for l in lines if 'CLOSE_WAIT' in l)
+        established = sum(1 for l in lines if 'ESTABLISHED' in l)
+
+        if time_wait > 500 or close_wait > 100:
+            log(f"SOCKET WARNING: TIME_WAIT={time_wait} CLOSE_WAIT={close_wait} ESTABLISHED={established}", "WARN")
+
+        if time_wait > 1000 or close_wait > 300:
+            log(f"SOCKET CRITICAL: TIME_WAIT={time_wait} CLOSE_WAIT={close_wait} — skipping restarts", "WARN")
+            return False  # Signal: don't restart anything this cycle
+
+        return True
+    except Exception:
+        return True
 PSQL = "/opt/homebrew/Cellar/postgresql@16/16.11_1/bin/psql"
 
 def log(msg, level="INFO"):
@@ -193,11 +270,16 @@ Error context:
             action_name = line.split(':', 1)[1].strip().lower()
             break
 
-    # Execute Level 1 (safe) actions only
+    # Execute Level 1 (safe) actions only — with circuit breaker
     if action_name and action_name in SAFE_ACTIONS:
-        log(f"LLM recommends Level 1 action: {action_name} — executing", "INTEL")
-        result, rc = SAFE_ACTIONS[action_name]()
-        log_action(conn, f"llm_{action_name}", f"LLM-recommended: {response[:100]}", f"rc={rc}")
+        svc_key = f"llm_{action_name}"
+        if not should_restart(svc_key, max_consecutive=3, backoff_minutes=30):
+            log(f"LLM action {action_name} blocked by circuit breaker", "WARN")
+        else:
+            log(f"LLM recommends Level 1 action: {action_name} — executing", "INTEL")
+            result, rc = SAFE_ACTIONS[action_name]()
+            log_action(conn, svc_key, f"LLM-recommended: {response[:100]}", f"rc={rc}")
+            record_result(svc_key, rc == 0 if isinstance(rc, int) else True)
     elif action_name and action_name != "none":
         # Level 2: log only, don't execute
         log(f"LLM recommends Level 2 action (not auto-executing): {action_name}", "INTEL")
@@ -209,6 +291,12 @@ Error context:
 def heal():
     conn = init_db()
     actions_taken = 0
+
+    # ── 0. Socket health — abort if system under pressure ──
+    if not check_socket_health():
+        log("Socket pressure detected — skipping restart cycle to let connections drain", "WARN")
+        conn.close()
+        return
 
     # ── 1. PostgreSQL: kill stuck queries >5 min ──
     out, _ = run(f"""{PSQL} -d agentindex -t -A -c "
@@ -254,8 +342,14 @@ def heal():
     # ── 2b. PostgreSQL: kill ZOMBIE backends (idle but >50% CPU) ──
     # ROOT CAUSE of recurring slowdowns: PG processes that finished queries
     # but hold massive memory allocations, consuming 50-99% CPU.
+    # Also check if pg_dump is running — if so, skip ALL zombie killing this cycle
+    _dump_running, _ = run("pgrep -f pg_dump", timeout=3)
+    _skip_zombies = bool(_dump_running and _dump_running.strip())
+    if _skip_zombies:
+        log("pg_dump running — skipping zombie PG backend check this cycle", "INFO")
+
     out, _ = run("ps aux | grep 'postgres.*agentindex' | grep -v grep", timeout=5)
-    if out:
+    if out and not _skip_zombies:
         for line in out.strip().split('\n'):
             parts = line.split()
             if len(parts) < 3:
@@ -266,9 +360,16 @@ def heal():
             except (ValueError, IndexError):
                 continue
             if zcpu > 50:
-                # Check if this PG backend is idle (finished its query)
-                zstate_out, _ = run(f"""{PSQL} -d agentindex -t -A -c "SELECT state FROM pg_stat_activity WHERE pid = {zpid};" """, timeout=3)
-                zstate = zstate_out.strip() if zstate_out else ""
+                # Check state + query — NEVER kill backup/dump processes
+                zstate_out, _ = run(f"""{PSQL} -d agentindex -t -A -c "SELECT state || '|' || LEFT(query,30) || '|' || COALESCE(application_name,'') FROM pg_stat_activity WHERE pid = {zpid};" """, timeout=3)
+                zinfo = zstate_out.strip() if zstate_out else ""
+                zstate = zinfo.split('|')[0] if '|' in zinfo else zinfo
+                zquery = zinfo.split('|')[1] if '|' in zinfo and len(zinfo.split('|')) > 1 else ""
+                zapp = zinfo.split('|')[2] if '|' in zinfo and len(zinfo.split('|')) > 2 else ""
+                # Skip backup/dump processes
+                if 'COPY' in zquery or 'pg_dump' in zapp or 'backup' in zapp.lower() or 'rescore' in zapp.lower() or 'enricher' in zapp.lower():
+                    log(f"Skipping PG PID {zpid} — backup/dump in progress (app={zapp})", "INFO")
+                    continue
                 if zstate in ('idle', ''):
                     log(f"Zombie PG backend: PID {zpid}, CPU {zcpu}%, state='{zstate}' — terminating", "HEAL")
                     run(f"""{PSQL} -d agentindex -c "SELECT pg_terminate_backend({zpid});" """)
@@ -297,27 +398,35 @@ def heal():
     check_yield_api()
     check_yield_crawler()
     if not api_healthy:
-        api_status = check_port(8000)
-        log(f"API failed deep health check (port status: {api_status}), restarting", "HEAL")
-        pids = get_pids("discovery:app")
-        for pid in pids:
-            run(f"kill -9 {pid}")
-        time.sleep(2)
-        # LaunchAgent KeepAlive will restart it, but kick it just in case
-        run(f"launchctl kickstart gui/$(id -u)/com.nerq.api 2>/dev/null")
-        time.sleep(5)
-        new_healthy = check_api_health()
-        log_action(conn, "restart_api", f"Old PIDs: {pids}, port was {api_status}", f"Healthy after restart: {new_healthy}")
-        actions_taken += 1
+        if not should_restart("api", max_consecutive=5, backoff_minutes=30):
+            log("API restart skipped by circuit breaker", "WARN")
+        else:
+            api_status = check_port(8000)
+            log(f"API failed deep health check (port status: {api_status}), restarting", "HEAL")
+            pids = get_pids("discovery:app")
+            for pid in pids:
+                run(f"kill -9 {pid}")
+            time.sleep(2)
+            run(f"launchctl kickstart gui/$(id -u)/com.nerq.api 2>/dev/null")
+            time.sleep(5)
+            new_healthy = check_api_health()
+            log_action(conn, "restart_api", f"Old PIDs: {pids}, port was {api_status}", f"Healthy after restart: {new_healthy}")
+            record_result("api", new_healthy)
+            actions_taken += 1
 
     # ── 5. Parser: restart if suspended or missing ──
     parser_count = count_procs("run_parser_loop")
     if parser_count == 0:
-        log("Parser not running, triggering LaunchAgent restart", "HEAL")
-        run("launchctl kickstart gui/$(id -u)/com.agentindex.parser")
-        time.sleep(3)
-        log_action(conn, "restart_parser", "Was missing")
-        actions_taken += 1
+        if not should_restart("parser", max_consecutive=5, backoff_minutes=30):
+            log("Parser restart skipped by circuit breaker", "WARN")
+        else:
+            log("Parser not running, triggering LaunchAgent restart", "HEAL")
+            run("launchctl kickstart gui/$(id -u)/com.agentindex.parser")
+            time.sleep(3)
+            new_count = count_procs("run_parser_loop")
+            log_action(conn, "restart_parser", "Was missing")
+            record_result("parser", new_count > 0)
+            actions_taken += 1
     elif parser_count > 0:
         state = get_proc_state("run_parser_loop")
         if "T" in state:
@@ -329,24 +438,30 @@ def heal():
             log_action(conn, "restart_parser", f"Was suspended (state T), killed PIDs: {pids}")
             actions_taken += 1
 
-    # ── 6. Orchestrator: fix missing or duplicates ──
-    orch_count = count_procs("agentindex.run")
+    # ── 6. Master watchdog: fix missing or duplicates ──
+    # Note: The old "com.agentindex.orchestrator" label was wrong — correct label
+    # is com.nerq.master-watchdog. Process grep matches "master_watchdog".
+    orch_count = count_procs("master_watchdog")
     if orch_count == 0:
-        log("Orchestrator not running, attempting restart", "HEAL")
-        out, rc = run("launchctl kickstart gui/$(id -u)/com.agentindex.orchestrator 2>&1")
-        if rc != 0 or "Could not find" in (out or ""):
-            log("kickstart failed, trying launchctl load", "HEAL")
-            run("launchctl load ~/Library/LaunchAgents/com.agentindex.orchestrator.plist 2>&1")
-        time.sleep(3)
-        new_count = count_procs("agentindex.run")
-        log_action(conn, "restart_orchestrator", f"Was missing, now {new_count} running")
-        actions_taken += 1
+        if not should_restart("master_watchdog", max_consecutive=5, backoff_minutes=60):
+            log("Master watchdog restart skipped by circuit breaker", "WARN")
+        else:
+            log("Master watchdog not running, attempting restart", "HEAL")
+            out, rc = run("launchctl kickstart gui/$(id -u)/com.nerq.master-watchdog 2>&1")
+            if rc != 0 or "Could not find" in (out or ""):
+                log("kickstart failed, trying launchctl load", "HEAL")
+                run("launchctl load ~/Library/LaunchAgents/com.nerq.master-watchdog.plist 2>&1")
+            time.sleep(3)
+            new_count = count_procs("master_watchdog")
+            log_action(conn, "restart_master_watchdog", f"Was missing, now {new_count} running")
+            record_result("master_watchdog", new_count > 0)
+            actions_taken += 1
     elif orch_count > 1:
-        pids = get_pids("agentindex.run")
-        log(f"Multiple orchestrators ({orch_count}), killing extras", "HEAL")
+        pids = get_pids("master_watchdog")
+        log(f"Multiple master watchdogs ({orch_count}), killing extras", "HEAL")
         for pid in sorted(pids)[1:]:
             run(f"kill -9 {pid}")
-            log_action(conn, "kill_dup_orchestrator", f"PID {pid}")
+            log_action(conn, "kill_dup_master_watchdog", f"PID {pid}")
         actions_taken += 1
 
     # ── 7. Hung cron jobs (trust_score, snapshot) >60 min ──
@@ -389,21 +504,28 @@ def heal():
     # ── 9. Redis: restart if down ──
     redis_ok, _ = run("/opt/homebrew/bin/redis-cli ping")
     if not redis_ok or redis_ok.strip() != "PONG":
-        log("Redis not responding, restarting", "HEAL")
-        run("/opt/homebrew/bin/brew services restart redis 2>/dev/null")
-        time.sleep(3)
-        redis_ok2, _ = run("/opt/homebrew/bin/redis-cli ping")
-        log_action(conn, "restart_redis", f"Was down, now {redis_ok2}")
-        actions_taken += 1
+        if not should_restart("redis", max_consecutive=5, backoff_minutes=15):
+            log("Redis restart skipped by circuit breaker", "WARN")
+        else:
+            log("Redis not responding, restarting", "HEAL")
+            run("/opt/homebrew/bin/brew services restart redis 2>/dev/null")
+            time.sleep(3)
+            redis_ok2, _ = run("/opt/homebrew/bin/redis-cli ping")
+            success = redis_ok2 and redis_ok2.strip() == "PONG"
+            log_action(conn, "restart_redis", f"Was down, now {redis_ok2}")
+            record_result("redis", success)
+            actions_taken += 1
 
     # ── 10. LaunchAgents: reload if unloaded ──
     agents_map = {
-        "parser": ("run_parser_loop", "com.agentindex.parser"),
         "dashboard": ("agentindex.dashboard", "com.agentindex.dashboard"),
         "mcp_sse": ("mcp_sse_server", "com.agentindex.mcp-sse"),
     }
     for name, (grep_str, label) in agents_map.items():
         if count_procs(grep_str) == 0:
+            if not should_restart(name, max_consecutive=5, backoff_minutes=30):
+                log(f"{name} restart skipped by circuit breaker", "WARN")
+                continue
             log(f"{name} not running, trying kickstart then load", "HEAL")
             out, rc = run(f"launchctl kickstart gui/$(id -u)/{label} 2>&1")
             if rc != 0 or "Could not find" in (out or ""):
@@ -411,6 +533,7 @@ def heal():
             time.sleep(3)
             new_count = count_procs(grep_str)
             log_action(conn, f"restart_{name}", f"Was missing, now {new_count}")
+            record_result(name, new_count > 0)
             actions_taken += 1
 
     # ── 11. Analytics retention (daily at 03:00-03:05 only) ──
@@ -421,17 +544,37 @@ def heal():
             import sqlite3 as _sqlite3_ret
             _adb = os.path.expanduser("~/agentindex/logs/analytics.db")
             if os.path.exists(_adb):
+                _db_size_gb = os.path.getsize(_adb) / (1024**3)
+                _ret_days = 30 if _db_size_gb > 5 else 45 if _db_size_gb > 3 else 60
                 _rc = _sqlite3_ret.connect(_adb)
-                _del = _rc.execute("DELETE FROM requests WHERE ts < datetime('now', '-90 days')").rowcount
+                _rc.execute("PRAGMA auto_vacuum = INCREMENTAL;")
+                _rc.execute("PRAGMA journal_mode = WAL;")
+                _del = _rc.execute(f"DELETE FROM requests WHERE ts < datetime('now', '-{_ret_days} days')").rowcount
                 if _del > 0:
-                    _rc.execute("PRAGMA incremental_vacuum;")
-                    log(f"Analytics retention: deleted {_del} rows >90 days", "INFO")
-                    log_action(conn, "analytics_retention", f"Deleted {_del} rows")
+                    _rc.execute("PRAGMA incremental_vacuum(1000);")
+                    log(f"Analytics retention: deleted {_del} rows >{_ret_days} days (DB {_db_size_gb:.1f}GB)", "INFO")
+                    log_action(conn, "analytics_retention", f"Deleted {_del} rows, retention={_ret_days}d")
                     actions_taken += 1
                 _rc.commit()
                 _rc.close()
         except Exception as _ret_e:
             log(f"Analytics retention error: {_ret_e}", "WARN")
+
+    # ── 11b. check_events.db retention (90 days, at 03:00-03:05) ──
+    if _h == 3 and _m < 6:
+        _check_db = os.path.expanduser("~/agentindex/logs/check_events.db")
+        if os.path.exists(_check_db):
+            try:
+                _ce = sqlite3.connect(_check_db, timeout=3)
+                _ce_del = _ce.execute("DELETE FROM check_events WHERE ts < datetime('now', '-90 days')").rowcount
+                if _ce_del > 0:
+                    _ce.execute("PRAGMA incremental_vacuum;")
+                    log(f"check_events retention: deleted {_ce_del} rows >90 days", "INFO")
+                    actions_taken += 1
+                _ce.commit()
+                _ce.close()
+            except Exception as _ce_e:
+                log(f"check_events retention error: {_ce_e}", "WARN")
 
     # ── 12. Log rotation (daily at 03:00-03:05 only) ──
     if _h == 3 and _m < 6:

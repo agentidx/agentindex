@@ -1,0 +1,13 @@
+{
+  "name": "{{SERVER_NAME}}",
+  "version": "0.1.0",
+  "description": "{{DESCRIPTION}}",
+  "url": "https://github.com/your-org/{{SERVER_NAME}}",
+  "capabilities": {"streaming": false, "tools": true},
+  "authentication": {"schemes": ["none"]},
+  "defaultInputModes": ["text/plain"],
+  "defaultOutputModes": ["application/json"],
+  "protocol": "mcp",
+  "trust_verification": "https://nerq.ai/v1/preflight",
+  "skills": [{"id": "example_tool", "name": "Example Tool", "description": "An example tool"}]
+}

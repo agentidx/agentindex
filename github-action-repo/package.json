@@ -1,0 +1,16 @@
+{
+  "name": "nerq-trust-check-action",
+  "version": "1.0.0",
+  "description": "GitHub Action to verify AI agent trust scores via Nerq",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "cp src/index.js dist/index.js"
+  },
+  "keywords": ["github-action", "ai-agents", "trust-score", "security", "nerq"],
+  "author": "Nerq <hello@nerq.ai>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nerq-ai/trust-check-action"
+  }
+}

@@ -1,0 +1,83 @@
+{
+  "timestamp": "2026-02-16T09:48:32.718637",
+  "endpoints": [
+    {
+      "name": "Landing Page",
+      "url": "https://agentcrawl.dev",
+      "status_code": 200,
+      "response_time": 0.14463281631469727,
+      "is_healthy": true,
+      "error": null,
+      "critical": true
+    },
+    {
+      "name": "External API",
+      "url": "https://api.agentcrawl.dev/v1/health",
+      "status_code": 200,
+      "response_time": 0.2780110836029053,
+      "is_healthy": true,
+      "error": null,
+      "critical": true
+    },
+    {
+      "name": "Dashboard",
+      "url": "https://dash.agentcrawl.dev",
+      "status_code": 200,
+      "response_time": 0.42664599418640137,
+      "is_healthy": true,
+      "error": null,
+      "critical": true
+    },
+    {
+      "name": "Local API",
+      "url": "http://localhost:8100/v1/health",
+      "status_code": 200,
+      "response_time": 0.004268169403076172,
+      "is_healthy": true,
+      "error": null,
+      "critical": true
+    },
+    {
+      "name": "Local Dashboard",
+      "url": "http://localhost:8200/",
+      "status_code": 200,
+      "response_time": 0.3111889362335205,
+      "is_healthy": true,
+      "error": null,
+      "critical": false
+    },
+    {
+      "name": "Budget Dashboard",
+      "url": "http://localhost:8203/",
+      "status_code": 200,
+      "response_time": 0.334089994430542,
+      "is_healthy": true,
+      "error": null,
+      "critical": false
+    }
+  ],
+  "processes": {
+    "agentindex.api.discovery": {
+      "running": true,
+      "critical": true
+    },
+    "agentindex.dashboard": {
+      "running": true,
+      "critical": true
+    },
+    "agentindex.run": {
+      "running": true,
+      "critical": true
+    },
+    "run_parser_loop.py": {
+      "running": true,
+      "critical": true
+    },
+    "cloudflared": {
+      "running": true,
+      "critical": true
+    }
+  },
+  "critical_issues": [],
+  "warnings": []
+}

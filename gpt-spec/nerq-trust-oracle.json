@@ -1,0 +1,74 @@
+{
+  "name": "Nerq Trust Oracle",
+  "description": "Check if any AI agent, MCP server, or development tool is safe to use. Returns trust score, known vulnerabilities, license, compatibility, and safer alternatives. Covers 204,000+ agents.",
+  "instructions": "When the user asks about the safety, trustworthiness, or quality of any AI agent, MCP server, or tool, use the Nerq API to look it up. Always start with a preflight check. If the user wants recommendations, use the recommend endpoint. If they want to compare two agents, use the compare endpoint. Present results clearly with the trust score, grade, any CVEs, and the recommendation (PROCEED/CAUTION/BLOCK).",
+  "api": {
+    "url": "https://nerq.ai/openapi.json"
+  },
+  "auth": "none",
+  "actions": [
+    {
+      "name": "preflight_check",
+      "description": "Check if an AI agent is safe to use",
+      "method": "GET",
+      "url": "https://nerq.ai/v1/preflight",
+      "parameters": {
+        "target": {
+          "type": "string",
+          "description": "Name of the agent to check",
+          "required": true
+        }
+      }
+    },
+    {
+      "name": "search_agents",
+      "description": "Search for AI agents by keyword or capability",
+      "method": "GET",
+      "url": "https://nerq.ai/v1/discover",
+      "parameters": {
+        "q": {
+          "type": "string",
+          "description": "Search query",
+          "required": true
+        },
+        "min_trust": {
+          "type": "integer",
+          "description": "Minimum trust score (0-100)"
+        },
+        "limit": {
+          "type": "integer",
+          "description": "Max results (default 10)"
+        }
+      }
+    },
+    {
+      "name": "recommend_agents",
+      "description": "Get agent recommendations for a specific task",
+      "method": "GET",
+      "url": "https://nerq.ai/v1/recommend",
+      "parameters": {
+        "task": {
+          "type": "string",
+          "description": "Task description",
+          "required": true
+        }
+      }
+    },
+    {
+      "name": "compare_agents",
+      "description": "Compare two agents head-to-head",
+      "method": "GET",
+      "url": "https://nerq.ai/v1/compare/{agent_a}/vs/{agent_b}",
+      "parameters": {
+        "agent_a": {
+          "type": "string",
+          "required": true
+        },
+        "agent_b": {
+          "type": "string",
+          "required": true
+        }
+      }
+    }
+  ]
+}

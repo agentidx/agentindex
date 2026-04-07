@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nerq"
+version = "1.3.0"
+description = "Trust verification for AI agents. Preflight checks, task resolution, and search."
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.8"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Security",
+]
+keywords = ["ai", "agents", "trust", "mcp", "tools", "verification"]
+
+[project.urls]
+Homepage = "https://nerq.ai"
+Documentation = "https://nerq.ai/start"
+Repository = "https://github.com/agentic-index/nerq-sdk"
+
+[project.scripts]
+nerq = "nerq.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["nerq*"]

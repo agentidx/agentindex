@@ -1,0 +1,11 @@
+# {{SERVER_NAME}}
+An MCP server providing {{DESCRIPTION}}.
+
+## Installation
+npx {{SERVER_NAME}}
+
+## Tools
+- example_tool: An example tool. Replace with your implementation.
+
+## Trust
+Verified by Nerq. Check: https://nerq.ai/v1/preflight?target={{SERVER_NAME}}

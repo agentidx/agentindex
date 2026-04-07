@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+Allow: /search  
+Allow: /agents
+Allow: /agent/*
+Allow: /docs
+Disallow: /admin
+Disallow: /private
+Disallow: /api/internal
+
+# Sitemap location
+Sitemap: https://agentcrawl.dev/sitemap.xml
+
+# Crawl delay for server health
+Crawl-delay: 1

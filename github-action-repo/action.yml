@@ -1,0 +1,31 @@
+name: "Nerq Trust Check"
+description: "Verify AI agent and dependency trust scores in CI/CD"
+branding:
+  icon: "shield"
+  color: "green"
+inputs:
+  agents:
+    description: "Comma-separated agent names to check"
+    required: false
+  requirements-file:
+    description: "Path to requirements.txt or package.json to scan all dependencies"
+    required: false
+  min-score:
+    description: "Minimum acceptable trust score (0-100)"
+    default: "60"
+  fail-on-cve:
+    description: "Fail the check if any agent has known CVEs"
+    default: "false"
+  fail-on-critical-cve:
+    description: "Fail the check if any agent has CRITICAL CVEs"
+    default: "true"
+outputs:
+  results:
+    description: "JSON array of check results"
+  passed:
+    description: "Whether all checks passed"
+  agents-checked:
+    description: "Number of agents checked"
+runs:
+  using: "node20"
+  main: "dist/index.js"

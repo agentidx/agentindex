@@ -125,3 +125,38 @@ agentindex/crypto/token_slugs.json
 agentindex/crypto/token_tiers_cache.json
 agentindex/crypto/vitality_cache.json
 agentindex/crypto/reports/
+
+# ─── Sub-repos and external projects (have their own .git/) ───
+integrations/
+npm-langchain-agentindex/
+nerq-gateway/
+nerq-browser-extension/
+nerq-vscode-extension/
+nerq-trust-protocol/
+nerq-trust-gate-action/
+vscode-extension/
+track-record/
+mcp-hub/
+github-outreach-bot/
+zarq-python-sdk/
+zarq-js-sdk/
+
+# ─── Old deployment artifacts ─────────────────────────────────
+okr1_deployment_package/
+framework-prs/
+
+# ─── Logs (already partially ignored, ensure full coverage) ───
+logs/
+
+# ─── Build/dependency directories ─────────────────────────────
+node_modules/
+*.tsbuildinfo
+package-lock.json
+
+# ─── Build artifacts and lone .backup files ───────────────────
+*.zip
+*.backup
+
+# ─── Large data and export directories ────────────────────────
+data/
+exports/

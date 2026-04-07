@@ -1,0 +1,17 @@
+name: 'Nerq Trust Check'
+description: 'Check trust scores for dependencies before merging'
+inputs:
+  lockfile:
+    description: 'Path to lockfile (package-lock.json, requirements.txt, Cargo.lock)'
+    required: false
+    default: 'package-lock.json'
+  threshold:
+    description: 'Minimum trust score (0-100). Fails if any dependency is below.'
+    required: false
+    default: '40'
+runs:
+  using: 'node20'
+  main: 'dist/index.js'
+branding:
+  icon: 'shield'
+  color: 'green'

@@ -1,0 +1,19 @@
+{
+  "timestamp": "2026-02-16T12:30:14.507662",
+  "checks": {
+    "main_site": {
+      "status": "200",
+      "secure": true
+    },
+    "api": {
+      "status": "200",
+      "secure": true
+    },
+    "sensitive_paths": {
+      "exposed": [],
+      "secure": true
+    }
+  },
+  "recommendations": [],
+  "score": 100
+}

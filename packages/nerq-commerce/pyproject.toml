@@ -1,0 +1,18 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "nerq-commerce"
+version = "0.1.0"
+description = "Trust verification for agentic commerce. Verify AI shopping agents before transactions."
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.9"
+authors = [{name = "ZARQ Intelligence", email = "dev@zarq.ai"}]
+dependencies = ["requests>=2.28.0"]
+
+[project.urls]
+Homepage = "https://nerq.ai/commerce"
+Documentation = "https://nerq.ai/commerce/docs"
+Repository = "https://github.com/zarqai/nerq-commerce"

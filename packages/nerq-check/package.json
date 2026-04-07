@@ -1,0 +1,10 @@
+{
+  "name": "nerq-check",
+  "version": "1.0.2",
+  "description": "Check trust scores for any software package, app, or MCP server before installing",
+  "bin": "./index.js",
+  "keywords": ["security","trust","audit","npm","safety","mcp","supply-chain"],
+  "homepage": "https://nerq.ai",
+  "license": "MIT",
+  "files": ["index.js"]
+}

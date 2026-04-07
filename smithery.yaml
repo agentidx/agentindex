@@ -1,0 +1,40 @@
+name: zarq-mcp-server
+description: "Crypto risk intelligence and AI agent trust verification. 22 tools including trust_check, trust_gate, vitality_check, crash_probability. No auth required."
+version: "1.0.0"
+repository: "https://github.com/zarq-ai/zarq-mcp-server"
+homepage: "https://nerq.ai"
+license: "MIT"
+author: "Anders Nilsson"
+tags:
+  - crypto
+  - risk
+  - trust
+  - security
+  - ai-agents
+  - mcp
+transport:
+  type: "sse"
+  url: "https://nerq.ai/mcp/sse"
+tools:
+  - trust_check
+  - trust_gate
+  - vitality_check
+  - crash_probability
+  - search_agents
+  - recommend_agents
+  - compare_agents
+  - get_agent_kya
+  - preflight_check
+  - get_trust_badge
+  - get_compliance_score
+  - get_frameworks
+  - get_compatible_agents
+  - get_economics
+  - get_trending
+  - get_dashboard
+  - get_federation_sources
+  - get_agent_signals
+  - crypto_trust_score
+  - crypto_crash_probability
+  - crypto_yield_risk
+  - crypto_portfolio_risk

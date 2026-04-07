@@ -1,0 +1,11 @@
+{
+  "title": "Show HN: Semantic search across 40k+ AI agents (vs keyword matching)",
+  "content": "We built semantic search for AI agent discovery because keyword search fails when you search for \"customer support\" but agents are tagged as \"helpdesk\" or \"user assistance.\"\n\nThe system uses embeddings to understand that \"financial analysis\" matches agents tagged as \"trading algorithms\" or \"risk assessment.\" We've indexed 40k+ agents from GitHub, npm, PyPI, HuggingFace.\n\nTry it: https://agentcrawl.dev\nAPI: https://api.agentcrawl.dev/docs\n\nTechnical details: We process agent descriptions, READMEs, and usage examples through sentence transformers, then use FAISS for sub-100ms semantic similarity search. Trust scoring combines maintenance activity, community adoption, and stability metrics.\n\nWhat's your experience with agent discovery? Any interesting matching problems you've solved?",
+  "strategy_notes": {
+    "posting_time": "Tuesday-Thursday 8-10 AM PST (optimal HN timing)",
+    "engagement_approach": "Focus on technical problem, ask engaging question",
+    "expected_impact": "+400 weekly visitors if front page success",
+    "follow_up_plan": "Monitor first 2 hours, respond to technical questions",
+    "success_metrics": "Stay in top 30 for 4+ hours, 20+ comments, 1000+ visitors"
+  }
+}

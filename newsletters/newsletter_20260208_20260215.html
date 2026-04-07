@@ -1,0 +1,190 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>AgentIndex Weekly</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; margin: 0; padding: 20px; background: #f5f5f5; }
+        .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        .header { background: linear-gradient(135deg, #007cba, #00a0d0); color: white; padding: 30px; text-align: center; }
+        .header h1 { margin: 0; font-size: 28px; }
+        .header p { margin: 10px 0 0 0; opacity: 0.9; }
+        .content { padding: 30px; }
+        .section { margin-bottom: 30px; }
+        .section h2 { color: #333; border-bottom: 2px solid #007cba; padding-bottom: 10px; margin-bottom: 20px; }
+        .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 15px; margin: 20px 0; }
+        .stat-card { background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: center; }
+        .stat-number { font-size: 24px; font-weight: bold; color: #007cba; }
+        .stat-label { font-size: 12px; color: #666; margin-top: 5px; }
+        .highlight { background: #e8f4f8; padding: 15px; border-radius: 8px; border-left: 4px solid #007cba; margin: 10px 0; }
+        .agent-list { background: #f8f9fa; padding: 15px; border-radius: 8px; }
+        .agent-item { padding: 10px 0; border-bottom: 1px solid #e9ecef; }
+        .agent-item:last-child { border-bottom: none; }
+        .agent-name { font-weight: 600; color: #333; }
+        .agent-category { background: #007cba; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; margin-left: 10px; }
+        .category-list { display: flex; flex-wrap: wrap; gap: 10px; }
+        .category-tag { background: #e8f4f8; color: #007cba; padding: 8px 12px; border-radius: 20px; font-size: 14px; }
+        .footer { background: #333; color: white; padding: 20px; text-align: center; font-size: 14px; }
+        .footer a { color: #00a0d0; text-decoration: none; }
+        .growth-positive { color: #28a745; }
+        .growth-negative { color: #dc3545; }
+        .quality-bar { height: 8px; background: #ddd; border-radius: 4px; margin: 5px 0; overflow: hidden; }
+        .quality-fill { height: 100%; background: linear-gradient(90deg, #28a745, #ffc107, #dc3545); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>AgentIndex Weekly</h1>
+            <p>Your Weekly Dose of AI Agent Discovery</p>
+            <p><strong>2026-02-08 to 2026-02-15</strong></p>
+        </div>
+        
+        <div class="content">
+            <div class="section">
+                <h2>📊 Weekly Highlights</h2>
+                <div class="highlight">• 🚀 Added 18787 new agents this week</div><div class="highlight">• ✅ 0.1% of agents meet high quality standards</div><div class="highlight">• 📈 coding leads with 9423 agents</div><div class="highlight">• ⭐ Best new addition: agent-lightning (infrastructure)</div>
+            </div>
+            
+            <div class="section">
+                <h2>📈 Growth Metrics</h2>
+                <div class="stat-grid">
+                    <div class="stat-card">
+                        <div class="stat-number">41,301</div>
+                        <div class="stat-label">Total Agents</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">18787</div>
+                        <div class="stat-label">New This Week</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">2683.9</div>
+                        <div class="stat-label">Daily Average</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number growth-negative">-16.6%</div>
+                        <div class="stat-label">Week/Week Growth</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>🔥 Trending Categories</h2>
+                <div class="category-list">
+                    <span class="category-tag">coding (+4228)</span><span class="category-tag">devops (+1644)</span><span class="category-tag">infrastructure (+812)</span><span class="category-tag">communication (+803)</span><span class="category-tag">finance (+752)</span>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>⭐ Notable New Agents</h2>
+                <div class="agent-list">
+                    
+                    <div class="agent-item">
+                        <div class="agent-name">agent-lightning<span class="agent-category">infrastructure</span></div>
+                        <div style="font-size: 14px; color: #666; margin-top: 5px;">Agent Lightning is a tool for training and developing AI agents.</div>
+                        <div style="font-size: 12px; color: #999; margin-top: 5px;">
+                            github • Quality: 83%
+                             • ⭐ 14431
+                        </div>
+                    </div>
+                    
+                    <div class="agent-item">
+                        <div class="agent-name">sqrl<span class="agent-category">data</span></div>
+                        <div style="font-size: 14px; color: #666; margin-top: 5px;">A framework for automating data pipelines and building MCP servers using SQL.</div>
+                        <div style="font-size: 12px; color: #999; margin-top: 5px;">
+                            github • Quality: 80%
+                             • ⭐ 203
+                        </div>
+                    </div>
+                    
+                    <div class="agent-item">
+                        <div class="agent-name">trulens<span class="agent-category">research</span></div>
+                        <div style="font-size: 14px; color: #666; margin-top: 5px;">A tool for evaluating and tracking LLM experiments and AI agents.</div>
+                        <div style="font-size: 12px; color: #999; margin-top: 5px;">
+                            github • Quality: 78%
+                             • ⭐ 3085
+                        </div>
+                    </div>
+                    
+                    <div class="agent-item">
+                        <div class="agent-name">browser-agent<span class="agent-category">devops</span></div>
+                        <div style="font-size: 14px; color: #666; margin-top: 5px;">Open-source browser agent for automation and assistance.</div>
+                        <div style="font-size: 12px; color: #999; margin-top: 5px;">
+                            github • Quality: 78%
+                             • ⭐ 3954
+                        </div>
+                    </div>
+                    
+                    <div class="agent-item">
+                        <div class="agent-name">agentica<span class="agent-category">coding</span></div>
+                        <div style="font-size: 14px; color: #666; margin-top: 5px;">Agentica is a TypeScript framework for AI function calling, enhanced with compiler skills.</div>
+                        <div style="font-size: 12px; color: #999; margin-top: 5px;">
+                            github • Quality: 77%
+                             • ⭐ 991
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>🔍 Quality Insights</h2>
+                
+                <div style="margin: 15px 0;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>Excellent (90-100%)</span>
+                        <span><strong>1</strong> agents</span>
+                    </div>
+                    <div class="quality-bar">
+                        <div class="quality-fill" style="width: 0.002421248880172393%"></div>
+                    </div>
+                </div>
+                
+                <div style="margin: 15px 0;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>Good (70-89%)</span>
+                        <span><strong>396</strong> agents</span>
+                    </div>
+                    <div class="quality-bar">
+                        <div class="quality-fill" style="width: 0.9588145565482675%"></div>
+                    </div>
+                </div>
+                
+                <div style="margin: 15px 0;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>Fair (50-69%)</span>
+                        <span><strong>2425</strong> agents</span>
+                    </div>
+                    <div class="quality-bar">
+                        <div class="quality-fill" style="width: 5.8715285344180534%"></div>
+                    </div>
+                </div>
+                
+                <div style="margin: 15px 0;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>Poor (<50%)</span>
+                        <span><strong>38479</strong> agents</span>
+                    </div>
+                    <div class="quality-bar">
+                        <div class="quality-fill" style="width: 93.16723566015351%"></div>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p><strong>AgentIndex</strong> - The DNS for AI Agents</p>
+            <p>
+                <a href="https://agentcrawl.dev">🌐 agentcrawl.dev</a> • 
+                <a href="https://api.agentcrawl.dev">🔌 API</a> • 
+                <a href="https://github.com/agentidx">💻 GitHub</a>
+            </p>
+            <p style="font-size: 12px; opacity: 0.7;">
+                Generated automatically • 2026-02-15
+            </p>
+        </div>
+    </div>
+</body>
+</html>

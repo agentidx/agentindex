@@ -1,0 +1,80 @@
+{
+  "phase": "Phase 2 - Ecosystem Engagement",
+  "timeline": "Week 2-3 after Phase 1 launch",
+  "prepared_at": "2026-02-16T10:52:26.168273",
+  "tier_2_activities": {
+    "twitter_posts": [
+      {
+        "type": "feature_announcement",
+        "content": "\ud83d\udd0d AgentIndex now tracks 41,000+ AI agents across GitHub, npm, PyPI & HuggingFace\n\n\u2728 New: Trust scoring (0-100) for agent quality assessment\n\ud83d\ude80 Sub-100ms semantic search\n\ud83d\udd27 LangChain, CrewAI & AutoGen integrations\n\nTry it: agentcrawl.dev\n\n#AI #agents #developers",
+        "timing": "weekday_morning"
+      },
+      {
+        "type": "developer_tip",
+        "content": "\ud83d\udca1 Pro tip: Use natural language to find AI agents\n\n\u274c \"customer support chatbot python\"\n\u2705 \"help users with account questions via chat\"\n\nSemantic search understands intent, not just keywords\n\nTry it: api.agentcrawl.dev/docs\n\n#AI #search #dev",
+        "timing": "developer_hours"
+      }
+    ],
+    "community_engagement": [
+      {
+        "trigger": "how do I find agents for",
+        "response": "AgentIndex has semantic search for exactly this! Try describing your use case in natural language at agentcrawl.dev - it understands context better than keyword matching.",
+        "type": "helpful_answer"
+      },
+      {
+        "trigger": "what's the best AI agent for",
+        "response": "Check AgentIndex's trust scoring - we rate 40k+ agents on maintenance, community adoption, and stability. Filter by your framework (LangChain, CrewAI, etc.) for best matches.",
+        "type": "helpful_answer"
+      },
+      {
+        "trigger": "agent discovery",
+        "response": "Agent discovery is tough when they're scattered across GitHub, npm, PyPI. AgentIndex aggregates them all with semantic search + quality filtering. Worth checking out!",
+        "type": "helpful_answer"
+      }
+    ],
+    "framework_outreach": [
+      {
+        "community": "LangChain Discord",
+        "message": "Built an agent retriever for LangChain that searches 40k+ agents semantically. Perfect for RAG systems that need to find and recommend relevant agents. pip install agentcrawl has the integration ready.",
+        "type": "integration_announcement"
+      },
+      {
+        "community": "CrewAI GitHub",
+        "message": "AgentIndex now has CrewAI integration! Automatically discover and recruit agents for your crews based on capabilities and trust scores. Saves time building multi-agent teams.",
+        "type": "integration_announcement"
+      },
+      {
+        "community": "AutoGen Users",
+        "message": "AutoGen users: AgentIndex can help you discover agents suitable for multi-agent conversations. Filter by communication patterns, reliability scores, and framework compatibility.",
+        "type": "integration_announcement"
+      }
+    ],
+    "estimated_reach": "100k+ developers across platforms"
+  },
+  "monitoring": {
+    "metrics_to_track": [
+      "organic_visitors_agentcrawl_dev",
+      "api_trials_from_reddit",
+      "github_stars_increase",
+      "registry_referral_traffic",
+      "search_queries_from_new_users"
+    ],
+    "monitoring_frequency": "daily",
+    "success_thresholds": {
+      "weekly_organic_visitors": 1000,
+      "api_trials": 50,
+      "registry_conversions": 10
+    },
+    "reporting_schedule": "every_3_days"
+  },
+  "success_criteria": {
+    "okr_1_progress": "500+ weekly organic visitors (50% of target)",
+    "community_engagement": "10+ meaningful interactions",
+    "framework_visibility": "Presence in 3+ framework communities"
+  },
+  "escalation_triggers": {
+    "low_engagement": "<5% interaction rate",
+    "negative_feedback": ">20% negative sentiment",
+    "platform_warnings": "Any community guideline violations"
+  }
+}

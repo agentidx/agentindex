@@ -1,0 +1,6 @@
+{
+  "min_trust_score": 70,
+  "block_critical_cves": true,
+  "auto_discover": true,
+  "framework": "crewai"
+}

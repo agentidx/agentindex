@@ -1,0 +1,28 @@
+{
+  "title": "Show HN: We indexed 40,000 AI agents across GitHub, npm, PyPI, HuggingFace, and MCP",
+  "content": "Tired of searching 5 different registries to find the right AI agent? We indexed 40,000+ agents from GitHub, npm, PyPI, HuggingFace, and MCP servers into one searchable platform.\n\nInstead of checking:\n• GitHub for repositories\n• npm for JavaScript packages  \n• PyPI for Python packages\n• HuggingFace for models\n• Various MCP registries for servers\n\nYou describe what you need: \"customer support automation\" or \"document analysis with OCR\" and get ranked results across all platforms.\n\nKey features:\n• 40,000+ agents indexed, 23,000+ actively maintained\n• Quality scoring based on maintenance, adoption, stability\n• Cross-protocol support: LangChain, CrewAI, AutoGen, MCP, A2A\n• Semantic search that understands capabilities vs keywords\n• Developer APIs and packages for integration\n\nTry it: https://agentcrawl.dev\nAPI: https://api.agentcrawl.dev/docs\n\nWe're not another MCP registry — we're protocol-agnostic agent discovery. Think \"Google for AI agents\" rather than \"yet another catalog.\"\n\nWhat's your biggest pain point with agent discovery? Are you also tired of hunting across multiple platforms?",
+  
+  "strategic_updates": {
+    "positioning": "Cross-platform agent discovery engine (NOT MCP registry)",
+    "value_prop": "Search 1 platform instead of 5 different registries",
+    "differentiation": "Protocol-agnostic vs vertical MCP-only catalogs",
+    "quality_emphasis": "40,000 indexed, 23,000 actively maintained",
+    "technical_hook": "Semantic search that understands capabilities",
+    "call_to_action": "What's your biggest agent discovery pain point?"
+  },
+  
+  "messaging_framework": {
+    "primary": "Google for AI agents across all platforms",
+    "problem": "Searching 5 different registries is painful",
+    "solution": "One search, all platforms, quality-ranked results", 
+    "proof": "40,000+ indexed agents, 23,000+ active",
+    "differentiator": "Protocol-agnostic vs MCP-only competitors"
+  },
+  
+  "expected_impact": {
+    "traffic": "+400-600 weekly visitors (higher with better positioning)",
+    "audience": "Developers tired of registry fragmentation",
+    "engagement": "Cross-platform pain point resonates broadly",
+    "competitive_advantage": "Positions us as category-different, not competitor"
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "agents": [
+    {
+      "id": "agent-1",
+      "name": "WebScrapeMaster",
+      "description": "Advanced web scraping tool with JavaScript support",
+      "category": "web-scraping",
+      "source": "github",
+      "url": "https://github.com/example/webscrapemaster",
+      "trust_score": 85.0,
+      "stars": 1250,
+      "downloads": 15000
+    },
+    {
+      "id": "agent-2",
+      "name": "DataCleaner Pro",
+      "description": "Professional data cleaning and preprocessing toolkit",
+      "category": "data-analysis",
+      "source": "pypi",
+      "url": "https://pypi.org/project/datacleaner-pro",
+      "trust_score": 92.0,
+      "stars": 890,
+      "downloads": 25000
+    },
+    {
+      "id": "agent-3",
+      "name": "ScrapingSpider",
+      "description": "Fast and efficient web scraping framework",
+      "category": "web-scraping",
+      "source": "github",
+      "url": "https://github.com/example/scrapingspider",
+      "trust_score": 78.0,
+      "stars": 2100,
+      "downloads": 8000
+    },
+    {
+      "id": "agent-4",
+      "name": "AnalyticsBot",
+      "description": "Automated analytics and reporting agent",
+      "category": "data-analysis",
+      "source": "npm",
+      "url": "https://npmjs.com/package/analyticsbot",
+      "trust_score": 81.0,
+      "stars": 567,
+      "downloads": 12000
+    }
+  ],
+  "battles": [],
+  "last_updated": "2026-02-15T17:51:22.202629"
+}

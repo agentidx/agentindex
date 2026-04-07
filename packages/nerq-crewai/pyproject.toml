@@ -1,0 +1,37 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "nerq-crewai"
+version = "0.1.0"
+description = "Nerq trust verification for CrewAI — discover trusted agents and gate tool calls with preflight checks"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "MIT"}
+authors = [
+    {name = "Nerq", email = "support@nerq.ai"},
+]
+keywords = ["crewai", "agents", "ai", "trust", "verification", "nerq", "safety"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "crewai>=0.1.0",
+    "requests>=2.28.0",
+]
+
+[project.urls]
+Homepage = "https://nerq.ai"
+Documentation = "https://nerq.ai/integrate/crewai"
+Source = "https://github.com/nerq-ai/nerq-crewai"
+Tracker = "https://github.com/nerq-ai/nerq-crewai/issues"

@@ -1,0 +1,13 @@
+# Nerq Trust Score re-score weekly (Sundays 2am)
+# Nerq Trust Score snapshot + export weekly (Sundays 3am, after re-score)
+#*/5 * * * * cd /Users/anstudio/agentindex && /Users/anstudio/agentindex/venv/bin/python watchdog.py --single >> watchdog_cron.log 2>&1
+*/5 * * * * cd ~/agentindex && venv/bin/python system_healthcheck.py >> logs/healthcheck.log 2>&1
+0 2 * * 0 cd ~/agentindex && venv/bin/python compute_trust_score.py >> logs/trust_rescore.log 2>&1
+0 3 * * 0 cd ~/agentindex && venv/bin/python trust_snapshot_export.py >> logs/snapshot.log 2>&1
+0 9 * * * cd /Users/anstudio/agentindex && /Users/anstudio/agentindex/venv/bin/python check_prs.py >> pr_monitor.log 2>&1
+*/3 * * * * cd ~/agentindex && venv/bin/python system_autoheal.py >> logs/autoheal.log 2>&1
+0 3 * * * cd ~/agentindex && venv/bin/python -u -m agentindex.crypto.yield_daily_crawler >> logs/yield_crawl.log 2>&1
+0 1 * * * /bin/bash /Users/anstudio/agentindex/scripts/run_daily_track_record.sh
+0 4 * * * cd ~/agentindex && venv/bin/python -u -m agentindex.crypto.crawlers.run_all_crawlers >> ~/agentindex/logs/crawlers.log 2>&1
+0 6 * * 1 cd ~/agentindex && venv/bin/python -u -m agentindex.crypto.auto_publisher >> ~/agentindex/logs/auto_publisher.log 2>&1
+0 4,10,16,22 * * * /Users/anstudio/agentindex/scripts/run_scout.sh

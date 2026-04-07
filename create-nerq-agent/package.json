@@ -1,0 +1,20 @@
+{
+  "name": "create-nerq-agent",
+  "version": "1.0.0",
+  "description": "Scaffold a trust-verified AI agent project. Frameworks, badges, CI, and dynamic tool discovery built in.",
+  "bin": {
+    "create-nerq-agent": "./bin/create-nerq-agent.js"
+  },
+  "keywords": ["create", "agent", "ai", "mcp", "scaffold", "langchain", "crewai", "autogen", "nerq", "trust"],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/agentic-index/create-nerq-agent"
+  },
+  "homepage": "https://nerq.ai/gateway",
+  "author": "Nerq <hello@nerq.ai>",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "files": ["bin/", "src/", "templates/", "LICENSE", "README.md"]
+}

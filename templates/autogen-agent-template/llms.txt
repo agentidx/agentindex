@@ -1,0 +1,4 @@
+# {{PROJECT_NAME}}
+An AutoGen agent with built-in trust verification via Nerq.
+Uses dynamic tool discovery to find the best tool for any task.
+Framework: AutoGen. Trust verification: nerq.ai.

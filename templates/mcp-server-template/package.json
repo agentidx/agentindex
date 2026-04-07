@@ -1,0 +1,24 @@
+{
+  "name": "{{SERVER_NAME}}",
+  "version": "0.1.0",
+  "description": "{{DESCRIPTION}}",
+  "bin": {
+    "{{SERVER_NAME}}": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsc --watch",
+    "trust-check": "npx mcp-hub list"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "@types/node": "^20.0.0"
+  },
+  "keywords": ["mcp", "ai", "{{CATEGORY}}"],
+  "license": "MIT",
+  "files": ["dist/", "LICENSE", "README.md"]
+}

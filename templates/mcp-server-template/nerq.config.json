@@ -1,0 +1,5 @@
+{
+  "min_trust_score": 70,
+  "protocol": "mcp",
+  "distribution": ["npm", "smithery"]
+}

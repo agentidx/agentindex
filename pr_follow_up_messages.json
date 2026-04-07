@@ -1,0 +1,17 @@
+{
+  "e2b-dev/awesome-ai-agents": {
+    "message": "Hi! Following up on PR #258 for AgentIndex.\n\nSince this repo focuses on AI agent tooling, I wanted to mention that our API is specifically designed for agent developers who need to find compatible agents across multiple platforms (GitHub, npm, PyPI, HuggingFace).\n\nIf the current positioning doesn't fit the repo's focus, I'm happy to revise the description or category placement. Let me know what would work best!",
+    "timing": "today",
+    "approach": "technical_value_focus"
+  },
+  "filipecalegario/awesome-generative-ai": {
+    "message": "Hi! Just wanted to follow up on PR #310 after a few days. \n\nI noticed this repo has excellent curation standards, so I wanted to check if there's any additional information needed for the AgentIndex submission, or if there are specific formatting/positioning improvements I should make.\n\nHappy to adjust the entry format or provide additional technical details if that would be helpful for review.\n\nThanks for maintaining such a valuable resource for the community!",
+    "timing": "immediate",
+    "approach": "humble_inquiry"
+  },
+  "mahseema/awesome-ai-tools": {
+    "message": "Hello! Checking in on PR #609 for AgentIndex.\n\nI wanted to clarify that this is a developer API tool (not another AI chat interface) - it helps developers find and evaluate AI agents across 40k+ indexed agents from GitHub, npm, PyPI, etc.\n\nIf there's a better category or description format that would fit the repo's style, I'm happy to adjust. Thanks for your time reviewing!",
+    "timing": "today",
+    "approach": "clarify_positioning"
+  }
+}

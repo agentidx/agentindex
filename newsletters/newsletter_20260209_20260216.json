@@ -1,0 +1,252 @@
+{
+  "week_period": "2026-02-09 to 2026-02-16",
+  "generated_at": "2026-02-16T05:00:11.157967",
+  "stats": {
+    "total_agents": 41301,
+    "new_agents_this_week": 16744,
+    "active_agents": 39,
+    "growth_rate": 68.18,
+    "source_distribution": {
+      "mcp": 2516,
+      "github": 33635,
+      "huggingface": 1479,
+      "npm": 3668,
+      "a2a": 3
+    },
+    "top_categories": {
+      "coding": 9423,
+      "devops": 3180,
+      "infrastructure": 1976,
+      "finance": 1826,
+      "communication": 1824,
+      "research": 1548,
+      "other": 986,
+      "data": 943,
+      "security": 939,
+      "marketing": 771
+    }
+  },
+  "new_agents": [
+    {
+      "id": "4e753d73-663c-499f-ad2a-7c92e5ad8e3d",
+      "name": "agent-lightning",
+      "description": "Agent Lightning is a tool for training and developing AI agents.",
+      "category": "infrastructure",
+      "source": "github",
+      "url": "https://github.com/microsoft/agent-lightning",
+      "quality_score": 0.8266768137975917,
+      "stars": 14431,
+      "trust_score": 87.6
+    },
+    {
+      "id": "92b24808-de55-489f-a9da-f7cc20b2fc74",
+      "name": "sqrl",
+      "description": "A framework for automating data pipelines and building MCP servers using SQL.",
+      "category": "data",
+      "source": "github",
+      "url": "https://github.com/DataSQRL/sqrl",
+      "quality_score": 0.7995113955586919,
+      "stars": 203,
+      "trust_score": 78.9
+    },
+    {
+      "id": "379f21de-8634-4b85-98b9-b15e5273463f",
+      "name": "trulens",
+      "description": "A tool for evaluating and tracking LLM experiments and AI agents.",
+      "category": "research",
+      "source": "github",
+      "url": "https://github.com/truera/trulens",
+      "quality_score": 0.7838194205279492,
+      "stars": 3085,
+      "trust_score": 84.0
+    },
+    {
+      "id": "7ea3058b-f5c0-453e-98c2-460375420964",
+      "name": "agentica",
+      "description": "Agentica is a TypeScript framework for AI function calling, enhanced with compiler skills.",
+      "category": "coding",
+      "source": "github",
+      "url": "https://github.com/wrtnlabs/agentica",
+      "quality_score": 0.7737464870568171,
+      "stars": 991,
+      "trust_score": 80.7
+    },
+    {
+      "id": "df53f684-9ac2-41c1-b6d4-7f5a85dd5d9b",
+      "name": "SWE-agent",
+      "description": "SWE-agent automatically addresses offensive cybersecurity issues on GitHub.",
+      "category": "security",
+      "source": "github",
+      "url": "https://github.com/SWE-agent/SWE-agent",
+      "quality_score": 0.7591915022394198,
+      "stars": 18445,
+      "trust_score": 82.2
+    },
+    {
+      "id": "92938f9d-8138-4206-b220-b219bcefe73c",
+      "name": "qlib",
+      "description": "Qlib is an AI platform for quantitative finance that automates the R&D process using various machine learning models.",
+      "category": "finance",
+      "source": "github",
+      "url": "https://github.com/microsoft/qlib",
+      "quality_score": 0.7532878778587846,
+      "stars": 37336,
+      "trust_score": 81.9
+    },
+    {
+      "id": "ef6295ea-379f-4267-9fc8-1086dd0021af",
+      "name": "gollem",
+      "description": "Go framework for agentic AI app with MCP and built-in tools",
+      "category": "coding",
+      "source": "github",
+      "url": "https://github.com/m-mizutani/gollem",
+      "quality_score": 0.7479546120021798,
+      "stars": 139,
+      "trust_score": 79.7
+    },
+    {
+      "id": "c16dc895-3431-4c6d-84cb-16785117e03a",
+      "name": "gcloud-mcp",
+      "description": "gcloud MCP server enables AI assistants to interact with models using the Model Context Protocol.",
+      "category": "infrastructure",
+      "source": "github",
+      "url": "https://github.com/googleapis/gcloud-mcp",
+      "quality_score": 0.7411576783542058,
+      "stars": 653,
+      "trust_score": 81.7
+    },
+    {
+      "id": "a53489c3-27f8-43a4-ae6a-a7419fd3215e",
+      "name": "timecopilot",
+      "description": "TimeCopilot is a GenAI Forecasting Agent that leverages LLMs and Time Series Foundation Models for advanced data analysis through a single API.",
+      "category": "data",
+      "source": "github",
+      "url": "https://github.com/TimeCopilot/timecopilot",
+      "quality_score": 0.7378935228637364,
+      "stars": 388,
+      "trust_score": 81.4
+    },
+    {
+      "id": "4d9dc298-7cbf-45c0-be0a-63ea3caa90e9",
+      "name": "openclaw-ansible",
+      "description": "Automated installation of Clawdbot with Tailscale, UFW, and Docker.",
+      "category": "devops",
+      "source": "github",
+      "url": "https://github.com/openclaw/openclaw-ansible",
+      "quality_score": 0.7373383781788581,
+      "stars": 271,
+      "trust_score": 78.3
+    }
+  ],
+  "trending_categories": [
+    {
+      "category": "coding",
+      "new_agents": 3772,
+      "avg_quality": 0.43
+    },
+    {
+      "category": "devops",
+      "new_agents": 1457,
+      "avg_quality": 0.43
+    },
+    {
+      "category": "infrastructure",
+      "new_agents": 742,
+      "avg_quality": 0.43
+    },
+    {
+      "category": "communication",
+      "new_agents": 703,
+      "avg_quality": 0.43
+    },
+    {
+      "category": "finance",
+      "new_agents": 684,
+      "avg_quality": 0.43
+    }
+  ],
+  "quality_insights": {
+    "quality_distribution": {
+      "Excellent (90-100%)": 1,
+      "Good (70-89%)": 396,
+      "Fair (50-69%)": 2425,
+      "Poor (<50%)": 38479
+    },
+    "source_quality_ranking": [
+      {
+        "source": "a2a",
+        "avg_quality": 0.327,
+        "agent_count": 3
+      },
+      {
+        "source": "github",
+        "avg_quality": 0.289,
+        "agent_count": 33635
+      },
+      {
+        "source": "mcp",
+        "avg_quality": 0.173,
+        "agent_count": 2516
+      },
+      {
+        "source": "huggingface",
+        "avg_quality": 0.147,
+        "agent_count": 1479
+      },
+      {
+        "source": "npm",
+        "avg_quality": 0.131,
+        "agent_count": 3668
+      }
+    ]
+  },
+  "growth_metrics": {
+    "weekly_additions": 16744,
+    "previous_week_additions": 24557,
+    "week_over_week_growth": -31.8,
+    "monthly_additions": 41301,
+    "daily_average": 2392.0
+  },
+  "ecosystem_updates": [
+    {
+      "type": "ecosystem_expansion",
+      "title": "Source Diversity Growing",
+      "description": "Discovered agents from 5 different sources this week",
+      "details": [
+        "mcp",
+        "github",
+        "huggingface",
+        "npm",
+        "a2a"
+      ]
+    },
+    {
+      "type": "quality_additions",
+      "title": "High-Quality Agents Added",
+      "description": "Added 3 highly-starred agents (100+ stars)",
+      "details": [
+        {
+          "name": "awesome-mcp-servers",
+          "stars": 80696,
+          "category": "infrastructure"
+        },
+        {
+          "name": "ansible",
+          "stars": 67964,
+          "category": "devops"
+        },
+        {
+          "name": "TrendRadar",
+          "stars": 45905,
+          "category": "marketing"
+        }
+      ]
+    }
+  ],
+  "highlights": [
+    "\ud83d\ude80 Added 16744 new agents this week",
+    "\u2705 0.1% of agents meet high quality standards",
+    "\ud83d\udcc8 coding leads with 9423 agents",
+    "\u2b50 Best new addition: agent-lightning (infrastructure)"
+  ]
+}
