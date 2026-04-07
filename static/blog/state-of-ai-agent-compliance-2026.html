@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>State of AI Agent Compliance 2026: 26,634 Agents, 14 Jurisdictions, One Report — Nerq Blog</title>
+<meta name="description" content="We assessed 26,634 AI agents across 14 global jurisdictions. 1.15% are high-risk. Here's the full breakdown of AI compliance in 2026 — risk distribution, jurisdiction divergence, and what it means for developers and companies.">
+<link rel="canonical" href="https://nerq.ai/blog/state-of-ai-agent-compliance-2026.html">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0f;--bg2:#12121a;--bg3:#1a1a26;--border:#2a2a3a;--text:#e8e8f0;--text2:#9898b0;--accent:#4af0c0;--accent2:#2ad0a0;--red:#ff4d6a;--orange:#ffaa33}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;line-height:1.7}
+article{max-width:760px;margin:0 auto;padding:160px 24px 60px}
+article h1{font-family:'DM Serif Display',serif;font-size:2.4rem;letter-spacing:-0.02em;line-height:1.15;margin-bottom:0.8rem;color:var(--text)}
+article h2{font-family:'DM Serif Display',serif;font-size:1.6rem;letter-spacing:-0.01em;margin:2.5rem 0 1rem;color:var(--text);border-bottom:1px solid var(--border);padding-bottom:0.5rem}
+article h3{font-size:1.15rem;font-weight:600;margin:2rem 0 0.8rem;color:var(--accent)}
+article p{margin-bottom:1.2rem;color:var(--text2);font-size:1.02rem}
+article strong{color:var(--text)}
+article em{color:var(--text);font-style:italic}
+article a{color:var(--accent);text-decoration:none}
+article a:hover{text-decoration:underline}
+article ul,article ol{margin:0.8rem 0 1.2rem 1.5rem;color:var(--text2);font-size:1.02rem}
+article li{margin-bottom:0.5rem;line-height:1.7}
+article code{font-family:'JetBrains Mono',monospace;background:var(--bg3);padding:2px 6px;border-radius:4px;font-size:0.9em;color:var(--accent)}
+article pre{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:1.2rem;overflow-x:auto;margin:1.2rem 0;font-family:'JetBrains Mono',monospace;font-size:0.88rem;line-height:1.6;color:var(--text2)}
+article pre code{background:none;padding:0;font-size:inherit}
+article blockquote{border-left:3px solid var(--accent);padding:0.8rem 1.2rem;margin:1.2rem 0;background:var(--bg2);border-radius:0 8px 8px 0}
+article blockquote p{margin-bottom:0;color:var(--text2)}
+.meta{color:var(--text2);font-size:0.9rem;margin-bottom:2rem;opacity:0.7}
+.cta{background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:1.5rem;border-radius:10px;margin:2rem 0;text-align:center}
+.cta a{color:var(--accent);font-weight:600}
+.continue{margin-top:3rem;padding-top:2rem;border-top:1px solid var(--border)}
+.continue h2{border-bottom:none;font-size:1.3rem}
+.continue ul{list-style:none;margin-left:0}
+.continue li{margin-bottom:0.8rem}
+.continue li a{color:var(--accent)}
+
+/* Data table */
+.data-table{width:100%;border-collapse:collapse;margin:1.2rem 0;font-size:0.88rem}
+.data-table th{background:var(--bg3);color:var(--text);font-weight:600;text-align:left;padding:10px 12px;border:1px solid var(--border)}
+.data-table td{padding:8px 12px;border:1px solid var(--border);color:var(--text2)}
+.data-table tr:nth-child(even) td{background:var(--bg2)}
+.data-table .high{color:var(--red);font-weight:600}
+.data-table .limited{color:var(--orange);font-weight:600}
+.data-table .minimal{color:var(--accent);font-weight:600}
+
+/* Stat cards */
+.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:1.5rem 0}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:1.2rem;text-align:center}
+.stat-card .num{font-family:'JetBrains Mono',monospace;font-size:1.8rem;font-weight:700;color:var(--accent)}
+.stat-card .label{font-size:0.8rem;color:var(--text2);margin-top:4px}
+.stat-card.warn .num{color:var(--red)}
+
+/* Key finding */
+.key-finding{background:var(--bg2);border-left:3px solid var(--accent);padding:1rem 1.2rem;margin:1.2rem 0;border-radius:0 8px 8px 0}
+.key-finding p{margin-bottom:0}
+
+/* Nav & Footer - same as other blog posts */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:1rem 2rem;background:rgba(10,10,15,0.9);backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
+nav .inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between}
+nav .logo{font-family:'DM Serif Display',serif;font-size:1.5rem;color:var(--accent);text-decoration:none;letter-spacing:-0.02em}
+nav .logo span{color:var(--text2);font-size:0.55em;font-weight:400;margin-left:2px;vertical-align:super}
+nav .links{display:flex;gap:1.8rem;align-items:center}
+nav .links a{color:var(--text2);text-decoration:none;font-size:0.9rem;font-weight:500;transition:color .2s}
+nav .links a:hover{color:var(--accent)}
+nav .links .cta{background:var(--accent);color:var(--bg);padding:0.45rem 1.1rem;border-radius:6px;font-weight:600}
+nav .links .cta:hover{background:var(--accent2);color:var(--bg)}
+footer{border-top:1px solid var(--border);padding:3rem 2rem}
+footer .inner{max-width:1200px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem}
+footer .left{color:var(--text2);font-size:0.85rem}
+footer .right{display:flex;gap:1.5rem}
+footer .right a{color:var(--text2);text-decoration:none;font-size:0.85rem}
+footer .right a:hover{color:var(--accent)}
+@media(max-width:768px){article{padding-top:100px}article h1{font-size:1.8rem}nav .links{gap:1rem;font-size:0.8rem}.stat-row{grid-template-columns:repeat(2,1fr)}}
+</style>
+
+<!-- SEO -->
+<meta name="keywords" content="AI compliance 2026, EU AI Act compliance data, AI agent risk classification, state of AI compliance, multi-jurisdiction AI regulation, AI compliance report">
+<meta name="robots" content="index, follow">
+<meta name="author" content="Nerq">
+
+<!-- Open Graph -->
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Nerq">
+<meta property="og:title" content="State of AI Agent Compliance 2026: 26,634 Agents, 14 Jurisdictions">
+<meta property="og:description" content="The first comprehensive analysis of AI agent compliance across 14 global jurisdictions. 307 high-risk agents identified. Full data inside.">
+<meta property="og:url" content="https://nerq.ai/blog/state-of-ai-agent-compliance-2026.html">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2026-02-19">
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="State of AI Agent Compliance 2026: 26,634 Agents, 14 Jurisdictions">
+<meta name="twitter:description" content="The first comprehensive analysis of AI agent compliance across 14 global jurisdictions. 307 high-risk agents found.">
+
+<!-- Schema.org -->
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"Article","headline":"State of AI Agent Compliance 2026: 26,634 Agents, 14 Jurisdictions, One Report","author":{"@type":"Organization","name":"Nerq"},"publisher":{"@type":"Organization","name":"Nerq","url":"https://nerq.ai"},"datePublished":"2026-02-19","description":"The first comprehensive analysis of AI agent compliance across 14 global jurisdictions.","url":"https://nerq.ai/blog/state-of-ai-agent-compliance-2026.html"}
+</script>
+</head>
+<body>
+
+<nav><div class="inner">
+<a href="/" class="logo">Nerq<span>ai</span></a>
+<div class="links">
+<a href="/discover">Discover</a>
+<a href="/comply">Comply</a>
+<a href="/blog">Blog</a>
+<a href="/docs">API</a>
+<a href="/checker" class="cta">Free Checker</a>
+</div>
+</div></nav>
+
+<article>
+
+<h1>State of AI Agent Compliance 2026</h1>
+<p class="meta">Published February 19, 2026 · By Nerq Research · <a href="/blog/State_of_AI_Agent_Compliance_2026.pdf">Download PDF</a></p>
+
+<p>We indexed 43,865 AI agents and MCP servers. We assessed 26,634 of them against 14 global jurisdictions. This is what we found.</p>
+
+<div class="stat-row">
+<div class="stat-card"><div class="num">43,865</div><div class="label">Agents Indexed</div></div>
+<div class="stat-card"><div class="num">26,634</div><div class="label">Assessed</div></div>
+<div class="stat-card warn"><div class="num">307</div><div class="label">High-Risk</div></div>
+<div class="stat-card"><div class="num">14</div><div class="label">Jurisdictions</div></div>
+</div>
+
+<h2>Why This Report Exists</h2>
+
+<p>AI regulation is no longer theoretical. As of February 2026, six jurisdictions have AI laws already in effect, four more are enacted with imminent deadlines, and four additional frameworks are proposed or voluntary. Yet there has been no comprehensive analysis of how the AI agent ecosystem actually stacks up against this regulatory wave.</p>
+
+<p>Nerq is in a unique position to provide that analysis. We crawl GitHub, npm, PyPI, HuggingFace, and MCP registries daily, indexing every AI agent we can find. Our compliance engine classifies each agent against 14 jurisdictions automatically. This report is the first public look at the data.</p>
+
+<h2>The Numbers</h2>
+
+<p>The overwhelming majority of AI agents are low-risk. Of the 26,634 agents we assessed:</p>
+
+<table class="data-table">
+<tr><th>Risk Level</th><th>Count</th><th>Percentage</th><th>Typical Systems</th></tr>
+<tr><td class="high">HIGH</td><td>307</td><td>1.15%</td><td>Healthcare AI, recruitment tools, credit scoring, biometrics</td></tr>
+<tr><td class="limited">LIMITED</td><td>146</td><td>0.55%</td><td>Chatbots, content generators, recommendation engines</td></tr>
+<tr><td class="minimal">MINIMAL</td><td>26,181</td><td>98.30%</td><td>Code assistants, data formatters, search tools, dev utilities</td></tr>
+</table>
+
+<p>The average compliance score across all assessed agents is <strong>94 out of 100</strong> — reflecting the fact that most agents are general-purpose developer tools that fall outside high-risk categories entirely.</p>
+
+<p>But the 307 high-risk agents are the ones that matter. These are AI systems operating in sectors explicitly named by regulators: healthcare, employment, credit, law enforcement, critical infrastructure, and biometric identification.</p>
+
+<h3>MCP Servers: A Higher Risk Profile</h3>
+
+<p>MCP (Model Context Protocol) servers are a rapidly growing category of AI infrastructure. Our analysis of 2,616 MCP servers reveals a notably higher risk proportion than the general agent population:</p>
+
+<table class="data-table">
+<tr><th>MCP Risk Level</th><th>Count</th><th>Percentage</th></tr>
+<tr><td class="high">High</td><td>143</td><td>5.5%</td></tr>
+<tr><td class="limited">Limited</td><td>119</td><td>4.5%</td></tr>
+<tr><td class="minimal">Minimal</td><td>2,354</td><td>90.0%</td></tr>
+</table>
+
+<p>The 5.5% high-risk rate for MCP servers is nearly 5x higher than the general population. This is driven by MCP servers that provide access to financial data (stock trading, portfolio management), healthcare records, and government databases.</p>
+
+<h2>The Jurisdiction Divergence Problem</h2>
+
+<p>One of the most significant findings is the degree of regulatory divergence across jurisdictions. The same AI system can be classified completely differently depending on which country's law you apply.</p>
+
+<div class="key-finding">
+<p><strong>A CV screening tool is classified as high-risk in 4 out of 8 jurisdictions — but minimal-risk in the other 4.</strong> There is no single global standard for AI compliance.</p>
+</div>
+
+<p>Here's how a typical CV screening tool (one that automatically ranks and filters job applicants) is classified across jurisdictions:</p>
+
+<table class="data-table">
+<tr><th>Jurisdiction</th><th>Risk</th><th>Confidence</th><th>Why</th></tr>
+<tr><td>EU AI Act</td><td class="high">HIGH</td><td>Native</td><td>Annex III: employment &amp; recruitment systems</td></tr>
+<tr><td>Colorado AI Act</td><td class="high">HIGH</td><td>Native</td><td>Algorithmic discrimination in employment</td></tr>
+<tr><td>Illinois AI Interview Act</td><td class="high">HIGH</td><td>Native</td><td>AI in hiring process (specific statute)</td></tr>
+<tr><td>South Korea AI Basic Act</td><td class="high">HIGH</td><td>Native</td><td>High-impact category: employment</td></tr>
+<tr><td>California SB 53</td><td class="minimal">Minimal</td><td>Native</td><td>Covers frontier models only</td></tr>
+<tr><td>China Cybersecurity</td><td class="minimal">Minimal</td><td>Native</td><td>Covers critical infrastructure only</td></tr>
+<tr><td>Japan AI Bill</td><td class="minimal">Minimal</td><td>Approximate</td><td>No specific high-risk criteria defined</td></tr>
+<tr><td>Singapore Framework</td><td class="minimal">Minimal</td><td>Approximate</td><td>Voluntary framework</td></tr>
+</table>
+
+<p>This has real implications. A company deploying an AI hiring tool in the EU and Japan faces full compliance requirements in Europe but none in Japan. A US company must navigate different requirements in Colorado (algorithmic discrimination), Illinois (video interview specific), and California (only frontier models).</p>
+
+<h2>14 Jurisdictions, One Tracker</h2>
+
+<p>The regulatory landscape is expanding fast. Here's every jurisdiction Nerq currently tracks:</p>
+
+<table class="data-table">
+<tr><th>Jurisdiction</th><th>Status</th><th>Effective Date</th><th>Focus</th></tr>
+<tr><td>EU AI Act</td><td>Enacted</td><td>Aug 2, 2026</td><td>Comprehensive risk-based</td></tr>
+<tr><td>Colorado AI Act</td><td>Enacted</td><td>Jun 30, 2026</td><td>Algorithmic discrimination</td></tr>
+<tr><td>South Korea AI Basic Act</td><td>Effective</td><td>Jan 22, 2026</td><td>Broad safety framework</td></tr>
+<tr><td>California SB 53</td><td>Effective</td><td>Jan 1, 2026</td><td>Frontier model safety</td></tr>
+<tr><td>California SB 942</td><td>Enacted</td><td>Aug 2, 2026</td><td>AI transparency</td></tr>
+<tr><td>Illinois AI Video Interview</td><td>Effective</td><td>Jan 1, 2020</td><td>Employment AI</td></tr>
+<tr><td>Texas RAIGA</td><td>Effective</td><td>Jan 1, 2026</td><td>Transparency</td></tr>
+<tr><td>China Cybersecurity Amend.</td><td>Effective</td><td>Jan 1, 2026</td><td>Security &amp; data</td></tr>
+<tr><td>Japan AI Bill</td><td>Effective</td><td>May 1, 2025</td><td>Broad principles</td></tr>
+<tr><td>Singapore AI Governance</td><td>Voluntary</td><td>Active</td><td>Governance framework</td></tr>
+<tr><td>Vietnam AI Law</td><td>Enacted</td><td>Dec 31, 2026</td><td>Broad regulation</td></tr>
+<tr><td>Brazil AI Bill</td><td>Proposed</td><td>2027 (est.)</td><td>Rights-based</td></tr>
+<tr><td>Canada AIDA</td><td>Proposed</td><td>2027 (est.)</td><td>Safety &amp; accountability</td></tr>
+<tr><td>UK AI Regulation Bill</td><td>Proposed</td><td>2027 (est.)</td><td>Sector-based</td></tr>
+</table>
+
+<h2>The Compliance Cliff</h2>
+
+<p>Multiple deadlines are converging in the next six months:</p>
+
+<ul>
+<li><strong>Colorado AI Act — June 30, 2026</strong> (~131 days). All high-risk AI used in consequential decisions must comply.</li>
+<li><strong>EU AI Act Annex III — August 2, 2026</strong> (~164 days). High-risk AI systems must have conformity assessments, risk management, documentation, and human oversight.</li>
+<li><strong>California SB 942 — August 2, 2026</strong> (~164 days). AI transparency requirements take effect.</li>
+</ul>
+
+<p>Organizations with AI systems classified as high-risk in any of these jurisdictions should be actively working on compliance programs now. The EU AI Act alone requires conformity assessments, risk management systems, data governance procedures, technical documentation, human oversight mechanisms, and registration in the EU database — none of which can be implemented overnight.</p>
+
+<h2>What We Recommend</h2>
+
+<h3>For Developers</h3>
+<ul>
+<li><strong>Run a multi-jurisdiction check now.</strong> Use <a href="/checker">nerq.ai/checker</a> to see your risk profile across all 14 jurisdictions. It's free, instant, and requires no signup.</li>
+<li><strong>Embed a compliance badge</strong> in your README. It signals regulatory awareness to users and auditors. <a href="/comply#badge">Get your badge</a>.</li>
+<li><strong>Integrate into CI/CD.</strong> The <a href="/docs">Nerq API</a> lets you check compliance on every release. No auth required.</li>
+</ul>
+
+<h3>For Companies</h3>
+<ul>
+<li><strong>Audit your AI stack.</strong> Inventory all AI systems, agents, and MCP servers in use. Most organizations underestimate their AI footprint.</li>
+<li><strong>Map jurisdictions to deployments.</strong> Determine which regulations apply based on where you operate and where your users are.</li>
+<li><strong>Start with the nearest deadline.</strong> Colorado (June 2026) and the EU (August 2026) should be immediate priorities.</li>
+</ul>
+
+<h3>For Compliance Officers</h3>
+<ul>
+<li><strong>Use the API for portfolio assessment.</strong> Check your entire AI inventory programmatically via <code>POST /compliance/check</code>.</li>
+<li><strong>Track the changelog.</strong> Nerq maintains a <a href="/compliance/changelog">regulatory changelog</a> so you can monitor shifts that may reclassify your systems.</li>
+<li><strong>Understand confidence levels.</strong> Nerq marks each classification as <em>native</em> (jurisdiction-specific logic) or <em>approximate</em> (conservative default). Plan based on native results.</li>
+</ul>
+
+<h2>Methodology</h2>
+
+<p>Nerq indexes AI agents from GitHub, npm, PyPI, HuggingFace, and MCP server registries via daily automated crawls. Classification uses a hybrid engine combining rule-based matching with LLM-enhanced analysis. Six jurisdictions have native classifiers with jurisdiction-specific logic; eight use approximate classifiers that default to minimal risk with disclosure.</p>
+
+<p>Compliance scoring (0-100) is generated from gap analysis across requirement areas including risk management, data governance, human oversight, transparency, and documentation. All results should be treated as screening indicators, not definitive legal assessments.</p>
+
+<p>The full PDF version of this report with additional detail is available for <a href="/blog/State_of_AI_Agent_Compliance_2026.pdf">download here</a>.</p>
+
+<div class="cta">
+<p><strong>Check your AI system now</strong> — free, instant, 14 jurisdictions<br>
+<a href="/checker">nerq.ai/checker →</a></p>
+</div>
+
+<div class="continue">
+<h2>Continue Reading</h2>
+<ul>
+<li><a href="/blog/ai-agent-quality-scoring-guide.html">AI Agent Quality Scoring: How to Evaluate Trust and Reliability</a></li>
+<li><a href="/blog/how-to-find-ai-agents-guide.html">How to Find AI Agents: The Complete Guide for 2026</a></li>
+<li><a href="/blog/langchain-agent-discovery-2026.html">LangChain Agent Discovery: Building the Next Generation</a></li>
+</ul>
+</div>
+
+</article>
+
+<footer><div class="inner">
+<div class="left">&copy; 2026 Nerq. Built with AI, for AI.</div>
+<div class="right">
+<a href="/discover">Discover</a>
+<a href="/comply">Comply</a>
+<a href="/docs">API</a>
+<a href="/blog">Blog</a>
+<a href="/terms">Terms</a>
+<a href="/privacy">Privacy</a>
+</div>
+</div></footer>
+
+</body>
+</html>

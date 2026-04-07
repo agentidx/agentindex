@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Agent Statistics — Live Data | Nerq</title>
+<meta name="description" content="Live statistics from the world's largest AI agent index. 5M+ assets indexed from 6 registries.">
+<link rel="canonical" href="https://nerq.ai/stats">
+<meta name="robots" content="index, follow">
+<meta name="author" content="Nerq">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Nerq">
+<meta property="og:title" content="AI Agent Statistics — Live Data">
+<meta property="og:description" content="Live statistics from the world's largest AI agent index.">
+<meta property="og:url" content="https://nerq.ai/stats">
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"Dataset","name":"Nerq AI Agent Statistics","description":"Live statistics from the world's largest AI agent database. 5M+ assets indexed.","url":"https://nerq.ai/stats","creator":{"@type":"Organization","name":"Nerq","url":"https://nerq.ai"},"keywords":["AI agents","MCP servers","AI compliance statistics"]}
+</script>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:system-ui,-apple-system,sans-serif;color:#1a1a1a;background:#fff;line-height:1.6;font-size:15px}
+a{color:#0d9488;text-decoration:none}
+a:hover{color:#0f766e;text-decoration:underline}
+code{font-family:ui-monospace,'SF Mono','Cascadia Mono',monospace;background:#f5f5f5;padding:1px 5px;font-size:0.9em}
+nav{border-bottom:1px solid #e5e7eb;padding:12px 0}
+nav .inner{max-width:960px;margin:0 auto;padding:0 20px;display:flex;align-items:center;justify-content:space-between}
+nav .logo{font-weight:700;font-size:1.1rem;color:#0d9488;text-decoration:none}
+nav .logo:hover{text-decoration:none}
+nav .links{display:flex;gap:20px;font-size:14px}
+nav .links a{color:#6b7280}
+nav .links a:hover{color:#0d9488;text-decoration:none}
+.container{max-width:960px;margin:0 auto;padding:20px}
+h1{font-size:1.6rem;font-weight:700;margin-bottom:8px}
+h2{font-size:1.2rem;margin:24px 0 8px;padding-top:16px;border-top:1px solid #e5e7eb}
+.desc{color:#6b7280;font-size:14px;margin:4px 0 12px}
+.stat-row{display:flex;gap:32px;margin:16px 0;flex-wrap:wrap}
+.stat-item .num{font-family:ui-monospace,'SF Mono',monospace;font-size:1.4rem;font-weight:700}
+.stat-item .label{font-size:12px;color:#6b7280}
+table{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0}
+th{text-align:left;padding:8px 12px;border-bottom:2px solid #e5e7eb;color:#6b7280;font-weight:600;font-size:13px}
+td{padding:8px 12px;border-bottom:1px solid #e5e7eb}
+tr:nth-child(even){background:#f9fafb}
+.num-cell{font-family:ui-monospace,'SF Mono',monospace;text-align:right}
+.pct{font-size:12px;color:#6b7280}
+.bar-wrap{display:flex;align-items:center;gap:8px}
+.bar{height:8px;min-width:2px}
+.bar-green{background:#0d9488}
+.bar-yellow{background:#ca8a04}
+.bar-red{background:#dc2626}
+.pill{display:inline-block;padding:1px 8px;font-size:12px;font-weight:600;border:1px solid #e5e7eb}
+.pill-green{background:#ecfdf5;color:#065f46;border-color:#a7f3d0}
+.pill-yellow{background:#fffbeb;color:#92400e;border-color:#fde68a}
+.pill-red{background:#fef2f2;color:#991b1b;border-color:#fecaca}
+.card{border:1px solid #e5e7eb;padding:16px;margin-bottom:12px}
+.freshness{font-size:12px;color:#6b7280;margin-top:24px;padding-top:12px;border-top:1px solid #e5e7eb}
+footer{border-top:1px solid #e5e7eb;padding:20px 0;margin-top:40px;font-size:13px;color:#6b7280}
+footer .inner{max-width:960px;margin:0 auto;padding:0 20px}
+@media(max-width:768px){.stat-row{gap:16px}}
+</style>
+</head>
+<body>
+
+<nav><div class="inner">
+<a href="/" class="logo">nerq</a>
+<div class="links">
+<a href="/discover">search</a>
+<a href="/safe">safety</a>
+<a href="/compare">compare</a>
+<a href="/kya">kya</a>
+<a href="/nerq/docs">api</a>
+<a href="/mcp">mcp</a>
+<a href="/stats">stats</a>
+<a href="/weekly">weekly</a>
+<a href="/verified">verified</a>
+<a href="/reports">reports</a>
+</div>
+</div></nav>
+
+<main class="container" style="padding-top:20px;padding-bottom:40px">
+
+<h1>AI agent statistics</h1>
+<p class="desc">Live data from the world's largest AI agent index</p>
+
+<div class="stat-row">
+<div class="stat-item"><div class="num" id="b-total">5M+</div><div class="label">assets indexed</div></div>
+<div class="stat-item"><div class="num" id="b-agents">&mdash;</div><div class="label">agents &amp; tools</div></div>
+<div class="stat-item"><div class="num" id="b-mcp">&mdash;</div><div class="label">MCP servers</div></div>
+<div class="stat-item"><div class="num" id="b-models">&mdash;</div><div class="label">models</div></div>
+</div>
+
+<h2>trust distribution</h2>
+<p class="desc">Based on Nerq trust scoring (security, compliance, maintenance, popularity, ecosystem).</p>
+<table>
+<tr><th>Level</th><th style="text-align:right">Count</th><th>Distribution</th></tr>
+<tr>
+  <td><span class="pill pill-green">TRUSTED</span> (score 60+)</td>
+  <td class="num-cell" id="t-trusted">&mdash;</td>
+  <td><div class="bar-wrap"><div class="bar bar-green" id="bar-trusted" style="width:200px"></div></div></td>
+</tr>
+<tr>
+  <td><span class="pill pill-yellow">CAUTION</span> (score 35-59)</td>
+  <td class="num-cell" id="t-caution">&mdash;</td>
+  <td><div class="bar-wrap"><div class="bar bar-yellow" id="bar-caution" style="width:20px"></div></div></td>
+</tr>
+<tr>
+  <td><span class="pill pill-red">UNTRUSTED</span> (score &lt;35)</td>
+  <td class="num-cell" id="t-untrusted">&mdash;</td>
+  <td><div class="bar-wrap"><div class="bar bar-red" id="bar-untrusted" style="width:2px"></div></div></td>
+</tr>
+<tr style="font-weight:700"><td>Average trust score</td><td class="num-cell" id="t-avg">&mdash;</td><td></td></tr>
+</table>
+
+<h2>top categories</h2>
+<table>
+<thead><tr><th>Category</th><th style="text-align:right">Count</th><th style="text-align:right">Avg Trust</th></tr></thead>
+<tbody id="cat-rows"></tbody>
+</table>
+
+<h2>top frameworks</h2>
+<table>
+<thead><tr><th>Framework</th><th style="text-align:right">Count</th></tr></thead>
+<tbody id="fw-rows"></tbody>
+</table>
+
+<h2>top languages</h2>
+<table>
+<thead><tr><th>Language</th><th style="text-align:right">Count</th></tr></thead>
+<tbody id="lang-rows"></tbody>
+</table>
+
+<div class="card" style="margin-top:24px">
+<h3 style="font-size:14px;margin-bottom:4px">Methodology</h3>
+<p style="font-size:13px;color:#6b7280;line-height:1.6">Nerq Trust Score is a composite 0-100 score based on five pillars: Security (30%), Compliance (25%), Maintenance (20%), Popularity (15%), Ecosystem (10%). Agents scoring 60+ are TRUSTED, 35-59 CAUTION, below 35 UNTRUSTED. Data is crawled from npm, PyPI, HuggingFace, GitHub, Docker Hub, and MCP registries.</p>
+</div>
+
+<div class="freshness">
+Data from Nerq &middot; Updated via <a href="/nerq/docs">API</a> &middot; <span id="update-time"></span>
+</div>
+
+</main>
+
+<footer><div class="inner">
+nerq &mdash; the ai asset search engine &middot; 5M+ assets indexed &middot;
+<a href="/nerq/docs">api</a> &middot;
+<a href="/kya">kya</a> &middot;
+<a href="https://zarq.ai">zarq.ai</a> (crypto risk)
+</div></footer>
+
+<script>
+fetch('/v1/agent/stats').then(r=>r.json()).then(d=>{
+  if(d.total_assets) document.getElementById('b-total').textContent=d.total_assets.toLocaleString();
+  if(d.total_agents!=null) document.getElementById('b-agents').textContent=(d.total_agents+(d.total_tools||0)).toLocaleString();
+  if(d.total_mcp_servers!=null) document.getElementById('b-mcp').textContent=d.total_mcp_servers.toLocaleString();
+  if(d.total_models!=null) document.getElementById('b-models').textContent=d.total_models.toLocaleString();
+
+  // Trust distribution
+  if(d.trust_distribution){
+    const td=d.trust_distribution;
+    const total=(td.TRUSTED||0)+(td.CAUTION||0)+(td.UNTRUSTED||0);
+    document.getElementById('t-trusted').textContent=(td.TRUSTED||0).toLocaleString();
+    document.getElementById('t-caution').textContent=(td.CAUTION||0).toLocaleString();
+    document.getElementById('t-untrusted').textContent=(td.UNTRUSTED||0).toLocaleString();
+    if(total>0){
+      document.getElementById('bar-trusted').style.width=Math.round((td.TRUSTED||0)/total*200)+'px';
+      document.getElementById('bar-caution').style.width=Math.max(2,Math.round((td.CAUTION||0)/total*200))+'px';
+      document.getElementById('bar-untrusted').style.width=Math.max(2,Math.round((td.UNTRUSTED||0)/total*200))+'px';
+    }
+  }
+  if(d.average_trust_score!=null) document.getElementById('t-avg').textContent=d.average_trust_score+'/100';
+
+  // Categories
+  if(d.categories){
+    let html='';
+    Object.entries(d.categories).slice(0,30).forEach(([cat,cnt])=>{
+      html+='<tr><td>'+esc(cat)+'</td><td class="num-cell">'+cnt.toLocaleString()+'</td><td class="num-cell">&mdash;</td></tr>';
+    });
+    document.getElementById('cat-rows').innerHTML=html;
+  }
+
+  // Frameworks
+  if(d.frameworks){
+    let html='';
+    Object.entries(d.frameworks).slice(0,20).forEach(([fw,cnt])=>{
+      html+='<tr><td>'+esc(fw)+'</td><td class="num-cell">'+cnt.toLocaleString()+'</td></tr>';
+    });
+    document.getElementById('fw-rows').innerHTML=html;
+  }
+
+  // Languages
+  if(d.languages){
+    let html='';
+    Object.entries(d.languages).slice(0,15).forEach(([lang,cnt])=>{
+      html+='<tr><td>'+esc(lang)+'</td><td class="num-cell">'+cnt.toLocaleString()+'</td></tr>';
+    });
+    document.getElementById('lang-rows').innerHTML=html;
+  }
+
+  if(d.updated_at) document.getElementById('update-time').textContent='Last updated: '+new Date(d.updated_at).toLocaleString();
+}).catch(()=>{});
+
+function esc(s){return s?String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'):'';}
+</script>
+</body>
+</html>

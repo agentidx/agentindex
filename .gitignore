@@ -102,3 +102,8 @@ auto_indexnow_state.json
 
 # ─── Auto-generated docs (107 files and growing) ──────────────
 docs/auto-reports/
+
+# ─── Static frontend backup files ─────────────────────────────
+*.backup_*
+*-backup-*.html
+backup-*.html

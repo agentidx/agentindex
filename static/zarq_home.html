@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZARQ — Crypto Risk Intelligence</title>
+<meta name="description" content="ZARQ is the trust layer for crypto. Safety ratings, crash probability, and Distance-to-Default for 200+ tokens. The Moody's for crypto.">
+<link rel="canonical" href="https://zarq.ai/">
+<meta name="robots" content="index, follow">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="ZARQ">
+<meta property="og:title" content="ZARQ — Crypto Risk Intelligence">
+<meta property="og:description" content="Safety ratings, crash probability, and Distance-to-Default for 200+ tokens.">
+<meta property="og:url" content="https://zarq.ai/">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebSite","name":"ZARQ","url":"https://zarq.ai","description":"Crypto risk intelligence — safety ratings, crash probability, Distance-to-Default","potentialAction":{"@type":"SearchAction","target":"https://zarq.ai/vitality?q={search_term_string}","query-input":"required name=search_term_string"}}
+</script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'DM Sans',system-ui,-apple-system,sans-serif;color:#1a1a1a;background:#fff;line-height:1.6;font-size:15px}
+a{color:#c2956b;text-decoration:none}
+a:hover{color:#a87d58;text-decoration:underline}
+code,pre{font-family:'JetBrains Mono',ui-monospace,'SF Mono',monospace}
+code{background:#f5f5f5;padding:1px 5px;font-size:0.9em}
+pre{background:#f5f5f5;padding:16px;overflow-x:auto;font-size:13px;line-height:1.5;border:1px solid #e5e7eb}
+nav{border-bottom:1px solid #e5e7eb;padding:12px 0}
+nav .inner{max-width:960px;margin:0 auto;padding:0 20px;display:flex;align-items:center;justify-content:space-between}
+nav .logo{font-family:'DM Serif Display',Georgia,serif;font-weight:700;font-size:1.2rem;color:#1a1a1a;text-decoration:none}
+nav .logo:hover{text-decoration:none}
+nav .links{display:flex;gap:20px;font-size:14px}
+nav .links a{color:#6b7280}
+nav .links a:hover{color:#c2956b;text-decoration:none}
+.container{max-width:960px;margin:0 auto;padding:0 20px}
+.hero{padding:60px 0 40px;text-align:center}
+h1{font-family:'DM Serif Display',Georgia,serif;font-size:2rem;font-weight:700;line-height:1.2;margin-bottom:8px}
+.hero-sub{color:#6b7280;font-size:15px;margin-bottom:24px}
+.search-box{display:flex;gap:8px;max-width:540px;margin:0 auto 16px}
+.search-box input{flex:1;padding:10px 14px;border:1px solid #e5e7eb;font-size:15px;font-family:'DM Sans',system-ui,sans-serif;outline:none}
+.search-box input:focus{border-color:#c2956b}
+.search-box button{padding:10px 24px;background:#c2956b;color:#fff;border:none;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',system-ui,sans-serif}
+.search-box button:hover{background:#a87d58}
+.stat-row{display:flex;gap:32px;justify-content:center;margin:0 auto 40px;flex-wrap:wrap}
+.stat-item .num{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:1.4rem;font-weight:700}
+.stat-item .label{font-size:12px;color:#6b7280}
+.section{margin:32px 0}
+.section h2{font-family:'DM Serif Display',Georgia,serif;font-size:1.2rem;font-weight:700;margin-bottom:12px;padding-top:16px;border-top:1px solid #e5e7eb}
+.gcard{border:1px solid #e5e7eb;padding:16px;text-decoration:none;color:inherit;display:block}
+.gcard:hover{border-color:#c2956b;text-decoration:none}
+.gcard h3{font-size:16px;font-weight:600;margin-bottom:6px}
+.gcard p{font-size:12px;color:#6b7280;line-height:1.4}
+.gcard .gs{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:12px;color:#c2956b;margin-top:8px}
+.mlink{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:13px;color:#6b7280;border:1px solid #e5e7eb;padding:6px 12px;text-decoration:none;display:inline-block}
+.mlink:hover{border-color:#c2956b;color:#c2956b;text-decoration:none}
+footer{border-top:1px solid #e5e7eb;padding:20px 0;margin-top:40px;font-size:13px;color:#6b7280}
+footer .inner{max-width:960px;margin:0 auto;padding:0 20px}
+@media(max-width:768px){.action-grid{grid-template-columns:1fr !important}}
+</style>
+</head>
+<body>
+<nav><div class="inner">
+<a href="/" class="logo">ZARQ</a>
+<div class="links">
+<a href="/vitality">tokens</a>
+<a href="/zarq/methodology">methodology</a>
+<a href="/zarq/docs">api</a>
+<a href="/zarq/press">press</a>
+<a href="https://nerq.ai">nerq.ai</a>
+</div>
+</div></nav>
+
+<section style="text-align:center;padding:48px 20px 32px;background:linear-gradient(135deg,#0a0a0a,#1a1a2e);">
+<h1 style="font-family:'DM Serif Display',Georgia,serif;font-size:2.5rem;color:#fff;margin-bottom:0.5rem">Is your crypto safe?</h1>
+<p style="color:#9ca3af;margin-bottom:1.5rem;font-size:15px">Trust ratings for 16,300 tokens. Crash predictions. DeFi yield safety.</p>
+<div style="max-width:500px;margin:0 auto;display:flex;gap:8px">
+<input type="text" id="crypto-search" placeholder="bitcoin, solana, pepe..." style="flex:1;padding:12px 16px;border-radius:8px;border:1px solid #333;background:#111;color:#fff;font-size:16px;font-family:'DM Sans',system-ui,sans-serif" autofocus>
+<button onclick="checkCrypto()" style="padding:12px 24px;border-radius:8px;background:#c2956b;color:#fff;font-weight:600;border:none;cursor:pointer;font-family:'DM Sans',system-ui,sans-serif;font-size:15px">CHECK</button>
+</div>
+<div style="display:flex;justify-content:center;gap:12px;margin-top:16px;font-size:13px">
+<a href="/best/safest-crypto-2026" style="color:#c2956b">Safest crypto</a>
+<span style="color:#333">&middot;</span>
+<a href="/crash-watch" style="color:#c2956b">Crash watch</a>
+<span style="color:#333">&middot;</span>
+<a href="/yield-risk" style="color:#c2956b">Yield safety</a>
+<span style="color:#333">&middot;</span>
+<a href="/contagion" style="color:#c2956b">Contagion map</a>
+</div>
+<p style="color:#4b5563;font-size:0.8rem;margin-top:12px">We predicted 144 crypto crashes with 98% precision &middot; 22-month avg lead time</p>
+</section>
+
+<script>
+function checkCrypto(){var q=document.getElementById('crypto-search').value.trim().toLowerCase();if(!q)return;if(q.includes(' dead'))window.location='/is-'+q.replace(/ dead.*/,'').replace(/\s+/g,'-')+'-dead';else if(q.includes(' scam'))window.location='/is-'+q.replace(/ scam.*/,'').replace(/\s+/g,'-')+'-a-scam';else if(q.includes(' vs ')){var p=q.split(' vs ');window.location='/compare/'+p[0].trim().replace(/\s+/g,'-')+'-vs-'+p[1].trim().replace(/\s+/g,'-')}else if(q.includes('crash'))window.location='/crash-prediction/'+q.replace(/crash.*/,'').trim().replace(/\s+/g,'-');else if(q.includes('safe'))window.location='/safe/token/'+q.replace(/safe.*/,'').trim().replace(/\s+/g,'-');else window.location='/token/'+q.replace(/\s+/g,'-')}
+document.getElementById('crypto-search').addEventListener('keypress',function(e){if(e.key==='Enter')checkCrypto()});
+</script>
+
+<main class="container">
+<div class="hero" style="padding-top:24px">
+<h1 style="font-size:1.5rem">check any token's risk rating</h1>
+<p class="hero-sub">Safety ratings, crash probability, and Distance-to-Default for 200+ crypto tokens</p>
+
+<div class="search-box">
+<form action="/vitality" method="GET" style="display:contents">
+<input type="text" name="q" placeholder="e.g. bitcoin, ethereum, solana, chainlink..." autocomplete="off">
+<button type="submit">check risk</button>
+</form>
+</div>
+<p id="trust-counter" style="font-size:13px;color:#6b7280;margin-bottom:24px">Independent crypto risk intelligence</p>
+
+<div class="stat-row">
+<div class="stat-item"><div class="num">200+</div><div class="label">tokens rated</div></div>
+<div class="stat-item"><div class="num">7</div><div class="label">risk pillars</div></div>
+<div class="stat-item"><div class="num">daily</div><div class="label">score updates</div></div>
+<div class="stat-item"><div class="num" style="color:#c2956b">free</div><div class="label">no auth required</div></div>
+</div>
+</div>
+
+<div class="section">
+<div class="action-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
+<a href="/vitality" class="gcard" style="border-width:2px">
+  <h3>Token Vitality</h3>
+  <p>Browse all rated tokens with crash probability and trust scores</p>
+  <span class="gs">200+ tokens &rarr;</span>
+</a>
+<a href="/zarq/methodology" class="gcard" style="border-width:2px">
+  <h3>Methodology</h3>
+  <p>7 quantitative pillars: NDD, crash probability, TVL, DeFi yield, and more</p>
+  <span class="gs">transparent scoring &rarr;</span>
+</a>
+<a href="/zarq/docs" class="gcard" style="border-width:2px">
+  <h3>API Access</h3>
+  <p>Integrate risk ratings into your trading, compliance, or DeFi pipeline</p>
+  <span class="gs">free API &rarr;</span>
+</a>
+</div>
+</div>
+
+<div class="section">
+<h2>for developers</h2>
+<p style="font-size:14px;color:#6b7280;margin-bottom:12px">Add crypto risk checks to your pipeline. Free, no auth required.</p>
+<pre style="margin-bottom:12px">curl https://zarq.ai/v1/check?token=bitcoin
+
+# returns: {"rating": "A2", "trust_score": 85, "crash_probability": 12.3, ...}</pre>
+<div style="display:flex;gap:12px;flex-wrap:wrap">
+<a href="/zarq/docs" class="mlink" style="background:#c2956b;color:#fff;border-color:#c2956b;font-weight:600">API docs</a>
+<a href="/v1/check?token=bitcoin" class="mlink">try check API</a>
+<a href="/v1/preflight?target=bitcoin" class="mlink">try preflight</a>
+</div>
+</div>
+
+<div style="text-align:center;font-size:12px;color:#6b7280;margin:24px 0">
+scores updated daily &middot; <a href="/zarq/docs" style="color:#c2956b">api docs</a> &middot; <a href="https://nerq.ai" style="color:#c2956b">nerq.ai</a> (AI agents)
+</div>
+</main>
+
+<footer><div class="inner">
+ZARQ &mdash; crypto risk intelligence &middot; 200+ tokens rated &middot;
+<a href="/zarq/docs">api</a> &middot;
+<a href="/vitality">tokens</a> &middot;
+<a href="https://nerq.ai">nerq.ai</a> (AI agents)
+</div></footer>
+
+<script>
+fetch('/v1/trust-checks-today').then(r=>r.json()).then(d=>{
+  const el=document.getElementById('trust-counter');
+  if(el&&(d.today>0||d.total>0)){
+    const n=d.today>0?d.today.toLocaleString()+' trust checks today':d.total.toLocaleString()+' trust checks served';
+    el.innerHTML='Independent crypto risk intelligence &mdash; <strong style="color:#c2956b">'+n+'</strong>';
+  }
+}).catch(()=>{});
+</script>
+</body>
+</html>

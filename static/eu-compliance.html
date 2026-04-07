@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nerq Comply — AI Compliance Across 52 Jurisdictions | Free Checker</title>
+<meta name="description" content="Free AI compliance checker covering 14 global jurisdictions including EU AI Act, Colorado AI Act, and California SB 942. Risk classification, gap analysis, and deadline tracking for 4.9M+ AI agents.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<!-- SEO -->
+<link rel="canonical" href="https://nerq.ai/comply">
+<meta name="keywords" content="AI compliance checker, EU AI Act, Colorado AI Act, California AI Transparency, AI risk classification, multi-jurisdiction AI compliance, AI agent compliance, MCP server compliance">
+<meta name="robots" content="index, follow">
+<meta name="author" content="Nerq">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Nerq">
+<meta property="og:title" content="AI Compliance Across 52 Jurisdictions — Nerq Comply">
+<meta property="og:description" content="Free multi-jurisdiction AI compliance checker. 4.9M+ agents assessed across EU, US, Asia, and more. Check yours in 5 seconds.">
+<meta property="og:url" content="https://nerq.ai/comply">
+<meta property="og:locale" content="en_US">
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="AI Compliance Across 52 Jurisdictions — Nerq Comply">
+<meta name="twitter:description" content="Free multi-jurisdiction AI compliance checker. 4.9M+ agents assessed across EU, US, Asia, and more.">
+
+<!-- Schema.org -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Nerq Comply — Multi-Jurisdiction AI Compliance",
+  "url": "https://nerq.ai/comply",
+  "applicationCategory": "BusinessApplication",
+  "operatingSystem": "Web",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  },
+  "description": "Free AI compliance checker covering 14 global jurisdictions. Automated risk classification, gap analysis, and deadline tracking for AI agents and MCP servers."
+}
+</script>
+
+<style>
+:root{--bg:#0a0a0f;--bg2:#12121a;--bg3:#1a1a26;--surface:#22222e;--border:#2a2a3a;--text:#e8e8f0;--text2:#9898b0;--accent:#4af0c0;--accent2:#2ad0a0;--red:#ff4d6a;--orange:#ffaa33;--yellow:#ffe066;--blue:#4d8aff}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;overflow-x:hidden}
+
+/* Nav */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:1.2rem 2rem;background:rgba(10,10,15,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
+nav .inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between}
+nav .logo{font-family:'DM Serif Display',serif;font-size:1.4rem;color:var(--accent);text-decoration:none;letter-spacing:-0.02em}
+nav .logo span{color:var(--text2);font-weight:400}
+nav .links{display:flex;gap:2rem;align-items:center}
+nav .links a{color:var(--text2);text-decoration:none;font-size:0.9rem;font-weight:500;transition:color .2s}
+nav .links a:hover{color:var(--accent)}
+nav .links .cta{background:var(--accent);color:var(--bg);padding:0.5rem 1.2rem;border-radius:6px;font-weight:600}
+nav .links .cta:hover{background:var(--accent2);color:var(--bg)}
+
+/* Hero */
+.hero{min-height:auto;display:flex;align-items:center;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-200px;right:-200px;width:600px;height:600px;background:radial-gradient(circle,rgba(74,240,192,0.08) 0%,transparent 70%);pointer-events:none}
+.hero::after{content:'';position:absolute;bottom:-100px;left:-100px;width:400px;height:400px;background:radial-gradient(circle,rgba(77,138,255,0.06) 0%,transparent 70%);pointer-events:none}
+.hero .inner{max-width:1200px;margin:0 auto;padding:6rem 2rem 3rem;width:100%;text-align:center}
+.hero .eyebrow{display:inline-flex;align-items:center;gap:0.5rem;background:var(--bg3);border:1px solid var(--border);border-radius:100px;padding:0.4rem 1rem;margin-bottom:2rem;font-size:0.85rem;color:var(--text2)}
+.hero .eyebrow .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+.hero h1{font-family:'DM Serif Display',serif;font-size:clamp(2.8rem,6vw,4.5rem);line-height:1.08;letter-spacing:-0.03em;max-width:850px;margin-bottom:1.5rem;margin-left:auto;margin-right:auto}
+.hero h1 em{font-style:normal;color:var(--accent)}
+.hero .sub{font-size:1.15rem;color:var(--text2);max-width:600px;line-height:1.6;margin-bottom:1.5rem;margin-left:auto;margin-right:auto}
+.hero .jurisdiction-pills{display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:2.5rem;justify-content:center}
+.hero .pill{display:inline-flex;align-items:center;gap:0.4rem;background:var(--bg3);border:1px solid var(--border);border-radius:100px;padding:0.3rem 0.8rem;font-size:0.8rem;color:var(--text2);transition:border-color .2s}
+.hero .pill:hover{border-color:var(--accent)}
+.hero .pill .flag{font-size:1rem}
+.hero .pill.more{color:var(--accent);border-color:rgba(74,240,192,0.3)}
+.hero .actions{display:flex;gap:1rem;flex-wrap:wrap;align-items:center;justify-content:center}
+.hero .free-note{width:100%;text-align:center;margin-left:0;margin-top:0.5rem}
+.hero .free-note{font-size:0.85rem;color:var(--text2);margin-left:0.5rem}
+.btn-primary{display:inline-flex;align-items:center;gap:0.5rem;background:var(--accent);color:var(--bg);padding:0.85rem 1.8rem;border-radius:8px;font-weight:600;font-size:1rem;text-decoration:none;transition:all .2s;border:none;cursor:pointer}
+.btn-primary:hover{background:var(--accent2);transform:translateY(-1px);box-shadow:0 8px 30px rgba(74,240,192,0.2)}
+.btn-secondary{display:inline-flex;align-items:center;gap:0.5rem;background:transparent;color:var(--text);padding:0.85rem 1.8rem;border-radius:8px;font-weight:600;font-size:1rem;text-decoration:none;border:1px solid var(--border);transition:all .2s}
+.btn-secondary:hover{border-color:var(--accent);color:var(--accent)}
+
+/* Deadlines */
+.deadlines-section{background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:2.5rem 2rem}
+.deadlines-section .inner{max-width:1200px;margin:0 auto;text-align:center}
+.deadlines-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem}
+.deadline-card{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:1.8rem;text-align:center;position:relative;overflow:hidden;transition:all .3s}
+.deadline-card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.deadline-card .flag{font-size:1.5rem;margin-bottom:0.5rem}
+.deadline-card .days{font-family:'JetBrains Mono',monospace;font-size:3rem;font-weight:700;line-height:1}
+.deadline-card .days-label{font-size:0.8rem;color:var(--text2);margin-top:0.3rem;text-transform:uppercase;letter-spacing:0.1em}
+.deadline-card .law-name{font-size:0.9rem;font-weight:600;margin-top:0.8rem}
+.deadline-card .date{font-family:'JetBrains Mono',monospace;font-size:0.8rem;color:var(--text2);margin-top:0.3rem}
+.deadline-card.urgent .days{color:var(--red)}
+.deadline-card.warning .days{color:var(--orange)}
+.deadline-card.notice .days{color:var(--yellow)}
+
+/* Stats bar */
+.stats-bar{padding:2rem}
+.stats-bar .inner{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:2rem}
+.stat{text-align:center}
+.stat .num{font-family:'JetBrains Mono',monospace;font-size:2rem;font-weight:700;color:var(--accent)}
+.stat .label{font-size:0.85rem;color:var(--text2);margin-top:0.3rem}
+
+/* Sections */
+section{padding:3rem 2rem}
+section .inner{max-width:1200px;margin:0 auto;text-align:center}
+.section-label{font-family:'JetBrains Mono',monospace;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.15em;color:var(--accent);margin-bottom:0.8rem}
+.section-title{font-family:'DM Serif Display',serif;font-size:2.4rem;letter-spacing:-0.02em;margin-bottom:1rem}
+.section-sub{color:var(--text2);font-size:1.05rem;max-width:600px;line-height:1.6;margin-bottom:3rem;margin-left:auto;margin-right:auto}
+
+/* Jurisdiction map/grid */
+.jurisdictions-grid{text-align:left;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem}
+.jur-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:1.2rem 1.4rem;display:flex;align-items:flex-start;gap:1rem;transition:all .3s}
+.jur-card:hover{border-color:var(--accent);transform:translateY(-1px)}
+.jur-card .flag{font-size:1.6rem;flex-shrink:0;margin-top:0.1rem}
+.jur-card .info{flex:1;min-width:0}
+.jur-card .name{font-weight:600;font-size:0.95rem;margin-bottom:0.3rem}
+.jur-card .status{font-size:0.75rem;display:inline-block;padding:0.15rem 0.5rem;border-radius:4px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em}
+.jur-card .status.effective{background:rgba(74,240,192,0.12);color:var(--accent)}
+.jur-card .status.enacted{background:rgba(255,170,51,0.12);color:var(--orange)}
+.jur-card .status.proposed{background:rgba(77,138,255,0.12);color:var(--blue)}
+.jur-card .status.voluntary{background:rgba(152,152,176,0.12);color:var(--text2)}
+.jur-card .deadline-info{font-family:'JetBrains Mono',monospace;font-size:0.75rem;color:var(--text2);margin-top:0.4rem}
+.jur-card .confidence{font-size:0.7rem;color:var(--text2);margin-top:0.3rem;display:flex;align-items:center;gap:0.3rem}
+.jur-card .confidence .dot-native{width:6px;height:6px;border-radius:50%;background:var(--accent)}
+.jur-card .confidence .dot-approx{width:6px;height:6px;border-radius:50%;background:var(--orange)}
+
+/* Features grid */
+.features-grid{text-align:left;display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem}
+.feature-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:2rem;transition:all .3s;position:relative;overflow:hidden}
+.feature-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 12px 40px rgba(74,240,192,0.08)}
+.feature-card .icon{font-size:1.8rem;margin-bottom:1rem}
+.feature-card h3{font-size:1.1rem;font-weight:600;margin-bottom:0.5rem}
+.feature-card p{color:var(--text2);font-size:0.9rem;line-height:1.5}
+.feature-card .tag{display:inline-block;background:rgba(74,240,192,0.1);color:var(--accent);font-size:0.7rem;font-weight:600;padding:0.2rem 0.6rem;border-radius:4px;margin-top:0.8rem;text-transform:uppercase;letter-spacing:0.05em}
+
+/* Risk breakdown */
+.risk-bars{display:flex;flex-direction:column;gap:0.8rem;margin-top:2rem}
+.risk-bar{display:flex;align-items:center;gap:1rem}
+.risk-bar .label{font-family:'JetBrains Mono',monospace;font-size:0.85rem;width:120px;flex-shrink:0}
+.risk-bar .bar{flex:1;height:32px;background:var(--bg);border-radius:6px;overflow:hidden}
+.risk-bar .fill{height:100%;border-radius:6px;display:flex;align-items:center;padding:0 0.8rem;font-family:'JetBrains Mono',monospace;font-size:0.75rem;font-weight:600;color:var(--bg);transition:width 1.5s ease-out}
+.risk-bar .count{font-family:'JetBrains Mono',monospace;font-size:0.85rem;color:var(--text2);width:80px;text-align:right}
+
+/* Persona section */
+.personas{text-align:left;display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem}
+.persona-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:2rem;transition:all .3s}
+.persona-card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.persona-card .emoji{font-size:2.2rem;margin-bottom:1rem}
+.persona-card h3{font-size:1.1rem;font-weight:600;margin-bottom:0.3rem}
+.persona-card .role{font-size:0.85rem;color:var(--accent);margin-bottom:0.8rem}
+.persona-card ul{list-style:none;padding:0}
+.persona-card li{color:var(--text2);font-size:0.88rem;line-height:1.5;padding:0.3rem 0;padding-left:1.2rem;position:relative}
+.persona-card li::before{content:'→';position:absolute;left:0;color:var(--accent);font-size:0.8rem}
+
+/* Steps */
+.steps{text-align:left;display:grid;grid-template-columns:repeat(3,1fr);gap:2rem;counter-reset:step}
+.step{position:relative;padding:2rem;background:var(--bg2);border:1px solid var(--border);border-radius:12px;counter-increment:step}
+.step::before{content:counter(step);font-family:'JetBrains Mono',monospace;font-size:3rem;font-weight:700;color:var(--accent);opacity:0.15;position:absolute;top:1rem;right:1.5rem}
+.step h3{font-size:1.05rem;font-weight:600;margin-bottom:0.5rem}
+.step p{color:var(--text2);font-size:0.9rem;line-height:1.5}
+
+/* Badge section */
+.badge-demo{text-align:left;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:2rem;margin-top:2rem}
+.badge-demo h3{font-size:1rem;font-weight:600;margin-bottom:1rem}
+.badge-examples{display:flex;gap:1.5rem;align-items:center;flex-wrap:wrap}
+.badge-examples img{height:24px}
+.badge-code{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:1rem;margin-top:1.5rem;font-family:'JetBrains Mono',monospace;font-size:0.8rem;color:var(--text2);overflow-x:auto;white-space:pre}
+.badge-code .hl{color:var(--accent)}
+
+/* API */
+.api-example{text-align:left;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:1.5rem;font-family:'JetBrains Mono',monospace;font-size:0.8rem;color:var(--text2);overflow-x:auto;white-space:pre;max-width:750px;line-height:1.6}
+.api-example .hl{color:var(--accent)}
+.api-example .str{color:var(--yellow)}
+.api-example .key{color:var(--blue)}
+
+/* Sentinel teaser */
+.sentinel-teaser{text-align:left;background:linear-gradient(135deg,var(--bg3),var(--bg2));border:1px solid var(--border);border-radius:16px;padding:3rem;display:flex;align-items:center;gap:3rem;position:relative;overflow:hidden}
+.sentinel-teaser::before{content:'';position:absolute;top:-50px;right:-50px;width:250px;height:250px;background:radial-gradient(circle,rgba(74,240,192,0.06) 0%,transparent 70%);pointer-events:none}
+.sentinel-teaser .icon{font-size:3.5rem;flex-shrink:0}
+.sentinel-teaser h3{font-family:'DM Serif Display',serif;font-size:1.6rem;margin-bottom:0.5rem}
+.sentinel-teaser p{color:var(--text2);font-size:0.95rem;line-height:1.6;margin-bottom:1rem}
+.sentinel-teaser .tag{display:inline-block;background:rgba(74,240,192,0.1);color:var(--accent);font-size:0.7rem;font-weight:600;padding:0.25rem 0.8rem;border-radius:4px;text-transform:uppercase;letter-spacing:0.05em}
+
+/* Footer */
+footer{border-top:1px solid var(--border);padding:3rem 2rem}
+footer .inner{max-width:1200px;margin:0 auto;display:flex;justify-content:space-between;align-items:center}
+footer .left{color:var(--text2);font-size:0.85rem}
+footer .right{display:flex;gap:1.5rem}
+footer .right a{color:var(--text2);text-decoration:none;font-size:0.85rem}
+footer .right a:hover{color:var(--accent)}
+.disclaimer{font-size:0.75rem;color:var(--text2);opacity:0.6;max-width:700px;text-align:center;margin:0 auto;padding:1rem 2rem 2rem}
+
+/* Animations */
+.fade-up{opacity:0;transform:translateY(30px);transition:all 0.6s ease-out}
+.fade-up.visible{opacity:1;transform:translateY(0)}
+
+/* Responsive */
+@media(max-width:768px){
+  .features-grid,.steps,.personas,.deadlines-grid{grid-template-columns:1fr}
+  .stats-bar .inner{grid-template-columns:repeat(2,1fr)}
+  .hero h1{font-size:2.2rem}
+  .sentinel-teaser{text-align:left;flex-direction:column;gap:1.5rem;text-align:center}
+  nav .links{gap:1rem}
+  .jurisdictions-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav><div class="inner">
+  <a href="/" class="logo">Nerq<span>.ai</span></a>
+  <div class="links">
+<a href="/">Search</a>
+<a href="/mcp-servers">MCP</a>
+<a href="/vs">Compare</a>
+<a href="/comply">Comply</a>
+<a href="/docs">API</a>
+<a href="/stats">Stats</a>
+<a href="/checker" class="cta">Free Checker</a>
+</div>
+</div></nav>
+
+<!-- Hero -->
+<section class="hero"><div class="inner">
+  <div class="eyebrow"><span class="dot"></span> Live — Tracking 52 jurisdictions worldwide</div>
+  <h1>AI compliance across <em>52 jurisdictions</em></h1>
+  <p class="sub">Free multi-jurisdiction compliance checker for AI agents and MCP servers. Risk classification, gap analysis, and deadline tracking — all in one place.</p>
+  
+  <div class="jurisdiction-pills">
+    <span class="pill"><span class="flag">🇪🇺</span> EU AI Act</span>
+    <span class="pill"><span class="flag">🇺🇸</span> Colorado</span>
+    <span class="pill"><span class="flag">🇺🇸</span> California SB 53</span>
+    <span class="pill"><span class="flag">🇺🇸</span> California SB 942</span>
+    <span class="pill"><span class="flag">🇰🇷</span> South Korea</span>
+    <span class="pill"><span class="flag">🇨🇳</span> China</span>
+    <span class="pill"><span class="flag">🇺🇸</span> Illinois</span>
+    <span class="pill"><span class="flag">🇺🇸</span> Texas</span>
+    <span class="pill"><span class="flag">🇯🇵</span> Japan</span>
+    <span class="pill"><span class="flag">🇸🇬</span> Singapore</span>
+    <span class="pill"><span class="flag">🇬🇧</span> UK</span>
+    <span class="pill"><span class="flag">🇧🇷</span> Brazil</span>
+    <span class="pill"><span class="flag">🇨🇦</span> Canada</span>
+    <span class="pill"><span class="flag">🇻🇳</span> Vietnam</span>
+  </div>
+
+  <div class="actions">
+    <a href="/checker" class="btn-primary">Check Your AI System →</a>
+    <a href="#jurisdictions" class="btn-secondary">Explore Jurisdictions</a>
+    <span class="free-note">Free · No signup · Results in 5 seconds</span>
+  </div>
+</div></section>
+
+<!-- Triple Countdown -->
+<div class="deadlines-section"><div class="inner fade-up">
+  <div class="deadlines-grid">
+    <div class="deadline-card urgent">
+      <div class="flag">🇺🇸</div>
+      <div class="days" id="cd-colorado">131</div>
+      <div class="days-label">days</div>
+      <div class="law-name">Colorado AI Act</div>
+      <div class="date">June 30, 2026</div>
+    </div>
+    <div class="deadline-card warning">
+      <div class="flag">🇪🇺</div>
+      <div class="days" id="cd-eu">164</div>
+      <div class="days-label">days</div>
+      <div class="law-name">EU AI Act — Annex III</div>
+      <div class="date">August 2, 2026</div>
+    </div>
+    <div class="deadline-card notice">
+      <div class="flag">🇺🇸</div>
+      <div class="days" id="cd-ca942">164</div>
+      <div class="days-label">days</div>
+      <div class="law-name">California SB 942</div>
+      <div class="date">August 2, 2026</div>
+    </div>
+  </div>
+</div></div>
+
+<!-- Stats -->
+<div class="stats-bar"><div class="inner">
+  <div class="stat"><div class="num" id="stat-total">4.9M+</div><div class="label">Agents Indexed</div></div>
+  <div class="stat"><div class="num" id="stat-assessed">24,921</div><div class="label">Compliance Assessed</div></div>
+  <div class="stat"><div class="num" id="stat-high" style="color:var(--red)">153</div><div class="label">High-Risk Identified</div></div>
+  <div class="stat"><div class="num" style="color:var(--yellow)">14</div><div class="label">Jurisdictions Tracked</div></div>
+</div></div>
+
+<!-- Who is this for -->
+<section id="personas" style="background:var(--bg2)"><div class="inner">
+  <div class="section-label fade-up">Who it's for</div>
+  <h2 class="section-title fade-up">Built for everyone in the AI compliance chain.</h2>
+  <p class="section-sub fade-up">Whether you're building, deploying, or auditing AI — Nerq Comply gives you what you need.</p>
+  <div class="personas fade-up">
+    <div class="persona-card">
+      <div class="emoji">🛠️</div>
+      <h3>Developers</h3>
+      <div class="role">Building AI agents & MCP servers</div>
+      <ul>
+        <li>Check compliance before you ship</li>
+        <li>Embed badges in your README</li>
+        <li>CI/CD integration via REST API</li>
+        <li>Know which jurisdictions flag your tool</li>
+      </ul>
+    </div>
+    <div class="persona-card">
+      <div class="emoji">🏢</div>
+      <h3>Companies</h3>
+      <div class="role">Deploying AI in production</div>
+      <ul>
+        <li>Assess your entire AI stack at once</li>
+        <li>Multi-jurisdiction gap analysis</li>
+        <li>Track deadlines across all markets</li>
+        <li>Evidence for compliance documentation</li>
+      </ul>
+    </div>
+    <div class="persona-card">
+      <div class="emoji">📋</div>
+      <h3>Compliance Officers</h3>
+      <div class="role">Auditing & ensuring compliance</div>
+      <ul>
+        <li>Global regulatory landscape at a glance</li>
+        <li>Jurisdiction-specific requirements</li>
+        <li>Risk classification per regulation</li>
+        <li>Regulatory change monitoring</li>
+      </ul>
+    </div>
+  </div>
+</div></section>
+
+<!-- Jurisdictions -->
+<section id="jurisdictions"><div class="inner">
+  <div class="section-label fade-up">Global Coverage</div>
+  <h2 class="section-title fade-up">52 jurisdictions. One check.</h2>
+  <p class="section-sub fade-up">We track AI regulations across 4 continents. Each jurisdiction has its own risk model, criteria, and deadlines — we normalize everything so you can compare at a glance.</p>
+  
+  <div class="jurisdictions-grid fade-up">
+    <div class="jur-card">
+      <div class="flag">🇪🇺</div>
+      <div class="info">
+        <div class="name">EU AI Act</div>
+        <div class="status enacted">Enacted</div>
+        <div class="deadline-info">Annex III: Aug 2, 2026</div>
+        <div class="confidence"><span class="dot-native"></span> Native classifier</div>
+      </div>
+    </div>
+    <div class="jur-card">
+      <div class="flag">🇺🇸</div>
+      <div class="info">
+        <div class="name">Colorado AI Act (SB 205)</div>
+        <div class="status enacted">Enacted</div>
+        <div class="deadline-info">Effective: Jun 30, 2026</div>
+        <div class="confidence"><span class="dot-native"></span> Native classifier</div>
+      </div>
+    </div>
+    <div class="jur-card">
+      <div class="flag">🇰🇷</div>
+      <div class="info">
+        <div class="name">South Korea AI Basic Act</div>
+        <div class="status effective">Effective</div>
+        <div class="deadline-info">Effective: Jan 22, 2026</div>
+        <div class="confidence"><span class="dot-native"></span> Native classifier</div>
+      </div>
+    </div>
+    <div class="jur-card">
+      <div class="flag">🇺🇸</div>
+      <div class="info">
+        <div class="name">California SB 53 (Frontier AI)</div>
+        <div class="status effective">Effective</div>
+        <div class="deadline-info">Effective: Jan 1, 2026</div>
+        <div class="confidence"><span class="dot-native"></span> Native classifier</div>
+      </div>
+    </div>
+    <div class="jur-card">
+      <div class="flag">🇺🇸</div>
+      <div class="info">
+        <div class="name">California SB 942 (Transparency)</div>
+        <div class="status enacted">Enacted</div>
+        <div class="deadline-info">Effective: Aug 2, 2026</div>
+        <div class="confidence"><span class="dot-approx"></span> Approximate</div>
+      </div>
+    </div>
+    <div class="jur-card">
+      <div class="flag">🇺🇸</div>
+      <div class="info">
+        <div class="name">Illinois AI Video Interview Act</div>
+        <div class="status effective">Effective</div>
+        <div class="deadline-info">Effective: Jan 1, 2025</div>
+        <div class="confidence"><span class="dot-native"></span> Native classifier</div>
+      </div>
+    </div>
+    <div class="jur-card">
+      <div class="flag">🇨🇳</div>
+      <div class="info">
+        <div class="name">China Cybersecurity Amendment</div>
+        <div class="status effective">Effective</div>
+        <div class="deadline-info">Effective: Jan 1, 2026</div>
+        <div class="confidence"><span class="dot-native"></span> Native classifier</div>
+      </div>
+    </div>
+    <div class="jur-card">
+      <div class="flag">🇺🇸</div>
+      <div class="info">
+        <div class="name">Texas RAIGA</div>
+        <div class="status effective">Effective</div>
+        <div class="deadline-info">Effective: Jan 1, 2026</div>
+        <div class="confidence"><span class="dot-approx"></span> Approximate</div>
+      </div>
+    </div>
+    <div class="jur-card">
+      <div class="flag">🇯🇵</div>
+      <div class="info">
+        <div class="name">Japan AI Bill</div>
+        <div class="status effective">Effective</div>
+        <div class="deadline-info">Effective: May 1, 2025</div>
+        <div class="confidence"><span class="dot-approx"></span> Approximate</div>
+      </div>
+    </div>
+    <div class="jur-card">
+      <div class="flag">🇸🇬</div>
+      <div class="info">
+        <div class="name">Singapore AI Governance</div>
+        <div class="status voluntary">Voluntary</div>
+        <div class="deadline-info">Framework active</div>
+        <div class="confidence"><span class="dot-approx"></span> Approximate</div>
+      </div>
+    </div>
+    <div class="jur-card">
+      <div class="flag">🇻🇳</div>
+      <div class="info">
+        <div class="name">Vietnam AI Law</div>
+        <div class="status enacted">Enacted</div>
+        <div class="deadline-info">Effective: Dec 31, 2026</div>
+        <div class="confidence"><span class="dot-approx"></span> Approximate</div>
+      </div>
+    </div>
+    <div class="jur-card">
+      <div class="flag">🇧🇷</div>
+      <div class="info">
+        <div class="name">Brazil AI Bill</div>
+        <div class="status proposed">Proposed</div>
+        <div class="deadline-info">Expected: 2027</div>
+        <div class="confidence"><span class="dot-approx"></span> Approximate</div>
+      </div>
+    </div>
+    <div class="jur-card">
+      <div class="flag">🇨🇦</div>
+      <div class="info">
+        <div class="name">Canada AIDA</div>
+        <div class="status proposed">Proposed</div>
+        <div class="deadline-info">Expected: 2027</div>
+        <div class="confidence"><span class="dot-approx"></span> Approximate</div>
+      </div>
+    </div>
+    <div class="jur-card">
+      <div class="flag">🇬🇧</div>
+      <div class="info">
+        <div class="name">UK AI Regulation Bill</div>
+        <div class="status proposed">Proposed</div>
+        <div class="deadline-info">Expected: 2027</div>
+        <div class="confidence"><span class="dot-approx"></span> Approximate</div>
+      </div>
+    </div>
+  </div>
+</div></section>
+
+<!-- Features -->
+<section id="features" style="background:var(--bg2)"><div class="inner">
+  <div class="section-label fade-up">What You Get</div>
+  <h2 class="section-title fade-up">Everything you need. Completely free.</h2>
+  <p class="section-sub fade-up">No account. No credit card. No rate limits. We built this because AI regulation is accelerating and most teams aren't ready.</p>
+  <div class="features-grid">
+    <div class="feature-card fade-up">
+      <div class="icon">🎯</div>
+      <h3>Multi-Jurisdiction Risk Classification</h3>
+      <p>Instant classification across all 52 jurisdictions. See which regulations flag your AI system as high-risk — and which don't.</p>
+      <span class="tag">Free forever</span>
+    </div>
+    <div class="feature-card fade-up">
+      <div class="icon">📊</div>
+      <h3>Compliance Score & Gap Analysis</h3>
+      <p>Per-jurisdiction compliance scoring with specific gaps mapped to articles and requirements in each regulation.</p>
+      <span class="tag">Free forever</span>
+    </div>
+    <div class="feature-card fade-up">
+      <div class="icon">⏰</div>
+      <h3>Deadline Tracking</h3>
+      <p>Live countdowns for every jurisdiction. Know exactly which deadlines apply to your system across all markets.</p>
+      <span class="tag">Free forever</span>
+    </div>
+    <div class="feature-card fade-up">
+      <div class="icon">🔍</div>
+      <h3>Classifier Transparency</h3>
+      <p>Every result shows whether classification is native (jurisdiction-specific logic) or approximate. No black boxes.</p>
+      <span class="tag">Free forever</span>
+    </div>
+    <div class="feature-card fade-up">
+      <div class="icon">📛</div>
+      <h3>Compliance Badges</h3>
+      <p>Embed live compliance badges in your README or docs. Shows risk classification that updates automatically.</p>
+      <span class="tag">Free forever</span>
+    </div>
+    <div class="feature-card fade-up">
+      <div class="icon">🔌</div>
+      <h3>REST + MCP + A2A API</h3>
+      <p>Full API access. No auth required. Integrate compliance checking into CI/CD, agent frameworks, or your own platform.</p>
+      <span class="tag">Free forever</span>
+    </div>
+  </div>
+</div></section>
+
+<!-- Data -->
+<section id="data"><div class="inner">
+  <div class="section-label fade-up">What We Found</div>
+  <h2 class="section-title fade-up">4.9M+ agents scanned. Here's the breakdown.</h2>
+  <p class="section-sub fade-up">We crawl GitHub, npm, PyPI, HuggingFace, Docker Hub, and MCP registries daily. Every agent gets automated multi-jurisdiction risk classification.</p>
+  <div class="risk-bars fade-up">
+    <div class="risk-bar"><div class="label" style="color:var(--accent)">Minimal</div><div class="bar"><div class="fill" style="width:95%;background:var(--accent)">~90%</div></div><div class="count" id="rb-minimal">~38,700</div></div>
+    <div class="risk-bar"><div class="label" style="color:var(--red)">High Risk</div><div class="bar"><div class="fill" style="width:10%;background:var(--red)">~5.5%</div></div><div class="count" id="rb-high">~2,350</div></div>
+    <div class="risk-bar"><div class="label" style="color:var(--orange)">Limited</div><div class="bar"><div class="fill" style="width:6%;background:var(--orange)">~4.5%</div></div><div class="count" id="rb-limited">~1,950</div></div>
+  </div>
+  <p style="font-size:0.8rem;color:var(--text2);margin-top:1rem;opacity:0.7" class="fade-up">Risk distribution shown across all jurisdictions combined. Individual jurisdiction breakdowns available via checker and API.</p>
+</div></section>
+
+<!-- How it works -->
+<section id="how" style="background:var(--bg2)"><div class="inner">
+  <div class="section-label fade-up">How It Works</div>
+  <h2 class="section-title fade-up">5 seconds. 52 jurisdictions. One answer.</h2>
+  <div class="steps fade-up">
+    <div class="step">
+      <h3>Describe your AI system</h3>
+      <p>Enter a name and description. Optionally select which jurisdictions matter to you — or check all 52 at once.</p>
+    </div>
+    <div class="step">
+      <h3>Get multi-jurisdiction results</h3>
+      <p>See your risk classification in every jurisdiction, with native or approximate confidence indicators and specific criteria matches.</p>
+    </div>
+    <div class="step">
+      <h3>Act on the gaps</h3>
+      <p>Get a prioritized list of compliance gaps, relevant deadlines, and actionable next steps for each jurisdiction that flags your system.</p>
+    </div>
+  </div>
+</div></section>
+
+<!-- Badge -->
+<section id="badge"><div class="inner">
+  <div class="section-label fade-up">Compliance Badges</div>
+  <h2 class="section-title fade-up">Show your compliance status everywhere.</h2>
+  <p class="section-sub fade-up">Embed live badges in README files, documentation, or websites. Badges update automatically when regulations change or your classification is reassessed.</p>
+  <div class="badge-demo fade-up">
+    <h3>Examples</h3>
+    <div class="badge-examples">
+      <img src="/compliance/badge/minimal" alt="Minimal Risk">
+      <img src="/compliance/badge/high" alt="High Risk">
+      <img src="/compliance/badge/limited" alt="Limited Risk">
+    </div>
+    <div class="badge-code"><span class="hl">![Nerq Comply]</span>(https://nerq.ai/compliance/badge/{your-agent-id})</div>
+  </div>
+</div></section>
+
+<!-- API -->
+<section id="api" style="background:var(--bg2)"><div class="inner">
+  <div class="section-label fade-up">For Developers</div>
+  <h2 class="section-title fade-up">REST API. No auth. No rate limits.</h2>
+  <p class="section-sub fade-up">Integrate multi-jurisdiction compliance checking into anything. CI/CD pipelines, agent frameworks, compliance dashboards — it's all one POST request.</p>
+  <div class="api-example fade-up"><span class="hl">POST</span> https://nerq.ai/compliance/check
+{
+  <span class="key">"system_name"</span>: <span class="str">"MyAgent"</span>,
+  <span class="key">"system_description"</span>: <span class="str">"CV screening tool using AI"</span>,
+  <span class="key">"jurisdictions"</span>: [<span class="str">"eu_ai_act"</span>, <span class="str">"us_co_sb205"</span>, <span class="str">"us_il_aivi"</span>]
+}
+
+→ {
+    <span class="key">"overall_risk"</span>: <span class="str">"high"</span>,
+    <span class="key">"results"</span>: {
+      <span class="key">"eu_ai_act"</span>:    { <span class="key">"risk_class"</span>: <span class="str">"high"</span>, <span class="key">"confidence"</span>: <span class="str">"native"</span> },
+      <span class="key">"us_co_sb205"</span>:  { <span class="key">"risk_class"</span>: <span class="str">"high"</span>, <span class="key">"confidence"</span>: <span class="str">"native"</span> },
+      <span class="key">"us_il_aivi"</span>:   { <span class="key">"risk_class"</span>: <span class="str">"high"</span>, <span class="key">"confidence"</span>: <span class="str">"native"</span> }
+    }
+  }</div>
+  <div style="margin-top:2rem;display:flex;gap:1rem;flex-wrap:wrap" class="fade-up">
+    <a href="/docs" class="btn-secondary" target="_blank">Full API Docs →</a>
+    <a href="/compliance/jurisdictions" class="btn-secondary" target="_blank">List Jurisdictions →</a>
+    <a href="/compliance/changelog" class="btn-secondary" target="_blank">Regulatory Changelog →</a>
+  </div>
+</div></section>
+
+<!-- Sentinel teaser -->
+<section id="sentinel"><div class="inner fade-up">
+  <div class="sentinel-teaser">
+    <div class="icon">🛡️</div>
+    <div>
+      <h3>Coming soon: Nerq Sentinel</h3>
+      <p>Autonomous regulatory monitoring agent. Sentinel tracks legislative changes, enforcement actions, and guidance updates across all jurisdictions — and alerts you before deadlines hit.</p>
+      <span class="tag">In development</span>
+    </div>
+  </div>
+</div></section>
+
+<!-- Footer -->
+<footer><div class="inner">
+  <div class="left">© 2026 Nerq. Built with AI, for AI.</div>
+  <div class="right">
+    <a href="/discover">Discover</a>
+    <a href="/comply">Comply</a>
+    <a href="/docs">API</a>
+    <a href="/stats">Stats</a>
+    <a href="/terms">Terms</a>
+    <a href="/privacy">Privacy</a>
+  </div>
+</div></footer>
+<p class="disclaimer">This tool provides AI regulatory compliance assessments for informational purposes only. It does not constitute legal advice. You are solely responsible for ensuring your AI systems comply with applicable laws. Assessments are generated with AI and may use approximate classifiers for jurisdictions without native rule sets. Review all results carefully.</p>
+
+<script>
+// Intersection observer for fade-up
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(el => {
+    if (el.isIntersecting) { el.target.classList.add('visible'); obs.unobserve(el.target); }
+  });
+}, { threshold: 0.1 });
+document.querySelectorAll('.fade-up').forEach(el => obs.observe(el));
+
+// Countdown timers
+function updateCountdowns() {
+  const now = new Date();
+  const deadlines = [
+    { id: 'cd-colorado', date: new Date('2026-06-30') },
+    { id: 'cd-eu', date: new Date('2026-08-02') },
+    { id: 'cd-ca942', date: new Date('2026-08-02') }
+  ];
+  deadlines.forEach(d => {
+    const days = Math.ceil((d.date - now) / 86400000);
+    const el = document.getElementById(d.id);
+    if (el) el.textContent = days;
+  });
+}
+updateCountdowns();
+setInterval(updateCountdowns, 3600000);
+
+// Fetch live stats
+fetch('/compliance/stats').then(r => r.json()).then(d => {
+  if (d.total_assessed) {
+    document.getElementById('stat-assessed').textContent = d.total_assessed.toLocaleString();
+    if (d.by_risk_class) {
+      if (d.by_risk_class.high) document.getElementById('stat-high').textContent = d.by_risk_class.high.toLocaleString();
+    }
+  }
+}).catch(() => {});
+</script>
+</body>
+</html>

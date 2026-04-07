@@ -1,0 +1,27 @@
+User-agent: *
+Allow: /
+Allow: /discover
+Allow: /comply
+Allow: /checker
+Allow: /docs
+Allow: /blog
+Allow: /commerce
+Allow: /commerce/docs
+Allow: /compliance
+Disallow: /swagger
+Disallow: /v1/
+Disallow: /compliance/check
+Disallow: /a2a
+
+# AI crawlers welcome for discovery
+User-agent: GPTBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+Sitemap: https://nerq.ai/sitemap.xml
+Sitemap: https://nerq.ai/sitemap-compliance.xml
