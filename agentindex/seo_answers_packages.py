@@ -225,13 +225,15 @@ def mount_answers_packages(app):
         with get_db_session() as session:
             # Search in agents table for packages
             row = session.execute(text("""
-                SELECT id, name, trust_score_v2, trust_grade, stars, description,
-                       category, language, author, source, source_url, license,
-                       security_score, activity_score, documentation_score,
-                       popularity_score, eu_risk_class, downloads, agent_type
-                FROM agents
-                WHERE (LOWER(name) = :q OR LOWER(name) LIKE :p) AND is_active = true
-                ORDER BY COALESCE(stars, 0) DESC
+                SELECT el.id, el.name, el.trust_score_v2, el.trust_grade, el.stars,
+                       el.description, el.category, a.language, el.author, el.source,
+                       el.source_url, el.license, el.security_score, el.activity_score,
+                       el.documentation_score, el.popularity_score, el.eu_risk_class,
+                       el.downloads, el.agent_type
+                FROM entity_lookup el
+                LEFT JOIN agents a ON a.id = el.id
+                WHERE (el.name_lower = :q OR el.name_lower LIKE :p) AND el.is_active = true
+                ORDER BY COALESCE(el.stars, 0) DESC
                 LIMIT 1
             """), {"q": query.lower(), "p": f"%{query.replace('-','%')}%"}).fetchone()
 
@@ -251,7 +253,7 @@ def mount_answers_packages(app):
             # Alternatives
             alts = session.execute(text("""
                 SELECT name, trust_score_v2, trust_grade, stars, description
-                FROM agents WHERE is_active = true AND trust_score_v2 IS NOT NULL
+                FROM entity_lookup WHERE is_active = true AND trust_score_v2 IS NOT NULL
                   AND id != CAST(:tid AS uuid) AND category = :cat
                 ORDER BY COALESCE(trust_score_v2,0) DESC LIMIT 8
             """), {"tid": str(pkg["id"]), "cat": pkg.get("category") or ""}).fetchall()
@@ -360,7 +362,7 @@ curl -s "https://nerq.ai/v1/preflight?target={html.escape(pkg['name'])}" | jq '.
         with get_db_session() as session:
             rows = session.execute(text("""
                 SELECT name, trust_score_v2, trust_grade, stars, downloads, language
-                FROM agents WHERE is_active = true AND trust_score_v2 IS NOT NULL
+                FROM entity_lookup WHERE is_active = true AND trust_score_v2 IS NOT NULL
                   AND agent_type IN ('package', 'tool', 'library')
                 ORDER BY COALESCE(downloads, 0) DESC, COALESCE(stars, 0) DESC
                 LIMIT 100
@@ -368,7 +370,7 @@ curl -s "https://nerq.ai/v1/preflight?target={html.escape(pkg['name'])}" | jq '.
             if len(rows) < 20:
                 rows = session.execute(text("""
                     SELECT name, trust_score_v2, trust_grade, stars, downloads, language
-                    FROM agents WHERE is_active = true AND trust_score_v2 IS NOT NULL
+                    FROM entity_lookup WHERE is_active = true AND trust_score_v2 IS NOT NULL
                     ORDER BY COALESCE(stars, 0) DESC LIMIT 100
                 """)).fetchall()
 
@@ -414,7 +416,7 @@ curl -s "https://nerq.ai/v1/preflight?target={html.escape(pkg['name'])}" | jq '.
                     SELECT name, trust_score_v2, trust_grade, stars, description,
                            license, language, security_score, activity_score,
                            documentation_score, downloads, source
-                    FROM agents WHERE (LOWER(name) = :q OR LOWER(name) LIKE :p)
+                    FROM entity_lookup WHERE (name_lower = :q OR name_lower LIKE :p)
                       AND is_active = true ORDER BY COALESCE(stars,0) DESC LIMIT 1
                 """), {"q": s.lower(), "p": f"%{s.replace('-','%')}%"}).fetchone()
                 if r:
@@ -506,7 +508,7 @@ curl -s "https://nerq.ai/v1/preflight?target={html.escape(pkg['name'])}" | jq '.
         offset = chunk * 50000
         with get_db_session() as session:
             rows = session.execute(text("""
-                SELECT name FROM agents
+                SELECT name FROM entity_lookup
                 WHERE is_active = true AND trust_score_v2 IS NOT NULL
                   AND (source LIKE '%%npm%%' OR source LIKE '%%pypi%%'
                        OR agent_type IN ('package', 'tool', 'library'))
@@ -559,7 +561,7 @@ def _generate_dynamic_answer(slug: str) -> dict | None:
                 candidate = "-".join(parts[start:start+length])
                 row = session.execute(text("""
                     SELECT name, trust_score_v2, trust_grade, stars, license, description
-                    FROM agents WHERE LOWER(name) LIKE :p AND is_active = true
+                    FROM entity_lookup WHERE name_lower LIKE :p AND is_active = true
                     ORDER BY COALESCE(stars,0) DESC LIMIT 1
                 """), {"p": f"%{candidate.replace('-','%')}%"}).fetchone()
                 if row:
