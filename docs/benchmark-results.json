@@ -1,0 +1,122 @@
+{
+  "benchmark": "nerq_tool_selection_v2",
+  "timestamp": "2026-03-10T14:56:37Z",
+  "config": {
+    "pool_size": 50,
+    "high_trust_count": 15,
+    "medium_trust_count": 15,
+    "low_trust_count": 10,
+    "not_found_count": 10,
+    "select_count": 5,
+    "num_iterations": 100,
+    "trust_threshold": 40
+  },
+  "tools": {
+    "high_trust": [
+      "SWE-agent/SWE-agent",
+      "microsoft/qlib",
+      "FunnyWolf/agentic-soc-platform",
+      "harbor",
+      "microsoft/azure-devops-mcp",
+      "vfarcic/dot-ai",
+      "opal",
+      "raptor",
+      "nanobot",
+      "GoogleCloudPlatform/agent-starter-pack",
+      "laravel/mcp",
+      "williamzujkowski/strudel-mcp-server",
+      "nanoclaw",
+      "laravel/boost",
+      "ccmanager"
+    ],
+    "medium_trust": [
+      "crypto-mcp",
+      "AgentFlow",
+      "Orchestrator-AI-Agent-Platform",
+      "multi-agent-coding-assistant",
+      "psbds/mcp-dev-blueprints",
+      "Ai-agents-with-vercel-ai-sdk",
+      "UBC-CIC/Legal-Aid-Tool",
+      "Agentic_RAG_UIT_Chatbot",
+      "daily-quote-cli",
+      "Astram",
+      "Layla-support-agent",
+      "WebSearchAIAgent",
+      "Multi-Agent-for-Coding",
+      "AgentForge",
+      "WolfgangFahl/py-3rdparty-mediawiki"
+    ],
+    "low_trust": [
+      "agentverse-agent1q2hcc4et05ypas97yzvsxgh65cywp39lk8gt9jgk6zxxkvzwxff22s249ps",
+      "Image-based-plant-disease-diagnosis",
+      "segmentdiagnosis",
+      "HealthCareMagic-Gemma-FT-Final",
+      "dutch-medical-set",
+      "healthcare_ai_loop",
+      "LehrChatBotFinance",
+      "agentverse-agent1qdj8f5a4ahqc8cw92ldn55anxkvqwgpe2p0lxua7c6drzlk06pysuf6jg0k",
+      "agentverse-agent1q006v62de5jf0edfzfh2y8ln9829y4wcvunnvkcngk9qejekxdqwusqquzq",
+      "agentverse-agent1q25n8dfmkut68j6t8v8dkr8jv97vee7ae7yw4h7vfnvetyds39trvlmypv7"
+    ],
+    "not_found": [
+      "abandoned-tool-2023",
+      "deleted-agent-xyz",
+      "test-agent-null",
+      "deprecated-scanner",
+      "ghost-protocol-ai",
+      "gpt3-wrapper-2022",
+      "old-chatbot-framework",
+      "zombie-agent-v1",
+      "dead-ml-pipeline",
+      "extinct-data-tool"
+    ]
+  },
+  "statistical_tests": {
+    "failure_rate": {
+      "test": "welch_t_test",
+      "t_statistic": 17.9678,
+      "p_value": 0.0,
+      "significant_at_005": true
+    },
+    "trust_score": {
+      "test": "welch_t_test",
+      "t_statistic": -24.7497,
+      "p_value": 0.0,
+      "significant_at_005": true
+    }
+  },
+  "without_nerq": {
+    "aggregate": {
+      "n": 100,
+      "failure_rate_mean": 35.6,
+      "failure_rate_stdev": 19.81,
+      "failure_rate_ci_lower": 31.72,
+      "failure_rate_ci_upper": 39.48,
+      "trust_mean": 68.62,
+      "trust_stdev": 9.53,
+      "trust_ci_lower": 66.75,
+      "trust_ci_upper": 70.48,
+      "avg_total_time_s": 0.2212,
+      "avg_wasted_calls": 1.8,
+      "avg_failures": 1.8,
+      "avg_total_calls": 5
+    }
+  },
+  "with_nerq": {
+    "aggregate": {
+      "n": 100,
+      "failure_rate_mean": 0.0,
+      "failure_rate_stdev": 0.0,
+      "failure_rate_ci_lower": 0.0,
+      "failure_rate_ci_upper": 0.0,
+      "trust_mean": 92.2,
+      "trust_stdev": 0.0,
+      "trust_ci_lower": 92.2,
+      "trust_ci_upper": 92.2,
+      "avg_total_time_s": 0.3627,
+      "avg_wasted_calls": 45,
+      "avg_failures": 0,
+      "avg_total_calls": 50
+    }
+  }
+}

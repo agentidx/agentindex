@@ -99,3 +99,6 @@ spionen_reports/report-*.md
 semantic_index/
 watchdog_status.json
 auto_indexnow_state.json
+
+# ─── Auto-generated docs (107 files and growing) ──────────────
+docs/auto-reports/
