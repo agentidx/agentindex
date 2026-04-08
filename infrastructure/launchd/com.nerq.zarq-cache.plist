@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.nerq.zarq-cache</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/anstudio/agentindex/venv/bin/python</string>
+        <string>/Users/anstudio/agentindex/scripts/refresh_zarq_dashboard_cache.py</string>
+    </array>
+
+    <key>StartInterval</key>
+    <integer>240</integer>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>StandardOutPath</key>
+    <string>/Users/anstudio/agentindex/logs/zarq_cache_refresh.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>/Users/anstudio/agentindex/logs/zarq_cache_refresh.log</string>
+
+    <key>WorkingDirectory</key>
+    <string>/Users/anstudio/agentindex</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PYTHONPATH</key>
+        <string>/Users/anstudio/agentindex</string>
+    </dict>
+
+    <key>Nice</key>
+    <integer>10</integer>
+</dict>
+</plist>
