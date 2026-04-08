@@ -121,7 +121,7 @@ def run_yield_analysis(hours=24):
     rows = conn.execute(f"""
         SELECT path, bot_name, status, query_string
         FROM requests
-        WHERE is_ai_bot = 1 AND ts >= datetime('now', '-{int(hours)} hours')
+        WHERE is_ai_bot = 1 AND ts >= strftime('%Y-%m-%dT%H:%M:%f', 'now', '-{int(hours)} hours')
     """).fetchall()
     conn.close()
 

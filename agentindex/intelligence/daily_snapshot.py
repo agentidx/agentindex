@@ -175,7 +175,7 @@ def collect_ai_behavior(session):
                 MIN(ts) as first, MAX(ts) as last
             FROM requests
             WHERE is_bot = 1
-            AND ts > datetime('now', '-24 hours')
+            AND ts > strftime('%Y-%m-%dT%H:%M:%f', 'now', '-24 hours')
             AND path NOT LIKE '/static%' AND path NOT LIKE '/sitemap%' AND path NOT LIKE '/robots%'
             GROUP BY entity, bot, pattern
             HAVING cnt >= 2

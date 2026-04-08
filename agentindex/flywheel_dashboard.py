@@ -64,9 +64,9 @@ def _write_file_cache(period, html):
         logger.warning(f"Failed to write flywheel cache: {e}")
 
 PERIODS = {
-    "24h": {"sqlite": "datetime('now','-24 hours')", "prev_s": "datetime('now','-48 hours')", "prev_e": "datetime('now','-24 hours')", "label": "24h", "gran": "%H:00"},
-    "7d":  {"sqlite": "datetime('now','-7 days')",   "prev_s": "datetime('now','-14 days')",  "prev_e": "datetime('now','-7 days')",   "label": "7 days", "gran": "%Y-%m-%d"},
-    "30d": {"sqlite": "datetime('now','-30 days')",  "prev_s": "datetime('now','-60 days')",  "prev_e": "datetime('now','-30 days')",  "label": "30 days", "gran": "%Y-%m-%d"},
+    "24h": {"sqlite": "strftime('%Y-%m-%dT%H:%M:%f', 'now', '-24 hours')", "prev_s": "strftime('%Y-%m-%dT%H:%M:%f', 'now', '-48 hours')", "prev_e": "strftime('%Y-%m-%dT%H:%M:%f', 'now', '-24 hours')", "label": "24h", "gran": "%H:00"},
+    "7d":  {"sqlite": "strftime('%Y-%m-%dT%H:%M:%f', 'now', '-7 days')",   "prev_s": "strftime('%Y-%m-%dT%H:%M:%f', 'now', '-14 days')",  "prev_e": "strftime('%Y-%m-%dT%H:%M:%f', 'now', '-7 days')",   "label": "7 days", "gran": "%Y-%m-%d"},
+    "30d": {"sqlite": "strftime('%Y-%m-%dT%H:%M:%f', 'now', '-30 days')",  "prev_s": "strftime('%Y-%m-%dT%H:%M:%f', 'now', '-60 days')",  "prev_e": "strftime('%Y-%m-%dT%H:%M:%f', 'now', '-30 days')",  "label": "30 days", "gran": "%Y-%m-%d"},
     "all": {"sqlite": "'2026-03-08'",                "prev_s": "'2026-01-01'",                 "prev_e": "'2026-03-08'",                 "label": "all time", "gran": "%Y-%m-%d"},
 }
 
@@ -274,7 +274,7 @@ def _get_data(period_key):
                 SUM(CASE WHEN (bot_name LIKE '%Byte%' OR bot_name LIKE '%bytespider%') AND user_agent NOT LIKE '%GPTBot%' THEN 1 ELSE 0 END),
                 COUNT(CASE WHEN user_agent NOT LIKE '%GPTBot%' AND path NOT LIKE '/v1/preflight%' THEN 1 END), 0
             FROM requests
-            WHERE ts >= datetime('now', '-24 hours') AND is_ai_bot=1 AND status=200
+            WHERE ts >= strftime('%Y-%m-%dT%H:%M:%f', 'now', '-24 hours') AND is_ai_bot=1 AND status=200
             GROUP BY h
         """).fetchall()
         _prev_hourly = conn.execute("""
@@ -285,7 +285,7 @@ def _get_data(period_key):
                 SUM(CASE WHEN (bot_name LIKE '%Byte%' OR bot_name LIKE '%bytespider%') AND user_agent NOT LIKE '%GPTBot%' THEN 1 ELSE 0 END),
                 COUNT(CASE WHEN user_agent NOT LIKE '%GPTBot%' AND path NOT LIKE '/v1/preflight%' THEN 1 END), 0
             FROM requests
-            WHERE ts >= datetime('now', '-48 hours') AND ts < datetime('now', '-24 hours')
+            WHERE ts >= strftime('%Y-%m-%dT%H:%M:%f', 'now', '-48 hours') AND ts < strftime('%Y-%m-%dT%H:%M:%f', 'now', '-24 hours')
                 AND is_ai_bot=1 AND status=200
             GROUP BY h
         """).fetchall()

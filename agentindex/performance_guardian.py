@@ -100,7 +100,7 @@ def diagnose():
         rows = db.execute("""
             SELECT ip, substr(user_agent, 1, 80) as ua, COUNT(*) as hits
             FROM requests
-            WHERE ts > datetime('now', '-5 minutes')
+            WHERE ts > strftime('%Y-%m-%dT%H:%M:%f', 'now', '-5 minutes')
             GROUP BY ip
             ORDER BY hits DESC
             LIMIT 10

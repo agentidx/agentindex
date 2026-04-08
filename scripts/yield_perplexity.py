@@ -28,7 +28,7 @@ def analyze(hours=24):
         rows = conn.execute(f"""
             SELECT path, status, query_string, COUNT(*) as hits
             FROM requests
-            WHERE bot_name = ? AND ts >= datetime('now', '-{int(hours)} hours')
+            WHERE bot_name = ? AND ts >= strftime('%Y-%m-%dT%H:%M:%f', 'now', '-{int(hours)} hours')
             GROUP BY path, status, query_string
         """, (bot_name,)).fetchall()
 

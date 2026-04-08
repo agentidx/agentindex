@@ -45,7 +45,7 @@ def get_channel_stats(days: int = 7) -> list[dict]:
               COUNT(DISTINCT ip) as unique_users
             FROM requests
             WHERE path LIKE '/v1/%'
-            AND ts > datetime('now', ?)
+            AND ts > strftime('%Y-%m-%dT%H:%M:%f', 'now', ?)
             GROUP BY channel
             ORDER BY api_calls DESC
         """, (f"-{days} days",)).fetchall()
@@ -74,7 +74,7 @@ def get_daily_channel_trend(days: int = 14) -> list[dict]:
               COUNT(*) as calls
             FROM requests
             WHERE path LIKE '/v1/%'
-            AND ts > datetime('now', ?)
+            AND ts > strftime('%Y-%m-%dT%H:%M:%f', 'now', ?)
             GROUP BY day, channel
             ORDER BY day
         """, (f"-{days} days",)).fetchall()

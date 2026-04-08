@@ -33,7 +33,7 @@ def generate_trending():
         FROM requests
         WHERE is_ai_bot = 1
           AND path LIKE '/agent/%'
-          AND ts >= datetime('now', '-7 days')
+          AND ts >= strftime('%Y-%m-%dT%H:%M:%f', 'now', '-7 days')
         GROUP BY path
         ORDER BY hits DESC
         LIMIT 20
@@ -53,12 +53,12 @@ def generate_trending():
     # 2. Agents with most human traffic growth (compare last 3 days vs prior 4)
     human_growth = conn.execute("""
         SELECT path,
-            SUM(CASE WHEN ts >= datetime('now', '-3 days') THEN 1 ELSE 0 END) as recent,
-            SUM(CASE WHEN ts < datetime('now', '-3 days') AND ts >= datetime('now', '-7 days') THEN 1 ELSE 0 END) as prior
+            SUM(CASE WHEN ts >= strftime('%Y-%m-%dT%H:%M:%f', 'now', '-3 days') THEN 1 ELSE 0 END) as recent,
+            SUM(CASE WHEN ts < strftime('%Y-%m-%dT%H:%M:%f', 'now', '-3 days') AND ts >= strftime('%Y-%m-%dT%H:%M:%f', 'now', '-7 days') THEN 1 ELSE 0 END) as prior
         FROM requests
         WHERE is_bot = 0
           AND (path LIKE '/agent/%' OR path LIKE '/kya%' OR path LIKE '/safe/%')
-          AND ts >= datetime('now', '-7 days')
+          AND ts >= strftime('%Y-%m-%dT%H:%M:%f', 'now', '-7 days')
         GROUP BY path
         HAVING recent > 2
         ORDER BY (recent * 1.0 / MAX(prior, 1)) DESC
@@ -81,12 +81,12 @@ def generate_trending():
     # 3. Tokens trending (zarq.ai)
     token_growth = conn.execute("""
         SELECT path,
-            SUM(CASE WHEN ts >= datetime('now', '-3 days') THEN 1 ELSE 0 END) as recent,
-            SUM(CASE WHEN ts < datetime('now', '-3 days') AND ts >= datetime('now', '-7 days') THEN 1 ELSE 0 END) as prior
+            SUM(CASE WHEN ts >= strftime('%Y-%m-%dT%H:%M:%f', 'now', '-3 days') THEN 1 ELSE 0 END) as recent,
+            SUM(CASE WHEN ts < strftime('%Y-%m-%dT%H:%M:%f', 'now', '-3 days') AND ts >= strftime('%Y-%m-%dT%H:%M:%f', 'now', '-7 days') THEN 1 ELSE 0 END) as prior
         FROM requests
         WHERE is_bot = 0
           AND (path LIKE '/token/%' OR path LIKE '/vitality%')
-          AND ts >= datetime('now', '-7 days')
+          AND ts >= strftime('%Y-%m-%dT%H:%M:%f', 'now', '-7 days')
         GROUP BY path
         HAVING recent > 1
         ORDER BY (recent * 1.0 / MAX(prior, 1)) DESC
@@ -112,7 +112,7 @@ def generate_trending():
         WHERE search_query IS NOT NULL
           AND length(search_query) > 0
           AND is_bot = 0
-          AND ts >= datetime('now', '-7 days')
+          AND ts >= strftime('%Y-%m-%dT%H:%M:%f', 'now', '-7 days')
         GROUP BY search_query
         ORDER BY cnt DESC
         LIMIT 10

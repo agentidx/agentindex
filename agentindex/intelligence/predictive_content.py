@@ -72,13 +72,13 @@ def check_ai_crawl_spikes():
         conn = sqlite3.connect(ANALYTICS_DB, timeout=3)
         rows = conn.execute("""
             SELECT path,
-                SUM(CASE WHEN ts > datetime('now', '-24 hours') THEN 1 ELSE 0 END) as last_24h,
+                SUM(CASE WHEN ts > strftime('%Y-%m-%dT%H:%M:%f', 'now', '-24 hours') THEN 1 ELSE 0 END) as last_24h,
                 COUNT(*) / 7.0 as daily_avg
             FROM requests
             WHERE is_bot = 1
             AND (user_agent LIKE '%ChatGPT%' OR user_agent LIKE '%Perplexity%'
                  OR user_agent LIKE '%ClaudeBot%' OR user_agent LIKE '%GPTBot%')
-            AND ts > datetime('now', '-7 days')
+            AND ts > strftime('%Y-%m-%dT%H:%M:%f', 'now', '-7 days')
             GROUP BY path
             HAVING last_24h > daily_avg * 3 AND last_24h > 5
             ORDER BY last_24h DESC
@@ -490,7 +490,7 @@ def run_calibration():
                         r = conn.execute("""
                             SELECT COUNT(*) as hits,
                                    SUM(CASE WHEN user_agent LIKE '%ChatGPT%' OR user_agent LIKE '%Perplexity%' THEN 1 ELSE 0 END) as ai
-                            FROM requests WHERE path = ? AND ts > datetime('now', '-7 days')
+                            FROM requests WHERE path = ? AND ts > strftime('%Y-%m-%dT%H:%M:%f', 'now', '-7 days')
                         """, (page,)).fetchone()
                         total_traffic += r[0] or 0
                         ai_citations += r[1] or 0

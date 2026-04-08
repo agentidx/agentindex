@@ -37,7 +37,7 @@ def _query_oracle_stats() -> dict:
         stats["checks_today"] = cur.fetchone()["c"]
 
         # Total checks this week
-        cur.execute("SELECT count(*) as c FROM preflight_analytics WHERE ts >= datetime('now', '-7 days')")
+        cur.execute("SELECT count(*) as c FROM preflight_analytics WHERE ts >= strftime('%Y-%m-%dT%H:%M:%f', 'now', '-7 days')")
         stats["checks_week"] = cur.fetchone()["c"]
 
         # Total checks all-time
@@ -82,7 +82,7 @@ def _query_oracle_stats() -> dict:
         cur.execute("""
             SELECT date(ts) as d, count(*) as c
             FROM preflight_analytics
-            WHERE ts >= datetime('now', '-14 days')
+            WHERE ts >= strftime('%Y-%m-%dT%H:%M:%f', 'now', '-14 days')
             GROUP BY d ORDER BY d
         """)
         stats["daily_trend"] = [{"date": r["d"], "checks": r["c"]} for r in cur.fetchall()]
@@ -92,7 +92,7 @@ def _query_oracle_stats() -> dict:
             SELECT date(ts) as d, count(*) as c
             FROM requests
             WHERE path LIKE '/v1/%' AND is_bot = 0
-            AND ts >= datetime('now', '-14 days')
+            AND ts >= strftime('%Y-%m-%dT%H:%M:%f', 'now', '-14 days')
             GROUP BY d ORDER BY d
         """)
         stats["api_growth"] = [{"date": r["d"], "calls": r["c"]} for r in cur.fetchall()]

@@ -143,7 +143,7 @@ def _query_data():
             ELSE NULL
           END as bot, COUNT(*) as cnt
         FROM requests
-        WHERE ts > datetime('now', '-30 days')
+        WHERE ts > strftime('%Y-%m-%dT%H:%M:%f', 'now', '-30 days')
           AND (user_agent LIKE '%Grok%' OR user_agent LIKE '%DeepSeek%'
             OR user_agent LIKE '%MistralAI%' OR user_agent LIKE '%Sogou%'
             OR user_agent LIKE '%Baiduspider%' OR user_agent LIKE '%Yeti%'

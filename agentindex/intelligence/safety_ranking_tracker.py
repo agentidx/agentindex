@@ -45,7 +45,7 @@ def run_queries():
             FROM requests
             WHERE referrer LIKE '%google%' AND is_bot = 0
             AND (path LIKE '/is-%safe' OR path LIKE '/safe/%')
-            AND ts > datetime('now', '-7 days')
+            AND ts > strftime('%Y-%m-%dT%H:%M:%f', 'now', '-7 days')
             GROUP BY path ORDER BY visitors DESC LIMIT 20
         """).fetchall()
         results["google_organic"] = [dict(r) for r in rows]
@@ -60,7 +60,7 @@ def run_queries():
             FROM requests
             WHERE user_agent LIKE '%Googlebot%'
             AND (path LIKE '/is-%safe' OR path LIKE '/safe/%')
-            AND ts > datetime('now', '-7 days')
+            AND ts > strftime('%Y-%m-%dT%H:%M:%f', 'now', '-7 days')
             GROUP BY path ORDER BY crawls DESC LIMIT 30
         """).fetchall()
         results["googlebot_crawls"] = [dict(r) for r in rows]
@@ -83,7 +83,7 @@ def run_queries():
               SUM(CASE WHEN path LIKE '/safe/%' THEN 1 ELSE 0 END) as safe_hits,
               SUM(CASE WHEN path LIKE '/v1/preflight%' THEN 1 ELSE 0 END) as preflight_hits
             FROM requests WHERE is_bot = 1
-            AND ts > datetime('now', '-7 days')
+            AND ts > strftime('%Y-%m-%dT%H:%M:%f', 'now', '-7 days')
             GROUP BY bot ORDER BY is_safe_hits + safe_hits DESC
         """).fetchall()
         results["ai_bot_engagement"] = [dict(r) for r in rows]

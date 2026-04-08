@@ -1161,7 +1161,7 @@ def _query_channel_stats() -> dict:
                 MAX(ts) as last_seen
             FROM requests
             WHERE is_bot = 0
-            AND ts > datetime('now', '-7 days')
+            AND ts > strftime('%Y-%m-%dT%H:%M:%f', 'now', '-7 days')
             GROUP BY source
             HAVING source IS NOT NULL
             ORDER BY unique_visitors DESC
@@ -1190,7 +1190,7 @@ def _query_ai_citations() -> dict:
                    MIN(ts) as first_citation, MAX(ts) as last_citation
             FROM requests
             WHERE user_agent LIKE '%ChatGPT-User%'
-            AND ts > datetime('now', '-14 days')
+            AND ts > strftime('%Y-%m-%dT%H:%M:%f', 'now', '-14 days')
             GROUP BY path ORDER BY citations DESC LIMIT 20
         """).fetchall()
         result["chatgpt_pages"] = [dict(r) for r in rows]
@@ -1200,7 +1200,7 @@ def _query_ai_citations() -> dict:
             SELECT date(ts) as day, COUNT(*) as citations
             FROM requests
             WHERE user_agent LIKE '%ChatGPT-User%'
-            AND ts > datetime('now', '-14 days')
+            AND ts > strftime('%Y-%m-%dT%H:%M:%f', 'now', '-14 days')
             GROUP BY day ORDER BY day
         """).fetchall()
         result["chatgpt_trend"] = [dict(r) for r in rows]
@@ -1211,7 +1211,7 @@ def _query_ai_citations() -> dict:
             FROM requests
             WHERE user_agent LIKE '%Perplexity%'
             AND path NOT LIKE '/robots%' AND path NOT LIKE '/sitemap%'
-            AND ts > datetime('now', '-14 days')
+            AND ts > strftime('%Y-%m-%dT%H:%M:%f', 'now', '-14 days')
             GROUP BY path ORDER BY citations DESC LIMIT 20
         """).fetchall()
         result["perplexity_pages"] = [dict(r) for r in rows]
@@ -1221,7 +1221,7 @@ def _query_ai_citations() -> dict:
             SELECT path, COUNT(*) as citations
             FROM requests
             WHERE (user_agent LIKE '%ClaudeBot%' OR user_agent LIKE '%Claude-User%')
-            AND ts > datetime('now', '-14 days')
+            AND ts > strftime('%Y-%m-%dT%H:%M:%f', 'now', '-14 days')
             GROUP BY path ORDER BY citations DESC LIMIT 20
         """).fetchall()
         result["claude_pages"] = [dict(r) for r in rows]
@@ -1234,7 +1234,7 @@ def _query_ai_citations() -> dict:
         ]:
             row = conn.execute(f"""
                 SELECT COUNT(*) as total FROM requests
-                WHERE {ua_filter} AND ts > datetime('now', '-14 days')
+                WHERE {ua_filter} AND ts > strftime('%Y-%m-%dT%H:%M:%f', 'now', '-14 days')
             """).fetchone()
             result["totals"][bot_key] = row["total"] if row else 0
 

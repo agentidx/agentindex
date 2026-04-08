@@ -77,7 +77,7 @@ def _is_returning_visitor(raw_ip: str) -> bool:
         row = conn.execute("""
             SELECT COUNT(*) as visits, COUNT(DISTINCT date(ts)) as days
             FROM requests
-            WHERE ip = ? AND ts >= datetime('now', '-14 days') AND is_bot = 0
+            WHERE ip = ? AND ts >= strftime('%Y-%m-%dT%H:%M:%f', 'now', '-14 days') AND is_bot = 0
         """, (raw_ip,)).fetchone()
         conn.close()
         if row and row[0] >= 5 and row[1] >= 3:

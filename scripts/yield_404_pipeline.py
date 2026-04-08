@@ -74,7 +74,7 @@ def run_404_pipeline(hours=24, dry_run=False, limit=200):
         SELECT path, bot_name, query_string, COUNT(*) as hits
         FROM requests
         WHERE status = 404 AND is_ai_bot = 1
-          AND ts >= datetime('now', '-{int(hours)} hours')
+          AND ts >= strftime('%Y-%m-%dT%H:%M:%f', 'now', '-{int(hours)} hours')
         GROUP BY path, bot_name, query_string
         ORDER BY hits DESC
     """).fetchall()

@@ -50,7 +50,7 @@ def get_safety_traffic():
             FROM requests
             WHERE referrer LIKE '%google%' AND is_bot = 0
             AND (path LIKE '/is-%safe' OR path LIKE '/safe/%')
-            AND ts > datetime('now', '-30 days')
+            AND ts > strftime('%Y-%m-%dT%H:%M:%f', 'now', '-30 days')
             GROUP BY path ORDER BY visitors DESC LIMIT 50
         """).fetchall()
         return [dict(r) for r in rows]

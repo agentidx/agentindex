@@ -167,7 +167,7 @@ def aggregate_reach(hours=24):
         SELECT path, bot_name, ts, query_string
         FROM requests
         WHERE is_ai_bot = 1 AND status = 200
-          AND ts >= datetime('now', '-{int(hours)} hours')
+          AND ts >= strftime('%Y-%m-%dT%H:%M:%f', 'now', '-{int(hours)} hours')
     """)
 
     entity_data = defaultdict(lambda: {
