@@ -1,0 +1,73 @@
+#!/usr/bin/env python3
+"""
+Refresh analytics dashboard cache.
+
+Runs _query_data() and writes the result to /tmp/nerq_analytics_dashboard.json
+so that the dashboard endpoint can serve cached data without ever running
+the slow query under an HTTP request.
+
+Designed to be run by launchd every 30 minutes.
+
+Exit codes:
+  0 = success
+  1 = unrecoverable error
+  2 = timeout (took longer than 5 minutes — should never happen normally)
+"""
+import sys
+import os
+import time
+import json
+import signal
+
+# Add repo root so we can import agentindex
+sys.path.insert(0, '/Users/anstudio/agentindex')
+
+
+def timeout_handler(signum, frame):
+    print("ERROR: Cache refresh timed out after 300s", flush=True)
+    sys.exit(2)
+
+
+def main():
+    # Hard timeout: 5 minutes. _query_data() should take ~70s, so 300s is safe.
+    signal.signal(signal.SIGALRM, timeout_handler)
+    signal.alarm(300)
+
+    try:
+        from agentindex.analytics_dashboard import _query_data, _CACHE_FILE
+    except Exception as e:
+        print(f"ERROR: Failed to import analytics_dashboard: {e}", flush=True)
+        return 1
+
+    print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] Starting analytics cache refresh", flush=True)
+    print(f"  Target: {_CACHE_FILE}", flush=True)
+
+    start = time.time()
+    try:
+        data = _query_data()
+    except Exception as e:
+        elapsed = time.time() - start
+        print(f"ERROR: _query_data() failed after {elapsed:.1f}s: {e}", flush=True)
+        return 1
+
+    elapsed = time.time() - start
+    print(f"  Query completed in {elapsed:.1f}s", flush=True)
+
+    # Atomic write: write to .tmp, then rename
+    tmp_path = _CACHE_FILE + ".tmp"
+    try:
+        with open(tmp_path, "w") as f:
+            json.dump(data, f)
+        os.replace(tmp_path, _CACHE_FILE)
+    except Exception as e:
+        print(f"ERROR: Failed to write cache: {e}", flush=True)
+        return 1
+
+    size_kb = os.path.getsize(_CACHE_FILE) / 1024
+    print(f"  Cache written: {size_kb:.1f} KB", flush=True)
+    print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] DONE in {elapsed:.1f}s", flush=True)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

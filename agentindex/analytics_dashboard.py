@@ -17,7 +17,7 @@ logger = logging.getLogger("nerq.analytics_dashboard")
 
 ANALYTICS_DB = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "logs", "analytics.db")
 _CACHE_FILE = "/tmp/nerq_analytics_dashboard.json"
-_CACHE_TTL = 600  # 10 minutes
+_CACHE_TTL = 2400  # 40 minutes (refreshed by cron every 30 min)
 
 
 def _query_data():
