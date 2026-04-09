@@ -51,7 +51,7 @@ When things happen in the system that neither you nor Anders did, it is probably
 3. **PostgreSQL pool:** max pool_size=5, max_overflow=5
 4. **ZARQ design:** light theme, DM Serif Display, JetBrains Mono, DM Sans, `--warm: #c2956b`
 5. **Welcome all traffic.** Do not propose blocking or rate-limiting crawlers without explicit user reconsideration. The default answer is always "let them in."
-6. **Expansion-first.** Robustness is the foundation, but the goal is 50 languages and 100 verticals before monetization. See `docs/adr/ADR-002-expansion-first-strategy.md`.
+6. **Expansion-first.** Robustness is the foundation, but the goal is 50 languages and 100 verticals before monetization. See `docs/adr/ADR-003-cloud-native-expansion-first.md` (active strategy). ADR-002 partially superseded (DR tier ordering and infra placement replaced; expansion-first principle preserved). ADR-001 remains deferred.
 7. **Monetization trigger:** 150K human visits/day sustained for 7 consecutive days. Do not propose monetization changes before then.
 
 
@@ -86,9 +86,11 @@ Key files, indented to show structure:
             buzz-context.md                        (READ FIRST if touching operations)
             health-audit-2026-04-09.md             (Day 34 incident audit, messy but useful)
             adr/
-                ADR-002-expansion-first-strategy.md    (current architecture strategy)
+                ADR-003-cloud-native-expansion-first.md (active architecture strategy)
+                ADR-002-expansion-first-strategy.md    (partially superseded by ADR-003)
             strategy/
-                phase-0-1-implementation-plan.md                (what we are doing now)
+                phase-0-cloud-migration-plan.md                 (active implementation plan)
+                phase-0-1-implementation-plan.md                (superseded by above)
                 nerq-vertical-expansion-master-plan-v3.md       (14 to 100 verticals)
                 nerq-traffic-sprint-v2-complete.md              (traffic acquisition)
                 nerq-revenue-sprint-safe.md                     (monetization trigger)
@@ -141,7 +143,7 @@ The agentic economy is accelerating faster than expected. Key signals:
 - Delete or modify backup files
 - Modify nerq_risk_signals table directly
 - Associate Nerq or ZARQ with any legal entity name without explicit user confirmation
-- Propose 17-week migrations (ADR-001 is deferred, ADR-002 is the active strategy)
+- Propose 17-week migrations (ADR-001 is deferred, ADR-003 is the active strategy)
 - Unload LaunchAgents assuming they stay unloaded -- Buzz may re-load them
 - Make claims about Buzz's behavior without reading `~/.openclaw/cron/jobs.json` and `~/.openclaw/workspace/OPERATIONSPLAN.md` first
 
