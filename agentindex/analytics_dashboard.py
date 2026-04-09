@@ -338,24 +338,30 @@ def _query_data():
 
 
 def _get_cached_data():
-    """File-based cache, 10min TTL."""
+    """File-based cache. NEVER falls back to live query in HTTP context.
+
+    Cache is rebuilt by com.nerq.analytics-cache LaunchAgent every ~30 min.
+    If cache is stale or missing, returns cached data anyway (or empty
+    placeholder) rather than blocking the HTTP request on a 100+ second
+    SQLite query. Background: 524 incident 2026-04-09, fallback caused
+    death spiral when cache rebuild itself was timing out.
+    """
     try:
         if os.path.exists(_CACHE_FILE):
-            age = time.time() - os.path.getmtime(_CACHE_FILE)
-            if age < _CACHE_TTL:
-                with open(_CACHE_FILE) as f:
-                    return json.load(f)
-    except Exception:
-        pass
+            with open(_CACHE_FILE) as f:
+                data = json.load(f)
+            if isinstance(data, dict):
+                age = time.time() - os.path.getmtime(_CACHE_FILE)
+                data['_cache_age_seconds'] = int(age)
+                data['_cache_stale'] = age >= _CACHE_TTL
+            return data
+    except Exception as e:
+        logger.warning(f"Analytics cache read failed: {e}")
 
-    data = _query_data()
-    try:
-        with open(_CACHE_FILE + ".tmp", "w") as f:
-            json.dump(data, f)
-        os.replace(_CACHE_FILE + ".tmp", _CACHE_FILE)
-    except Exception:
-        pass
-    return data
+    # Cache missing or unreadable. Return empty dict — _render_html
+    # uses data.get(key, {}) defensively for every key.
+    return {'_cache_missing': True, 'generated_at': ''}
+
 
 
 def _render_html(data):
