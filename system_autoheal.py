@@ -611,12 +611,20 @@ def check_port_path(port, path):
     return out if out else "000"
 
 def check_yield_api():
+    # NOTE: yield endpoints can be slow (10-15s cold start after uvicorn restart)
+    # but slowness is NOT a reason to restart the API. check_port_path has a 5s
+    # curl timeout, which previously returned 000 for a slow-but-working endpoint
+    # and triggered a restart_api action — creating a feedback loop where each
+    # restart caused the next cold-start to fail the check, causing another
+    # restart. Background: restart loop incident 2026-04-09 09:51-10:24 (at
+    # least 7 restarts in 30 minutes). Fixed by making yield check observe-only.
+    # The real liveness check is check_api_health() against /v1/health with 8s
+    # timeout — that one can still trigger restart.
     for ep in ["/v1/yield/overview", "/v1/yield/insights?limit=1"]:
         code = check_port_path(8000, ep)
         if code != "200":
-            log(f"Yield endpoint degraded: {ep} -> {code}", "WARN")
-            return False
-    log("Yield API: OK")
+            log(f"Yield endpoint degraded: {ep} -> {code} (not triggering restart)", "WARN")
+    log("Yield API check complete")
     return True
 
 def check_yield_crawler():
