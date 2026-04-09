@@ -172,28 +172,6 @@ User-agent: FacebookBot
 Allow: /
 
 User-agent: meta-externalagent
-Crawl-delay: 10
-Disallow: /agent/
-Disallow: /kya
-Disallow: /gateway
-Disallow: /v1/
-Disallow: /badge/
-Disallow: /profile/
-Disallow: /dataset/
-Disallow: /model/
-Disallow: /ab-track
-Disallow: /insights
-Disallow: /flywheel
-Disallow: /admin/
-Allow: /safe/
-Allow: /best/
-Allow: /compare/
-Allow: /alternatives/
-Allow: /is-
-Allow: /review/
-Allow: /what-is/
-Allow: /who-owns/
-Allow: /privacy/
 Allow: /
 
 # Other AI

@@ -157,17 +157,8 @@ class BotRateLimitMiddleware(BaseHTTPMiddleware):
                      "perplexitybot", "yandexbot", "baiduspider", "duckduckbot",
                      "applebot", "slurp", "bytespider", "bytedance",
                      "facebot", "facebookexternalhit",
+                     "meta-externalagent", "meta-externalfetcher", "meta-webindexer",
                      "twitterbot", "linkedinbot")
-        # Hard rate limit for Meta — global 100/hour across all IPs (was per-IP 1/10s)
-        if "meta-externalagent" in ua or "meta-externalfetcher" in ua:
-            _meta = _bot_request_counts.setdefault("_meta_global", {"count": 0, "reset": 0})
-            if now > _meta["reset"]:
-                _meta["count"] = 0
-                _meta["reset"] = now + 3600
-            _meta["count"] += 1
-            if _meta["count"] > 100:
-                return StarletteResponse(content="", status_code=429, headers={"Retry-After": "3600"})
-            return await call_next(request)
         if any(s in ua for s in _SAFE_UA) or client_ip.startswith(_SAFE_PREFIXES):
             return await call_next(request)
         for bot_sig, max_rps in _BOT_RATE_LIMITS.items():
@@ -388,6 +379,7 @@ def check_rate_limit(request: Request):
                    "perplexitybot", "yandexbot", "baiduspider", "duckduckbot",
                    "applebot", "slurp", "bytespider", "bytedance",
                    "facebot", "facebookexternalhit",
+                   "meta-externalagent", "meta-externalfetcher", "meta-webindexer",
                    "twitterbot", "linkedinbot")
     _SAFE_IP_RL = ("66.249.", "64.233.", "72.14.", "74.125.", "209.85.", "216.239.",
                    "40.77.", "52.167.", "207.46.", "157.55.", "13.66.", "13.67.")
