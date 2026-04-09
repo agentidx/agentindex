@@ -2,6 +2,8 @@
 
 **Read this file first.** It is the map to everything else.
 
+**If there is a `docs/session-handoff-<date>.md` file newer than this one, read that first** — it contains the most recent session's context and specific tasks for you to pick up.
+
 ---
 
 ## The critical fact you must know before touching anything
