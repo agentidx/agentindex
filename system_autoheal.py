@@ -72,11 +72,34 @@ def should_restart(service_name, max_consecutive=5, backoff_minutes=30):
 
 
 def record_result(service_name, success):
-    """Record restart result for circuit breaker."""
+    """Record restart result for circuit breaker.
+    
+    A restart is only counted as 'success' if the previous restart happened
+    more than 10 minutes ago. This prevents the counter from being reset
+    during a restart oscillation (where each restart briefly succeeds at
+    binding to port, then crashes again within minutes). Before this change,
+    the 2026-04-09 incident saw 7+ restarts in 30 minutes without the
+    circuit breaker ever tripping, because every other restart reported
+    'Healthy after restart: True' and reset the counter to 0.
+    """
     failures = _load_failures()
     svc = failures.get(service_name, {"count": 0, "disabled_until": 0})
-    svc["count"] = 0 if success else svc.get("count", 0) + 1
-    svc["last"] = time.time()
+    now = time.time()
+    
+    if success:
+        last_restart = svc.get("last", 0)
+        if last_restart > 0 and (now - last_restart) < 600:
+            # Previous restart was <10 min ago — we're in an oscillation pattern.
+            # Count this as failure for circuit-breaker purposes even though
+            # the restart itself succeeded.
+            svc["count"] = svc.get("count", 0) + 1
+            log(f"Circuit breaker: {service_name} restarted <10min ago, counting as oscillation ({svc['count']}/5)", "WARN")
+        else:
+            svc["count"] = 0
+    else:
+        svc["count"] = svc.get("count", 0) + 1
+    
+    svc["last"] = now
     failures[service_name] = svc
     _save_failures(failures)
 
@@ -135,8 +158,16 @@ def check_port(port):
     return out if out else "000"
 
 def check_api_health():
-    """Deep health check — actually tests a real endpoint, not just port."""
-    out, _ = run("curl -s -m 8 http://localhost:8000/v1/health", timeout=12)
+    """Deep health check — actually tests a real endpoint, not just port.
+    
+    Timeout is 20s (not 8s) because uvicorn cold-start latency on /v1/health
+    after a restart can reach 15s — shorter timeouts created a feedback loop
+    where every restart failed the next check, triggering another restart.
+    See incident 2026-04-09 09:51-10:24 (7+ restarts in 30 minutes).
+    A genuinely dead uvicorn returns connection refused immediately, not a
+    timeout, so this longer timeout only protects against slow-but-working.
+    """
+    out, _ = run("curl -s -m 20 http://localhost:8000/v1/health", timeout=25)
     if not out:
         return False
     try:
@@ -174,9 +205,21 @@ def log_action(conn, action, detail="", result="OK"):
 OLLAMA_URL = "http://localhost:11434/api/generate"
 OLLAMA_MODEL = "qwen2.5:7b"  # qwen3:8b uses thinking mode which complicates parsing
 
-# Level 1: safe auto-execute actions
+# Level 1: safe auto-execute actions available to LLM diagnoser
+#
+# NOTE: restart_api was removed 2026-04-09 because the stop+start command
+# sequence has a race condition with launchd KeepAlive=true — the service
+# respawns between stop and start, causing "address already in use" errors
+# that LLM then interprets as root cause and recommends another restart.
+# This created a double-restart per heal cycle (main-path + LLM-path) that
+# was the core mechanic of the 2026-04-09 restart loop incident.
+#
+# The main heal() path still restarts uvicorn when needed using the correct
+# method: kill -9 + launchctl kickstart. That path has its own circuit
+# breaker and uses should_restart("api", ...). If LLM recommends restart_api
+# now, the action_name won't match SAFE_ACTIONS and it will be logged as a
+# Level 2 "suggestion only" — recorded but not executed.
 SAFE_ACTIONS = {
-    "restart_api": lambda: run("launchctl stop com.nerq.api && sleep 2 && launchctl start com.nerq.api", timeout=15),
     "restart_postgresql": lambda: run("brew services restart postgresql@16", timeout=30),
     "clear_redis_cache": lambda: run("/opt/homebrew/bin/redis-cli FLUSHDB", timeout=5),
     "kill_idle_connections": lambda: run(f"""{PSQL} -d agentindex -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='agentindex' AND state='idle' AND query_start < now()-interval '5 minutes' AND pid != pg_backend_pid();" """, timeout=10),
@@ -246,7 +289,7 @@ def llm_diagnose(conn):
     prompt = f"""You are Buzz, a system auto-healer for a FastAPI server (ZARQ/Nerq).
 Analyze these recent error logs and give:
 1. ROOT CAUSE (1 sentence)
-2. RECOMMENDED ACTION — pick ONE from: restart_api, restart_postgresql, clear_redis_cache, kill_idle_connections, none
+2. RECOMMENDED ACTION — pick ONE from: restart_postgresql, clear_redis_cache, kill_idle_connections, none
 3. EXPLANATION (1 sentence)
 
 Format your response EXACTLY as:
