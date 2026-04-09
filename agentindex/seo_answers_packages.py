@@ -361,17 +361,21 @@ curl -s "https://nerq.ai/v1/preflight?target={html.escape(pkg['name'])}" | jq '.
 
         with get_db_session() as session:
             rows = session.execute(text("""
-                SELECT name, trust_score_v2, trust_grade, stars, downloads, language
-                FROM entity_lookup WHERE is_active = true AND trust_score_v2 IS NOT NULL
-                  AND agent_type IN ('package', 'tool', 'library')
-                ORDER BY COALESCE(downloads, 0) DESC, COALESCE(stars, 0) DESC
+                SELECT el.name, el.trust_score_v2, el.trust_grade, el.stars, el.downloads, a.language
+                FROM entity_lookup el
+                LEFT JOIN agents a ON a.id = el.id
+                WHERE el.is_active = true AND el.trust_score_v2 IS NOT NULL
+                  AND el.agent_type IN ('package', 'tool', 'library')
+                ORDER BY COALESCE(el.downloads, 0) DESC, COALESCE(el.stars, 0) DESC
                 LIMIT 100
             """)).fetchall()
             if len(rows) < 20:
                 rows = session.execute(text("""
-                    SELECT name, trust_score_v2, trust_grade, stars, downloads, language
-                    FROM entity_lookup WHERE is_active = true AND trust_score_v2 IS NOT NULL
-                    ORDER BY COALESCE(stars, 0) DESC LIMIT 100
+                    SELECT el.name, el.trust_score_v2, el.trust_grade, el.stars, el.downloads, a.language
+                    FROM entity_lookup el
+                    LEFT JOIN agents a ON a.id = el.id
+                    WHERE el.is_active = true AND el.trust_score_v2 IS NOT NULL
+                    ORDER BY COALESCE(el.stars, 0) DESC LIMIT 100
                 """)).fetchall()
 
         trows = ""
@@ -413,11 +417,13 @@ curl -s "https://nerq.ai/v1/preflight?target={html.escape(pkg['name'])}" | jq '.
         with get_db_session() as session:
             def find_pkg(s):
                 r = session.execute(text("""
-                    SELECT name, trust_score_v2, trust_grade, stars, description,
-                           license, language, security_score, activity_score,
-                           documentation_score, downloads, source
-                    FROM entity_lookup WHERE (name_lower = :q OR name_lower LIKE :p)
-                      AND is_active = true ORDER BY COALESCE(stars,0) DESC LIMIT 1
+                    SELECT el.name, el.trust_score_v2, el.trust_grade, el.stars, el.description,
+                           el.license, a.language, el.security_score, el.activity_score,
+                           el.documentation_score, el.downloads, el.source
+                    FROM entity_lookup el
+                    LEFT JOIN agents a ON a.id = el.id
+                    WHERE (el.name_lower = :q OR el.name_lower LIKE :p)
+                      AND el.is_active = true ORDER BY COALESCE(el.stars,0) DESC LIMIT 1
                 """), {"q": s.lower(), "p": f"%{s.replace('-','%')}%"}).fetchone()
                 if r:
                     cols = ["name","score","grade","stars","desc","license","language",
