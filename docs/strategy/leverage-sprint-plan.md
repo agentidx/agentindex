@@ -465,3 +465,35 @@ To keep scope honest:
 ---
 
 *End of Leverage Sprint plan. Rewritten 2026-04-10 after Day 1 audit revealed Kings hypothesis unverified. Sprint is measurement-first, quality-first, scaling-last.*
+
+
+---
+
+## M5 Audit Status — DISPUTED (2026-04-10 afternoon)
+
+An M5 audit was produced by Claude Code at docs/status/leverage-sprint-day-2-m5-audit.md (766 lines). During review, spot-check verification against the Postgres agentindex database revealed that **two of five key findings contained factual errors**:
+
+1. **Finding 1** (5.8x Kings/non-Kings citation ratio) was claimed as a cross-registry score-controlled comparison. Verification showed the ratio comes from a single registry (npm). Only 1 registry (npm) has balanced Kings and non-Kings in the 80-100 trust score band. Two other registries in that band (pypi, vpn) have zero non-Kings.
+
+2. **Finding 3** (ai_tool Kings underperform due to 100% selection) was based on a false premise. ai_tool is 34% Kings and 66% non-Kings, not "all seeded entities get is_king=true" as the audit claimed.
+
+**Crawl bias finding (Finding 2) was CONFIRMED and is stronger than the audit stated.** auto_indexnow.py structurally protects Kings from LIMIT cutoff AND applies a 6-language multiplier loop to the Kings-dominated slug list. Kings are guaranteed 6x more IndexNow submissions than non-Kings, independent of any "AI preference."
+
+**Do not proceed with M6 (A3-Fix), M7 (A3-Gate), or M8 (A3-Scale) based on the M5 audit summary as originally written.**
+
+The full discrepancy analysis is in docs/status/leverage-sprint-day-2-m5-verification-notes.md. Next M5 session must start by reading that file.
+
+**Revised M5 plan:**
+- M5.1: Design controlled experiment (remove Kings prioritization from auto_indexnow.py for 7-14 days)
+- M5.2: Collect unbiased citation data
+- M5.3: Re-measure with corrected understanding (single-registry limitation acknowledged)
+- M5.4: Draft ADR-005 decision framework (do not conclude until unbiased data exists)
+
+**What we know definitively after 2026-04-10 verification:**
+- Crawl bias is structural and confirmed (auto_indexnow.py:347-354)
+- npm has 400 Kings + 3,110 non-Kings in 80-100 trust score band — only balanced registry
+- 4 registries have 100% or near-100% Kings (vpn, country, charity, crypto) — not measurable
+- 4 registries have 0 Kings — cannot test hypothesis at all
+- The Kings hypothesis may still be directionally correct, but current evidence is insufficient
+
+**Decision deferred:** Kings hypothesis validity. Target resolution: next M5 session with corrected methodology.
