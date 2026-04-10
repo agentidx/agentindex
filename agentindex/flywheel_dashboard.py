@@ -612,6 +612,26 @@ def _get_data(period_key):
         import logging as _lr_log
         _lr_log.getLogger("flywheel").error(f"lang_rollout query failed: {_lr_err}")
 
+    # Applebot totals (M4b Step 6): Apple is classified as search bot
+    # (is_ai_bot=0, bot_name='Apple') so it's not in the trend tuple.
+    # Separate queries for current and previous period.
+    try:
+        _apple_conn = sqlite3.connect(ANALYTICS_DB, timeout=30, check_same_thread=False)
+        _r_ac = _apple_conn.execute(
+            f"SELECT COUNT(*) FROM requests WHERE ts>{since} AND bot_name='Apple'"
+        ).fetchone()
+        data["apple_t"] = _r_ac[0] if _r_ac else 0
+        _r_ap = _apple_conn.execute(
+            f"SELECT COUNT(*) FROM requests WHERE ts>{prev_s} AND ts<{prev_e} AND bot_name='Apple'"
+        ).fetchone()
+        data["apple_prev_t"] = _r_ap[0] if _r_ap else 0
+        _apple_conn.close()
+    except Exception as _ap_err:
+        import logging as _ap_log
+        _ap_log.getLogger("flywheel").error(f"applebot query failed: {_ap_err}")
+        data["apple_t"] = 0
+        data["apple_prev_t"] = 0
+
     return data
 
 
@@ -794,6 +814,8 @@ def _render(period_key, data):
     _perplexity_t = sum(perplexity_d)
     _bytedance_t = sum(bytedance_d)
     _preflight_t = _pf_cur
+    _apple_t = data.get("apple_t", 0)
+    prev_apple_t = data.get("apple_prev_t", 0)
 
     def _bot_delta(cur, prev):
         if not prev: return '<span style="color:#16a34a">new</span>' if cur else ""
@@ -835,6 +857,8 @@ new Chart(document.getElementById('trendChart'), {{
 <span>ByteDance: <b>{_fmt(_bytedance_t)}</b> {_bot_delta(_bytedance_t, prev_bytedance_t)}</span>
 <span style="color:#e2e8f0">&middot;</span>
 <span>Perplexity: <b>{_fmt(_perplexity_t)}</b> {_bot_delta(_perplexity_t, prev_perplexity_t)}</span>
+<span style="color:#e2e8f0">&middot;</span>
+<span>Apple: <b>{_fmt(_apple_t)}</b> {_bot_delta(_apple_t, prev_apple_t)}</span>
 </div>"""
 
     # ── Conversion Funnel ──
