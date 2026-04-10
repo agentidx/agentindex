@@ -236,6 +236,19 @@ _HEAD = """<!DOCTYPE html>
 <meta property="og:title" content="Nerq — Is It Safe? Trust Scores for All Software">
 <meta property="og:description" content="Trust scores for any app, package, VPN, game, or plugin. Data-driven analysis from multiple sources. Free and independent.">
 <meta property="og:url" content="https://nerq.ai/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Nerq">
+<meta property="og:image" content="https://nerq.ai/static/nerq-logo-512.png">
+<meta property="og:image:width" content="512">
+<meta property="og:image:height" content="512">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Nerq Trust Scores">
+<link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon-180.png">
+<link rel="apple-touch-icon" sizes="167x167" href="/static/apple-touch-icon-167.png">
+<link rel="apple-touch-icon" sizes="152x152" href="/static/apple-touch-icon-152.png">
+<link rel="apple-touch-icon" sizes="120x120" href="/static/apple-touch-icon-120.png">
+<meta name="format-detection" content="telephone=no">
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"WebSite","name":"Nerq","url":"https://nerq.ai","description":"Is it safe? Trust scores for any app, package, VPN, game, or plugin. 7.5M+ entities rated.","potentialAction":{"@type":"SearchAction","target":"https://nerq.ai/discover?q={search_term_string}","query-input":"required name=search_term_string"}}
 </script>

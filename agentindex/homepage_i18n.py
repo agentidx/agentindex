@@ -3208,7 +3208,10 @@ def render_localized_homepage(lang: str) -> str:
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Nerq Trust Scores">
-<link rel="apple-touch-icon" href="/static/nerq-logo-512.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon-180.png">
+<link rel="apple-touch-icon" sizes="167x167" href="/static/apple-touch-icon-167.png">
+<link rel="apple-touch-icon" sizes="152x152" href="/static/apple-touch-icon-152.png">
+<link rel="apple-touch-icon" sizes="120x120" href="/static/apple-touch-icon-120.png">
 <meta name="format-detection" content="telephone=no">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="{title_esc}">

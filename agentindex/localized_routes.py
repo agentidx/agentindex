@@ -12208,6 +12208,17 @@ def _render_localized_page_minimal(entity_slug, pattern, lang):
 <meta name="citation_title" content="{_esc(title)}"><meta name="citation_author" content="Nerq">
 <meta name="nerq:answer" content="{_esc(nm)} {score:.0f}/100 ({grade}). {_esc(verdict_text)}. {_esc(desc[:120])}">
 <meta name="robots" content="max-snippet:-1">
+<meta property="og:image" content="https://nerq.ai/static/nerq-logo-512.png">
+<meta property="og:image:width" content="512">
+<meta property="og:image:height" content="512">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="{_esc(nm)} Trust">
+<link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon-180.png">
+<link rel="apple-touch-icon" sizes="167x167" href="/static/apple-touch-icon-167.png">
+<link rel="apple-touch-icon" sizes="152x152" href="/static/apple-touch-icon-152.png">
+<link rel="apple-touch-icon" sizes="120x120" href="/static/apple-touch-icon-120.png">
+<meta name="format-detection" content="telephone=no">
 {faq_ld}
 {NERQ_CSS}
 <style>.verdict-box{{border-radius:12px;padding:24px;margin:20px 0}}table{{width:100%;border-collapse:collapse;font-size:13px;margin:12px 0}}th{{text-align:left;padding:8px;border-bottom:2px solid #e5e7eb;color:#6b7280}}td{{padding:8px;border-bottom:1px solid #e5e7eb}}</style>
