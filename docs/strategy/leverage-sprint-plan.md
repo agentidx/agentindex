@@ -69,8 +69,46 @@ Fix two audit errors (wrong file paths for android_play_crawler.py and agent_saf
 **M3 — A2 schema design and deployment.**
 Extend analytics.db requests table with ai_source (nullable text) and visitor_type (text with constraint bot/human/ai_mediated). Add index on (ai_source, ts). Deploy referer pattern matching and user-agent pattern matching for known AI sources (Claude, ChatGPT, Perplexity, Copilot, Gemini, Grok, DuckAssist, Kagi) and AI-User clients (ChatGPT-User, Claude-User, Perplexity-User). Backfill historical rows where referer data exists. Deploy dashboard panels showing conversion rate per AI source, top URLs by AI-attributed visits, language/vertical breakdowns, 7-day trends. M3 runs on Mac Studio. Mac Mini runs read-only backfill queries from analytics.db replica if set up — otherwise backfill happens on Mac Studio too.
 
-**M4 — A1 Apple Intelligence audit and deployment.**
-Audit: verify robots.txt allows Applebot and Applebot-Extended with no exclusions. Inventory current Apple-specific meta tags (likely none). Measure TTFB from Mac Studio plus from Mac Mini as a second vantage point. Deploy: Apple-specific meta tags on entity pages and /best/ pages (apple-mobile-web-app-capable and related), Open Graph image generation for iMessage previews (on-demand with Cloudflare caching), Schema.org SoftwareApplication enhancements, Apple News RSS feed investigation (submit or document as not applicable), Applebot analytics panel in the existing dashboard. M4 runs primarily on Mac Studio. Mac Mini runs parallel TTFB measurement against 10K entity URLs as stress test and second-vantage-point data source.
+**M4a — A1 Apple Intelligence quick wins (COMPLETED 2026-04-10 afternoon).**
+Deployed scope: Apple meta tags on English entity pages (agent_safety_page.html), Schema.org SoftwareApplication enhancements (offers, license, datePublished, image) on entity pages, robots.txt max-snippet:-1 directives for Applebot and Applebot-Extended on both Nerq and ZARQ hosts, broken og:image on homepage template fixed (was pointing to non-existent og-nerq.png, now nerq-logo-512.png), ZARQ section of robots.txt got its missing Applebot and Applebot-Extended directives added.
+
+Deployment verified via curl against production (post-Cloudflare-purge). Sacred bytes intact on all entity pages (pplx-verdict, ai-summary, SpeakableSpecification counts preserved).
+
+Audit revealed scope gaps that became M4b. Specifically:
+1. Localized routes (/sv/, /de/, /ja/, /no/, and 19 other language variants) do not use the patched agent_safety_page.html template directly. They go through agentindex/localized_routes.py post-processing which has its own rendering path.
+2. Root homepage / is served by ab_test.py render_homepage() with 4 A/B variants, not by homepage_i18n.py.
+3. agent_safety_pages.py SoftwareApplication JSON-LD generation needed explicit fields added (done). But localized entity pages may need their own JSON-LD adjustments depending on how localized_routes rewrites them.
+
+Audit file: docs/status/leverage-sprint-day-2-a1-apple-research.md
+
+**M4b — A1 Apple Intelligence extended coverage (IMMEDIATE follow-up to M4a).**
+Execution target: start directly after M4a is committed, runs as next milestone after M5 (A3-Measure) or interleaved with A3-Fix if time permits. Not a future sprint — part of this sprint.
+
+M4b deliverables:
+
+1. Apple meta tags on all 23 language variants of the homepage and entity pages. This requires patching agentindex/localized_routes.py which post-processes language variants. Likely also requires understanding how that file interacts with homepage_i18n.py render_localized_homepage (our M4a patch on that file took effect for the base template but not the post-processed output).
+
+2. Apple meta tags on all 4 A/B variants of the root homepage /. This requires patching agentindex/ab_test.py render_homepage(). Must preserve A/B test tracking — any patch here must be audited carefully so analytics attribution is not broken.
+
+3. Open Graph image generator. On-demand per-entity PNG at /og/{slug}.png rendered by Pillow, cached by Cloudflare for 7 days, using trust score + entity name + category as card layout. Must respect Mac Studio memory pressure (currently 95% RAM). Fallback: if Pillow generation is too heavy, serve a single static card per trust grade (A+, A, B, C, D, F).
+
+4. Apple touch icons at 4 sizes (120, 152, 167, 180) generated from nerq-logo-512.png. Either pre-generate at build time to static files, or serve on-demand via the same mechanism as OG images.
+
+5. ETag header support in Redis cache middleware (discovery.py around line 266-300). Compute ETag from Redis cache key + content hash. Handle If-None-Match conditional requests to return 304. Enables Applebot efficient re-crawl.
+
+6. Applebot analytics panel in agentindex/flywheel_dashboard.py. Daily request volume trend, top paths requested, percentage of bot traffic, Safari referer patterns if any appear.
+
+7. Investigate the max-age=14400 discrepancy (live response shows 14400, code sets 300). Understand whether Cloudflare is rewriting or an intermediary is involved. Not blocking but affects cache expectations.
+
+8. Remove duplicate index idx_ts on analytics.db. idx_requests_ts and idx_ts both index the ts column alone — one is redundant. Minor cleanup flagged by M3 audit.
+
+M4b risks:
+- localized_routes.py is 12,261 lines. Patch must be surgical, not a rewrite.
+- ab_test.py patch risks breaking A/B tracking if not careful.
+- OG image generation at 5M+ entities scale needs capacity validation before full rollout.
+- Sacred bytes drift = 0 must be preserved across all localized variants, not just English.
+
+M4b runs on Mac Studio primarily. Mac Mini can run TTFB measurements against a sample of localized URLs to verify parity with English pages after deployment.
 
 **M5 — A3-Measure built on top of A2 infrastructure.**
 Extend citation_tracker.py or flywheel_dashboard.py with a Kings vs non-Kings split. Produce query output showing: AI bot crawl rate per page per day for Kings, same for non-Kings, broken down by bot source (ClaudeBot, GPTBot, PerplexityBot, Applebot, others), AI-attributed human visits per Kings vs non-Kings page once A2 is live. The panel or query should produce a simple numerical comparison that can be read at a glance. M5 depends on M3 (A2) being at least partially complete so the ai_source column exists. M5 runs on Mac Studio.

@@ -101,6 +101,14 @@ max-snippet:-1
 User-agent: cohere-ai
 Allow: /
 max-snippet:-1
+
+User-agent: Applebot
+Allow: /
+max-snippet:-1
+
+User-agent: Applebot-Extended
+Allow: /
+max-snippet:-1
 """
         # Default: nerq (covers nerq.ai, localhost, and any non-zarq host)
         return """# Nerq — Trust scores for all software
@@ -159,9 +167,11 @@ Allow: /
 # Apple Intelligence
 User-agent: Applebot
 Allow: /
+max-snippet:-1
 
 User-agent: Applebot-Extended
 Allow: /
+max-snippet:-1
 
 # ByteDance (Doubao/Coze)
 User-agent: Bytespider

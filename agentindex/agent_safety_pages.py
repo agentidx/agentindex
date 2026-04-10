@@ -9009,6 +9009,15 @@ def _render_agent_page(slug, agent_info, lang="en"):
             "description": description[:200] if description else f"{display_name} — {_entity_word}",
             "url": f"https://nerq.ai/safe/{slug}",
             "author": {"@type": "Organization", "name": author},
+            "offers": {
+                "@type": "Offer",
+                "price": "0",
+                "priceCurrency": "USD",
+                "availability": "https://schema.org/InStock",
+            },
+            "license": agent.get("license") or "Not specified",
+            "datePublished": (agent.get("first_seen") or datetime.now().strftime('%Y-%m-%d'))[:10] if agent.get("first_seen") else datetime.now().strftime('%Y-%m-%d'),
+            "image": "https://nerq.ai/static/nerq-logo-512.png",
             "aggregateRating": {
                 "@type": "AggregateRating",
                 "ratingValue": str(round(max(1.0, float(score) / 20), 1)),

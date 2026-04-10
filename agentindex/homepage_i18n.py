@@ -3202,7 +3202,14 @@ def render_localized_homepage(lang: str) -> str:
 <meta property="og:url" content="https://nerq.ai/{lang}/">
 <meta property="og:title" content="{title_esc}">
 <meta property="og:description" content="{meta_esc}">
-<meta property="og:image" content="https://nerq.ai/static/og-nerq.png">
+<meta property="og:image" content="https://nerq.ai/static/nerq-logo-512.png">
+<meta property="og:image:width" content="512">
+<meta property="og:image:height" content="512">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Nerq Trust Scores">
+<link rel="apple-touch-icon" href="/static/nerq-logo-512.png">
+<meta name="format-detection" content="telephone=no">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="{title_esc}">
 <meta name="twitter:description" content="{meta_esc}">
