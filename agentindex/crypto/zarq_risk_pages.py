@@ -97,7 +97,7 @@ ZARQ_FOOTER = """
   <div style="font-family:var(--sans);font-size:12px;color:var(--gray-400);margin-bottom:8px;line-height:1.6">ZARQ is independent credit ratings for crypto &mdash; Moody's for the machine economy. <a href="/about" style="color:var(--gray-500)">About</a></div>
   <div style="display:flex;justify-content:space-between">
     <div style="font-family:var(--mono);font-size:12px;color:var(--gray-500)">ZARQ &mdash; Independent Crypto Intelligence</div>
-    <div style="font-family:var(--mono);font-size:12px;color:var(--gray-400)"><a href="/about" style="color:var(--gray-400)">about</a> &middot; zarq.ai</div>
+    <div style="font-family:var(--mono);font-size:12px;color:var(--gray-400)"><a href="/about" style="color:var(--gray-400)">about</a> &middot; <a href="mailto:hello@zarq.ai" style="color:var(--gray-400)">hello@zarq.ai</a> &middot; zarq.ai</div>
   </div>
 </footer>
 """

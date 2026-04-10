@@ -76,7 +76,7 @@ def _nerq_about() -> str:
   <h2>Contact</h2>
   <table>
     <tr><td style="color:#6b7280;width:180px">Founded by</td><td>Anders Nilsson</td></tr>
-    <tr><td style="color:#6b7280">Email</td><td><a href="mailto:anders@nerq.ai">anders@nerq.ai</a></td></tr>
+    <tr><td style="color:#6b7280">Email</td><td><a href="mailto:hello@nerq.ai">hello@nerq.ai</a></td></tr>
   </table>
 
   <p style="margin-top:24px;font-size:12px;color:#6b7280">Nerq is the sister platform of <a href="https://zarq.ai/about">ZARQ</a>, which provides independent crypto risk intelligence.</p>
@@ -181,7 +181,7 @@ footer div { font-family:var(--mono); font-size:12px; color:var(--gray-500); }
   <h2>Contact</h2>
   <table>
     <tr><td style="color:var(--gray-500);width:180px">Founded by</td><td>Anders Nilsson</td></tr>
-    <tr><td style="color:var(--gray-500)">Email</td><td><a href="mailto:anders@zarq.ai">anders@zarq.ai</a></td></tr>
+    <tr><td style="color:var(--gray-500)">Email</td><td><a href="mailto:hello@zarq.ai">hello@zarq.ai</a></td></tr>
   </table>
 
   <p style="margin-top:24px;font-size:13px;color:var(--gray-500)">ZARQ is the sister platform of <a href="https://nerq.ai/about">Nerq</a>, which indexes 5M+ AI assets with independent trust scores.</p>

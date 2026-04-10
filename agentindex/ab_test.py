@@ -551,7 +551,7 @@ _STATIC_SECTIONS = """
 </div>
 </div>
 <div class="footer-bottom">
-  nerq.ai &mdash; trust scores for software, apps, and digital products &middot; updated daily
+  nerq.ai &mdash; trust scores for software, apps, and digital products &middot; updated daily &middot; <a href="mailto:hello@nerq.ai" style="color:#94a3b8">hello@nerq.ai</a>
 </div>
 </div></footer>"""
 

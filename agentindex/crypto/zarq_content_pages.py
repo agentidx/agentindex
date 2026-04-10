@@ -163,6 +163,7 @@ ZARQ_NAV = """<nav>
 
 ZARQ_FOOTER = """<footer>
   <p>&copy; 2026 <a href="https://zarq.ai">ZARQ</a> &mdash; Independent crypto risk intelligence &middot;
+    <a href="mailto:hello@zarq.ai">hello@zarq.ai</a> &middot;
     <a href="/tokens">Tokens</a> &middot;
     <a href="/crash-watch">Crash Watch</a> &middot;
     <a href="/yield-risk">Yield Risk</a> &middot;

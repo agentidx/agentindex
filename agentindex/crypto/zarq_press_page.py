@@ -239,7 +239,7 @@ def _zarq_press_html() -> str:
   It rates 198 tokens on a Moody's-style scale (Aaa to D) using a proprietary
   Distance-to-Default model and 7 structural risk signals. ZARQ has 100% recall
   on structural collapse (113/113 detected) and 98% out-of-sample precision.
-  Contact: press@zarq.ai
+  Contact: hello@zarq.ai
 -->
 </head>
 <body>
@@ -319,7 +319,7 @@ def _zarq_press_html() -> str:
 
   <section class="contact-section">
     <h2 class="section-title" style="margin-top:0">Contact</h2>
-    <p>Press inquiries: <a href="mailto:press@zarq.ai">press@zarq.ai</a></p>
+    <p>Press inquiries: <a href="mailto:hello@zarq.ai">hello@zarq.ai</a></p>
   </section>
 </main>
 
@@ -410,7 +410,7 @@ def _nerq_press_html() -> str:
   It indexes 5M+ AI assets — 204K agents & tools, 25K MCP servers across
   12 registries — with independent safety ratings. Benchmark proof: p < 0.00000001.
   35.6% failure rate without Nerq vs 0% with preflight checks.
-  Contact: press@nerq.ai
+  Contact: hello@nerq.ai
 -->
 </head>
 <body>
@@ -479,7 +479,7 @@ def _nerq_press_html() -> str:
 
   <section class="contact-section">
     <h2 class="section-title" style="margin-top:0">Contact</h2>
-    <p>Press inquiries: <a href="mailto:press@nerq.ai">press@nerq.ai</a></p>
+    <p>Press inquiries: <a href="mailto:hello@nerq.ai">hello@nerq.ai</a></p>
   </section>
 </main>
 

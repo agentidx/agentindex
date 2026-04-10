@@ -535,7 +535,7 @@ MCP server: https://nerq.ai/mcp/sse
                 "url": "https://zarq.ai/openapi.json"
             },
             "logo_url": "https://zarq.ai/static/zarq-logo.png",
-            "contact_email": "api@zarq.ai",
+            "contact_email": "hello@zarq.ai",
             "legal_info_url": "https://zarq.ai/terms"
         })
 

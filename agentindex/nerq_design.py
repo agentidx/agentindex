@@ -210,7 +210,7 @@ NERQ_FOOTER = NERQ_EXPLORE + """<footer class="footer"><div class="wide-containe
 <p style="font-size:12px;color:#94a3b8;line-height:1.5">Trust scores for software, apps, VPNs, games, and packages. Independent. Data-driven.</p>
 <a href="/about" style="margin-top:6px">About</a><a href="https://zarq.ai">zarq.ai (crypto)</a></div>
 </div>
-<div class="footer-bottom">nerq.ai &mdash; trust scores for all software &middot; 7.5M+ entities &middot; 26 registries &middot; 22 languages &middot; <a href="/privacy" style="color:#94a3b8">Privacy</a> &middot; <a href="/terms" style="color:#94a3b8">Terms</a> &middot; <a href="/contact" style="color:#94a3b8">Contact</a></div>
+<div class="footer-bottom">nerq.ai &mdash; trust scores for all software &middot; 7.5M+ entities &middot; 26 registries &middot; 22 languages &middot; <a href="/privacy" style="color:#94a3b8">Privacy</a> &middot; <a href="/terms" style="color:#94a3b8">Terms</a> &middot; <a href="mailto:hello@nerq.ai" style="color:#94a3b8">hello@nerq.ai</a></div>
 </div></footer>
 <div id="ck-banner" style="position:fixed;bottom:0;left:0;right:0;background:#1e293b;color:#e2e8f0;padding:10px 20px;display:flex;justify-content:space-between;align-items:center;z-index:9999;font-size:13px">
 <span>We use cookies for analytics and caching. <a href="/privacy" style="color:#38bdf8">Privacy Policy</a></span>
@@ -400,7 +400,7 @@ def render_footer(lang="en"):
 <p style="font-size:12px;color:#94a3b8;line-height:1.5">{u("tagline")}</p>
 <a href="{lp}/about" style="margin-top:6px">{u("about")}</a><a href="https://zarq.ai">zarq.ai (crypto)</a></div>
 </div>
-<div class="footer-bottom">{u("bottom")} &middot; 7.5M+ entities &middot; 26 registries &middot; 22 languages &middot; <a href="/privacy" style="color:#94a3b8">{u("privacy")}</a> &middot; <a href="/terms" style="color:#94a3b8">{u("terms")}</a> &middot; <a href="/contact" style="color:#94a3b8">{u("contact")}</a></div>
+<div class="footer-bottom">{u("bottom")} &middot; 7.5M+ entities &middot; 26 registries &middot; 22 languages &middot; <a href="/privacy" style="color:#94a3b8">{u("privacy")}</a> &middot; <a href="/terms" style="color:#94a3b8">{u("terms")}</a> &middot; <a href="mailto:hello@nerq.ai" style="color:#94a3b8">hello@nerq.ai</a></div>
 </div></footer>
 <div id="ck-banner" style="position:fixed;bottom:0;left:0;right:0;background:#1e293b;color:#e2e8f0;padding:10px 20px;display:flex;justify-content:space-between;align-items:center;z-index:9999;font-size:13px">
 <span>{u("cookies")} <a href="/privacy" style="color:#38bdf8">{u("privacy")}</a></span>
