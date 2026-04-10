@@ -266,11 +266,26 @@ class PageCacheMiddleware(BaseHTTPMiddleware):
         try:
             cached = r.get(cache_key)
             if cached:
+                # ETag: content-hash based. Applebot and other crawlers
+                # can send If-None-Match to skip re-download on cache hit.
+                _etag = f'"{hashlib.md5(cached).hexdigest()}"'
+                _client_etag = request.headers.get("if-none-match", "")
+                if _client_etag == _etag:
+                    return StarletteResponse(
+                        content=b"",
+                        status_code=304,
+                        headers={
+                            "ETag": _etag,
+                            "Cache-Control": _cc,
+                            "CDN-Cache-Control": _cdn_cc,
+                        }
+                    )
                 return StarletteResponse(
                     content=cached,
                     media_type="text/html; charset=utf-8",
                     headers={
                         "X-Cache": "HIT",
+                        "ETag": _etag,
                         "Cache-Control": _cc,
                         "CDN-Cache-Control": _cdn_cc,
                     }
@@ -289,12 +304,15 @@ class PageCacheMiddleware(BaseHTTPMiddleware):
                     r.setex(cache_key, self._TTL, body)
             except Exception:
                 pass
+            # ETag from content hash for MISS response
+            _etag = f'"{hashlib.md5(body).hexdigest()}"'
             return StarletteResponse(
                 content=body,
                 status_code=200,
                 media_type=response.media_type or "text/html; charset=utf-8",
                 headers={
                     "X-Cache": "MISS",
+                    "ETag": _etag,
                     "Cache-Control": _cc,
                     "CDN-Cache-Control": _cdn_cc,
                 }
