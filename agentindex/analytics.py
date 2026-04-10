@@ -184,6 +184,73 @@ def _detect_bot(ua: str, ip: str = ''):
 
     return False, False, None
 
+# A2 AI-to-human tracking (Leverage Sprint M3, 2026-04-10)
+# Classifies AI source and visitor type from referrer + user-agent.
+# Does not modify is_bot behavior — strictly additive.
+
+_AI_REFERRER_DOMAINS = {
+    'claude.ai': 'Claude',
+    'chat.openai.com': 'ChatGPT',
+    'chatgpt.com': 'ChatGPT',
+    'perplexity.ai': 'Perplexity',
+    'copilot.microsoft.com': 'Copilot',
+    'gemini.google.com': 'Gemini',
+    'grok.x.ai': 'Grok',
+    'kagi.com': 'Kagi',
+    'doubao.com': 'Doubao',
+}
+
+_AI_CONDITIONAL_DOMAINS = {
+    'bing.com': ('Copilot', '/chat'),
+    'x.com': ('Grok', '/i/grok'),
+}
+
+_AI_MEDIATED_UA_FRAGMENTS = {
+    'chatgpt-user': 'ChatGPT',
+    'claude-user': 'Claude',
+    'perplexity-user': 'Perplexity',
+}
+
+
+def classify_ai_source(referrer, referrer_domain, user_agent):
+    """Classify AI attribution and visitor type.
+
+    Returns (ai_source, visitor_type) where:
+        ai_source: 'ChatGPT', 'Claude', 'Perplexity', etc. or None
+        visitor_type: 'bot', 'human', 'ai_mediated', or '' (empty = fall through)
+
+    Never raises. All inputs are treated as optional strings.
+    """
+    try:
+        ua_lower = (user_agent or '').lower()
+
+        for fragment, source in _AI_MEDIATED_UA_FRAGMENTS.items():
+            if fragment in ua_lower:
+                return source, 'ai_mediated'
+
+        if referrer_domain:
+            domain = referrer_domain.lower()
+            source = _AI_REFERRER_DOMAINS.get(domain)
+            if source is not None:
+                return source, 'human'
+
+            ref_lower = (referrer or '').lower()
+            cond = _AI_CONDITIONAL_DOMAINS.get(domain)
+            if cond is not None:
+                src, required_path = cond
+                if required_path in ref_lower:
+                    return src, 'human'
+
+            if domain == 'duckduckgo.com' and ('ia=' in ref_lower or 'ai=' in ref_lower):
+                return 'DuckDuckGo AI', 'human'
+            if domain == 'search.brave.com' and 'summarizer' in ref_lower:
+                return 'Brave AI', 'human'
+
+        return None, ''
+    except Exception:
+        return None, ''
+
+
 def _extract_referrer_domain(ref: str):
     if not ref or ref == '-':
         return None
@@ -217,15 +284,21 @@ def log_request(method, path, status, duration_ms, ip, user_agent, referrer, que
         ref_domain = _extract_referrer_domain(referrer)
         country = _ip_to_country(ip)
 
+        # A2 AI tracking (Leverage Sprint M3): classify without affecting is_bot.
+        # Values captured here are not yet written to DB (Fas C wires INSERT).
+        ai_source, visitor_type = classify_ai_source(referrer, ref_domain, user_agent)
+        if not visitor_type:
+            visitor_type = 'bot' if is_bot else 'human' 
+
         now = datetime.utcnow().isoformat()
         conn = sqlite3.connect(DB_PATH)
         conn.execute(
             '''INSERT INTO requests (ts, method, path, status, duration_ms, ip, user_agent,
-               bot_name, is_bot, is_ai_bot, referrer, referrer_domain, query_string, search_query, country)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+               bot_name, is_bot, is_ai_bot, referrer, referrer_domain, query_string, search_query, country, ai_source, visitor_type)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
             (now, method, path, status, duration_ms,
              ip, user_agent, bot_name, int(is_bot), int(is_ai_bot),
-             referrer, ref_domain, query_string, search_query, country)
+             referrer, ref_domain, query_string, search_query, country, ai_source, visitor_type)
         )
         # Log preflight calls to dedicated table
         if 'preflight' in path:
