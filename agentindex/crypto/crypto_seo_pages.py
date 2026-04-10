@@ -347,7 +347,7 @@ def _page_foot():
     <a href="/methodology">Methodology</a>
     <a href="/docs">API</a>
     <a href="https://nerq.ai">NERQ (AI Agents)</a>
-    <a href="mailto:hello@zarq.ai">hello@zarq.ai</a>
+    <a href="mailto:hello@zarq.ai" style="margin-left:12px">hello@zarq.ai</a>
   </div>
 </footer>
 </body></html>"""
