@@ -260,6 +260,13 @@ class PageCacheMiddleware(BaseHTTPMiddleware):
             _smaxage = 3600    # 1h — homepage
         else:
             _smaxage = 43200   # 12h — everything else
+        # NOTE (M4b Step 7): Cloudflare Browser Cache TTL override
+        # rewrites max-age=300 to max-age=14400 (4h) at the edge.
+        # The 300 value here is effectively dead code for responses
+        # served via Cloudflare. To change browser cache time, update
+        # the Browser Cache TTL setting in Cloudflare dashboard, not
+        # this line. See docs/status/leverage-sprint-day-2-m4b-audit.md
+        # Step 7 for investigation details.
         _cc = f"public, max-age=300, s-maxage={_smaxage}, stale-while-revalidate=86400"
         _cdn_cc = f"public, max-age={_smaxage}, stale-while-revalidate=86400"
 

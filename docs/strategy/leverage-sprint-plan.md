@@ -81,7 +81,7 @@ Audit revealed scope gaps that became M4b. Specifically:
 
 Audit file: docs/status/leverage-sprint-day-2-a1-apple-research.md
 
-**M4b — A1 Apple Intelligence extended coverage (IMMEDIATE follow-up to M4a).**
+**M4b — A1 Apple Intelligence extended coverage (LARGELY COMPLETED 2026-04-10 afternoon).**
 Execution target: start directly after M4a is committed, runs as next milestone after M5 (A3-Measure) or interleaved with A3-Fix if time permits. Not a future sprint — part of this sprint.
 
 M4b deliverables:
@@ -109,6 +109,81 @@ M4b risks:
 - Sacred bytes drift = 0 must be preserved across all localized variants, not just English.
 
 M4b runs on Mac Studio primarily. Mac Mini can run TTFB measurements against a sample of localized URLs to verify parity with English pages after deployment.
+
+**M4b completed in this sprint (2026-04-10):**
+- Step 1: _render_localized_page_minimal fallback patch (localized_routes.py)
+- Step 2: ab_test.py _HEAD patch (root / + all 4 A/B variants)
+- Step 3a: Apple touch-icon generation (120, 152, 167, 180)
+- Step 3b: Template sized-icon updates (agent_safety_page.html, homepage_i18n.py)
+- Step 5: ETag support in PageCacheMiddleware (discovery.py)
+- Step 6: Applebot in bot summary bar (flywheel_dashboard.py)
+- Step 7: max-age discrepancy documented (discovery.py comment)
+- Step 8: Duplicate index cleanup (DROP INDEX idx_requests_ts, 582 MB recovered)
+
+**M4b deferred to M4c (follow-up milestone):**
+- Step 4: OG image generator — on-demand Pillow with Cloudflare caching
+  OR fallback plan with 10 static grade PNGs + entity template integration.
+  Not generated today because template integration requires grade mapping
+  at render time and deserves its own commit cycle.
+
+**M4c — A1 Apple Intelligence visual differentiation and classification.**
+Follow-up milestone for work identified during M4b but deferred for
+scope and safety. Target: run after M5 (A3-Measure) completes, or
+interleaved with Day 3 work.
+
+M4c deliverables:
+
+1. OG image generator. Choose between per-entity dynamic Pillow
+   generation (preferred if Mac Studio memory allows) or 10 static
+   grade PNGs (safer fallback). Per-entity design is in
+   docs/status/leverage-sprint-day-2-m4b-audit.md Step 4. Includes
+   route /og/{slug}.png, template updates, Cloudflare 7-day cache,
+   memory monitoring.
+
+2. Apple touch-icon size variants as standalone files. Currently
+   M4b batch 1 generated 4 PNGs pointing from all templates, but
+   nothing special per-context. M4c may want high-res source
+   (1024px) pre-generated if we ever need apple-touch-icon-precomposed.
+
+3. Applebot reclassification from search bot to AI Indexing. Currently
+   bot_name='Apple' has is_ai_bot=0 (search bot category) which
+   excludes it from both AI Citations and AI Indexing dashboard cards.
+   Given Applebot powers Apple Intelligence (Siri, Spotlight, Safari
+   Suggestions), it should be reclassified as is_ai_bot=1 and added
+   to the AI Indexing SQL filter in flywheel_dashboard.py alongside
+   GPTBot. Scope: analytics.py bot mapping, backfill of ~1.5M existing
+   rows, flywheel_dashboard.py query updates, cache regeneration.
+   Risk: retroactive dashboard semantic change, historical charts will
+   show different numbers. Priority: lower than M5 but should be
+   resolved before any stakeholder reporting.
+
+## M4b Open Questions (carried forward)
+
+1. **Cloudflare Browser Cache TTL (resolved):** Accept as-is. 14400s
+   (4h) browser cache is reasonable for a site where trust scores
+   change daily. Code's max-age=300 is effectively dead code and is
+   now documented as such in discovery.py:263.
+
+2. **OG image fonts:** DM Serif Display and DM Sans not installed.
+   M4c decision: download to static/fonts/ for branded cards, or
+   use system Helvetica as default.
+
+3. **OG image strategy:** Fallback plan (10 static grade images) is
+   safer for Mac Studio memory pressure but less differentiated.
+   Per-entity dynamic generation is more valuable for social sharing
+   but requires capacity validation. M4c decision.
+
+4. **Applebot classification:** Reclassify as AI Indexing (see M4c
+   deliverable 3). Not done in M4b because retroactive dashboard
+   semantic change deserves its own commit cycle and deeper audit
+   of all is_ai_bot=1 queries in flywheel_dashboard.py.
+
+5. **VACUUM timing:** Not performed. DROP INDEX idx_requests_ts was
+   sufficient; SQLite reuses freed pages naturally.
+
+6. **Redis cache flush after deploy:** Performed via Python-based
+   iteration (17,062 pc:* keys deleted) — xargs failed on keys with
+   quoted characters. Python redis-py library handles binary safely.
 
 **M5 — A3-Measure built on top of A2 infrastructure.**
 Extend citation_tracker.py or flywheel_dashboard.py with a Kings vs non-Kings split. Produce query output showing: AI bot crawl rate per page per day for Kings, same for non-Kings, broken down by bot source (ClaudeBot, GPTBot, PerplexityBot, Applebot, others), AI-attributed human visits per Kings vs non-Kings page once A2 is live. The panel or query should produce a simple numerical comparison that can be read at a glance. M5 depends on M3 (A2) being at least partially complete so the ai_source column exists. M5 runs on Mac Studio.
