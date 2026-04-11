@@ -344,13 +344,20 @@ def detect_new_urls(prev_state: dict) -> tuple[list[str], list[str], dict]:
         _pg = psycopg2.connect(dbname="agentindex", user="anstudio")
         _pg.set_session(readonly=True)
         _cur = _pg.cursor()
-        # Kings + top-scored entities (high AI citation probability)
+        # M5.1 EXPERIMENT (started 2026-04-11): Kings prioritization removed
+        # to test crawl bias hypothesis. Random sampling from broader pool
+        # (trust_score >= 50) ensures Kings get ~1.6% of slots, matching
+        # their natural prevalence rather than 100%. After 7 days, compare
+        # citation yield for Kings vs non-Kings sampled this way.
+        # See: docs/status/leverage-sprint-day-3-m5-experiment.md
+        # Reverse: restore the WHERE/ORDER BY clauses commented below.
+        # ORIGINAL: WHERE (is_king = true OR trust_score >= 70)
+        #           ORDER BY is_king DESC NULLS LAST, trust_score DESC NULLS LAST
         _cur.execute("""
             SELECT slug FROM software_registry
-            WHERE trust_score IS NOT NULL AND trust_score > 0
+            WHERE trust_score IS NOT NULL AND trust_score >= 50
               AND description IS NOT NULL AND description != ''
-              AND (is_king = true OR trust_score >= 70)
-            ORDER BY is_king DESC NULLS LAST, trust_score DESC NULLS LAST
+            ORDER BY RANDOM()
             LIMIT 50000
         """)
         _slugs = [r[0] for r in _cur.fetchall()]
@@ -364,7 +371,7 @@ def detect_new_urls(prev_state: dict) -> tuple[list[str], list[str], dict]:
             for _slug in _slugs:
                 current_nerq_urls.add(f"https://nerq.ai/{_lang}/safe/{_slug}")
                 _lang_url_count += 1
-        logger.info("  Added %d high-value lang URLs (%d entities × %d langs)",
+        logger.info("  [M5.1 EXPERIMENT] Added %d random-sampled lang URLs (%d entities × %d langs)",
                      _lang_url_count, len(_slugs), len(_active_langs))
     except Exception as _db_err:
         logger.warning("Could not generate lang URLs from DB: %s", _db_err)
