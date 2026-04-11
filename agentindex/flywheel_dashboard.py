@@ -632,6 +632,27 @@ def _get_data(period_key):
         data["apple_t"] = 0
         data["apple_prev_t"] = 0
 
+    # AI-mediated humans (A2 minimal dashboard, M3 deliverable)
+    # Visitors arriving via AI source (referer or AI-User UA) — humans
+    # directed to our pages by ChatGPT/Claude/Perplexity. Uses M3 columns
+    # ai_source and visitor_type added in commit c4ffc82.
+    try:
+        _aih_conn = sqlite3.connect(ANALYTICS_DB, timeout=30, check_same_thread=False)
+        _r_ahc = _aih_conn.execute(
+            f"SELECT COUNT(*) FROM requests WHERE ts>{since} AND visitor_type='ai_mediated'"
+        ).fetchone()
+        _r_ahp = _aih_conn.execute(
+            f"SELECT COUNT(*) FROM requests WHERE ts>{prev_s} AND ts<{prev_e} AND visitor_type='ai_mediated'"
+        ).fetchone()
+        data["ai_humans_t"] = _r_ahc[0] or 0
+        data["ai_humans_prev_t"] = _r_ahp[0] or 0
+        _aih_conn.close()
+    except Exception as _aih_err:
+        import logging as _aih_log
+        _aih_log.getLogger("flywheel").error(f"ai_humans query failed: {_aih_err}")
+        data["ai_humans_t"] = 0
+        data["ai_humans_prev_t"] = 0
+
     return data
 
 
@@ -816,6 +837,8 @@ def _render(period_key, data):
     _preflight_t = _pf_cur
     _apple_t = data.get("apple_t", 0)
     prev_apple_t = data.get("apple_prev_t", 0)
+    _ai_humans_t = data.get("ai_humans_t", 0)
+    _prev_ai_humans_t = data.get("ai_humans_prev_t", 0)
 
     def _bot_delta(cur, prev):
         if not prev: return '<span style="color:#16a34a">new</span>' if cur else ""
@@ -859,6 +882,8 @@ new Chart(document.getElementById('trendChart'), {{
 <span>Perplexity: <b>{_fmt(_perplexity_t)}</b> {_bot_delta(_perplexity_t, prev_perplexity_t)}</span>
 <span style="color:#e2e8f0">&middot;</span>
 <span>Apple: <b>{_fmt(_apple_t)}</b> {_bot_delta(_apple_t, prev_apple_t)}</span>
+<span style="color:#e2e8f0">&middot;</span>
+<span>AI Humans: <b>{_fmt(_ai_humans_t)}</b> {_bot_delta(_ai_humans_t, _prev_ai_humans_t)}</span>
 </div>"""
 
     # ── Conversion Funnel ──

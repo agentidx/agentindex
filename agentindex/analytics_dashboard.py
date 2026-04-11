@@ -37,7 +37,7 @@ def _query_data():
           SUM(CASE WHEN bot_name = 'Amazon' THEN 1 ELSE 0 END) as amazon,
           SUM(CASE WHEN is_bot = 1 AND is_ai_bot = 0 AND bot_name NOT IN ('Google','Bing','Yandex','DuckDuck','Apple','Meta','Amazon') THEN 1 ELSE 0 END) as other_bots,
           COUNT(*) as total
-        FROM requests GROUP BY day ORDER BY day
+        FROM requests WHERE ts > date('now', '-60 days') GROUP BY day ORDER BY day
     """).fetchall()
     summary = {}
     for k in ["human", "ai_cite", "ai_index", "ai_errors", "search", "meta", "amazon", "other_bots", "total"]:
@@ -52,6 +52,7 @@ def _query_data():
     pf_ai_rows = conn.execute("""
         SELECT date(ts) as day, COUNT(*) as cnt
         FROM preflight_analytics WHERE bot_name IN ('ChatGPT','Claude','Perplexity','ByteDance')
+          AND ts > date('now', '-60 days')
         GROUP BY day ORDER BY day
     """).fetchall()
     data["summary"]["ai_preflight"] = {day: cnt for day, cnt in pf_ai_rows}
@@ -63,6 +64,7 @@ def _query_data():
           AND status = 200
           AND path NOT LIKE '/v1/preflight%'
           AND user_agent NOT LIKE '%GPTBot%'
+          AND ts > date('now', '-60 days')
         GROUP BY day, bot_name ORDER BY day, bot_name
     """).fetchall()
     citations = {}
@@ -79,6 +81,7 @@ def _query_data():
           AND status = 200
           AND path NOT LIKE '/v1/preflight%'
           AND user_agent LIKE '%GPTBot%'
+          AND ts > date('now', '-60 days')
         GROUP BY day ORDER BY day
     """).fetchall()
     data["aiIndexing"] = {day: cnt for day, cnt in rows}
@@ -88,6 +91,7 @@ def _query_data():
         SELECT date(ts) as day, bot_name, COUNT(*) as cnt
         FROM requests WHERE is_bot = 1 AND is_ai_bot = 0
           AND bot_name IN ('Google','Bing','Yandex','DuckDuck','Apple')
+          AND ts > date('now', '-60 days')
         GROUP BY day, bot_name ORDER BY day, bot_name
     """).fetchall()
     search = {}
@@ -102,6 +106,7 @@ def _query_data():
         SELECT date(ts) as day, bot_name, COUNT(*) as cnt
         FROM requests WHERE is_bot = 1 AND is_ai_bot = 0
           AND bot_name IN ('Meta','Amazon')
+          AND ts > date('now', '-60 days')
         GROUP BY day, bot_name ORDER BY day, bot_name
     """).fetchall()
     other_crawlers = {}
@@ -115,6 +120,7 @@ def _query_data():
     rows = conn.execute("""
         SELECT date(ts) as day, CAST(status AS TEXT) as sc, COUNT(*) as cnt
         FROM requests WHERE is_ai_bot = 1 AND status != 200
+          AND ts > date('now', '-60 days')
         GROUP BY day, sc ORDER BY day, sc
     """).fetchall()
     ai_errors = {}
@@ -176,6 +182,7 @@ def _query_data():
           END as crawler, COUNT(*) as cnt
         FROM requests WHERE is_bot = 1 AND is_ai_bot = 0
           AND bot_name IN ('Other Bot','High-Volume Bot')
+          AND ts > date('now', '-60 days')
         GROUP BY day, crawler ORDER BY day, crawler
     """).fetchall()
     seo_crawlers = {}
@@ -192,6 +199,7 @@ def _query_data():
             'reddit.com','twitter.com','x.com','facebook.com',
             'linkedin.com','t.co','news.ycombinator.com'
         )
+          AND ts > date('now', '-60 days')
         GROUP BY day, referrer_domain ORDER BY day
     """).fetchall()
     social = {}
@@ -219,6 +227,7 @@ def _query_data():
           COUNT(*) as cnt
         FROM preflight_analytics
         WHERE bot_name IN ('ChatGPT','Claude','Perplexity','ByteDance')
+          AND ts > date('now', '-60 days')
         GROUP BY day, source ORDER BY day, source
     """).fetchall()
     pf = {}
@@ -240,8 +249,9 @@ def _query_data():
           END as source,
           COUNT(*) as cnt
         FROM preflight_analytics
-        WHERE bot_name NOT IN ('ChatGPT','Claude','Perplexity','ByteDance')
-           OR bot_name IS NULL
+        WHERE (bot_name NOT IN ('ChatGPT','Claude','Perplexity','ByteDance')
+           OR bot_name IS NULL)
+          AND ts > date('now', '-60 days')
         GROUP BY day, source ORDER BY day, source
     """).fetchall()
     pf_non_ai = {}
@@ -255,6 +265,7 @@ def _query_data():
     rows = conn.execute("""
         SELECT date(ts) as day, COUNT(*) as cnt
         FROM requests WHERE is_bot = 0
+          AND ts > date('now', '-60 days')
         GROUP BY day ORDER BY day
     """).fetchall()
     data["humanVisits"] = {day: cnt for day, cnt in rows}
@@ -263,6 +274,7 @@ def _query_data():
     top_countries = conn.execute("""
         SELECT country, COUNT(*) as cnt FROM requests
         WHERE is_bot = 0 AND country IS NOT NULL AND country != ''
+          AND ts > date('now', '-60 days')
         GROUP BY country ORDER BY cnt DESC LIMIT 10
     """).fetchall()
     top_cc = [r[0] for r in top_countries]
@@ -272,6 +284,7 @@ def _query_data():
         rows = conn.execute(f"""
             SELECT date(ts) as day, country, COUNT(*) as cnt
             FROM requests WHERE is_bot = 0 AND country IN ({placeholders})
+              AND ts > date('now', '-60 days')
             GROUP BY day, country ORDER BY day, country
         """).fetchall()
         hbc = {}
@@ -310,6 +323,7 @@ def _query_data():
           AND status = 200
           AND path NOT LIKE '/v1/preflight%'
           AND user_agent NOT LIKE '%GPTBot%'
+          AND ts > date('now', '-60 days')
         GROUP BY day, lang ORDER BY day, lang
     """).fetchall()
     abl = {}
@@ -323,6 +337,7 @@ def _query_data():
     rows = conn.execute(f"""
         SELECT date(ts) as day, {_lang_case} as lang, COUNT(*) as cnt
         FROM requests WHERE is_bot = 0
+          AND ts > date('now', '-60 days')
         GROUP BY day, lang ORDER BY day, lang
     """).fetchall()
     hbl = {}
