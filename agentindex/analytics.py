@@ -277,12 +277,14 @@ def _extract_search_query(path: str, body_bytes: bytes = None):
             pass
     return None
 
-def log_request(method, path, status, duration_ms, ip, user_agent, referrer, query_string='', search_query=None):
+def log_request(method, path, status, duration_ms, ip, user_agent, referrer, query_string='', search_query=None, country=None):
     """Log a single request to SQLite."""
     try:
         is_bot, is_ai_bot, bot_name = _detect_bot(user_agent or '', ip or '')
         ref_domain = _extract_referrer_domain(referrer)
-        country = _ip_to_country(ip)
+        # Prefer Cloudflare header (passed as param); fallback to IP lookup (rate-limited, degraded)
+        if country is None:
+            country = _ip_to_country(ip)
 
         # A2 AI tracking (Leverage Sprint M3): classify without affecting is_bot.
         # Values captured here are not yet written to DB (Fas C wires INSERT).
@@ -361,6 +363,11 @@ class AnalyticsMiddleware(BaseHTTPMiddleware):
             except:
                 pass
         
+        # Extract country from Cloudflare header (primary source)
+        cf_country = request.headers.get('cf-ipcountry', '')
+        if cf_country in ('XX', 'T1'):  # CF's codes for unknown/Tor
+            cf_country = ''
+
         log_request(
             method=request.method,
             path=path,
@@ -370,7 +377,8 @@ class AnalyticsMiddleware(BaseHTTPMiddleware):
             user_agent=ua,
             referrer=ref,
             query_string=qs,
-            search_query=search_query
+            search_query=search_query,
+            country=cf_country
         )
         
         return response
