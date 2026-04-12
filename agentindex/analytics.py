@@ -133,6 +133,14 @@ BOT_IP_PREFIXES = (
     '69.171.', '66.220.', '31.13.', '2a03:2880:',           # Meta
 )
 
+# Datacenter scrapers — not known search/AI bots, but commercial scrapers
+# using fake browser user-agents. Classified as bots to keep analytics clean.
+# Identified 2026-04-12: Alibaba Cloud Singapore scraping /v1/preflight MCP data.
+DATACENTER_SCRAPER_PREFIXES = (
+    '43.172.', '43.173.',    # Alibaba Cloud Singapore
+    '47.79.', '47.82.',      # Alibaba Cloud Singapore/Hong Kong
+)
+
 # Per-IP daily page counter for volume-based bot detection
 _ip_daily_counts: dict[str, int] = {}
 _ip_daily_date: str = ''
@@ -171,6 +179,9 @@ def _detect_bot(ua: str, ip: str = ''):
     # IP-based detection: known bot IP ranges
     if ip:
         ip_clean = ip.split(',')[0].strip()
+        # Datacenter scrapers masquerading as browsers — classify as bot
+        if any(ip_clean.startswith(prefix) for prefix in DATACENTER_SCRAPER_PREFIXES):
+            return True, False, 'Datacenter Scraper'
         if any(ip_clean.startswith(prefix) for prefix in BOT_IP_PREFIXES):
             # High-volume IP from known bot range — classify as bot
             if _check_ip_volume(ip_clean):
