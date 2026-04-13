@@ -47,29 +47,70 @@ def _ip_to_country(ip: str) -> str:
 
 # Known AI bots
 AI_BOTS = {
+    # Training crawlers
     'GPTBot': 'ChatGPT',
-    'ChatGPT-User': 'ChatGPT',
-    'OAI-SearchBot': 'ChatGPT',
     'ClaudeBot': 'Claude',
     'anthropic-ai': 'Claude',
-    'PerplexityBot': 'Perplexity',
     'Google-Extended': 'Google AI',
+    'CCBot': 'CommonCrawl',
+    'Bytespider': 'ByteDance',
+    'cohere-ai': 'Cohere',
+    # User-triggered (real-time citation = someone asked a question)
+    'ChatGPT-User': 'ChatGPT',
+    'Claude-User': 'Claude',
+    'Perplexity-User': 'Perplexity',
+    'DuckAssistBot': 'DuckDuckGo AI',
+    'YouBot': 'You.com',
+    'MistralAI-User': 'Mistral',
+    'Manus-User': 'Manus',
+    'SamanthaDoubao': 'Doubao',
+    'doubao': 'Doubao',
+    'AnthropicSearchEval': 'Claude',
+    'Google-Read-Aloud': 'Google',
+    # Search/index bots
+    'OAI-SearchBot': 'ChatGPT',
+    'PerplexityBot': 'Perplexity',
     'Googlebot': 'Google',
+    'GoogleOther': 'Google',
     'Bingbot': 'Bing',
     'bingbot': 'Bing',
     'YandexBot': 'Yandex',
     'Applebot': 'Apple',
     'DuckDuckBot': 'DuckDuck',
-    'Bytespider': 'ByteDance',
-    'CCBot': 'CommonCrawl',
     'Amazonbot': 'Amazon',
     'FacebookBot': 'Meta',
     'facebookexternalhit': 'Meta',
     'meta-externalagent': 'Meta',
     'meta-webindexer': 'Meta',
-    'cohere-ai': 'Cohere',
-    'GoogleOther': 'Google',
     'GCombinator': 'GCombinator',
+    # Internal
+    'OpenClawDeepResearch': 'Buzz',
+}
+
+# Bot purpose taxonomy: maps UA pattern → purpose category
+BOT_PURPOSE = {
+    # Training crawlers (building LLM training data)
+    'GPTBot': 'training', 'ClaudeBot': 'training', 'anthropic-ai': 'training',
+    'Google-Extended': 'training', 'CCBot': 'training', 'Bytespider': 'training',
+    'cohere-ai': 'training',
+    # User-triggered (real-time fetch when a user asks a question)
+    'ChatGPT-User': 'user_triggered', 'Claude-User': 'user_triggered',
+    'Perplexity-User': 'user_triggered', 'DuckAssistBot': 'user_triggered',
+    'YouBot': 'user_triggered', 'MistralAI-User': 'user_triggered',
+    'Manus-User': 'user_triggered', 'SamanthaDoubao': 'user_triggered',
+    'doubao': 'user_triggered', 'Google-Read-Aloud': 'user_triggered',
+    'AnthropicSearchEval': 'user_triggered',
+    # Search/index (building search index for AI-powered search)
+    'OAI-SearchBot': 'search_index', 'PerplexityBot': 'search_index',
+    'Googlebot': 'search_index', 'GoogleOther': 'search_index',
+    'Bingbot': 'search_index', 'bingbot': 'search_index',
+    'YandexBot': 'search_index', 'Applebot': 'search_index',
+    'DuckDuckBot': 'search_index', 'Amazonbot': 'search_index',
+    'FacebookBot': 'search_index', 'facebookexternalhit': 'search_index',
+    'meta-externalagent': 'search_index', 'meta-webindexer': 'search_index',
+    'GCombinator': 'search_index',
+    # Internal (our own agents — exclude from citation metrics)
+    'OpenClawDeepResearch': 'internal',
 }
 
 def _init_db():
@@ -97,6 +138,11 @@ def _init_db():
     conn.execute('CREATE INDEX IF NOT EXISTS idx_path ON requests(path)')
     conn.execute('CREATE INDEX IF NOT EXISTS idx_bot ON requests(is_bot)')
     conn.execute('CREATE INDEX IF NOT EXISTS idx_ai_bot ON requests(is_ai_bot)')
+    # Add bot_purpose column if missing (Phase 0 Day 4 taxonomy)
+    try:
+        conn.execute('ALTER TABLE requests ADD COLUMN bot_purpose TEXT')
+    except sqlite3.OperationalError:
+        pass  # column already exists
     conn.execute('''CREATE TABLE IF NOT EXISTS preflight_analytics (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         ts TEXT NOT NULL,
@@ -156,44 +202,51 @@ def _check_ip_volume(ip: str) -> bool:
     return _ip_daily_counts[ip] > 50
 
 def _detect_bot(ua: str, ip: str = ''):
-    """Detect if UA is a bot and which one."""
+    """Detect if UA is a bot and which one.
+
+    Returns (is_bot, is_ai_bot, bot_name, bot_purpose).
+    bot_purpose: 'training', 'user_triggered', 'search_index', 'internal', or None.
+    """
     ua_lower = ua.lower()
     for pattern, name in AI_BOTS.items():
         if pattern.lower() in ua_lower:
-            is_ai = name in ('ChatGPT', 'Claude', 'Perplexity', 'Google AI', 'Cohere', 'ByteDance')
-            return True, is_ai, name
+            is_ai = name in ('ChatGPT', 'Claude', 'Perplexity', 'Google AI',
+                             'Cohere', 'ByteDance', 'DuckDuckGo AI', 'You.com',
+                             'Mistral', 'Manus', 'Doubao', 'Buzz')
+            purpose = BOT_PURPOSE.get(pattern)
+            return True, is_ai, name, purpose
 
     # Additional Google crawler UAs not in AI_BOTS
     if any(g in ua_lower for g in ['google-inspectiontool', 'googlebot-image', 'googlebot-video',
                                      'apis-google', 'mediapartners-google', 'adsbot-google',
-                                     'feedfetcher-google', 'google-read-aloud']):
-        return True, False, 'Google'
+                                     'feedfetcher-google']):
+        return True, False, 'Google', 'search_index'
 
     # Generic bot patterns
     if any(b in ua_lower for b in ['bot', 'crawler', 'spider', 'scraper', 'fetch', 'curl', 'wget',
                                     'python-requests', 'httpx', 'aiohttp', 'go-http-client',
                                     'java/', 'libwww', 'lwp-trivial', 'nikto', 'zgrab',
                                     'censys', 'shodan', 'nuclei', 'masscan']):
-        return True, False, 'Other Bot'
+        return True, False, 'Other Bot', None
 
     # IP-based detection: known bot IP ranges
     if ip:
         ip_clean = ip.split(',')[0].strip()
         # Datacenter scrapers masquerading as browsers — classify as bot
         if any(ip_clean.startswith(prefix) for prefix in DATACENTER_SCRAPER_PREFIXES):
-            return True, False, 'Datacenter Scraper'
+            return True, False, 'Datacenter Scraper', None
         if any(ip_clean.startswith(prefix) for prefix in BOT_IP_PREFIXES):
             # High-volume IP from known bot range — classify as bot
             if _check_ip_volume(ip_clean):
-                return True, False, 'Google'  # Most 66.249/64.233 are Google
+                return True, False, 'Google', 'search_index'
             # Low volume from bot IP — still flag but as potential bot
-            return True, False, 'Google'
+            return True, False, 'Google', 'search_index'
 
         # Volume-based: any IP hitting >50 pages/day is likely a bot
         if _check_ip_volume(ip_clean):
-            return True, False, 'High-Volume Bot'
+            return True, False, 'High-Volume Bot', None
 
-    return False, False, None
+    return False, False, None, None
 
 # A2 AI-to-human tracking (Leverage Sprint M3, 2026-04-10)
 # Classifies AI source and visitor type from referrer + user-agent.
@@ -291,27 +344,26 @@ def _extract_search_query(path: str, body_bytes: bytes = None):
 def log_request(method, path, status, duration_ms, ip, user_agent, referrer, query_string='', search_query=None, country=None):
     """Log a single request to SQLite."""
     try:
-        is_bot, is_ai_bot, bot_name = _detect_bot(user_agent or '', ip or '')
+        is_bot, is_ai_bot, bot_name, bot_purpose = _detect_bot(user_agent or '', ip or '')
         ref_domain = _extract_referrer_domain(referrer)
         # Prefer Cloudflare header (passed as param); fallback to IP lookup (rate-limited, degraded)
         if country is None:
             country = _ip_to_country(ip)
 
         # A2 AI tracking (Leverage Sprint M3): classify without affecting is_bot.
-        # Values captured here are not yet written to DB (Fas C wires INSERT).
         ai_source, visitor_type = classify_ai_source(referrer, ref_domain, user_agent)
         if not visitor_type:
-            visitor_type = 'bot' if is_bot else 'human' 
+            visitor_type = 'bot' if is_bot else 'human'
 
         now = datetime.utcnow().isoformat()
         conn = sqlite3.connect(DB_PATH)
         conn.execute(
             '''INSERT INTO requests (ts, method, path, status, duration_ms, ip, user_agent,
-               bot_name, is_bot, is_ai_bot, referrer, referrer_domain, query_string, search_query, country, ai_source, visitor_type)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+               bot_name, is_bot, is_ai_bot, referrer, referrer_domain, query_string, search_query, country, ai_source, visitor_type, bot_purpose)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
             (now, method, path, status, duration_ms,
              ip, user_agent, bot_name, int(is_bot), int(is_ai_bot),
-             referrer, ref_domain, query_string, search_query, country, ai_source, visitor_type)
+             referrer, ref_domain, query_string, search_query, country, ai_source, visitor_type, bot_purpose)
         )
         # Log preflight calls to dedicated table
         if 'preflight' in path:
