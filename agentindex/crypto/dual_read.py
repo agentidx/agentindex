@@ -32,7 +32,10 @@ _TABLE_RE = re.compile(
 # ── Postgres connection pool (shared with dual_write if loaded) ──
 _pool = None
 _pool_lock = threading.Lock()
-PG_DSN = "host=/tmp port=5432 dbname=agentindex user=anstudio"
+PG_DSN = os.environ.get(
+    "DATABASE_URL",
+    "host=/tmp port=5432 dbname=agentindex user=anstudio"
+)
 
 
 def _get_pool():
