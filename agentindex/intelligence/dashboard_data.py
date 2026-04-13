@@ -141,7 +141,8 @@ def compute_dashboards(limit=10000):
             cs = cat_stats.get(name, {"rank": None, "total": None, "avg_trust": None})
             history = _build_trust_history(name, score, conn)
 
-            conn.execute("""
+            from agentindex.crypto.dual_write import dual_execute
+            dual_execute(conn, """
                 INSERT OR REPLACE INTO agent_dashboard
                 (agent_name, trust_score_history, category_rank, category_total, category_avg_trust, updated_at)
                 VALUES (?, ?, ?, ?, ?, ?)

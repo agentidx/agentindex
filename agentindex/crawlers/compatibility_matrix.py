@@ -80,7 +80,8 @@ def _build_same_framework_pairs(conn):
         for i in range(len(agents)):
             for j in range(i + 1, len(agents)):
                 a, b = sorted([agents[i], agents[j]])
-                conn.execute(
+                from agentindex.crypto.dual_write import dual_execute
+                dual_execute(conn,
                     "INSERT OR REPLACE INTO compatibility_matrix "
                     "(agent_a, agent_b, compatibility_score, compatibility_type, evidence, updated_at) "
                     "VALUES (?, ?, ?, 'same_framework', ?, ?)",
@@ -108,7 +109,8 @@ def _build_shared_dep_pairs(conn):
         a_sorted, b_sorted = sorted([a, b])
         # Score based on shared count: 30 base + scale up to 70 max
         score = min(30 + shared_count * 2, 100)
-        conn.execute(
+        from agentindex.crypto.dual_write import dual_execute
+        dual_execute(conn,
             "INSERT OR REPLACE INTO compatibility_matrix "
             "(agent_a, agent_b, compatibility_score, compatibility_type, evidence, updated_at) "
             "VALUES (?, ?, ?, 'shared_dependencies', ?, ?)",
@@ -135,7 +137,8 @@ def _build_mcp_pairs(conn):
     for server, client, confidence in rows:
         score = {"explicit": 90, "config_example": 85, "inferred": 60}.get(confidence, 50)
         a, b = sorted([server, f"client:{client}"])
-        conn.execute(
+        from agentindex.crypto.dual_write import dual_execute
+        dual_execute(conn,
             "INSERT OR REPLACE INTO compatibility_matrix "
             "(agent_a, agent_b, compatibility_score, compatibility_type, evidence, updated_at) "
             "VALUES (?, ?, ?, 'mcp_client_server', ?, ?)",
@@ -217,7 +220,8 @@ def main():
     conn = sqlite3.connect(str(SQLITE_DB))
 
     # Clear old matrix
-    conn.execute("DELETE FROM compatibility_matrix")
+    from agentindex.crypto.dual_write import dual_delete
+    dual_delete(conn, "DELETE FROM compatibility_matrix")
     conn.commit()
 
     fw_pairs = _build_same_framework_pairs(conn)

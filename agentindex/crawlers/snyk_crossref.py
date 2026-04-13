@@ -119,19 +119,20 @@ def _store_osv_signals(conn, agent_name, osv_data):
         if "exploit" in details.lower():
             has_exploit = True
 
-    conn.execute("""
+    from agentindex.crypto.dual_write import dual_execute
+    dual_execute(conn, """
         INSERT OR REPLACE INTO external_trust_signals
         (agent_name, source, signal_name, signal_value, signal_max, raw_data, fetched_at)
         VALUES (?, 'osv_dev', 'vulnerability_count', ?, NULL, ?, ?)
     """, (agent_name, vuln_count, json.dumps({"cve_ids": cve_ids[:20]}), now))
 
-    conn.execute("""
+    dual_execute(conn, """
         INSERT OR REPLACE INTO external_trust_signals
         (agent_name, source, signal_name, signal_value, signal_max, raw_data, fetched_at)
         VALUES (?, 'osv_dev', 'max_severity', ?, 4, ?, ?)
     """, (agent_name, _severity_rank(max_sev), json.dumps({"severity": max_sev}), now))
 
-    conn.execute("""
+    dual_execute(conn, """
         INSERT OR REPLACE INTO external_trust_signals
         (agent_name, source, signal_name, signal_value, signal_max, raw_data, fetched_at)
         VALUES (?, 'osv_dev', 'has_known_exploit', ?, 1, NULL, ?)

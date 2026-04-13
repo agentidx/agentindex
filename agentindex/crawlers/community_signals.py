@@ -179,15 +179,17 @@ def _store_community_signals(conn, agent_name, github_data, so_data, reddit_data
     """Store all community signals."""
     now = datetime.now().isoformat()
 
+    from agentindex.crypto.dual_write import dual_execute
+
     if github_data:
-        conn.execute("""
+        dual_execute(conn, """
             INSERT OR REPLACE INTO external_trust_signals
             (agent_name, source, signal_name, signal_value, signal_max, raw_data, fetched_at)
             VALUES (?, 'github_community', 'issue_close_rate', ?, 1.0, ?, ?)
         """, (agent_name, github_data["close_rate"],
               json.dumps({"open": github_data["open_issues"], "closed_30d": github_data["closed_30d"]}), now))
 
-        conn.execute("""
+        dual_execute(conn, """
             INSERT OR REPLACE INTO external_trust_signals
             (agent_name, source, signal_name, signal_value, signal_max, raw_data, fetched_at)
             VALUES (?, 'github_community', 'bug_ratio', ?, 1.0, ?, ?)
@@ -195,7 +197,7 @@ def _store_community_signals(conn, agent_name, github_data, so_data, reddit_data
               json.dumps({"bug_count": github_data["bug_count"]}), now))
 
     if so_data:
-        conn.execute("""
+        dual_execute(conn, """
             INSERT OR REPLACE INTO external_trust_signals
             (agent_name, source, signal_name, signal_value, signal_max, raw_data, fetched_at)
             VALUES (?, 'stackoverflow', 'stackoverflow_questions', ?, NULL, ?, ?)
@@ -203,7 +205,7 @@ def _store_community_signals(conn, agent_name, github_data, so_data, reddit_data
               json.dumps({"tag_exists": so_data["tag_exists"]}), now))
 
     if reddit_data:
-        conn.execute("""
+        dual_execute(conn, """
             INSERT OR REPLACE INTO external_trust_signals
             (agent_name, source, signal_name, signal_value, signal_max, raw_data, fetched_at)
             VALUES (?, 'reddit', 'reddit_mentions_30d', ?, NULL, NULL, ?)

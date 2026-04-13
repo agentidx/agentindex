@@ -171,7 +171,8 @@ def crawl_dex_volumes():
             now,
         ))
 
-    conn.executemany("""
+    from agentindex.crypto.dual_write import dual_executemany
+    dual_executemany(conn, """
         INSERT OR REPLACE INTO chain_dex_volumes
         (chain, daily_volume, weekly_volume, monthly_volume, daily_fees, fetched_at)
         VALUES (?, ?, ?, ?, ?, ?)

@@ -95,7 +95,8 @@ def _store_signals(conn, agent_name, scorecard_data):
     stored = 0
 
     # Store overall score
-    conn.execute("""
+    from agentindex.crypto.dual_write import dual_execute
+    dual_execute(conn, """
         INSERT OR REPLACE INTO external_trust_signals
         (agent_name, source, signal_name, signal_value, signal_max, raw_data, fetched_at)
         VALUES (?, 'openssf_scorecard', 'overall_score', ?, 10, ?, ?)
@@ -108,7 +109,7 @@ def _store_signals(conn, agent_name, scorecard_data):
         check_score = check.get("score", -1)
         if check_score < 0:
             continue
-        conn.execute("""
+        dual_execute(conn, """
             INSERT OR REPLACE INTO external_trust_signals
             (agent_name, source, signal_name, signal_value, signal_max, raw_data, fetched_at)
             VALUES (?, 'openssf_scorecard', ?, ?, 10, ?, ?)
