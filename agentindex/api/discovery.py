@@ -188,7 +188,8 @@ app.add_middleware(BotRateLimitMiddleware)
 # Caches GET responses for cacheable paths. API/dashboard excluded.
 class PageCacheMiddleware(BaseHTTPMiddleware):
     _NO_CACHE = ("/v1/", "/flywheel", "/dashboard", "/admin", "/ab-", "/openapi",
-                  "/robots.txt", "/llms.txt", "/sitemap", "/internal/", "/my/")
+                  "/robots.txt", "/llms.txt", "/sitemap", "/internal/", "/my/",
+                  "/citation-dashboard")
     _TTL = 14400  # 4 hours — pages rarely change, enrichment flushes cache
     _pool = None
     _backoff = 0
