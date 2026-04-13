@@ -47,7 +47,7 @@ def _get_pg_conn():
             if _pool is None:
                 import psycopg2.pool
                 _pool = psycopg2.pool.ThreadedConnectionPool(
-                    minconn=1, maxconn=5, dsn=PG_DSN
+                    minconn=2, maxconn=10, dsn=PG_DSN
                 )
     return _pool.getconn()
 
