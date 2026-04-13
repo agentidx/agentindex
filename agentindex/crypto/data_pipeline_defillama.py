@@ -342,7 +342,8 @@ def fetch_yields(conn):
                       stablecoin, datetime.now().isoformat()))
 
     if batch:
-        conn.executemany("""
+        from agentindex.crypto.dual_write import dual_executemany
+        dual_executemany(conn, """
             INSERT OR REPLACE INTO defi_yields
             (pool_id, chain, project, symbol, tvl_usd, apy,
              apy_base, apy_reward, il_risk, stablecoin, crawled_at)

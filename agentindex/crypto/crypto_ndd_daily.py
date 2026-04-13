@@ -581,7 +581,8 @@ def generate_alert(conn, token_id, symbol, ndd_result, ndd_previous, run_date):
         msg += f" [triggers: {', '.join(triggers)}]"
 
     # Save alert
-    conn.execute("""
+    from agentindex.crypto.dual_write import dual_execute
+    dual_execute(conn, """
         INSERT INTO crypto_ndd_alerts
         (alert_date, token_id, symbol, alert_level, ndd, ndd_previous,
          ndd_change, trigger_signals, message, created_at)
@@ -689,7 +690,8 @@ def run_ndd_from_db(conn, run_date):
         symbol = sym_row["symbol"] if sym_row else tid[:6].upper()
 
         # Save to DB
-        conn.execute("""
+        from agentindex.crypto.dual_write import dual_execute
+        dual_execute(conn, """
             INSERT OR REPLACE INTO crypto_ndd_daily
             (run_date, token_id, symbol, ndd,
              signal_1, signal_2, signal_3, signal_4, signal_5, signal_6, signal_7,

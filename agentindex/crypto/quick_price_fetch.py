@@ -72,8 +72,9 @@ def main():
             price = fetch_price_binance(BINANCE_MAP[token_id])
 
         if price and price > 0:
-            trust_conn.execute("""
-                INSERT OR REPLACE INTO crypto_price_history 
+            from agentindex.crypto.dual_write import dual_execute
+            dual_execute(trust_conn, """
+                INSERT OR REPLACE INTO crypto_price_history
                 (token_id, date, open, high, low, close, volume, market_cap, fetched_at)
                 VALUES (?, ?, ?, ?, ?, ?, 0, 0, ?)
             """, (token_id, today, price, price, price, price, now))

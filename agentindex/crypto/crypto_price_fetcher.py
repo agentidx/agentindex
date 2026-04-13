@@ -127,7 +127,8 @@ def fetch_and_save_token(conn, token_id, name, rank, idx, total):
             seen.add(k)
             unique.append(r)
 
-    conn.executemany("""INSERT OR REPLACE INTO crypto_price_history
+    from agentindex.crypto.dual_write import dual_executemany_named
+    dual_executemany_named(conn, """INSERT OR REPLACE INTO crypto_price_history
         (token_id, date, open, high, low, close, volume, market_cap, fetched_at)
         VALUES (:token_id,:date,:open,:high,:low,:close,:volume,:market_cap,:fetched_at)""", unique)
 

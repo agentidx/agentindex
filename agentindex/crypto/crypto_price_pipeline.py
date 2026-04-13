@@ -515,7 +515,8 @@ def save_candles(conn, token_id, candles, source):
 
     for c in candles:
         try:
-            conn.execute("""
+            from agentindex.crypto.dual_write import dual_execute
+            dual_execute(conn, """
                 INSERT OR REPLACE INTO crypto_price_history
                 (token_id, date, open, high, low, close, volume, market_cap, fetched_at, source)
                 VALUES (?, ?, ?, ?, ?, ?, ?, NULL, ?, ?)

@@ -995,7 +995,8 @@ def run_ndd():
         bf_signal, bounce_90d = compute_bottlefish(tid, crypto_conn, run_date, rank, trust_score)
 
         # Save
-        crypto_conn.execute("""
+        from agentindex.crypto.dual_write import dual_execute
+        dual_execute(crypto_conn, """
             INSERT OR REPLACE INTO crypto_ndd_daily
             (run_date, token_id, symbol, name, market_cap_rank, trust_grade,
              ndd, signal_1, signal_2, signal_3, signal_4, signal_5, signal_6, signal_7,
@@ -1037,7 +1038,7 @@ def run_ndd():
                 msg += f" [{', '.join(triggers[:4])}]"
             alerts.append((ndd, msg))
 
-            crypto_conn.execute("""
+            dual_execute(crypto_conn, """
                 INSERT INTO crypto_ndd_alerts
                 (alert_date, token_id, symbol, alert_level, ndd,
                  market_cap_rank, trust_grade, trigger_signals, message, created_at)

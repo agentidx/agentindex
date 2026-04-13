@@ -729,7 +729,8 @@ def generate_alert(crypto_conn, t, ndd_result, ndd_prev, run_date):
     if triggers:
         msg += f" [{', '.join(triggers[:3])}]"
 
-    crypto_conn.execute("""
+    from agentindex.crypto.dual_write import dual_execute
+    dual_execute(crypto_conn, """
         INSERT INTO crypto_ndd_alerts
         (alert_date, token_id, symbol, alert_level, ndd, ndd_previous,
          ndd_change, market_cap_rank, trust_grade, trigger_signals, message, created_at)
@@ -783,7 +784,7 @@ def run_ndd(top_n=None):
         trend = result["ndd"] - ndd_prev if ndd_prev is not None else None
 
         # Save to DB
-        crypto_conn.execute("""
+        dual_execute(crypto_conn, """
             INSERT OR REPLACE INTO crypto_ndd_daily
             (run_date, token_id, symbol, name, market_cap_rank, trust_grade,
              ndd, signal_1, signal_2, signal_3, signal_4, signal_5, signal_6, signal_7,

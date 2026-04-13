@@ -92,16 +92,18 @@ _RE_INSERT = re.compile(
     r"INSERT\s+INTO\s+(\w+)\s*\(([^)]+)\)\s*VALUES\s*\(([^)]+)\)",
     re.IGNORECASE | re.DOTALL,
 )
+_RE_NAMED_PARAM = re.compile(r":(\w+)")
 _RE_DELETE = re.compile(
     r"DELETE\s+FROM\s+(\w+)",
     re.IGNORECASE,
 )
 
 
-def _translate_sql(sql):
+def _translate_sql(sql, named_params=False):
     """Translate SQLite SQL to PostgreSQL zarq.* equivalent.
 
     Returns (pg_sql, table_name) or (None, None) if not translatable.
+    If named_params=True, converts :name → %(name)s instead of ? → %s.
     """
     sql_stripped = sql.strip()
 
@@ -137,9 +139,25 @@ def _translate_sql(sql):
             else:
                 conflict = f"ON CONFLICT ({', '.join(pk_cols)}) DO NOTHING"
 
-        pg_vals = vals_str.replace("?", "%s")
+        if named_params:
+            pg_vals = re.sub(r":(\w+)", r"%(\1)s", vals_str)
+        else:
+            pg_vals = vals_str.replace("?", "%s")
         pg_sql = f"INSERT INTO zarq.{table} ({cols_str}) VALUES ({pg_vals}) {conflict}"
         return pg_sql, table
+
+    # INSERT INTO table (...) VALUES (...) ON CONFLICT ... (already has conflict)
+    if re.search(r"ON\s+CONFLICT", sql_stripped, re.IGNORECASE):
+        m2 = re.search(r"INSERT\s+INTO\s+(\w+)", sql_stripped, re.IGNORECASE)
+        if m2:
+            table = m2.group(1)
+            if table not in TIER_A_TABLES:
+                return None, None
+            pg_sql = re.sub(r"\b" + table + r"\b", f"zarq.{table}",
+                            sql_stripped, count=1)
+            pg_sql = pg_sql.replace("?", "%s")
+            # Postgres uses EXCLUDED (uppercase ok), same as SQLite's excluded
+            return pg_sql, table
 
     # Plain INSERT INTO table (cols) VALUES (?)
     m = _RE_INSERT.search(sql_stripped)
@@ -240,6 +258,40 @@ def dual_executemany(sqlite_conn, sql, rows):
         cur.close()
     except Exception as e:
         _log.error("EXECUTEMANY %s (%d rows) | %s | %s",
+                   table, len(rows), e, pg_sql[:200])
+        if pg_conn:
+            try:
+                pg_conn.rollback()
+            except Exception:
+                pass
+    finally:
+        _put_pg_conn(pg_conn)
+
+
+def dual_executemany_named(sqlite_conn, sql, rows):
+    """Like dual_executemany but for SQL with :name style params and dict rows."""
+    # 1. SQLite
+    sqlite_conn.executemany(sql, rows)
+
+    # 2. Postgres mirror
+    if not _ENABLED:
+        return
+    _setup_logging()
+
+    pg_sql, table = _translate_sql(sql, named_params=True)
+    if pg_sql is None:
+        return
+
+    pg_conn = None
+    try:
+        pg_conn = _get_pg_conn()
+        cur = pg_conn.cursor()
+        import psycopg2.extras
+        psycopg2.extras.execute_batch(cur, pg_sql, rows, page_size=500)
+        pg_conn.commit()
+        cur.close()
+    except Exception as e:
+        _log.error("EXECUTEMANY_NAMED %s (%d rows) | %s | %s",
                    table, len(rows), e, pg_sql[:200])
         if pg_conn:
             try:
