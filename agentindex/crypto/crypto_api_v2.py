@@ -24,6 +24,9 @@ CACHE_SAFETY = {}
 
 
 def get_db():
+    from agentindex.crypto.dual_read import get_crypto_db, is_enabled
+    if is_enabled():
+        return get_crypto_db()
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn

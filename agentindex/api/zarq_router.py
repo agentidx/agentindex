@@ -31,10 +31,8 @@ class ZarqRouter(BaseHTTPMiddleware):
                     html = f.read()
                 # Fill in live alert data
                 try:
-                    import sqlite3
-                    db_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "crypto", "crypto_trust.db")
-                    conn = sqlite3.connect(db_path)
-                    conn.row_factory = sqlite3.Row
+                    from agentindex.crypto.dual_read import get_crypto_db
+                    conn = get_crypto_db()
                     row = conn.execute("SELECT MAX(signal_date) as d FROM nerq_risk_signals").fetchone()
                     if row and row["d"]:
                         sd = row["d"]
