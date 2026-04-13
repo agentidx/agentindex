@@ -1,7 +1,7 @@
-# Phase 0 Day 5 — DR Backup: Backblaze B2 + Restore Verification
+# Phase 0 Day 5 — DR Backup: pgBackRest + Backblaze B2 + PITR Verified
 
 Date: 2026-04-13
-Status: COMPLETE — first backup uploaded, WAL archiving active, restore verified
+Status: COMPLETE — pgBackRest full backup + WAL archiving + PITR verified
 
 ## B2 Bucket
 
@@ -13,36 +13,70 @@ Status: COMPLETE — first backup uploaded, WAL archiving active, restore verifi
 | Visibility | allPrivate |
 | Auth | Master key (bucket-only key rotation deferred) |
 
-## First Full Backup
+## pgBackRest Full Backup
 
 | Metric | Value |
 |---|---|
-| Method | pg_dump --format=custom --compress=zstd:3 |
-| Source | Nbg replica (127.0.0.1:5432, streaming from Mac Studio) |
-| Dump size | 4.1 GB |
-| Dump time | 4m48s |
-| Upload time | 21s |
-| Database size | ~91 GB uncompressed |
-| Compression ratio | 22:1 |
+| Method | pgBackRest full backup (zst:3 compression) |
+| Source | Mac Studio primary (Tailscale 100.90.152.88:5432) |
+| Backup label | 20260413-110301F |
+| Database size | 91 GB |
+| Backup size on B2 | 12.5 GB |
+| Compression ratio | 7.3:1 |
+| Duration | 24m38s |
+| WAL range | 00000001000002E0000000B1 → B5 |
+| File count | 2,164 |
+
+```
+stanza: agentindex
+    status: ok
+    cipher: none
+    db (current)
+        wal archive min/max (16): 00000001000002E00000009B/00000001000002E0000000B5
+        full backup: 20260413-110301F
+            timestamp start/stop: 2026-04-13 11:03:01+02 / 2026-04-13 11:27:38+02
+            database size: 91GB, repo1: backup set size: 12.5GB
+```
 
 ## WAL Archiving
 
-Configured via pgBackRest `archive_mode = always` on the Nbg replica.
-The standby archives each replayed WAL segment to B2.
+**Dual WAL archiving active:**
+- **Mac Studio primary:** `archive_mode = on`, archives via pgBackRest to B2
+- **Nbg standby:** `archive_mode = always`, archives replayed WAL to B2
 
+Both sources write to the same B2 bucket (`backup/archive/agentindex/`).
+
+## PITR Verification — PASSED
+
+Point-in-Time Recovery tested by:
+1. Inserting `id=1` at `11:28:28` into `dr_pitr_test` table
+2. Inserting `id=2` at `11:28:33`
+3. Restoring to target time `11:28:30` (between the two inserts)
+4. Starting restored instance on port 5434
+
+**Result:**
 ```
-archived_count: 7+
-last_archived_wal: 00000001000002E0000000A1
-last_archived_time: 2026-04-13 09:44
+=== RESTORED (port 5434, target time 11:28:30) ===
+ id |             ts
+----+----------------------------
+  1 | 2026-04-13 11:28:28.621288    ← only id=1 (correct!)
+(1 row)
+
+=== PRIMARY (port 5432, current) ===
+ id |             ts
+----+----------------------------
+  1 | 2026-04-13 11:28:28.621288
+  2 | 2026-04-13 11:28:33.654157    ← id=2 exists
+(2 rows)
 ```
 
-WAL segments visible in B2: `backup/archive/agentindex/16-1/`
+**PITR correctly recovered to a point between the two inserts.** Full PITR capability confirmed.
 
-## Restore Verification Test
+## Restore Verification (Full) — PASSED
 
-**Full restore to throwaway Postgres instance on Nbg, port 5433.**
+From earlier pg_dump restore test (7/7 tables match):
 
-| Table | Restored | Live replica | Match |
+| Table | Restored | Live | Match |
 |---|---:|---:|:---:|
 | agents | 5,033,771 | 5,033,771 | ✅ |
 | zarq.crypto_ndd_alerts | 1,532,199 | 1,532,199 | ✅ |
@@ -52,72 +86,62 @@ WAL segments visible in B2: `backup/archive/agentindex/16-1/`
 | zarq.nerq_risk_signals | 6,560 | 6,560 | ✅ |
 | zarq.crypto_rating_daily | 3,743 | 3,743 | ✅ |
 
-**7/7 tables match exactly. 0 errors in pg_restore.**
-
-Restore time: 34m30s (dominated by index creation on 5M agents table).
-Throwaway instance cleaned up immediately after verification.
-
-## Cron Schedule
+## Cron Schedule (Nbg)
 
 ```
-/etc/cron.d/pgbackup-nerq on Nbg:
-- Sunday 02:00 UTC: Full pg_dump → B2 (all schemas)
-- Mon-Sat 03:00 UTC: zarq schema only → B2 (daily differential)
-- WAL archiving: continuous via pgBackRest archive_command
+/etc/cron.d/pgbackup-nerq:
+- Sunday 02:00 UTC: pgbackrest --type=full backup
+- Mon-Sat 03:00 UTC: pgbackrest --type=diff backup
+- WAL archiving: continuous via archive_command on both primary + standby
 ```
 
-## pgBackRest Standby Limitation
+## Infrastructure Changes
 
-pgBackRest's `backup` command requires a connection to the primary
-PostgreSQL server. Since Mac Studio's Postgres doesn't accept TCP
-connections from Nbg (only /tmp unix socket), pgBackRest backup cannot
-run from the standby.
+### Mac Studio (Primary)
+- `listen_addresses`: already included Tailscale IP 100.90.152.88
+- `pg_hba.conf`: added trust access for `anstudio` from Nbg (100.119.193.70/32)
+- `archive_mode = on` (required Postgres restart)
+- `archive_command = 'pgbackrest --stanza=agentindex archive-push %p'`
+- pgBackRest 2.58.0 installed via brew
+- Config at `/opt/homebrew/etc/pgbackrest/pgbackrest.conf`
 
-**Workaround:** Using `pg_dump` (which works on read-only replicas)
-for scheduled backups. pgBackRest is used ONLY for WAL archiving
-(`archive_command`), which works on standbys with `archive_mode = always`.
-
-**Future:** When the primary moves to Nbg (Patroni failover), pgBackRest
-full/differential backup will work natively.
-
-## Postgres Standby Config Changes (Nbg)
-
-Added to `/etc/postgresql/16/main/conf.d/pgbackrest.conf`:
-```
-archive_mode = always
-archive_command = 'pgbackrest --stanza=agentindex archive-push %p'
-hot_standby_feedback = on
-max_standby_streaming_delay = 300s
-```
+### Nbg (Standby)
+- pgBackRest config updated: `pg1-host=100.90.152.88` (Mac Studio via Tailscale)
+- Cron updated to use pgBackRest (replaces pg_dump)
+- `archive_mode = always` + `hot_standby_feedback = on` (kept from earlier)
 
 ## Monthly Cost Estimate
 
 | Component | Monthly |
 |---|---|
-| B2 storage: 4.1 GB full + 6 × ~200 MB daily + WAL | ~$0.03 |
-| B2 transactions (Class B reads, Class A writes) | ~$0.01 |
-| B2 egress (restore test only) | $0.00 |
-| **Total** | **~$0.04/month** |
+| B2 storage: 12.5 GB full × 2 + 6 daily diffs (~2 GB each) + WAL | ~$0.25 |
+| B2 Class A transactions (writes) | ~$0.05 |
+| B2 Class B transactions (reads, rare) | ~$0.01 |
+| **Total** | **~$0.31/month** |
 
 ## Rollback
 
 ```bash
-# Disable WAL archiving
-ssh nerq-nbg "sudo rm /etc/postgresql/16/main/conf.d/pgbackrest.conf && sudo systemctl restart postgresql@16-main"
+# Mac Studio: revert archive_mode
+rm /opt/homebrew/var/postgresql@16/conf.d/pgbackrest.conf
+/opt/homebrew/Cellar/postgresql@16/16.11_1/bin/pg_ctl -D /opt/homebrew/var/postgresql@16 restart
 
-# Remove cron
-ssh nerq-nbg "sudo rm /etc/cron.d/pgbackup-nerq"
+# Mac Studio: revert pg_hba.conf (remove last 3 lines)
+# Mac Studio: revert listen_addresses if changed
 
-# Delete bucket (after emptying)
+# Nbg: remove cron + pgbackrest config
+ssh nerq-nbg "sudo rm /etc/cron.d/pgbackup-nerq /etc/pgbackrest/pgbackrest.conf"
+
+# B2: delete bucket (after emptying)
 b2 bucket delete nerq-pgbackrest-2026
 ```
 
-## Gap Analysis — Week 1 DR Criteria After Day 5
+## Gap Analysis — Week 1 DR Criteria
 
-| # | Kriterium | Before | After |
+| # | Kriterium | Before Day 5 | After Day 5.1 |
 |---|---|---|---|
-| 6 | Backblaze B2 bucket, backup, first full | ❌ | ✅ |
-| 7 | Restore verification test | ❌ | ✅ |
-| 11 | WAL archiving schedule | ❌ | ✅ |
+| 6 | Backblaze B2 + pgBackRest backup | ❌ | ✅ (pgBackRest full) |
+| 7 | Restore verification | ❌ | ✅ (PITR verified) |
+| 11 | WAL archiving + backup schedule | ❌ | ✅ (cron active) |
 
-**Week 1 DR status: 9/9 (100%)** — all criteria met.
+**Week 1 DR criteria: 9/9 (100%) — all met with PITR capability.**
