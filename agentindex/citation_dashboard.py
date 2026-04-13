@@ -243,11 +243,13 @@ td{{padding:6px 8px;border-bottom:1px solid #1e293b;color:#cbd5e1}}
     ut = data["ut_daily"]
     ut_conc = data["ut_concentration"]
 
-    # KPIs
+    # KPIs — rolling 7 days (NOT calendar week)
     last7 = [r for r in ut if r["day"] >= (today - timedelta(days=7)).isoformat()]
     prev7 = [r for r in ut if (today - timedelta(days=14)).isoformat() <= r["day"] < (today - timedelta(days=7)).isoformat()]
     this_week = sum(r["total"] for r in last7)
     prev_week = sum(r["total"] for r in prev7)
+    last7_start = (today - timedelta(days=7)).strftime("%b %d")
+    last7_end = (today - timedelta(days=1)).strftime("%b %d")
     wow = ((this_week / max(prev_week, 1)) - 1) * 100
 
     total_ut = sum(r["cnt"] for r in ut_conc)
@@ -257,9 +259,9 @@ td{{padding:6px 8px;border-bottom:1px solid #1e293b;color:#cbd5e1}}
 <div class="card">
 <h2>User-Triggered Citations <span style="font-size:11px;color:#64748b">(someone asked an AI a question about us)</span></h2>
 <div>
-<div class="kpi"><div class="num">{this_week:,}</div><div class="lbl">This week</div></div>
-<div class="kpi"><div class="num {'good' if wow > 0 else 'bad'}">{wow:+.0f}%</div><div class="lbl">vs prev week</div></div>
-<div class="kpi"><div class="num">{this_week // max(len(last7),1):,}</div><div class="lbl">Per day avg</div></div>
+<div class="kpi"><div class="num">{this_week:,}</div><div class="lbl">Last 7d ({last7_start}–{last7_end})</div></div>
+<div class="kpi"><div class="num {'good' if wow > 0 else 'bad'}">{wow:+.0f}%</div><div class="lbl">vs prev 7d</div></div>
+<div class="kpi"><div class="num">{this_week // max(len(last7),1):,}</div><div class="lbl">Per day avg (7d)</div></div>
 <div class="kpi"><div class="num {'bad' if chatgpt_pct > 90 else 'warn' if chatgpt_pct > 70 else 'good'}">{chatgpt_pct:.0f}%</div><div class="lbl">ChatGPT share</div></div>
 </div>"""
 
