@@ -1379,6 +1379,9 @@ mount_analytics_dashboard(app)
 from agentindex.analytics_weekly import mount_analytics_weekly
 mount_analytics_weekly(app)
 
+from agentindex.citation_dashboard import mount_citation_dashboard
+mount_citation_dashboard(app)
+
 from agentindex.trust_score_page import mount_trust_score_page
 mount_trust_score_page(app)
 
