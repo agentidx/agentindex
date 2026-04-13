@@ -82,12 +82,15 @@ class _PgCursorResult:
     def fetchone(self):
         row = self._cur.fetchone()
         if row is None:
+            self._cur.close()
             return None
         return _PgRow(self._columns, row)
 
     def fetchall(self):
         rows = self._cur.fetchall()
-        return [_PgRow(self._columns, r) for r in rows]
+        result = [_PgRow(self._columns, r) for r in rows]
+        self._cur.close()
+        return result
 
     def __iter__(self):
         for row in self._cur:
