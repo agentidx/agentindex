@@ -58,6 +58,7 @@ def _gc(g):
 def _resolve(slug):
     """Universal resolver using centralized entity resolution.
     Normalizes slug (nord-vpn → nordvpn), checks software_registry before agents.
+    Returns dict with entity data including CVE counts for security pages.
     """
     from agentindex.agent_safety_pages import _resolve_entity, _lookup_agent
 
@@ -81,6 +82,10 @@ def _resolve(slug):
             "url": resolved.get("source_url", ""),
             "license": "",
             "type": resolved.get("source", ""),
+            "cve_count": resolved.get("cve_count") or 0,
+            "cve_critical": resolved.get("cve_critical") or 0,
+            "security_score": resolved.get("security_score"),
+            "registry": resolved.get("registry", ""),
         }
 
     # Fallback to agents
@@ -96,6 +101,7 @@ def _resolve(slug):
             "downloads": 0, "desc": agent.get("description", ""),
             "cat": agent.get("category", ""), "author": agent.get("author", "Unknown"),
             "url": agent.get("source_url", ""), "license": "", "type": "",
+            "cve_count": 0, "cve_critical": 0, "security_score": None, "registry": "",
         }
     return None
 
@@ -193,6 +199,141 @@ def _pattern_page(slug, pattern_key, title_tmpl, question, verdict_pos, verdict_
 <tr><th>License</th><td>{_esc(a.get('license') or 'Not specified')}</td></tr>
 <tr><th>Category</th><td>{_esc(a.get('cat') or 'N/A')}</td></tr>
 </table>
+<h2>FAQ</h2>{faq_html}"""
+    page += _foot(slug)
+    return _sc(ck, page)
+
+
+def _hacked_page(slug):
+    """Specialized /was-X-hacked page with CVE data and incident history.
+
+    Content is genuinely unique vs /safe/ — focuses on breach history,
+    CVE counts, security incidents, and incident response assessment.
+    """
+    import json as _json
+
+    ck = f"hacked:{slug}"
+    c = _c(ck)
+    if c:
+        return c
+
+    a = _resolve(slug)
+    if not a:
+        try:
+            from agentindex.agent_safety_pages import _queue_for_crawling
+            _queue_for_crawling(slug, bot="hacked-404")
+        except Exception:
+            pass
+        return None
+
+    nm = a["name"].split("/")[-1] if "/" in a.get("name", "") else a.get("name", "")
+    sc = a.get("score") or 0
+    gr = a.get("grade") or "D"
+    cve_count = a.get("cve_count") or 0
+    cve_critical = a.get("cve_critical") or 0
+    sec_score = a.get("security_score")
+    registry = a.get("registry") or ""
+    author = a.get("author") or "Unknown"
+    desc = a.get("desc") or ""
+
+    # Determine incident status and verdict
+    if cve_count > 10:
+        verdict = "Multiple Reported Vulnerabilities"
+        verdict_detail = f"{_esc(nm)} has {cve_count} publicly reported security vulnerabilities ({cve_critical} critical). This does not necessarily mean a breach occurred, but indicates known security issues that have been disclosed."
+        vc = "#dc2626"
+        incident_status = "vulnerabilities_found"
+    elif cve_count > 0:
+        verdict = f"{cve_count} Known Vulnerabilities"
+        verdict_detail = f"As of {MY}, {_esc(nm)} has {cve_count} publicly reported security vulnerabilities. These have been disclosed through the CVE database and may have been patched."
+        vc = "#ca8a04"
+        incident_status = "minor_vulnerabilities"
+    else:
+        verdict = "No Publicly Reported Incidents"
+        verdict_detail = f"As of {MY}, {_esc(nm)} has no publicly reported security breaches, hacks, or CVE entries in the databases Nerq monitors. This covers the National Vulnerability Database (NVD), GitHub Security Advisories, and OSV.dev."
+        vc = "#16a34a"
+        incident_status = "clean"
+
+    # Security assessment paragraph (unique to /was-X-hacked)
+    if sec_score is not None and sec_score > 0:
+        sec_label = "strong" if sec_score >= 80 else "adequate" if sec_score >= 60 else "below average" if sec_score >= 40 else "poor"
+        sec_para = f"Nerq's automated security analysis rates {_esc(nm)}'s security posture as <strong>{sec_label}</strong> (security dimension score: {sec_score:.0f}/100). "
+    else:
+        sec_para = ""
+
+    if registry:
+        coverage = f"This assessment covers {_esc(nm)} as indexed from the {_esc(registry)} registry. "
+    else:
+        coverage = ""
+
+    title = f"Was {_esc(nm)} Hacked? Security Incident History {YEAR} | Nerq"
+    canonical = f"{SITE}/was-{slug}-hacked"
+
+    # FAQ — genuinely different from /safe/ FAQ
+    faq_items = [
+        (f"Has {_esc(nm)} been hacked?", verdict_detail),
+        (f"How many CVEs does {_esc(nm)} have?",
+         f"{_esc(nm)} has {cve_count} CVE entries ({cve_critical} critical). CVEs are publicly disclosed vulnerabilities tracked by MITRE and the NVD."),
+        (f"Is {_esc(nm)} safe to use after a breach?",
+         f"{'With no reported breaches, {0} appears safe based on available data.'.format(_esc(nm)) if cve_count == 0 else 'Despite known vulnerabilities, {0} maintains a Trust Score of {1:.0f}/100. Check if patches are available for disclosed CVEs before use.'.format(_esc(nm), sc)}"),
+        (f"Where can I check {_esc(nm)}'s security history?",
+         f"Nerq monitors NVD (nvd.nist.gov), GitHub Security Advisories, and OSV.dev for {_esc(nm)}. View the full trust analysis at nerq.ai/safe/{slug}."),
+    ]
+    faq_html, faq_ld = _faq(faq_items)
+
+    # Article + FAQPage schema
+    article_ld = f"""<script type="application/ld+json">
+{{"@context":"https://schema.org","@type":"Article","headline":"{_esc(title[:110])}","author":{{"@type":"Organization","name":"Nerq"}},"publisher":{{"@type":"Organization","name":"Nerq","url":"https://nerq.ai"}},"datePublished":"{TODAY}","dateModified":"{TODAY}","description":"{_esc(verdict_detail[:200])}"}}
+</script>"""
+
+    meta = (
+        f'<meta name="nerq:type" content="hacked">'
+        f'<meta name="nerq:entity" content="{_esc(nm)}">'
+        f'<meta name="nerq:score" content="{sc:.0f}">'
+        f'<meta name="nerq:verdict" content="{_esc(verdict)}">'
+        f'<meta name="nerq:cve_count" content="{cve_count}">'
+        f'<meta name="nerq:updated" content="{TODAY}">'
+    )
+
+    page = _head(
+        title[:60],
+        f"Was {_esc(nm)} hacked? {verdict}. {cve_count} CVEs. Security incident history and breach analysis. Updated {MY}."[:160],
+        canonical,
+        meta + faq_ld + article_ld
+    )
+
+    # Direct answer in first 100 words (critical for AI citation)
+    page += f"""
+<h1>Was {_esc(nm)} Hacked?</h1>
+<p class="pplx-verdict ai-summary" style="font-size:16px;line-height:1.7;color:#1e293b;margin:12px 0 24px;padding:16px;background:#f8fafc;border-left:4px solid {vc};border-radius:0 8px 8px 0">
+<strong>{verdict}.</strong> {verdict_detail} {sec_para}{coverage}Trust Score: {sc:.0f}/100 ({gr}).
+Last checked: {TODAY}.</p>
+
+<div style="display:inline-block;padding:10px 20px;font-weight:700;font-size:18px;color:{vc};border:2px solid {vc};border-radius:8px;margin:0 0 24px">{verdict}</div>
+
+<h2>Security Incident Summary</h2>
+<table>
+<tr><th>CVE Count</th><td style="font-weight:700;color:{vc}">{cve_count}</td></tr>
+<tr><th>Critical CVEs</th><td>{cve_critical}</td></tr>
+<tr><th>Breach Status</th><td style="color:{vc}">{verdict}</td></tr>
+<tr><th>Trust Score</th><td>{sc:.0f}/100 ({gr})</td></tr>"""
+    if sec_score is not None and sec_score > 0:
+        page += f'\n<tr><th>Security Dimension</th><td>{sec_score:.0f}/100</td></tr>'
+    page += f"""
+<tr><th>Publisher</th><td>{_esc(author)}</td></tr>
+<tr><th>Registry</th><td>{_esc(registry) if registry else 'N/A'}</td></tr>
+</table>
+
+<h2>What We Check</h2>
+<ul style="font-size:14px;line-height:1.8;color:#374151">
+<li><strong>National Vulnerability Database (NVD)</strong> — CVE entries for publicly disclosed vulnerabilities</li>
+<li><strong>GitHub Security Advisories</strong> — security alerts for open-source dependencies</li>
+<li><strong>OSV.dev</strong> — Google's open-source vulnerability database</li>
+<li><strong>Public breach reports</strong> — media reports and incident disclosures</li>
+</ul>
+
+<h2>Full Trust Analysis</h2>
+<p style="font-size:14px;color:#374151">For a complete safety assessment including privacy, maintenance, and community trust signals, see <a href="/safe/{slug}" style="color:#0d9488;font-weight:600">{_esc(nm)} Trust Score on Nerq</a>.</p>
+
 <h2>FAQ</h2>{faq_html}"""
     page += _foot(slug)
     return _sc(ck, page)
@@ -356,8 +497,10 @@ def mount_pattern_routes(app):
 
     @app.get("/was-{slug}-hacked", response_class=HTMLResponse)
     async def was_hacked(slug: str):
-        html = _pattern_page(slug, "hacked", "Was {name} Hacked? Breach History {year} | Nerq", "Was {name} hacked?", "No Known Breaches", "Breach History", "Based on public breach databases and security incident reports.")
-        return HTMLResponse(html) if html else HTMLResponse(content=f"""<!DOCTYPE html>
+        html = _hacked_page(slug)
+        if html:
+            return HTMLResponse(html)
+        return HTMLResponse(content=f"""<!DOCTYPE html>
 <html lang="en"><head>
 <title>{slug.replace("-", " ").title()} — Not Yet Analyzed | Nerq</title>
 <meta name="robots" content="noindex">
