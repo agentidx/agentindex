@@ -645,7 +645,8 @@ def run_from_db(conn, run_date):
                 continue
             try:
                 breakdown = r["breakdown"] if r["breakdown"] else "{}"
-                conn.execute("""
+                from agentindex.crypto.dual_write import dual_execute
+                dual_execute(conn, """
                     INSERT OR REPLACE INTO crypto_rating_daily
                     (run_date, token_id, rating, score, pillar_1, pillar_2, pillar_3,
                      pillar_4, pillar_5, breakdown, calculated_at)
@@ -702,7 +703,8 @@ def run_from_api(conn, run_date):
         try:
             result = compute_rating(token, history, btc_prices)
 
-            conn.execute("""
+            from agentindex.crypto.dual_write import dual_execute
+            dual_execute(conn, """
                 INSERT OR REPLACE INTO crypto_rating_daily
                 (run_date, token_id, symbol, name, market_cap_rank,
                  rating, score, pillar_1, pillar_2, pillar_3, pillar_4, pillar_5,

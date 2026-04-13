@@ -115,7 +115,8 @@ def save_run_status(steps_results):
                 total_seconds REAL
             )
         """)
-        conn.execute("""
+        from agentindex.crypto.dual_write import dual_execute
+        dual_execute(conn, """
             INSERT INTO crypto_pipeline_runs
             (run_date, started_at, completed_at, steps_json, status, total_seconds)
             VALUES (?, ?, ?, ?, ?, ?)

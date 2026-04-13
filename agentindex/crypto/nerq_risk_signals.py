@@ -382,7 +382,8 @@ def main():
 
     # Write signals
     log(f"Writing {len(signals)} signals...")
-    conn.executemany(
+    from agentindex.crypto.dual_write import dual_executemany
+    dual_executemany(conn,
         "INSERT OR REPLACE INTO nerq_risk_signals "
         "(token_id, signal_date, btc_beta, vol_30d, trust_p3, trust_score, "
         "sig6_structure, ndd_current, ndd_min_4w, p3_decay_3m, score_decay_3m, "

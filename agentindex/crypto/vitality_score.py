@@ -1004,9 +1004,10 @@ def save_vitality_scores(results):
         )
     """)
 
-    conn.execute("DELETE FROM vitality_scores")
+    from agentindex.crypto.dual_write import dual_delete, dual_execute
+    dual_delete(conn, "DELETE FROM vitality_scores")
     for r in results:
-        conn.execute("""
+        dual_execute(conn, """
             INSERT INTO vitality_scores (
                 token_id, symbol, name, vitality_score, vitality_grade,
                 ecosystem_gravity, capital_commitment, coordination_efficiency,
