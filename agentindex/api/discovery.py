@@ -1576,6 +1576,9 @@ app.include_router(router_blog)
 from agentindex.smart_discovery import mount_smart_discovery
 mount_smart_discovery(app)
 
+from agentindex.trending_api import mount_trending
+mount_trending(app)
+
 # Compatibility API & Pages (Sprint 2)
 from agentindex.compatibility_api import mount_compatibility
 mount_compatibility(app)
