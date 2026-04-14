@@ -624,6 +624,27 @@ def preflight_check(
         except Exception:
             pass
 
+    # Contributor metrics lookup
+    contrib_data = {}
+    if t and t.get("id") and not str(t["id"]).startswith("sr-"):
+        try:
+            _cs = get_session()
+            _cr = _cs.execute(text(
+                "SELECT active_contributors_6mo, total_contributors, "
+                "top_contributor_pct, contributor_tier "
+                "FROM contributor_metrics WHERE agent_id = :aid"
+            ), {"aid": t["id"]}).fetchone()
+            _cs.close()
+            if _cr:
+                contrib_data = {
+                    "active_contributors_6mo": _cr[0],
+                    "total_contributors": _cr[1],
+                    "top_contributor_pct": round(float(_cr[2]), 3) if _cr[2] else None,
+                    "contributor_tier": _cr[3],
+                }
+        except Exception:
+            pass
+
     result = {
         "target": target,
         "target_trust": target_trust,
@@ -647,6 +668,7 @@ def preflight_check(
         },
         "activity": {
             "last_commit_days_ago": t["last_commit_days_ago"] if t else None,
+            **({"contributor_metrics": contrib_data} if contrib_data else {}),
         },
         "alternatives": alternatives,
         "compatibility": _get_compatibility(t["name"] if t else target),

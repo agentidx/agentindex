@@ -92,22 +92,49 @@ def score_compliance(agent):
     return 15
 
 
-def score_maintenance(agent):
+def score_maintenance(agent, contrib=None):
+    """Maintenance score: recency (70%) + contributor activity (30%).
+
+    Contributor data is descriptive, not predictive. A dormant project is not
+    automatically bad — mature packages can be stable without recent activity.
+    The contributor signal adjusts the maintenance score by up to ±15 points.
+    """
     lu = agent['last_source_update']
     tc = agent['trust_components']
+
+    # Base: recency score (same as before)
     if lu:
         d = (NOW - lu).days
-        if d <= 14: return 98
-        if d <= 30: return 92
-        if d <= 60: return 80
-        if d <= 90: return 70
-        if d <= 180: return 55
-        if d <= 365: return 35
-        return 15
-    if tc and isinstance(tc, dict):
+        if d <= 14: base = 98
+        elif d <= 30: base = 92
+        elif d <= 60: base = 80
+        elif d <= 90: base = 70
+        elif d <= 180: base = 55
+        elif d <= 365: base = 35
+        else: base = 15
+    elif tc and isinstance(tc, dict):
         s = tc.get('activity',0)*0.4 + tc.get('recency',0)*0.4 + tc.get('stability',0)*0.2
-        return max(0, min(100, s))
-    return 40
+        base = max(0, min(100, s))
+    else:
+        base = 40
+
+    # Contributor adjustment (±15 points max, conservative)
+    if contrib:
+        active = contrib.get('active_contributors_6mo', -1)
+        tier = contrib.get('contributor_tier', 'unknown')
+        if tier == 'active-community':      # 6+ active
+            adj = +10
+        elif tier == 'small-team':          # 2-5 active
+            adj = +5
+        elif tier == 'single-maintainer':   # 1 active
+            adj = -5
+        elif tier == 'dormant':             # 0 active in 6 months
+            adj = -15
+        else:
+            adj = 0
+        base = max(0, min(100, base + adj))
+
+    return base
 
 
 def score_popularity(agent):
@@ -162,7 +189,7 @@ def score_ecosystem(agent, author_count):
 W = {'security': 0.30, 'compliance': 0.25, 'maintenance': 0.20,
      'popularity': 0.15, 'ecosystem': 0.10}
 
-def compute(agent, ac):
+def compute(agent, ac, contrib=None):
     desc = (agent['description'] or '').lower()
     caps = ''
     if agent['capabilities'] and isinstance(agent['capabilities'], list):
@@ -175,7 +202,7 @@ def compute(agent, ac):
     dims = {
         'security': score_security(agent, txt),
         'compliance': score_compliance(agent),
-        'maintenance': score_maintenance(agent),
+        'maintenance': score_maintenance(agent, contrib),
         'popularity': score_popularity(agent),
         'ecosystem': score_ecosystem(agent, ac),
     }
@@ -211,13 +238,24 @@ def main():
     conn.commit()
     print("  Done")
 
-    print("\n[2/4] Computing author counts...")
+    print("\n[2/4] Computing author counts + loading contributor metrics...")
     author_counts = {}
     with conn.cursor() as cur:
         cur.execute("SELECT author, COUNT(*) FROM agents WHERE author IS NOT NULL AND author != '' GROUP BY author")
         for row in cur:
             author_counts[row[0]] = row[1]
     print(f"  {len(author_counts):,} authors")
+
+    # Load contributor metrics (from GitHub collector)
+    contrib_map = {}
+    try:
+        with conn.cursor(cursor_factory=DictCursor) as cur:
+            cur.execute("SELECT agent_id, active_contributors_6mo, total_contributors, top_contributor_pct, contributor_tier FROM contributor_metrics")
+            for row in cur:
+                contrib_map[str(row['agent_id'])] = dict(row)
+        print(f"  {len(contrib_map):,} contributor metrics loaded")
+    except Exception as e:
+        print(f"  No contributor metrics table: {e}")
 
     with conn.cursor() as cur:
         cur.execute("SELECT COUNT(*) FROM agents")
@@ -253,7 +291,8 @@ def main():
         batch = []
         for agent in rows:
             ac = author_counts.get(agent['author'] or '', 0)
-            score, grade, risk_level, dims = compute(agent, ac)
+            contrib = contrib_map.get(str(agent['id']))
+            score, grade, risk_level, dims = compute(agent, ac, contrib)
             batch.append((score, grade, risk_level, json.dumps(dims), NOW, agent['id']))
 
             grade_dist[grade] = grade_dist.get(grade, 0) + 1

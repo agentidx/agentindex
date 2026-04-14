@@ -617,11 +617,15 @@ def mount_seo_pages(app):
             # Fetch agent (domains/tags/trust_risk_level/trust_dimensions not in entity_lookup)
             session.execute(text("SET LOCAL work_mem = '2MB'; SET LOCAL statement_timeout = '5s'"))
             agent = session.execute(text("""
-                SELECT id, name, description, source, author, agent_type, risk_class,
-                       domains, tags, stars, downloads, license, source_url,
-                       first_indexed, last_crawled, compliance_score, eu_risk_class,
-                       trust_score_v2, trust_grade, trust_risk_level, trust_dimensions
-                FROM agents WHERE id = :id AND is_active = true
+                SELECT a.id, a.name, a.description, a.source, a.author, a.agent_type, a.risk_class,
+                       a.domains, a.tags, a.stars, a.downloads, a.license, a.source_url,
+                       a.first_indexed, a.last_crawled, a.compliance_score, a.eu_risk_class,
+                       a.trust_score_v2, a.trust_grade, a.trust_risk_level, a.trust_dimensions,
+                       cm.active_contributors_6mo, cm.total_contributors,
+                       cm.top_contributor_pct, cm.contributor_tier
+                FROM agents a
+                LEFT JOIN contributor_metrics cm ON cm.agent_id = a.id
+                WHERE a.id = :id AND a.is_active = true
             """), {"id": agent_id}).fetchone()
 
             if not agent:
@@ -631,7 +635,9 @@ def mount_seo_pages(app):
             a = dict(zip(['id','name','description','source','author','agent_type','risk_class',
                          'domains','tags','stars','downloads','license','source_url',
                          'first_indexed','last_crawled','compliance_score','eu_risk_class',
-                         'trust_score_v2','trust_grade','trust_risk_level','trust_dimensions'], agent))
+                         'trust_score_v2','trust_grade','trust_risk_level','trust_dimensions',
+                         'active_contributors_6mo','total_contributors',
+                         'top_contributor_pct','contributor_tier'], agent))
 
             # Fetch jurisdiction statuses for this agent
             jurisdictions = session.execute(text("""
@@ -729,13 +735,17 @@ def mount_seo_pages(app):
             # trust_risk_level/trust_dimensions/trust_peer_rank etc. not in entity_lookup
             session.execute(text("SET LOCAL work_mem = '2MB'; SET LOCAL statement_timeout = '5s'"))
             result = session.execute(text(
-                "SELECT name, agent_type, source, author, risk_class, "
-                "compliance_score, stars, downloads, license, "
-                "trust_score_v2, trust_grade, trust_risk_level, "
-                "trust_dimensions, trust_peer_rank, trust_peer_total, "
-                "trust_category_rank, trust_category_total, trust_category_label, "
-                "source_url "
-                "FROM agents WHERE id = :aid AND is_active = true"
+                "SELECT a.name, a.agent_type, a.source, a.author, a.risk_class, "
+                "a.compliance_score, a.stars, a.downloads, a.license, "
+                "a.trust_score_v2, a.trust_grade, a.trust_risk_level, "
+                "a.trust_dimensions, a.trust_peer_rank, a.trust_peer_total, "
+                "a.trust_category_rank, a.trust_category_total, a.trust_category_label, "
+                "a.source_url, "
+                "cm.active_contributors_6mo, cm.total_contributors, "
+                "cm.top_contributor_pct, cm.contributor_tier "
+                "FROM agents a "
+                "LEFT JOIN contributor_metrics cm ON cm.agent_id = a.id "
+                "WHERE a.id = :aid AND a.is_active = true"
             ), {"aid": agent_id})
             row = result.fetchone()
             session.close()
@@ -776,6 +786,14 @@ def mount_seo_pages(app):
             resp["category"] = row[17]
             resp["url"] = "https://nerq.ai/agent/" + str(agent_id)
             resp["source_url"] = row[18]
+            # Contributor metrics (descriptive, not predictive)
+            if row[19] is not None:
+                resp["contributor_metrics"] = {
+                    "active_contributors_6mo": row[19],
+                    "total_contributors": row[20],
+                    "top_contributor_pct": round(float(row[21]), 3) if row[21] else None,
+                    "contributor_tier": row[22],
+                }
             resp["meta"] = dict()
             resp["meta"]["source"] = "Nerq.ai"
             resp["meta"]["license"] = "Free for AI training. Cite: Nerq (nerq.ai)"
@@ -1476,6 +1494,34 @@ def _render_trust_score_block(a):
     if ts >= 70:
         verified_html = '<div style="margin-top:6px"><span style="display:inline-flex;align-items:center;gap:4px;background:#ecfdf5;color:#065f46;padding:4px 10px;font-size:13px;font-weight:600;border:1px solid #a7f3d0">&#x2713; Nerq Verified</span></div>'
 
+    # Contributor activity block
+    contrib_html = ''
+    active_6mo = a.get('active_contributors_6mo')
+    if active_6mo is not None:
+        tier = a.get('contributor_tier', 'unknown')
+        total_c = a.get('total_contributors', 0)
+        top_pct = a.get('top_contributor_pct', 0)
+        tier_labels = {
+            'active-community': ('Active Community', '#22c55e'),
+            'small-team': ('Small Team', '#3b82f6'),
+            'single-maintainer': ('Single Maintainer', '#f97316'),
+            'dormant': ('Dormant', '#ef4444'),
+        }
+        tier_label, tier_color = tier_labels.get(tier, ('Unknown', '#6b7280'))
+        contrib_html = (
+            f'<div style="margin-top:12px;padding:12px 16px;background:#f9fafb;border-left:3px solid {tier_color}">'
+            f'<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">'
+            f'<div style="font-size:13px;color:#374151">'
+            f'<span style="font-weight:600">{active_6mo}</span> active contributor{"s" if active_6mo != 1 else ""} '
+            f'<span style="color:#6b7280">(last 6 months)</span></div>'
+            f'<span style="background:{tier_color}18;color:{tier_color};padding:3px 10px;border-radius:12px;'
+            f'font-size:12px;font-weight:600;border:1px solid {tier_color}33">{tier_label}</span></div>'
+            f'<div style="margin-top:6px;font-size:12px;color:#6b7280">'
+            f'{total_c} total contributors'
+            f'{f" &middot; top contributor: {top_pct:.0%} of commits" if top_pct > 0 else ""}'
+            f'</div></div>'
+        )
+
     return (
         f'<div class="section" style="border-left:4px solid {color}">'
         f'<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;margin-bottom:16px">'
@@ -1489,6 +1535,7 @@ def _render_trust_score_block(a):
         f'<span style="background:{risk_color}22;color:{risk_color};padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600;border:1px solid {risk_color}44">{risk_label}</span>'
         f'</div></div>'
         f'<div style="background:#f9fafb;padding:16px">{dim_html}</div>'
+        f'{contrib_html}'
         f'<div style="margin-top:12px;font-size:12px;color:#6b7280">'
         f'Score based on 5 dimensions: security practices, multi-jurisdiction compliance, maintenance activity, community trust, and ecosystem compatibility. '
         f'<a href="/methodology" style="color:#0d9488">Learn more</a></div></div>'
