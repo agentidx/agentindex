@@ -1,0 +1,32 @@
+{
+  "logreg": {
+    "is_auc": 0.2342,
+    "oos_auc": 0.2969
+  },
+  "xgboost_default": {
+    "is_auc": 0.9159,
+    "oos_auc": 0.6459
+  },
+  "xgboost_tuned": {
+    "is_auc": 0.7855,
+    "oos_auc": 0.695
+  },
+  "feature_importance": {
+    "trust_p3_maintenance": 0.2361,
+    "nl_vol_extreme": 0.0828,
+    "vol_30d": 0.0815,
+    "nl_trust_p3_low": 0.0703,
+    "btc_vol_30d": 0.067,
+    "ix_vol_x_maint_low": 0.0578,
+    "ix_vol_x_ndd_weak": 0.0562,
+    "drawdown_90d": 0.0524,
+    "sig6_str": 0.043,
+    "ix_no_audit_x_drawdown": 0.03
+  },
+  "data": {
+    "is_samples": 13936,
+    "is_crashes": 5301,
+    "oos_samples": 17845,
+    "oos_crashes": 7283
+  }
+}
