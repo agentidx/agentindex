@@ -805,6 +805,101 @@ def mount_seo_pages(app):
 
 
     # ============================================================
+    # /api/v1/trust-score/{agent_id}/history - Trust Score Trajectory
+    # ============================================================
+    @app.get("/api/v1/trust-score/{agent_id}/history")
+    async def api_trust_score_history(agent_id: str, request: Request):
+        """Trust score trajectory over time from daily_snapshots.
+
+        Query params:
+            days: number of days to look back (default 30, max 365)
+            resolution: 'daily' (default), 'weekly', or 'monthly'
+        """
+        import json as _json
+        from datetime import date as _date, timedelta as _td
+
+        days = min(int(request.query_params.get("days", "30")), 365)
+        resolution = request.query_params.get("resolution", "daily")
+
+        try:
+            session = get_session()
+            session.execute(text("SET LOCAL statement_timeout = '10s'"))
+
+            # Resolve agent name for daily_snapshots lookup
+            agent_row = session.execute(text(
+                "SELECT name, source FROM entity_lookup WHERE id = :aid AND is_active = true"
+            ), {"aid": agent_id}).fetchone()
+            if not agent_row:
+                session.close()
+                return JSONResponse(content={"error": "Agent not found"}, status_code=404)
+
+            agent_name = agent_row[0]
+            since = (_date.today() - _td(days=days)).isoformat()
+
+            if resolution == "weekly":
+                query = text("""
+                    SELECT date_trunc('week', date::timestamp)::date as period,
+                           ROUND(AVG(trust_score)::numeric, 1) as trust_score,
+                           MAX(trust_grade) as trust_grade,
+                           MAX(downloads) as downloads, MAX(stars) as stars
+                    FROM daily_snapshots
+                    WHERE entity_id = :name AND date >= :since
+                    GROUP BY period ORDER BY period
+                """)
+            elif resolution == "monthly":
+                query = text("""
+                    SELECT date_trunc('month', date::timestamp)::date as period,
+                           ROUND(AVG(trust_score)::numeric, 1) as trust_score,
+                           MAX(trust_grade) as trust_grade,
+                           MAX(downloads) as downloads, MAX(stars) as stars
+                    FROM daily_snapshots
+                    WHERE entity_id = :name AND date >= :since
+                    GROUP BY period ORDER BY period
+                """)
+            else:
+                query = text("""
+                    SELECT date as period, trust_score, trust_grade, downloads, stars
+                    FROM daily_snapshots
+                    WHERE entity_id = :name AND date >= :since
+                    ORDER BY date
+                """)
+
+            rows = session.execute(query, {"name": agent_name, "since": since}).fetchall()
+            session.close()
+
+            history = []
+            for r in rows:
+                history.append({
+                    "date": r[0].isoformat() if hasattr(r[0], 'isoformat') else str(r[0]),
+                    "trust_score": float(r[1]) if r[1] else None,
+                    "trust_grade": r[2],
+                    "downloads": r[3],
+                    "stars": r[4],
+                })
+
+            resp = {
+                "agent_id": agent_id,
+                "name": agent_name,
+                "resolution": resolution,
+                "days": days,
+                "data_points": len(history),
+                "history": history,
+                "meta": {
+                    "source": "Nerq.ai",
+                    "methodology": "https://nerq.ai/methodology",
+                    "note": "Trust scores are snapshots — daily values reflect the score at time of collection",
+                },
+            }
+
+            return JSONResponse(
+                content=resp,
+                headers={"Cache-Control": "public, max-age=3600, s-maxage=3600"},
+            )
+        except Exception as e:
+            return JSONResponse(content={"error": str(e)}, status_code=500)
+
+
+    # ============================================================
     # /methodology - Trust Score Methodology Page
     # ============================================================
     @app.get("/methodology", response_class=HTMLResponse)

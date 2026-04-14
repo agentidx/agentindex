@@ -35,7 +35,7 @@ def collect_software_snapshots(session):
                 INSERT INTO daily_snapshots (date, entity_type, entity_id, registry, trust_score, trust_grade, downloads, stars)
                 SELECT :today, 'package', slug, registry, trust_score, trust_grade, downloads, stars
                 FROM software_registry WHERE registry = :reg
-                ON CONFLICT DO NOTHING
+                ON CONFLICT (date, entity_type, entity_id, registry) DO NOTHING
             """), {"today": TODAY.isoformat(), "reg": reg})
             session.commit()
             cnt = session.execute(text("SELECT COUNT(*) FROM daily_snapshots WHERE date = :d AND registry = :reg AND entity_type = 'package'"),
@@ -50,18 +50,27 @@ def collect_software_snapshots(session):
 
 
 def collect_agent_snapshots(session):
-    """Snapshot top 100K agents (sampled)."""
-    logger.info("Collecting agent snapshots (top 100K)...")
-    result = session.execute(text("""
-        INSERT INTO daily_snapshots (date, entity_type, entity_id, registry, trust_score, trust_grade, downloads, stars)
-        SELECT :today, 'agent', name, source, trust_score_v2, trust_grade, downloads, stars
-        FROM agents
-        WHERE is_active = true AND trust_score_v2 IS NOT NULL
-        ORDER BY COALESCE(stars, 0) DESC
-        LIMIT 100000
-        ON CONFLICT DO NOTHING
-    """), {"today": TODAY.isoformat()})
-    session.commit()
+    """Snapshot top 100K agents in batches to avoid timeout."""
+    logger.info("Collecting agent snapshots (top 100K, batched)...")
+    batch_size = 10000
+    total = 0
+    for offset in range(0, 100000, batch_size):
+        try:
+            session.execute(text("""
+                INSERT INTO daily_snapshots (date, entity_type, entity_id, registry, trust_score, trust_grade, downloads, stars)
+                SELECT :today, 'agent', name, source, trust_score_v2, trust_grade, downloads, stars
+                FROM agents
+                WHERE is_active = true AND trust_score_v2 IS NOT NULL
+                ORDER BY COALESCE(stars, 0) DESC
+                LIMIT :lim OFFSET :off
+                ON CONFLICT (date, entity_type, entity_id, registry) DO NOTHING
+            """), {"today": TODAY.isoformat(), "lim": batch_size, "off": offset})
+            session.commit()
+            total += batch_size
+        except Exception as e:
+            logger.warning(f"  Agent batch offset {offset}: {e}")
+            session.rollback()
+            break
     count = session.execute(text("SELECT COUNT(*) FROM daily_snapshots WHERE date = :d AND entity_type = 'agent'"),
                            {"d": TODAY.isoformat()}).fetchone()[0]
     logger.info(f"  Agent snapshots: {count:,}")
@@ -92,7 +101,7 @@ def collect_entity_snapshots(session):
         SELECT :today, entity_type, entity_slug, 'entity_rating', score, rating,
                jsonb_build_object('tools_found', tools_found, 'critical_issues', critical_issues)
         FROM entity_ratings WHERE score > 0
-        ON CONFLICT DO NOTHING
+        ON CONFLICT (date, entity_type, entity_id, registry) DO NOTHING
     """), {"today": TODAY.isoformat()})
     session.commit()
     count = session.execute(text("SELECT COUNT(*) FROM daily_snapshots WHERE date = :d AND registry = 'entity_rating'"),
@@ -118,8 +127,12 @@ def detect_trust_changes(session):
                     WHEN t.trust_score - y.trust_score < -2 THEN 'decline'
                     ELSE 'minor_change' END
         FROM daily_snapshots t
-        JOIN daily_snapshots y ON t.entity_id = y.entity_id AND t.entity_type = y.entity_type
-        WHERE t.date = :today AND y.date = :yesterday
+        JOIN daily_snapshots y ON y.entity_id = t.entity_id
+                               AND y.entity_type = t.entity_type
+                               AND y.registry = t.registry
+                               AND y.date = :yesterday
+        WHERE t.date = :today
+        AND t.trust_score IS NOT NULL AND y.trust_score IS NOT NULL
         AND ABS(t.trust_score - y.trust_score) > 2
         ON CONFLICT DO NOTHING
     """), {"today": TODAY.isoformat(), "yesterday": yesterday_date})
@@ -236,25 +249,44 @@ def collect_ecosystem_metrics(session):
     return count
 
 
+def _set_timeout(session, seconds=300):
+    """Set statement_timeout for the current session (survives commits and rollbacks)."""
+    session.execute(text(f"SET statement_timeout = '{seconds}s'"))
+
+
 def main():
     start = time.time()
     logger.info(f"=== DAILY SNAPSHOT {TODAY} ===")
 
     session = get_session()
     try:
-        sw = collect_software_snapshots(session)
-        ag = collect_agent_snapshots(session)
-        ws = collect_website_snapshots(session)
-        er = collect_entity_snapshots(session)
-        tc = detect_trust_changes(session)
-        ai = collect_ai_behavior(session)
-        eco = collect_ecosystem_metrics(session)
+        # Set generous timeout for batch operations (not the API's 5s)
+        _set_timeout(session, 300)
+
+        collectors = [
+            ("Software", collect_software_snapshots),
+            ("Agents", collect_agent_snapshots),
+            ("Websites", collect_website_snapshots),
+            ("Entity ratings", collect_entity_snapshots),
+            ("Trust changes", detect_trust_changes),
+            ("AI behavior", collect_ai_behavior),
+            ("Ecosystem", collect_ecosystem_metrics),
+        ]
+
+        results = {}
+        for name, fn in collectors:
+            try:
+                _set_timeout(session, 300)
+                results[name] = fn(session)
+            except Exception as e:
+                logger.error(f"  {name} FAILED: {e}")
+                session.rollback()
+                results[name] = 0
 
         elapsed = time.time() - start
         logger.info(f"=== SNAPSHOT COMPLETE ({elapsed:.0f}s) ===")
-        logger.info(f"  Software: {sw:,} | Agents: {ag:,} | Websites: {ws:,}")
-        logger.info(f"  Entity ratings: {er:,} | Trust changes: {tc:,}")
-        logger.info(f"  AI behavior: {ai:,} | Ecosystem: {eco}")
+        for name, count in results.items():
+            logger.info(f"  {name}: {count:,}")
     finally:
         session.close()
 
