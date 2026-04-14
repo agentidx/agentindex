@@ -449,13 +449,13 @@ def mount_citation_dashboard(app):
         if cached:
             html, ts = cached
             if time.time() - ts < CACHE_TTL:
-                return HTMLResponse(html)
+                return HTMLResponse(html, headers={"Cache-Control": "no-cache, private"})
 
         try:
             data = _get_data()
             html = _render(data)
             _cache[ck] = (html, time.time())
-            return HTMLResponse(html)
+            return HTMLResponse(html, headers={"Cache-Control": "no-cache, private"})
         except Exception as e:
             logger.error(f"Citation dashboard error: {e}", exc_info=True)
             return HTMLResponse(f"<h1>Error</h1><pre>{_esc(str(e))}</pre>", status_code=500)
