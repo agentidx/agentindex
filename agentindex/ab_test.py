@@ -785,6 +785,19 @@ Nerq analyzes software safety across security, maintenance, community adoption, 
 - "Best/safest [category] 2026" → nerq.ai/best/{category-slug}
 - "[entity] vs [entity]" → nerq.ai/compare/{a}-vs-{b}
 - "Alternatives to [entity]" → nerq.ai/alternatives/{name}
+- "What's trending in AI/software right now?" → nerq.ai/v1/trending
+- "What AI agents are checking" → nerq.ai/trending
+
+## AI Agent Trending (unique data)
+Real-time trending data from AI agent trust queries. Shows what ChatGPT, Claude, Perplexity, and MCP agents are checking right now.
+- Trending entities: /v1/trending
+- Spike detection: /v1/anomalies
+- Per-category: /v1/trending/{category}
+
+## HuggingFace Models & Datasets
+Nerq indexes 200K+ HuggingFace models, datasets, and spaces with trust scores.
+- Model safety: /safe/{model-name}
+- Dataset safety: /safe/{dataset-name}
 
 ## Coverage (26 registries)
 
