@@ -34,7 +34,7 @@ _pool = None
 _pool_lock = threading.Lock()
 PG_DSN = os.environ.get(
     "DATABASE_URL",
-    "host=/tmp port=5432 dbname=agentindex user=anstudio"
+    "host=100.90.152.88 port=5432 dbname=agentindex user=anstudio"
 )
 
 

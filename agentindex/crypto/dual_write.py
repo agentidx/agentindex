@@ -38,7 +38,10 @@ def _setup_logging():
 _pool = None
 _pool_lock = threading.Lock()
 
-PG_DSN = "host=/tmp port=5432 dbname=agentindex user=anstudio"
+PG_DSN = os.environ.get(
+    "ZARQ_PG_DSN",
+    "host=100.90.152.88 port=5432 dbname=agentindex user=anstudio"
+)
 
 def _get_pg_conn():
     global _pool
