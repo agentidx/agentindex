@@ -81,9 +81,9 @@ def mount_compliance(app):
     async def track_upgrade():
         """Track upgrade interest for PMF measurement."""
         try:
-            from agentindex.db.models import get_session
+            from agentindex.db.models import get_write_session
             from sqlalchemy import text
-            session = get_session()
+            session = get_write_session()
             session.execute(text(
                 "UPDATE checker_usage SET clicked_upgrade = TRUE "
                 "WHERE id = (SELECT id FROM checker_usage ORDER BY created_at DESC LIMIT 1)"
@@ -108,9 +108,9 @@ def mount_compliance(app):
             if not email or "@" not in email:
                 return JSONResponse({"status": "invalid_email"}, status_code=400)
             
-            from agentindex.db.models import get_session
+            from agentindex.db.models import get_write_session
             from sqlalchemy import text
-            session = get_session()
+            session = get_write_session()
             
             # Create table if not exists
             session.execute(text("""

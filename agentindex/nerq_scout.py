@@ -13,14 +13,14 @@ from fastapi import APIRouter, Query, Request
 from fastapi.responses import JSONResponse
 from sqlalchemy import text
 
-from agentindex.db.models import get_session, get_engine
+from agentindex.db.models import get_session, get_engine, get_write_session, get_write_engine
 
 router_scout = APIRouter(tags=["scout"])
 
 # ── Create tables at module load ──────────────────────────────────────
 
 def _init_scout_tables():
-    engine = get_engine()
+    engine = get_write_engine()
     with engine.connect() as conn:
         conn.execute(text("""
             CREATE TABLE IF NOT EXISTS agent_reviews (
@@ -151,7 +151,7 @@ async def post_review(request: Request):
 
     client_ip = request.client.host if request.client else "unknown"
 
-    session = get_session()
+    session = get_write_session()
     try:
         # Rate limit: 100 reviews per IP per 24h
         cutoff = datetime.now(timezone.utc) - timedelta(hours=24)
@@ -228,7 +228,7 @@ async def post_review(request: Request):
 @router_scout.get("/v1/agent/reputation/{name:path}")
 def get_reputation(name: str):
     """Get agent reputation: static trust + review bonus + rank."""
-    session = get_session()
+    session = get_write_session()
     try:
         agent = _lookup_best(name, session)
         if not agent:
@@ -287,7 +287,7 @@ def get_reputation(name: str):
 @router_scout.get("/v1/agent/ledger/{name:path}")
 def get_ledger(name: str, days: int = Query(30, ge=1, le=365)):
     """Agent interaction ledger: reviews received, given, and recent activity."""
-    session = get_session()
+    session = get_write_session()
     try:
         agent = _lookup_best(name, session)
         if not agent:
@@ -364,7 +364,7 @@ def get_ledger(name: str, days: int = Query(30, ge=1, le=365)):
 @router_scout.get("/v1/scout/status")
 def scout_status():
     """Scout status: agents evaluated, featured, claimed."""
-    session = get_session()
+    session = get_write_session()
     try:
         now = datetime.now(timezone.utc)
         day_ago = now - timedelta(hours=24)
@@ -410,7 +410,7 @@ def scout_status():
 @router_scout.get("/v1/scout/findings")
 def scout_findings(limit: int = Query(10, ge=1, le=50)):
     """Latest top agents discovered by Scout."""
-    session = get_session()
+    session = get_write_session()
     try:
         rows = session.execute(text("""
             SELECT agent_name, details, created_at

@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any, Tuple
 from sqlalchemy import text, update
 from sqlalchemy.orm import Session
-from agentindex.db.models import get_session, Agent
+from agentindex.db.models import get_session, get_write_session, Agent
 import json
 import math
 
@@ -327,7 +327,7 @@ class TrustScorer:
         
         self.logger.info("🚀 Starting trust scoring batch update for all agents")
         
-        session = get_session()
+        session = get_write_session()
 
         try:
             # Memory guards to avoid zombie PG backends on 17GB agents table
@@ -512,7 +512,7 @@ class TrustScorer:
     async def get_top_trusted_agents(self, limit: int = 20, category: Optional[str] = None) -> List[Dict]:
         """Get top trusted agents"""
         
-        session = get_session()
+        session = get_write_session()
 
         try:
             session.execute(text("SET LOCAL work_mem = '2MB'"))

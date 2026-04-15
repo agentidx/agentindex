@@ -34,8 +34,8 @@ def calculate_signals():
     start = time.time()
     logger.info(f"Calculating signals for {TODAY}")
 
-    from agentindex.db.models import get_session
-    session = get_session()
+    from agentindex.db.models import get_write_session
+    session = get_write_session()
     try:
         # Get agents with at least 2 days of observations
         agents = session.execute(text("""

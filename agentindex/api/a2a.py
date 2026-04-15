@@ -222,10 +222,10 @@ def _classify_intent(text: str) -> tuple[str, dict]:
 
 def _execute_skill(skill_id: str, params: dict) -> dict:
     """Execute a skill and return results."""
-    from agentindex.db.models import Agent, get_session
+    from agentindex.db.models import Agent, get_write_session
     from sqlalchemy import select, func
 
-    session = get_session()
+    session = get_write_session()
     session.execute(text("SET LOCAL statement_timeout = '3s'"))
     session.execute(text("SET LOCAL work_mem = '2MB'"))
 
@@ -470,7 +470,7 @@ async def _handle_message_send(req_id: str, params: dict) -> JSONResponse:
     # Log
     from agentindex.db.models import DiscoveryLog, get_session
     try:
-        session = get_session()
+        session = get_write_session()
         log_entry = DiscoveryLog(
             query={"a2a": True, "method": "message/send", "skill": skill_id, "text": text[:500]},
             results_count=result.get("count", 0) if isinstance(result, dict) else 0,

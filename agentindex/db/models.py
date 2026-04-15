@@ -240,11 +240,15 @@ _Session = None
 _WriteSession = None
 
 def get_engine():
-    """Read engine — local replica (fast, Unix socket)."""
+    """Default engine. Respects DATABASE_URL env var (set by LaunchAgent plists
+    for crawlers pointing to Nbg primary). Falls back to local replica for the
+    API process which uses NERQ_PG_PRIMARY/NERQ_PG_REPLICA instead."""
     global _engine
     if _engine is None:
-        from agentindex.db_config import get_read_dsn
-        database_url = get_read_dsn()
+        database_url = os.getenv("DATABASE_URL")
+        if not database_url:
+            from agentindex.db_config import get_read_dsn
+            database_url = get_read_dsn()
         _engine = create_engine(
             database_url,
             pool_size=5,            # Per worker: 5 base + 5 overflow = 10 max
