@@ -465,8 +465,10 @@ def _render_dataset_page(query):
     for s in similar[:6]:
         sim_html += f'<tr><td><a href="/dataset/{_to_slug(s["name"])}" style="color:#0d9488">{_esc(s["name"])}</a></td><td>{_fmt_num(s["downloads"])}</td><td style="color:{_grade_color(s["trust_grade"])}">{s["trust_score"]:.0f}</td></tr>'
 
-    title = f"{_esc(short)} — Dataset Trust Analysis {YEAR} | Nerq"
-    meta_desc = f"{_esc(short)} dataset: Trust Score {score:.0f}/100 ({grade}). {_fmt_num(downloads)} downloads. License: {license_str}. Independent quality analysis."
+    title = f"{_esc(short)}: Dataset Quality & Trust ({YEAR})"
+    if len(title) > 60:
+        title = f"{_esc(short)[:35]} — Dataset Review ({YEAR})"
+    meta_desc = f"{_esc(short)} dataset: {score:.0f}/100 trust score ({grade}). {_fmt_num(downloads)} downloads. License: {license_str}. Quality analysis and alternatives."
 
     faq_items = [
         (f"Is {_esc(short)} safe to use?", f"{_esc(short)} has a Nerq Trust Score of {score:.0f}/100 (Grade {grade}). Verdict: {v.lower()}. Always check the license and data provenance before using in production."),

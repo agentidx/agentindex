@@ -206,8 +206,8 @@ _HEAD = """<!DOCTYPE html>
 <meta name="msvalidate.01" content="F76DC671BE18E6254D0B8EF941721F85" />
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Nerq — Is It Safe? Trust Scores for All Software</title>
-<meta name="description" content="Trust scores for any app, package, VPN, game, or plugin. 7.5M+ entities from 26 registries. Data-driven. Independent. Free.">
+<title>Nerq — Trust Scores for 7.5M+ Software Assets</title>
+<meta name="description" content="Independent trust scores for npm, PyPI, apps, VPNs, AI tools, and more. Free API. No affiliate links. Check any software's safety before you install.">
 <link rel="canonical" href="https://nerq.ai/">
 <link rel="alternate" type="application/atom+xml" href="/feed/recent" title="Nerq Trust Scores">
 <link rel="alternate" hreflang="en" href="https://nerq.ai/">

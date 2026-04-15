@@ -865,7 +865,9 @@ def mount_demand_pages(app):
 
         alts = _find_similar(a["name"], a["category"], 5)
 
-        title = f"{_esc(name)} — Complete Profile {YEAR} | Nerq"
+        title = f"{_esc(name)}: Trust Score & Full Profile ({YEAR})"
+        if len(title) > 60:
+            title = f"{_esc(name)[:35]} — Profile & Trust ({YEAR})"
         canonical = f"{SITE}/profile/{_slug(a['name'])}"
 
         faq_items = [
@@ -874,7 +876,10 @@ def mount_demand_pages(app):
         ]
         faq_html, faq_ld = _faq(faq_items)
 
-        page = _head(title, f"{_esc(name)} complete profile. Trust: {score:.0f}/100. {_fmt(stars)} stars. Data from {len(sources)} sources.", canonical,
+        meta_desc = f"{_esc(name)}: {score:.0f}/100 trust score ({grade}). {_fmt(stars)} stars, {len(sources)} data sources. Security analysis, alternatives, and community insights."
+        if len(meta_desc) > 160:
+            meta_desc = meta_desc[:157] + "..."
+        page = _head(title, meta_desc, canonical,
                      f'<meta name="nerq:type" content="profile"><meta name="nerq:tools" content="{_esc(name)}"><meta name="nerq:updated" content="{TODAY}">{faq_ld}')
         page += f"""
 <h1>{_esc(name)} — Complete AI Tool Profile {YEAR}</h1>
