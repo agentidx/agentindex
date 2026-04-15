@@ -193,7 +193,7 @@ def _compute_framework_stats(conn):
         total_dl = 0
         for name in agents[:200]:
             dl_row = conn.execute(
-                "SELECT npm_weekly FROM package_downloads WHERE agent_name = ?", (name,)
+                "SELECT weekly_downloads FROM package_downloads WHERE package_name = ? OR agent_id = ?", (name, name)
             ).fetchone()
             if dl_row and dl_row[0]:
                 total_dl += dl_row[0]

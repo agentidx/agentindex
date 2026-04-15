@@ -147,14 +147,15 @@ def find_stale_agents(session, limit=MAX_RESCORE_PER_RUN):
     """Find agents whose trust_calculated_at is >14 days old or NULL."""
     cutoff = (datetime.now() - timedelta(days=14)).isoformat()
     rows = session.execute(text("""
-        SELECT id, name, description, stars, compliance_score,
-               is_active, is_verified,
-               COALESCE(trust_score_v2, trust_score) as current_score,
-               trust_calculated_at
-        FROM entity_lookup
-        WHERE is_active = true
-          AND (trust_calculated_at IS NULL OR trust_calculated_at < :cutoff)
-        ORDER BY stars DESC NULLS LAST
+        SELECT el.id, el.name, el.description, el.stars, el.compliance_score,
+               el.is_active, el.is_verified,
+               COALESCE(el.trust_score_v2, el.trust_score) as current_score,
+               a.trust_calculated_at
+        FROM entity_lookup el
+        LEFT JOIN agents a ON a.id = el.id
+        WHERE el.is_active = true
+          AND (a.trust_calculated_at IS NULL OR a.trust_calculated_at < :cutoff)
+        ORDER BY el.stars DESC NULLS LAST
         LIMIT :lim
     """), {"cutoff": cutoff, "lim": limit}).fetchall()
     return [dict(r._mapping) for r in rows]
