@@ -235,12 +235,16 @@ class SystemStatus(Base):
 
 # Global engine and session factory (singleton pattern)
 _engine = None
+_write_engine = None
 _Session = None
+_WriteSession = None
 
 def get_engine():
+    """Read engine — local replica (fast, Unix socket)."""
     global _engine
     if _engine is None:
-        database_url = os.getenv("DATABASE_URL", "postgresql://localhost/agentindex")
+        from agentindex.db_config import get_read_dsn
+        database_url = get_read_dsn()
         _engine = create_engine(
             database_url,
             pool_size=5,            # Per worker: 5 base + 5 overflow = 10 max
@@ -253,12 +257,38 @@ def get_engine():
         )
     return _engine
 
+def get_write_engine():
+    """Write engine — Nbg primary (TCP over Tailscale)."""
+    global _write_engine
+    if _write_engine is None:
+        from agentindex.db_config import get_write_dsn
+        _write_engine = create_engine(
+            get_write_dsn(),
+            pool_size=3,
+            max_overflow=3,
+            pool_pre_ping=True,
+            pool_recycle=300,
+            pool_timeout=10,
+            echo=False,
+            connect_args={"options": "-c statement_timeout=30000"},  # 30s for writes
+        )
+    return _write_engine
+
 def get_session():
+    """Read session — local replica. Use get_write_session() for writes."""
     global _Session
     if _Session is None:
         engine = get_engine()
         _Session = sessionmaker(bind=engine, expire_on_commit=False)
     return _Session()
+
+def get_write_session():
+    """Write session — Nbg primary."""
+    global _WriteSession
+    if _WriteSession is None:
+        engine = get_write_engine()
+        _WriteSession = sessionmaker(bind=engine, expire_on_commit=False)
+    return _WriteSession()
 
 def safe_commit(session):
     try:

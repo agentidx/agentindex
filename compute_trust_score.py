@@ -9,7 +9,8 @@ from datetime import datetime, timezone
 import psycopg2
 from psycopg2.extras import execute_values, DictCursor
 
-DB_DSN = "dbname=agentindex"
+from agentindex.db_config import get_write_dsn
+DB_DSN = get_write_dsn(fmt="psycopg2")
 BATCH_SIZE = 5000
 NOW = datetime.now(timezone.utc).replace(tzinfo=None)
 

@@ -38,10 +38,11 @@ def _setup_logging():
 _pool = None
 _pool_lock = threading.Lock()
 
-PG_DSN = os.environ.get(
-    "ZARQ_PG_DSN",
-    "host=100.90.152.88 port=5432 dbname=agentindex user=anstudio"
-)
+def _default_write_dsn():
+    from agentindex.db_config import get_write_dsn
+    return get_write_dsn(fmt="psycopg2")
+
+PG_DSN = os.environ.get("ZARQ_PG_DSN") or _default_write_dsn()
 
 def _get_pg_conn():
     global _pool

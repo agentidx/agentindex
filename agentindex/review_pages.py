@@ -44,8 +44,9 @@ def _esc_json(s):
 
 
 def _ensure_reviews_table():
-    """Create user_reviews table if it doesn't exist."""
-    session = get_session()
+    """Create user_reviews table if it doesn't exist. Uses write path (primary)."""
+    from agentindex.db.models import get_write_session
+    session = get_write_session()
     try:
         session.execute(text("""
             CREATE TABLE IF NOT EXISTS user_reviews (
@@ -432,7 +433,8 @@ def mount_review_pages(app):
         if not _check_rate_limit(ip_hash):
             return JSONResponse(status_code=429, content={"detail": "Rate limit exceeded. Max 10 reviews per hour."})
 
-        session = get_session()
+        from agentindex.db.models import get_write_session
+        session = get_write_session()
         try:
             session.execute(text("""
                 INSERT INTO user_reviews (agent_name, rating, comment, reviewer_name, ip_hash)

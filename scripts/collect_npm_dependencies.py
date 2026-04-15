@@ -26,7 +26,8 @@ from datetime import datetime
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 LOG_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "logs")
-PG_DSN = os.environ.get("DATABASE_URL", "host=100.119.193.70 port=5432 dbname=agentindex user=anstudio")
+from agentindex.db_config import get_write_dsn
+PG_DSN = os.environ.get("DATABASE_URL") or get_write_dsn(fmt="psycopg2")
 
 logging.basicConfig(
     level=logging.INFO,

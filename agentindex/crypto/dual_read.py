@@ -32,10 +32,11 @@ _TABLE_RE = re.compile(
 # ── Postgres connection pool (shared with dual_write if loaded) ──
 _pool = None
 _pool_lock = threading.Lock()
-PG_DSN = os.environ.get(
-    "DATABASE_URL",
-    "host=100.90.152.88 port=5432 dbname=agentindex user=anstudio"
-)
+def _default_read_dsn():
+    from agentindex.db_config import get_read_dsn
+    return get_read_dsn(fmt="psycopg2")
+
+PG_DSN = os.environ.get("DATABASE_URL") or _default_read_dsn()
 
 
 def _get_pool():
