@@ -523,7 +523,8 @@ def _compute_organic_momentum(token_id, tvl_history, price_history_90d,
 
 def compute_vitality_scores(tier_filter=None):
     """Compute Vitality Scores for all tokens with sufficient data."""
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DB_PATH, timeout=30)
+    conn.execute("PRAGMA busy_timeout = 10000")
     conn.row_factory = sqlite3.Row
 
     logger.info("Loading base data...")
@@ -984,6 +985,7 @@ def compute_vitality_scores(tier_filter=None):
 def save_vitality_scores(results):
     """Save results to SQLite table and JSON cache."""
     conn = sqlite3.connect(DB_PATH, timeout=30)
+    conn.execute("PRAGMA busy_timeout = 10000")
     conn.execute("""
         CREATE TABLE IF NOT EXISTS vitality_scores (
             token_id TEXT PRIMARY KEY,
@@ -1039,7 +1041,7 @@ def save_vitality_scores(results):
 
 def load_vitality_scores():
     """Load vitality scores from DB."""
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DB_PATH, timeout=30)
     conn.row_factory = sqlite3.Row
     try:
         rows = conn.execute("SELECT * FROM vitality_scores ORDER BY vitality_score DESC").fetchall()
@@ -1052,7 +1054,7 @@ def load_vitality_scores():
 
 def get_vitality_for_token(token_id):
     """Get vitality score for a single token. Returns dict or None."""
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DB_PATH, timeout=30)
     conn.row_factory = sqlite3.Row
     try:
         row = conn.execute("SELECT * FROM vitality_scores WHERE token_id = ?", (token_id,)).fetchone()
