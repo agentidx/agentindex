@@ -14,7 +14,8 @@ import psycopg2
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s [rescore] %(message)s")
 log = logging.getLogger("rescore")
 
-DB_DSN = os.environ.get("DATABASE_URL", "dbname=agentindex")
+from agentindex.db_config import get_write_dsn
+DB_DSN = os.environ.get("DATABASE_URL") or get_write_dsn(fmt="psycopg2")
 
 
 def score_security(cve_count, has_enrichment, license_str, openssf_score):

@@ -5761,9 +5761,10 @@ def _make_slug(name):
 
 
 def _queue_for_crawling(slug, bot="unknown"):
-    """Add slug to crawl_queue for future crawling."""
+    """Add slug to crawl_queue for future crawling. Uses write path (primary)."""
     try:
-        session = get_session()
+        from agentindex.db.models import get_write_session
+        session = get_write_session()
         session.execute(text("""
             INSERT INTO crawl_queue (slug, requested_by)
             VALUES (:slug, :bot)

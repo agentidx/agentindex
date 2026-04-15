@@ -25,7 +25,8 @@ logging.basicConfig(
 )
 logger = logging.getLogger("cve-scanner")
 
-DB_URL = os.environ.get("DATABASE_URL", "postgresql://localhost/agentindex")
+from agentindex.db_config import get_write_dsn
+DB_URL = os.environ.get("DATABASE_URL") or get_write_dsn()
 SQLITE_PATH = os.path.join(os.path.dirname(__file__), "..", "crypto", "crypto_trust.db")
 GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN", "")
 MAX_AGENTS = 2000

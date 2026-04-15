@@ -144,7 +144,8 @@ def cross_reference_agents(repos: list[dict]) -> list[dict]:
     Uses psycopg2 directly (no SQLAlchemy dependency)."""
     import psycopg2
 
-    db_url = os.getenv("DATABASE_URL", "postgresql://localhost/agentindex")
+    from agentindex.db_config import get_read_dsn
+    db_url = os.getenv("DATABASE_URL") or get_read_dsn()
     try:
         conn = psycopg2.connect(db_url)
         conn.set_session(readonly=True)

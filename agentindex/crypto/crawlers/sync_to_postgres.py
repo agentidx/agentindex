@@ -39,9 +39,8 @@ SOURCE_URL_PATTERNS = {
 
 def get_pg_connection():
     """Get PostgreSQL connection via psycopg2."""
-    import psycopg2
-    database_url = os.getenv("DATABASE_URL", "postgresql://localhost/agentindex")
-    return psycopg2.connect(database_url)
+    from agentindex.db_config import get_write_conn
+    return get_write_conn()
 
 
 def get_existing_source_urls(pg_conn, sources):

@@ -701,7 +701,8 @@ def health():
     _agents = _health_cache.get("data", {}).get("agents", 0) if _health_cache.get("data") else 0
     try:
         import psycopg2
-        _db_url = os.environ.get("DATABASE_URL", "postgresql://localhost/agentindex")
+        from agentindex.db_config import get_read_dsn
+        _db_url = get_read_dsn()
         _conn = psycopg2.connect(_db_url, connect_timeout=2, options="-c statement_timeout=1000")
         _cur = _conn.cursor()
         _cur.execute("SELECT reltuples::bigint FROM pg_class WHERE relname = 'agents'")

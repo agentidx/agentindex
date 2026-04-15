@@ -105,7 +105,8 @@ def main():
 
     def check_postgres():
         from sqlalchemy import create_engine, text
-        url = os.getenv("DATABASE_URL", "postgresql://localhost/agentindex")
+        from agentindex.db_config import get_read_dsn
+        url = os.getenv("DATABASE_URL") or get_read_dsn()
         engine = create_engine(url)
         with engine.connect() as conn:
             result = conn.execute(text("SELECT 1")).scalar()

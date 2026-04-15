@@ -48,7 +48,8 @@ if _env_file.exists():
             os.environ.setdefault(key.strip(), val.strip())
 
 GITHUB_TOKEN: Optional[str] = os.environ.get("GITHUB_TOKEN")
-DATABASE_URL: str = os.environ.get("DATABASE_URL", "postgresql://localhost/agentindex")
+from agentindex.db_config import get_read_dsn
+DATABASE_URL: str = os.environ.get("DATABASE_URL") or get_read_dsn()
 
 # GitHub search: repos created within the last N days
 GITHUB_LOOKBACK_DAYS = 7

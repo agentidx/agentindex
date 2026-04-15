@@ -20,7 +20,8 @@ import requests
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s [npm-bulk] %(message)s")
 log = logging.getLogger("npm-bulk")
 
-DB_DSN = os.environ.get("DATABASE_URL", "dbname=agentindex")
+from agentindex.db_config import get_write_dsn
+DB_DSN = os.environ.get("DATABASE_URL") or get_write_dsn(fmt="psycopg2")
 GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN", "")
 NPM_DL_BULK = "https://api.npmjs.org/downloads/point/last-month"
 NPM_REGISTRY = "https://registry.npmjs.org"

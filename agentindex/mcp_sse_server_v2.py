@@ -32,9 +32,8 @@ sessions: dict[str, asyncio.Queue] = {}
 # ============================================================
 
 def _get_db():
-    import psycopg2
-    DB_URL = os.getenv('DATABASE_URL', 'postgresql://localhost/agentindex')
-    return psycopg2.connect(DB_URL)
+    from agentindex.db_config import get_read_conn
+    return get_read_conn()
 
 def _query(sql, params=None, fetchone=False):
     conn = _get_db()

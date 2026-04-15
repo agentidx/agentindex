@@ -119,7 +119,8 @@ def sync_agent_slugs() -> int:
 
     try:
         import psycopg2
-        db_url = os.getenv("DATABASE_URL", "postgresql://localhost/agentindex")
+        from agentindex.db_config import get_read_dsn
+        db_url = os.getenv("DATABASE_URL") or get_read_dsn()
         conn = psycopg2.connect(db_url)
         conn.set_session(readonly=True)
         cur = conn.cursor()
@@ -186,7 +187,8 @@ def sync_mcp_slugs() -> int:
 
     try:
         import psycopg2
-        db_url = os.getenv("DATABASE_URL", "postgresql://localhost/agentindex")
+        from agentindex.db_config import get_read_dsn
+        db_url = os.getenv("DATABASE_URL") or get_read_dsn()
         conn = psycopg2.connect(db_url)
         conn.set_session(readonly=True)
         cur = conn.cursor()

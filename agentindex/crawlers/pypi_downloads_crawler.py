@@ -25,7 +25,8 @@ logging.basicConfig(
 )
 logger = logging.getLogger("pypi-crawler")
 
-DB_URL = os.environ.get("DATABASE_URL", "postgresql://localhost/agentindex")
+from agentindex.db_config import get_write_dsn
+DB_URL = os.environ.get("DATABASE_URL") or get_write_dsn()
 SQLITE_PATH = os.path.join(os.path.dirname(__file__), "..", "crypto", "crypto_trust.db")
 RATE_LIMIT_INTERVAL = 2.1  # 30 req/min = 1 req per 2 seconds, with margin
 MAX_AGENTS = 10000

@@ -205,15 +205,8 @@ def _pg_connect():
     """Connect to PostgreSQL via psycopg2."""
     if not psycopg2:
         raise RuntimeError("psycopg2 not installed")
-    db_url = os.environ.get("DATABASE_URL", "")
-    if db_url:
-        return psycopg2.connect(db_url)
-    return psycopg2.connect(
-        dbname=os.environ.get("PGDATABASE", "agentindex"),
-        user=os.environ.get("PGUSER", "anstudio"),
-        host=os.environ.get("PGHOST", "localhost"),
-        port=os.environ.get("PGPORT", "5432"),
-    )
+    from agentindex.db_config import get_read_conn
+    return get_read_conn()
 
 
 def discover() -> list[dict]:

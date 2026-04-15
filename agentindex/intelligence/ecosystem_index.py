@@ -26,7 +26,8 @@ SQLITE_PATH = Path(__file__).resolve().parent.parent / "crypto" / "crypto_trust.
 
 
 def _pg_conn():
-    return psycopg2.connect("dbname=agentindex")
+    from agentindex.db_config import get_write_conn
+    return get_write_conn()
 
 
 def _ensure_table(sconn: sqlite3.Connection):
