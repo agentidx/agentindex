@@ -20,7 +20,7 @@ Also calculates:
 
 import logging
 from datetime import datetime, timedelta
-from agentindex.db.models import Agent, DiscoveryLog, get_session
+from agentindex.db.models import Agent, DiscoveryLog, get_write_session
 from sqlalchemy import select, func, update, text
 import math
 
@@ -47,7 +47,7 @@ class Ranker:
     """Recalculates AgentRank scores for all active agents."""
 
     def __init__(self):
-        self.session = get_session()
+        self.session = get_write_session()
 
     def run_nightly(self) -> dict:
         """Full ranking cycle."""

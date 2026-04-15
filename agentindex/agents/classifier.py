@@ -16,7 +16,7 @@ import logging
 from datetime import datetime
 from typing import Optional
 from ollama import Client
-from agentindex.db.models import Agent, get_session
+from agentindex.db.models import Agent, get_write_session
 from sqlalchemy import select, func, text
 import os
 
@@ -81,7 +81,7 @@ class Classifier:
 
     def __init__(self):
         self.client = Client(host=OLLAMA_BASE_URL)
-        self.session = get_session()
+        self.session = get_write_session()
         self.model = self._select_model()
 
     def _select_model(self) -> str:

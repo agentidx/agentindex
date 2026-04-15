@@ -19,7 +19,7 @@ from typing import Optional
 
 import httpx
 from sqlalchemy import select, func, text
-from agentindex.db.models import Agent, get_session, safe_commit
+from agentindex.db.models import Agent, get_write_session, safe_commit
 from agentindex.agents.action_queue import add_action, ActionLevel
 
 logger = logging.getLogger("agentindex.a2a_verifier")
@@ -70,7 +70,7 @@ class A2AVerifier:
         logger.info("A2A Verifier & Outreach starting...")
         logger.info("=" * 50)
 
-        session = get_session()
+        session = get_write_session()
 
         try:
             # Phase 1: Verify — check A2A agents for live Agent Cards

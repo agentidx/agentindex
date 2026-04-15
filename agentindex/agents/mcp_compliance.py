@@ -14,7 +14,7 @@ import logging
 from datetime import datetime
 from typing import Dict, List, Optional
 from ollama import Client
-from agentindex.db.models import Agent, get_session
+from agentindex.db.models import Agent, get_write_session
 from sqlalchemy import select, update, and_, or_, text
 import os
 
@@ -80,7 +80,7 @@ class McpComplianceClassifier:
 
     def __init__(self):
         self.client = Client(host=OLLAMA_BASE_URL)
-        self.session = get_session()
+        self.session = get_write_session()
 
     def classify_all_mcp(self, batch_size: int = 20) -> dict:
         """Classify all MCP servers that haven't been compliance-checked."""
@@ -116,7 +116,7 @@ class McpComplianceClassifier:
                     self.session.commit()
                 except Exception:
                     self.session.rollback()
-                    self.session = get_session()
+                    self.session = get_write_session()
                     
             except Exception as e:
                 logger.error(f"Error classifying {agent.name}: {e}")

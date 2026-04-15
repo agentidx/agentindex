@@ -19,7 +19,7 @@ import logging
 import subprocess
 import json
 from datetime import datetime, timedelta
-from agentindex.db.models import Agent, DiscoveryLog, CrawlJob, get_session
+from agentindex.db.models import Agent, DiscoveryLog, CrawlJob, get_write_session
 from sqlalchemy import select, func
 
 logger = logging.getLogger("agentindex.vakten")
@@ -32,7 +32,7 @@ class Vakten:
     """System guardian — monitors, alerts, and auto-recovers."""
 
     def __init__(self):
-        self.session = get_session()
+        self.session = get_write_session()
         self.alerts = []
 
     def full_check(self) -> dict:
