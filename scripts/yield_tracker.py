@@ -19,6 +19,7 @@ from urllib.parse import parse_qs, urlparse
 ANALYTICS_DB = os.path.expanduser("~/agentindex/logs/analytics.db")
 HISTORY_DB = os.path.expanduser("~/agentindex/data/reach_history.db")
 PSQL = "/opt/homebrew/Cellar/postgresql@16/16.11_1/bin/psql"
+PG_PRIMARY = os.environ.get("NERQ_PG_PRIMARY", "100.119.193.70")
 
 # Import slug extraction from reach_dashboard
 sys.path.insert(0, os.path.expanduser("~/agentindex"))
@@ -69,7 +70,7 @@ def _get_registry_map(slugs):
         slug_list = ",".join(f"'{s.replace(chr(39), '')}'" for s in batch)
         try:
             result = subprocess.run(
-                [PSQL, "-d", "agentindex", "-t", "-A", "-F", "|", "-c",
+                [PSQL, "-h", PG_PRIMARY, "-U", "anstudio", "-d", "agentindex", "-t", "-A", "-F", "|", "-c",
                  f"SELECT DISTINCT ON (slug) slug, registry, trust_score, is_king, downloads "
                  f"FROM software_registry WHERE slug IN ({slug_list}) "
                  f"ORDER BY slug, is_king DESC NULLS LAST, trust_score DESC NULLS LAST"],

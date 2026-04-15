@@ -28,6 +28,7 @@ sys.path.insert(0, os.path.expanduser("~/agentindex"))
 ANALYTICS_DB = os.path.expanduser("~/agentindex/logs/analytics.db")
 KPI_CSV = os.path.expanduser("~/agentindex/logs/indexation_kpi.csv")
 PSQL = "/opt/homebrew/Cellar/postgresql@16/16.11_1/bin/psql"
+PG_PRIMARY = os.environ.get("NERQ_PG_PRIMARY", "100.119.193.70")
 LANGS = 22
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
@@ -78,7 +79,7 @@ def get_enrichment_data(dt_str):
     try:
         # Cumulative enriched up to and including this date
         result = subprocess.run(
-            [PSQL, "-d", "agentindex", "-t", "-A", "-F", "|", "-c",
+            [PSQL, "-h", PG_PRIMARY, "-U", "anstudio", "-d", "agentindex", "-t", "-A", "-F", "|", "-c",
              f"SELECT COUNT(*) as enriched, "
              f"COUNT(*) FILTER (WHERE enriched_at <= '{dt_str} 23:59:59') as enriched_by_date "
              f"FROM software_registry WHERE enriched_at IS NOT NULL"],
@@ -95,7 +96,7 @@ def get_enrichment_data(dt_str):
 
         # New enriched in 24h
         result2 = subprocess.run(
-            [PSQL, "-d", "agentindex", "-t", "-A", "-c",
+            [PSQL, "-h", PG_PRIMARY, "-U", "anstudio", "-d", "agentindex", "-t", "-A", "-c",
              f"SELECT COUNT(*) FROM software_registry "
              f"WHERE enriched_at >= '{dt_str} 00:00:00' AND enriched_at < '{dt_str} 23:59:59'"],
             capture_output=True, text=True, timeout=30

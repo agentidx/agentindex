@@ -21,6 +21,7 @@ from urllib.parse import urlparse, parse_qs
 
 ANALYTICS_DB = os.path.expanduser("~/agentindex/logs/analytics.db")
 PSQL_PATH = "/opt/homebrew/Cellar/postgresql@16/16.11_1/bin/psql"
+PG_PRIMARY = os.environ.get("NERQ_PG_PRIMARY", "100.119.193.70")
 OUTPUT_JSON = os.path.expanduser("~/agentindex/data/reach_dashboard.json")
 HISTORY_DB = os.path.expanduser("~/agentindex/data/reach_history.db")
 
@@ -251,7 +252,7 @@ def enrich_with_registry(entity_data):
 
         try:
             result = subprocess.run(
-                [PSQL_PATH, "-d", "agentindex", "-t", "-A", "-F", "|", "-c", query],
+                [PSQL_PATH, "-h", PG_PRIMARY, "-U", "anstudio", "-d", "agentindex", "-t", "-A", "-F", "|", "-c", query],
                 capture_output=True, text=True, timeout=15
             )
             for line in result.stdout.strip().split("\n"):

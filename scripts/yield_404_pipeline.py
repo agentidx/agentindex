@@ -21,13 +21,14 @@ from scripts.reach_dashboard import extract_slugs, classify_bot
 
 ANALYTICS_DB = os.path.expanduser("~/agentindex/logs/analytics.db")
 PSQL = "/opt/homebrew/Cellar/postgresql@16/16.11_1/bin/psql"
+PG_PRIMARY = os.environ.get("NERQ_PG_PRIMARY", "100.119.193.70")
 
 
 def _psql(query, timeout=10):
     """Run a psql query and return stdout."""
     try:
         r = subprocess.run(
-            [PSQL, "-d", "agentindex", "-t", "-A", "-F", "|", "-c", query],
+            [PSQL, "-h", PG_PRIMARY, "-U", "anstudio", "-d", "agentindex", "-t", "-A", "-F", "|", "-c", query],
             capture_output=True, text=True, timeout=timeout
         )
         return r.stdout.strip()
@@ -40,7 +41,7 @@ def _psql_exec(query, timeout=10):
     """Execute a psql command (INSERT/UPDATE)."""
     try:
         subprocess.run(
-            [PSQL, "-d", "agentindex", "-c", query],
+            [PSQL, "-h", PG_PRIMARY, "-U", "anstudio", "-d", "agentindex", "-c", query],
             capture_output=True, text=True, timeout=timeout
         )
     except Exception as e:

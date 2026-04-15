@@ -53,18 +53,18 @@ def get_improvements(agent_name: str) -> dict | None:
     with get_db_session() as session:
         # Find agent — fuzzy match always, prefer by stars
         pattern = agent_name.replace("-", "%")
-        # language/trust_dimensions/trust_category_rank/total not in entity_lookup
         session.execute(text("SET LOCAL work_mem = '2MB'"))
         session.execute(text("SET LOCAL statement_timeout = '5s'"))
         row = session.execute(text("""
-            SELECT id, name, trust_score_v2, trust_grade, stars, description,
-                   category, language, author, source, source_url, license,
-                   security_score, activity_score, documentation_score,
-                   popularity_score, eu_risk_class, agent_type,
-                   trust_dimensions, trust_category_rank, trust_category_total
-            FROM agents
-            WHERE (name_lower = :q OR name_lower LIKE :p) AND is_active = true
-            ORDER BY COALESCE(stars, 0) DESC
+            SELECT el.id, el.name, el.trust_score_v2, el.trust_grade, el.stars, el.description,
+                   el.category, a.language, el.author, el.source, el.source_url, el.license,
+                   el.security_score, el.activity_score, el.documentation_score,
+                   el.popularity_score, el.eu_risk_class, el.agent_type,
+                   a.trust_dimensions, a.trust_category_rank, a.trust_category_total
+            FROM entity_lookup el
+            LEFT JOIN agents a ON a.id = el.id
+            WHERE (el.name_lower = :q OR el.name_lower LIKE :p) AND el.is_active = true
+            ORDER BY COALESCE(el.stars, 0) DESC
             LIMIT 1
         """), {"q": agent_name.lower(), "p": f"%{pattern}%"}).fetchone()
 

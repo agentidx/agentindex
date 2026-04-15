@@ -23,6 +23,7 @@ from scripts.reach_dashboard import extract_slugs, classify_bot
 
 ANALYTICS_DB = os.path.expanduser("~/agentindex/logs/analytics.db")
 PSQL = "/opt/homebrew/Cellar/postgresql@16/16.11_1/bin/psql"
+PG_PRIMARY = os.environ.get("NERQ_PG_PRIMARY", "100.119.193.70")
 HISTORY_DB = os.path.expanduser("~/agentindex/data/reach_history.db")
 LOG_DIR = os.path.expanduser("~/agentindex/logs")
 
@@ -49,7 +50,7 @@ _GARBAGE = re.compile(
 
 def _psql(query, timeout=10):
     try:
-        r = subprocess.run([PSQL, "-d", "agentindex", "-t", "-A", "-F", "|", "-c", query],
+        r = subprocess.run([PSQL, "-h", PG_PRIMARY, "-U", "anstudio", "-d", "agentindex", "-t", "-A", "-F", "|", "-c", query],
                            capture_output=True, text=True, timeout=timeout)
         return r.stdout.strip()
     except Exception as e:
@@ -59,7 +60,7 @@ def _psql(query, timeout=10):
 
 def _psql_exec(query, timeout=10):
     try:
-        subprocess.run([PSQL, "-d", "agentindex", "-c", query],
+        subprocess.run([PSQL, "-h", PG_PRIMARY, "-U", "anstudio", "-d", "agentindex", "-c", query],
                        capture_output=True, text=True, timeout=timeout)
         return True
     except Exception as e:
