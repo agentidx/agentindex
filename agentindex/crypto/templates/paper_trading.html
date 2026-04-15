@@ -76,6 +76,7 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 20px 40
 .port-name { font-family: var(--mono); font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gray-500); margin-bottom: 4px; }
 .port-regime { display: inline-block; font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; padding: 2px 8px; margin-bottom: 16px; }
 .regime-bear { background: rgba(239,68,68,0.1); color: var(--red); }
+.regime-bull { background: rgba(34,197,94,0.1); color: #16a34a; }
 .regime-skip { background: rgba(245,158,11,0.1); color: var(--amber); }
 .port-nav { font-family: var(--serif); font-size: 36px; color: var(--black); letter-spacing: -0.02em; }
 .port-alloc { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--gray-200); }
@@ -180,33 +181,33 @@ footer { max-width: var(--wide); margin: 0 auto; padding: 40px 40px 60px; border
 <!-- REGIME -->
 <div class="regime-box">
   <div class="regime-header">
-    <div class="regime-title">Market Regime — March 2026</div>
-    <div class="regime-date">Checked 2026-03-01</div>
+    <div class="regime-title" id="regime-title">Market Regime — Loading...</div>
+    <div class="regime-date" id="regime-date"></div>
   </div>
   <div class="regime-grid">
     <div class="regime-item">
       <div class="r-label">BTC Price</div>
-      <div class="r-value">$66,468</div>
+      <div class="r-value" id="regime-btc-price">—</div>
     </div>
     <div class="regime-item">
       <div class="r-label">365d ATH</div>
-      <div class="r-value">$124,723</div>
+      <div class="r-value" id="regime-ath">—</div>
     </div>
     <div class="regime-item">
       <div class="r-label">Drawdown from ATH</div>
-      <div class="r-value r-bear">-46.7%</div>
+      <div class="r-value" id="regime-dd">—</div>
     </div>
     <div class="regime-item">
       <div class="r-label">Monthly Return</div>
-      <div class="r-value r-bear">-21.1%</div>
+      <div class="r-value" id="regime-monthly">—</div>
     </div>
     <div class="regime-item">
       <div class="r-label">Alpha Regime</div>
-      <div class="r-value r-skip">BEAR SKIP</div>
+      <div class="r-value" id="regime-alpha">—</div>
     </div>
     <div class="regime-item">
       <div class="r-label">Dynamic / Conservative</div>
-      <div class="r-value r-bear">BEAR</div>
+      <div class="r-value" id="regime-dynamic">—</div>
     </div>
   </div>
 </div>
@@ -217,54 +218,24 @@ footer { max-width: var(--wide); margin: 0 auto; padding: 40px 40px 60px; border
   <div class="port-grid">
     <div class="port-card">
       <div class="port-name">Alpha Fund</div>
-      <div class="port-regime regime-skip" id="alpha-regime">BEAR SKIP</div>
+      <div class="port-regime" id="alpha-regime">Loading...</div>
       <div class="port-nav" id="alpha-nav">Loading...</div>
       <div id="alpha-returns" style="display:flex;justify-content:space-between;margin-top:8px;font-size:13px;"></div>
-      <div class="port-alloc">
-        <div class="alloc-bar">
-          <div class="alloc-cash" style="width:100%"></div>
-        </div>
-        <div class="alloc-labels">
-          <div class="alloc-label"><div class="alloc-dot" style="background:var(--gray-200)"></div>100% Cash</div>
-        </div>
-        <p style="font-size:13px; color:var(--gray-500); margin-top:12px; line-height:1.6;">BTC monthly return -21.1% triggered bear skip. Signals logged but no capital deployed. Strategy preserves capital during sharp drawdowns.</p>
-      </div>
+      <div class="port-alloc" id="alpha-alloc"></div>
     </div>
     <div class="port-card">
       <div class="port-name">Dynamic Fund</div>
-      <div class="port-regime regime-bear" id="dynamic-regime">BEAR</div>
+      <div class="port-regime" id="dynamic-regime">Loading...</div>
       <div class="port-nav" id="dynamic-nav">Loading...</div>
       <div id="dynamic-returns" style="display:flex;justify-content:space-between;margin-top:8px;font-size:13px;"></div>
-      <div class="port-alloc">
-        <div class="alloc-bar">
-          <div class="alloc-ls" style="width:30%"></div>
-          <div class="alloc-btc" style="width:10%"></div>
-          <div class="alloc-cash" style="width:60%"></div>
-        </div>
-        <div class="alloc-labels">
-          <div class="alloc-label"><div class="alloc-dot" style="background:var(--warm)"></div>30% L/S</div>
-          <div class="alloc-label"><div class="alloc-dot" style="background:var(--gray-700)"></div>10% BTC</div>
-          <div class="alloc-label"><div class="alloc-dot" style="background:var(--gray-200)"></div>60% Cash</div>
-        </div>
-      </div>
+      <div class="port-alloc" id="dynamic-alloc"></div>
     </div>
     <div class="port-card">
       <div class="port-name">Conservative Fund</div>
-      <div class="port-regime regime-bear" id="conservative-regime">BEAR</div>
+      <div class="port-regime" id="conservative-regime">Loading...</div>
       <div class="port-nav" id="conservative-nav">Loading...</div>
       <div id="conservative-returns" style="display:flex;justify-content:space-between;margin-top:8px;font-size:13px;"></div>
-      <div class="port-alloc">
-        <div class="alloc-bar">
-          <div class="alloc-ls" style="width:20%"></div>
-          <div class="alloc-btc" style="width:5%"></div>
-          <div class="alloc-cash" style="width:75%"></div>
-        </div>
-        <div class="alloc-labels">
-          <div class="alloc-label"><div class="alloc-dot" style="background:var(--warm)"></div>20% L/S</div>
-          <div class="alloc-label"><div class="alloc-dot" style="background:var(--gray-700)"></div>5% BTC</div>
-          <div class="alloc-label"><div class="alloc-dot" style="background:var(--gray-200)"></div>75% Cash</div>
-        </div>
-      </div>
+      <div class="port-alloc" id="conservative-alloc"></div>
     </div>
   </div>
 </section>
@@ -397,7 +368,89 @@ footer { max-width: var(--wide); margin: 0 auto; padding: 40px 40px 60px; border
 
 
 <script>
+// Allocation configs per regime per portfolio
+const ALLOC = {
+  ALPHA: {
+    BULL:      { ls: 100, btc: 0, cash: 0, desc: 'Full signal deployment. All pairs active with capital allocated.' },
+    BEAR_SKIP: { ls: 0, btc: 0, cash: 100, desc: 'Bear skip active. Signals logged but no capital deployed. Strategy preserves capital during sharp drawdowns.' },
+    BEAR:      { ls: 0, btc: 0, cash: 100, desc: 'Bear regime. No capital deployed.' },
+  },
+  DYNAMIC: {
+    BULL:  { ls: 60, btc: 20, cash: 20, desc: 'Bull allocation: 60% L/S pairs, 20% BTC, 20% cash.' },
+    BEAR:  { ls: 30, btc: 10, cash: 60, desc: 'Defensive allocation: reduced exposure with 60% cash.' },
+  },
+  CONSERVATIVE: {
+    BULL:  { ls: 40, btc: 15, cash: 45, desc: 'Conservative bull: moderate exposure with 45% cash buffer.' },
+    BEAR:  { ls: 20, btc: 5, cash: 75, desc: 'Maximum defense: 75% cash, minimal market exposure.' },
+  },
+};
+
+function regimeClass(r) { return r === 'BULL' ? 'regime-bull' : r === 'BEAR_SKIP' ? 'regime-skip' : 'regime-bear'; }
+function regimeColor(r) { return r === 'BULL' ? '#22c55e' : r === 'BEAR_SKIP' ? '#d97706' : '#dc2626'; }
+
+function renderAlloc(id, portfolio, regime) {
+  const el = document.getElementById(id + '-alloc');
+  if (!el) return;
+  const a = (ALLOC[portfolio] || {})[regime] || (ALLOC[portfolio] || {})['BEAR'] || { ls: 0, btc: 0, cash: 100, desc: '' };
+  let bar = '<div class="alloc-bar">';
+  if (a.ls > 0) bar += '<div class="alloc-ls" style="width:' + a.ls + '%"></div>';
+  if (a.btc > 0) bar += '<div class="alloc-btc" style="width:' + a.btc + '%"></div>';
+  if (a.cash > 0) bar += '<div class="alloc-cash" style="width:' + a.cash + '%"></div>';
+  bar += '</div>';
+  let labels = '<div class="alloc-labels">';
+  if (a.ls > 0) labels += '<div class="alloc-label"><div class="alloc-dot" style="background:var(--warm)"></div>' + a.ls + '% L/S</div>';
+  if (a.btc > 0) labels += '<div class="alloc-label"><div class="alloc-dot" style="background:var(--gray-700)"></div>' + a.btc + '% BTC</div>';
+  if (a.cash > 0) labels += '<div class="alloc-label"><div class="alloc-dot" style="background:var(--gray-200)"></div>' + a.cash + '% Cash</div>';
+  labels += '</div>';
+  el.innerHTML = bar + labels + '<p style="font-size:13px;color:var(--gray-500);margin-top:12px;line-height:1.6;">' + a.desc + '</p>';
+}
+
 async function loadPortfolioData() {
+  // 1. Load regime data
+  try {
+    const rres = await fetch('/v1/crypto/paper-trading/regime');
+    const rjson = await rres.json();
+    const rd = rjson.data || {};
+    const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    const checkDate = rd.check_date || '';
+    let monthLabel = checkDate;
+    if (checkDate.match(/^\d{4}-\d{2}$/)) {
+      const [y, m] = checkDate.split('-');
+      monthLabel = monthNames[parseInt(m)-1] + ' ' + y;
+    }
+
+    const titleEl = document.getElementById('regime-title');
+    if (titleEl) titleEl.textContent = 'Market Regime \u2014 ' + monthLabel;
+    const dateEl = document.getElementById('regime-date');
+    if (dateEl) dateEl.textContent = 'Live from API';
+
+    const btcP = rd.btc_price || 0;
+    const setVal = (id, val) => { const e = document.getElementById(id); if (e) e.textContent = val; };
+    setVal('regime-btc-price', '$' + btcP.toLocaleString('en-US', {maximumFractionDigits: 0}));
+    setVal('regime-ath', '$' + (rd.btc_ath_365d || 0).toLocaleString('en-US', {maximumFractionDigits: 0}));
+
+    const ddEl = document.getElementById('regime-dd');
+    if (ddEl) { ddEl.textContent = (rd.btc_dd_from_ath * 100).toFixed(1) + '%'; ddEl.className = 'r-value r-bear'; }
+    const mEl = document.getElementById('regime-monthly');
+    if (mEl) {
+      const mr = rd.btc_monthly_return * 100;
+      mEl.textContent = (mr >= 0 ? '+' : '') + mr.toFixed(1) + '%';
+      mEl.className = 'r-value ' + (mr >= 0 ? 'r-bull' : 'r-bear');
+    }
+    const aEl = document.getElementById('regime-alpha');
+    if (aEl) {
+      aEl.textContent = rd.alpha_regime || '—';
+      aEl.className = 'r-value ' + (rd.alpha_regime === 'BULL' ? '' : rd.alpha_regime === 'BEAR_SKIP' ? 'r-skip' : 'r-bear');
+      if (rd.alpha_regime === 'BULL') aEl.style.color = '#22c55e';
+    }
+    const dEl = document.getElementById('regime-dynamic');
+    if (dEl) { dEl.textContent = rd.dynamic_regime || '—'; dEl.className = 'r-value ' + (rd.dynamic_regime === 'BULL' ? '' : 'r-bear'); if (rd.dynamic_regime === 'BULL') dEl.style.color = '#22c55e'; }
+
+    // Store regimes for portfolio cards
+    window._regimes = { ALPHA: rd.alpha_regime, DYNAMIC: rd.dynamic_regime, CONSERVATIVE: rd.dynamic_regime };
+  } catch (e) { console.error('Regime load failed', e); window._regimes = {}; }
+
+  // 2. Load portfolio NAVs
   const portfolios = ['ALPHA', 'DYNAMIC', 'CONSERVATIVE'];
   let maxDays = 0;
 
@@ -410,23 +463,35 @@ async function loadPortfolioData() {
       if (days > maxDays) maxDays = days;
 
       const id = p.toLowerCase();
-      const navEl = document.getElementById(id + '-nav');
-      const retEl = document.getElementById(id + '-returns');
+      const regime = latest.regime || (window._regimes || {})[p] || 'BEAR';
 
-      if (navEl) {
-        navEl.textContent = '$' + latest.nav_value.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+      // NAV value
+      const navEl = document.getElementById(id + '-nav');
+      if (navEl) navEl.textContent = '$' + latest.nav_value.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+
+      // Regime badge
+      const regEl = document.getElementById(id + '-regime');
+      if (regEl) {
+        regEl.textContent = regime;
+        regEl.className = 'port-regime ' + regimeClass(regime);
+        if (regime === 'BULL') { regEl.style.background = 'rgba(34,197,94,0.1)'; regEl.style.color = '#16a34a'; }
       }
 
+      // Returns
+      const retEl = document.getElementById(id + '-returns');
       if (retEl) {
-        const cumRet = latest.cumulative_return;
-        const dailyRet = latest.daily_return;
+        const cumRet = latest.cumulative_return * 100;
+        const dailyRet = latest.daily_return * 100;
         const cumColor = cumRet >= 0 ? '#4ade80' : '#ff4d6a';
         const dailyColor = dailyRet >= 0 ? '#4ade80' : '#ff4d6a';
-
         retEl.innerHTML =
           '<div><span style="color:var(--gray-500)">Since Mar \'26</span><br><span style="color:' + cumColor + ';font-weight:600">' + (cumRet >= 0 ? '+' : '') + cumRet.toFixed(2) + '%</span></div>' +
           '<div style="text-align:right"><span style="color:var(--gray-500)">Daily</span><br><span style="color:' + dailyColor + ';font-weight:600">' + (dailyRet >= 0 ? '+' : '') + dailyRet.toFixed(2) + '%</span></div>';
       }
+
+      // Allocation bar
+      renderAlloc(id, p, regime);
+
     } catch (e) {
       console.error('Failed to load ' + p, e);
     }

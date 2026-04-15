@@ -189,7 +189,7 @@ app.add_middleware(BotRateLimitMiddleware)
 class PageCacheMiddleware(BaseHTTPMiddleware):
     _NO_CACHE = ("/v1/", "/flywheel", "/dashboard", "/admin", "/ab-", "/openapi",
                   "/robots.txt", "/llms.txt", "/sitemap", "/internal/", "/my/",
-                  "/citation-dashboard")
+                  "/citation-dashboard", "/paper-trading")
     _TTL = 14400  # 4 hours — pages rarely change, enrichment flushes cache
     _pool = None
     _backoff = 0

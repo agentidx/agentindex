@@ -1585,7 +1585,10 @@ def mount_paper_trading_page(app):
     async def paper_trading_dashboard():
         try:
             with open(template_path, "r") as f:
-                return HTMLResponse(content=f.read())
+                return HTMLResponse(
+                    content=f.read(),
+                    headers={"Cache-Control": "public, max-age=300, s-maxage=300"},
+                )
         except FileNotFoundError:
             return HTMLResponse(status_code=404, content="<h1>Paper trading dashboard not found</h1>")
 
