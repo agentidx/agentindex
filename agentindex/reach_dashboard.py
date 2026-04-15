@@ -201,10 +201,11 @@ def _render_pipeline_sections():
     """Render 404 seeding + deep enrichment status for yield dashboard."""
     import subprocess
     PSQL_PATH = "/opt/homebrew/Cellar/postgresql@16/16.11_1/bin/psql"
+    PG_PRIMARY = os.environ.get("NERQ_PG_PRIMARY", "100.119.193.70")
     sections = ""
     try:
         # 404 seeding stats
-        r = subprocess.run([PSQL_PATH, "-d", "agentindex", "-t", "-A", "-F", "|", "-c",
+        r = subprocess.run([PSQL_PATH, "-h", PG_PRIMARY, "-U", "anstudio", "-d", "agentindex", "-t", "-A", "-F", "|", "-c",
             "SELECT COUNT(*), COUNT(*) FILTER (WHERE seeded_at >= NOW() - INTERVAL '24 hours'), "
             "COUNT(*) FILTER (WHERE pages_generated), COUNT(DISTINCT registry) "
             "FROM yield_404_seeding_log"],
@@ -215,7 +216,7 @@ def _render_pipeline_sections():
         pages_gen = int(parts[2]) if len(parts) > 2 and parts[2] else 0
 
         # Deep enrichment stats
-        r2 = subprocess.run([PSQL_PATH, "-d", "agentindex", "-t", "-A", "-F", "|", "-c",
+        r2 = subprocess.run([PSQL_PATH, "-h", PG_PRIMARY, "-U", "anstudio", "-d", "agentindex", "-t", "-A", "-F", "|", "-c",
             "SELECT COUNT(*), COUNT(*) FILTER (WHERE triggered_at >= NOW() - INTERVAL '24 hours') "
             "FROM yield_deep_enrichments"],
             capture_output=True, text=True, timeout=5)
