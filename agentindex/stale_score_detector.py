@@ -37,8 +37,8 @@ WEIGHTS = {
 
 
 def _get_pg_session():
-    from agentindex.db.models import get_session
-    return get_session()
+    from agentindex.db.models import get_write_session
+    return get_write_session()
 
 
 def _get_enrichment_data(agent_names):

@@ -985,7 +985,8 @@ def compute_vitality_scores(tier_filter=None):
 def save_vitality_scores(results):
     """Save results to SQLite table and JSON cache."""
     conn = sqlite3.connect(DB_PATH, timeout=30)
-    conn.execute("PRAGMA busy_timeout = 10000")
+    conn.execute("PRAGMA busy_timeout = 30000")
+    conn.execute("PRAGMA journal_mode = WAL")
     conn.execute("""
         CREATE TABLE IF NOT EXISTS vitality_scores (
             token_id TEXT PRIMARY KEY,
@@ -1006,26 +1007,37 @@ def save_vitality_scores(results):
         )
     """)
 
+    import time as _time
     from agentindex.crypto.dual_write import dual_delete, dual_execute
-    dual_delete(conn, "DELETE FROM vitality_scores")
-    for r in results:
-        dual_execute(conn, """
-            INSERT INTO vitality_scores (
-                token_id, symbol, name, vitality_score, vitality_grade,
-                ecosystem_gravity, capital_commitment, coordination_efficiency,
-                stress_resilience, organic_momentum, trust_score, trust_rating,
-                confidence, data_coverage, computed_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (
-            r["token_id"], r["symbol"], r["name"],
-            r["vitality_score"], r["vitality_grade"],
-            r["ecosystem_gravity"], r["capital_commitment"],
-            r["coordination_efficiency"], r["stress_resilience"],
-            r["organic_momentum"], r["trust_score"], r["trust_rating"],
-            r["confidence"], r["data_coverage"], r["computed_at"],
-        ))
+    for attempt in range(5):
+        try:
+            dual_delete(conn, "DELETE FROM vitality_scores")
+            for r in results:
+                dual_execute(conn, """
+                    INSERT INTO vitality_scores (
+                        token_id, symbol, name, vitality_score, vitality_grade,
+                        ecosystem_gravity, capital_commitment, coordination_efficiency,
+                        stress_resilience, organic_momentum, trust_score, trust_rating,
+                        confidence, data_coverage, computed_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    r["token_id"], r["symbol"], r["name"],
+                    r["vitality_score"], r["vitality_grade"],
+                    r["ecosystem_gravity"], r["capital_commitment"],
+                    r["coordination_efficiency"], r["stress_resilience"],
+                    r["organic_momentum"], r["trust_score"], r["trust_rating"],
+                    r["confidence"], r["data_coverage"], r["computed_at"],
+                ))
+            conn.commit()
+            break
+        except sqlite3.OperationalError as e:
+            if "locked" in str(e) and attempt < 4:
+                logger.warning("SQLite locked, retry %d/5 in %ds", attempt + 1, 2 ** attempt)
+                conn.rollback()
+                _time.sleep(2 ** attempt)
+            else:
+                raise
 
-    conn.commit()
     conn.close()
     logger.info("Saved %d vitality scores to DB", len(results))
 
