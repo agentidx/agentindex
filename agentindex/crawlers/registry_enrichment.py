@@ -18,7 +18,7 @@ import requests
 from sqlalchemy import text
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
-from agentindex.db.models import get_session
+from agentindex.db.models import get_write_session as get_session
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)-6s %(message)s")
 log = logging.getLogger("registry_enrichment")
