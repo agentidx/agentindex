@@ -119,7 +119,7 @@ def check_api():
     """Check API health."""
     try:
         req = urllib.request.Request("http://localhost:8000/v1/health")
-        with urllib.request.urlopen(req, timeout=5) as resp:
+        with urllib.request.urlopen(req, timeout=15) as resp:
             if resp.status != 200:
                 _send_alert("API Down", f"Health check returned {resp.status}", priority="urgent", tags="rotating_light")
     except Exception as e:
