@@ -70,17 +70,42 @@ def _send_alert(title, message, priority="default", tags=""):
 
 
 def check_launchagents():
-    """Check for failing LaunchAgents."""
+    """Check for failing LaunchAgents with PID-aware logic.
+
+    Continuous agents (KeepAlive): alert only if PID is missing (not running).
+    Exit code is noise from restarts — ignore it when PID is present.
+
+    Discrete agents (run-and-exit): alert if exit code != 0 and not running.
+    """
+    CONTINUOUS = {
+        "com.nerq.api", "com.nerq.master-watchdog",
+        "com.nerq.alert-monitor", "com.nerq.performance-guardian",
+    }
     try:
         result = subprocess.run(["launchctl", "list"], capture_output=True, text=True, timeout=10)
         failing = []
         for line in result.stdout.splitlines():
             parts = line.split()
-            if len(parts) >= 3 and "com.nerq." in parts[2]:
-                exit_code = parts[1]
-                if exit_code not in ("0", "-"):
-                    name = parts[2].replace("com.nerq.", "")
+            if len(parts) < 3:
+                continue
+            label = parts[2]
+            if "com.nerq." not in label and "com.zarq." not in label:
+                continue
+
+            pid = parts[0]       # PID or "-"
+            exit_code = parts[1] # exit code or "-"
+
+            if label in CONTINUOUS:
+                # Continuous: only alert if NOT running (PID = "-")
+                if pid == "-":
+                    name = label.replace("com.nerq.", "").replace("com.zarq.", "zarq:")
+                    failing.append(f"{name} (DOWN, no PID)")
+            else:
+                # Discrete: alert if exited with error and not currently running
+                if pid == "-" and exit_code not in ("0", "-"):
+                    name = label.replace("com.nerq.", "").replace("com.zarq.", "zarq:")
                     failing.append(f"{name} (exit {exit_code})")
+
         if failing:
             _send_alert(
                 "LaunchAgent Failures",
