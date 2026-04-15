@@ -356,11 +356,18 @@ def _render_compare_page(slug, pair_info):
         )
 
     # JSON-LD
-    title = f"{name_a} vs {name_b}: Trust Score Comparison — Nerq"
+    title = f"{name_a} vs {name_b}: Compared Side-by-Side (2026)"
+    if len(title) > 60:
+        title = f"{name_a} vs {name_b} Comparison (2026)"
+    if len(title) > 60:
+        title = f"{name_a} vs {name_b}: Full Comparison"
     meta_desc = (
-        f"Compare {name_a} ({score_a:.0f}/100, {grade_a}) vs {name_b} ({score_b:.0f}/100, {grade_b}). "
-        f"Side-by-side trust scores, security, compliance, and ecosystem analysis by Nerq."
+        f"{name_a} ({score_a:.0f}/100) vs {name_b} ({score_b:.0f}/100). "
+        f"Trust scores, features, security, and community compared. "
+        f"Find which fits your stack."
     )
+    if len(meta_desc) > 160:
+        meta_desc = meta_desc[:157] + "..."
 
     webpage_jsonld = json.dumps({
         "@context": "https://schema.org",

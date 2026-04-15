@@ -12,8 +12,8 @@ Usage:
 # ── English baseline ───────────────────────────────────────────────────────────
 
 _HP = {
-    "title":              "Nerq — Is It Safe? Trust Scores for Everything",
-    "meta_desc":          "Trust scores for any app, VPN, antivirus, hosting provider, SaaS platform, or package. 7.5M+ entities. Free and independent.",
+    "title":              "Nerq — Trust Scores for 7.5M+ Software Assets",
+    "meta_desc":          "Independent trust scores for npm, PyPI, apps, VPNs, AI tools, and more. Free API. No affiliate links. Check any software's safety before you install.",
     "h1":                 "Is It Safe?",
     "hero_sub":           "Trust scores for apps, VPNs, antivirus, hosting, SaaS, crypto exchanges, password managers, and packages. Data-driven. Free and independent.",
     "search_placeholder": "Search anything: TikTok, NordVPN, express, Amazon.com...",

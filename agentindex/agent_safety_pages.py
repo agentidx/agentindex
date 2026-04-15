@@ -32,7 +32,7 @@ YEAR = date.today().year
 # the translated string or falls back to English.
 _STRINGS = {
     # Page title / meta
-    "title_safe": "Is {name} Safe? Independent Trust &amp; Security Analysis {year} | Nerq",
+    "title_safe": "Is {name} Safe? Trust Score &amp; Security Review ({year})",
     "title_safe_visit": "Is {name} Safe to Visit? {year} Safety Score &amp; Travel Guide | Nerq",
     "title_charity": "Is {name} a Trustworthy Charity? {year} Safety Score &amp; Analysis | Nerq",
     "title_ingredient": "Is {name} Safe? {year} Health &amp; Safety Analysis | Nerq",

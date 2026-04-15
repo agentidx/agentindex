@@ -549,8 +549,11 @@ def mount_seo_dynamic(app):
 <p class="desc">{desc_text}</p>
 {trust_card}{details}{security}{similar_html}{faq}"""
 
-        title = f"{m['name']} — Trust & Safety Analysis {YEAR} | Nerq"
-        desc = f"{m['name']}: Trust Score {_score_fmt(ts)}, Grade {html.escape(tg or 'N/A')}. Security analysis, alternatives, and safety report."
+        short_name = m['name'][:45]
+        title = f"{short_name}: Safety & Performance ({YEAR})"
+        if len(title) > 60:
+            title = f"{short_name[:35]} Review & Analysis"
+        desc = f"{m['name']}: Trust Score {_score_fmt(ts)}, Grade {html.escape(tg or 'N/A')}. Performance benchmarks, safety assessment, and alternatives compared."
 
         result = _page(title, body, desc=desc, canonical=f"{SITE}/model/{_to_slug(m['name'])}", jsonld=jsonld)
         _set_cache(cache_key, result)
