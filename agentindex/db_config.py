@@ -22,22 +22,37 @@ Usage:
 import os
 
 # ── Configuration ──────────────────────────────────────────
+# PgBouncer on localhost:6432 routes to the right backend:
+#   agentindex_write → Nbg primary (TCP)
+#   agentindex_read  → local replica (socket)
+# Direct connections bypass PgBouncer (for scripts, pg_dump, etc.)
+PGBOUNCER_HOST = os.environ.get("NERQ_PGBOUNCER_HOST", "127.0.0.1")
+PGBOUNCER_PORT = int(os.environ.get("NERQ_PGBOUNCER_PORT", "6432"))
 PRIMARY_HOST = os.environ.get("NERQ_PG_PRIMARY", "100.119.193.70")
 PRIMARY_PORT = int(os.environ.get("NERQ_PG_PRIMARY_PORT", "5432"))
 REPLICA_HOST = os.environ.get("NERQ_PG_REPLICA", "localhost")
 DB_NAME = os.environ.get("NERQ_DB_NAME", "agentindex")
 DB_USER = os.environ.get("NERQ_DB_USER", "anstudio")
+USE_PGBOUNCER = os.environ.get("NERQ_USE_PGBOUNCER", "1") == "1"
 
 
 def get_write_dsn(fmt="sqlalchemy"):
-    """DSN for the primary (writes). Always TCP to Nbg."""
+    """DSN for the primary (writes). Via PgBouncer when available."""
+    if USE_PGBOUNCER:
+        if fmt == "psycopg2":
+            return f"host={PGBOUNCER_HOST} port={PGBOUNCER_PORT} dbname=agentindex_write user={DB_USER}"
+        return f"postgresql://{DB_USER}@{PGBOUNCER_HOST}:{PGBOUNCER_PORT}/agentindex_write"
     if fmt == "psycopg2":
         return f"host={PRIMARY_HOST} port={PRIMARY_PORT} dbname={DB_NAME} user={DB_USER}"
     return f"postgresql://{DB_USER}@{PRIMARY_HOST}:{PRIMARY_PORT}/{DB_NAME}"
 
 
 def get_read_dsn(fmt="sqlalchemy"):
-    """DSN for the replica (reads). Local socket when possible."""
+    """DSN for the replica (reads). Via PgBouncer when available."""
+    if USE_PGBOUNCER:
+        if fmt == "psycopg2":
+            return f"host={PGBOUNCER_HOST} port={PGBOUNCER_PORT} dbname=agentindex_read user={DB_USER}"
+        return f"postgresql://{DB_USER}@{PGBOUNCER_HOST}:{PGBOUNCER_PORT}/agentindex_read"
     if fmt == "psycopg2":
         if REPLICA_HOST == "localhost":
             return f"dbname={DB_NAME} user={DB_USER}"
@@ -46,8 +61,13 @@ def get_read_dsn(fmt="sqlalchemy"):
 
 
 def get_write_conn():
-    """Raw psycopg2 connection to primary."""
+    """Raw psycopg2 connection to primary (via PgBouncer)."""
     import psycopg2
+    if USE_PGBOUNCER:
+        return psycopg2.connect(
+            host=PGBOUNCER_HOST, port=PGBOUNCER_PORT,
+            dbname="agentindex_write", user=DB_USER,
+        )
     return psycopg2.connect(
         host=PRIMARY_HOST, port=PRIMARY_PORT,
         dbname=DB_NAME, user=DB_USER,
@@ -55,8 +75,13 @@ def get_write_conn():
 
 
 def get_read_conn():
-    """Raw psycopg2 connection to local replica."""
+    """Raw psycopg2 connection to local replica (via PgBouncer)."""
     import psycopg2
+    if USE_PGBOUNCER:
+        return psycopg2.connect(
+            host=PGBOUNCER_HOST, port=PGBOUNCER_PORT,
+            dbname="agentindex_read", user=DB_USER,
+        )
     if REPLICA_HOST == "localhost":
         return psycopg2.connect(dbname=DB_NAME, user=DB_USER)
     return psycopg2.connect(host=REPLICA_HOST, dbname=DB_NAME, user=DB_USER)

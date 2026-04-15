@@ -257,7 +257,8 @@ def get_engine():
             pool_recycle=300,       # Recycle every 5 min (was 1h — prevents stale heavy connections)
             pool_timeout=5,         # Fail fast — don't wait 30s for a connection
             echo=False,
-            connect_args={"options": "-c statement_timeout=5000"},  # 5s max per query
+            # statement_timeout set per-query via SET LOCAL, not connect_args
+            # (PgBouncer transaction mode doesn't support options string)
         )
     return _engine
 
@@ -274,7 +275,7 @@ def get_write_engine():
             pool_recycle=300,
             pool_timeout=10,
             echo=False,
-            connect_args={"options": "-c statement_timeout=30000"},  # 30s for writes
+            # statement_timeout set per-query, not via connect_args (PgBouncer compat)
         )
     return _write_engine
 
