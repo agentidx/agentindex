@@ -11,7 +11,7 @@ import logging
 from datetime import datetime
 from typing import Optional
 from ollama import Client
-from agentindex.db.models import Agent, get_session
+from agentindex.db.models import Agent, get_write_session
 from sqlalchemy import select, text
 import os
 
@@ -44,7 +44,7 @@ class Parser:
 
     def __init__(self):
         self.client = Client(host=OLLAMA_BASE_URL)
-        self.session = get_session()
+        self.session = get_write_session()
 
     def parse_pending(self, batch_size: int = 50) -> dict:
         """
@@ -78,7 +78,7 @@ class Parser:
                     self.session.commit()
                 except Exception:
                     self.session.rollback()
-                    self.session = get_session()
+                    self.session = get_write_session()
             except Exception as e:
                 logger.error(f"Error parsing agent {agent.name}: {e}")
                 stats["errors"] += 1

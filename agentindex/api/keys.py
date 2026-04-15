@@ -17,7 +17,7 @@ import logging
 from datetime import datetime
 from sqlalchemy import Column, String, DateTime, Integer, Boolean, Float
 from sqlalchemy.dialects.postgresql import UUID, JSONB
-from agentindex.db.models import Base, get_session
+from agentindex.db.models import Base, get_session, get_write_session
 import uuid
 
 logger = logging.getLogger("agentindex.apikeys")
@@ -75,7 +75,7 @@ def register_key(agent_name: str = None, agent_url: str = None,
     """
     Register a new API key. Returns the key (shown only once).
     """
-    session = get_session()
+    session = get_write_session()
 
     key, key_hash = generate_key()
     watermark = secrets.token_hex(8)
@@ -136,7 +136,7 @@ def validate_key(key: str) -> dict | None:
 
 def flag_key(key_hash: str, reason: str):
     """Flag a key for suspected abuse."""
-    session = get_session()
+    session = get_write_session()
     api_key = session.query(ApiKey).filter_by(key_hash=key_hash).first()
     if api_key:
         api_key.is_flagged = True
@@ -147,7 +147,7 @@ def flag_key(key_hash: str, reason: str):
 
 def revoke_key(key_hash: str):
     """Revoke an API key."""
-    session = get_session()
+    session = get_write_session()
     api_key = session.query(ApiKey).filter_by(key_hash=key_hash).first()
     if api_key:
         api_key.is_active = False

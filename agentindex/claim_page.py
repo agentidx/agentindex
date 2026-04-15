@@ -11,7 +11,7 @@ from fastapi import APIRouter, Query, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from sqlalchemy import text
 
-from agentindex.db.models import get_session
+from agentindex.db.models import get_session, get_write_session
 from agentindex.nerq_design import nerq_page, NERQ_CSS, NERQ_NAV, NERQ_FOOTER
 
 router_claim = APIRouter(tags=["claim"])
@@ -276,7 +276,7 @@ async def claim_submit(request: Request):
             body="<h1>Error</h1><p>Agent name is required.</p>",
         ), status_code=400)
 
-    session = get_session()
+    session = get_write_session()
     try:
         session.execute(text("""
             INSERT INTO nerq_scout_log (event_type, agent_name, details)
