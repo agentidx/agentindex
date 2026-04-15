@@ -43,6 +43,7 @@ def load_previous_scores() -> dict[str, float]:
     try:
         conn = sqlite3.connect(DB_PATH, timeout=30)
         conn.execute("PRAGMA busy_timeout = 10000")
+        conn.execute("PRAGMA journal_mode = WAL")
         rows = conn.execute("SELECT token_id, vitality_score FROM vitality_scores").fetchall()
         conn.close()
         return {r[0]: r[1] for r in rows}
