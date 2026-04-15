@@ -983,7 +983,7 @@ def compute_vitality_scores(tier_filter=None):
 
 def save_vitality_scores(results):
     """Save results to SQLite table and JSON cache."""
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DB_PATH, timeout=30)
     conn.execute("""
         CREATE TABLE IF NOT EXISTS vitality_scores (
             token_id TEXT PRIMARY KEY,

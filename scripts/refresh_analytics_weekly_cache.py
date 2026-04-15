@@ -19,13 +19,13 @@ sys.path.insert(0, '/Users/anstudio/agentindex')
 
 
 def timeout_handler(signum, frame):
-    print("ERROR: Cache refresh timed out after 300s", flush=True)
+    print("ERROR: Cache refresh timed out after 600s", flush=True)
     sys.exit(2)
 
 
 def main():
     signal.signal(signal.SIGALRM, timeout_handler)
-    signal.alarm(300)
+    signal.alarm(600)
 
     try:
         from agentindex.analytics_weekly import _query_data, _CACHE_FILE

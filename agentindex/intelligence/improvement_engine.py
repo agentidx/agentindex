@@ -53,8 +53,8 @@ def get_improvements(agent_name: str) -> dict | None:
     with get_db_session() as session:
         # Find agent — fuzzy match always, prefer by stars
         pattern = agent_name.replace("-", "%")
-        session.execute(text("SET LOCAL work_mem = '2MB'"))
-        session.execute(text("SET LOCAL statement_timeout = '5s'"))
+        session.execute(text("SET LOCAL work_mem = '4MB'"))
+        session.execute(text("SET LOCAL statement_timeout = '15s'"))
         row = session.execute(text("""
             SELECT el.id, el.name, el.trust_score_v2, el.trust_grade, el.stars, el.description,
                    el.category, a.language, el.author, el.source, el.source_url, el.license,

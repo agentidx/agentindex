@@ -25,14 +25,14 @@ sys.path.insert(0, '/Users/anstudio/agentindex')
 
 
 def timeout_handler(signum, frame):
-    print("ERROR: Cache refresh timed out after 300s", flush=True)
+    print("ERROR: Cache refresh timed out after 600s", flush=True)
     sys.exit(2)
 
 
 def main():
-    # Hard timeout: 5 minutes. _build_dashboard_data() takes ~20s, so 300s is safe.
+    # Hard timeout: 10 minutes. Build now takes ~300s due to larger dataset.
     signal.signal(signal.SIGALRM, timeout_handler)
-    signal.alarm(300)
+    signal.alarm(600)
 
     try:
         from agentindex.zarq_dashboard import (

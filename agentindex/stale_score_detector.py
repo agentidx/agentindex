@@ -50,22 +50,28 @@ def _get_enrichment_data(agent_names):
     try:
         for name in agent_names:
             row = conn.execute(
-                "SELECT npm_weekly, pypi_weekly FROM package_downloads WHERE agent_name = ? LIMIT 1",
-                (name,),
+                "SELECT weekly_downloads, monthly_downloads FROM package_downloads WHERE package_name = ? OR agent_id = ? LIMIT 1",
+                (name, name),
             ).fetchone()
-            downloads = (row[0] or 0) + (row[1] or 0) if row else 0
+            downloads = (row[0] or 0) if row else 0
 
-            cve_row = conn.execute(
-                "SELECT COUNT(*) FROM agent_vulnerabilities WHERE agent_name = ?",
-                (name,),
-            ).fetchone()
-            cve_count = cve_row[0] if cve_row else 0
+            try:
+                cve_row = conn.execute(
+                    "SELECT COUNT(*) FROM agent_vulnerabilities WHERE agent_id = ? OR agent_name = ?",
+                    (name, name),
+                ).fetchone()
+                cve_count = cve_row[0] if cve_row else 0
+            except sqlite3.OperationalError:
+                cve_count = 0
 
-            lic_row = conn.execute(
-                "SELECT license_category FROM agent_licenses WHERE agent_name = ? LIMIT 1",
-                (name,),
-            ).fetchone()
-            license_cat = lic_row[0] if lic_row else None
+            try:
+                lic_row = conn.execute(
+                    "SELECT license_category FROM agent_licenses WHERE agent_id = ? OR agent_name = ? LIMIT 1",
+                    (name, name),
+                ).fetchone()
+                license_cat = lic_row[0] if lic_row else None
+            except sqlite3.OperationalError:
+                license_cat = None
 
             enrichment[name] = {
                 "downloads": downloads,
@@ -146,6 +152,7 @@ def _assign_grade(score):
 def find_stale_agents(session, limit=MAX_RESCORE_PER_RUN):
     """Find agents whose trust_calculated_at is >14 days old or NULL."""
     cutoff = (datetime.now() - timedelta(days=14)).isoformat()
+    session.execute(text("SET LOCAL statement_timeout = '60s'"))
     rows = session.execute(text("""
         SELECT el.id, el.name, el.description, el.stars, el.compliance_score,
                el.is_active, el.is_verified,
@@ -171,13 +178,17 @@ def find_agents_with_new_enrichment(session, limit=500):
     try:
         enriched_names = set()
         for row in conn.execute(
-            "SELECT DISTINCT agent_name FROM package_downloads WHERE npm_weekly > 0 OR pypi_weekly > 0 LIMIT 2000"
+            "SELECT DISTINCT COALESCE(agent_id, package_name) FROM package_downloads WHERE weekly_downloads > 0 LIMIT 2000"
         ).fetchall():
-            enriched_names.add(row[0])
-        for row in conn.execute(
-            "SELECT DISTINCT agent_name FROM agent_vulnerabilities LIMIT 500"
-        ).fetchall():
-            enriched_names.add(row[0])
+            if row[0]:
+                enriched_names.add(row[0])
+        try:
+            for row in conn.execute(
+                "SELECT DISTINCT agent_id FROM agent_vulnerabilities WHERE agent_id IS NOT NULL LIMIT 500"
+            ).fetchall():
+                enriched_names.add(row[0])
+        except sqlite3.OperationalError:
+            pass  # Table may not exist
     finally:
         conn.close()
 
@@ -197,14 +208,15 @@ def find_agents_with_new_enrichment(session, limit=500):
         params = {f"n{j}": n for j, n in enumerate(batch)}
         params["cutoff"] = cutoff
         rows = session.execute(text(f"""
-            SELECT id, name, description, stars, compliance_score,
-                   is_active, is_verified,
-                   COALESCE(trust_score_v2, trust_score) as current_score,
-                   trust_calculated_at
-            FROM entity_lookup
-            WHERE name IN ({placeholders})
-              AND is_active = true
-              AND (trust_calculated_at IS NULL OR trust_calculated_at < :cutoff)
+            SELECT el.id, el.name, el.description, el.stars, el.compliance_score,
+                   el.is_active, el.is_verified,
+                   COALESCE(el.trust_score_v2, el.trust_score) as current_score,
+                   a.trust_calculated_at
+            FROM entity_lookup el
+            LEFT JOIN agents a ON a.id = el.id
+            WHERE el.name IN ({placeholders})
+              AND el.is_active = true
+              AND (a.trust_calculated_at IS NULL OR a.trust_calculated_at < :cutoff)
             LIMIT 200
         """), params).fetchall()
         results.extend([dict(r._mapping) for r in rows])
