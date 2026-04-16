@@ -25,7 +25,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 NTFY_TOPIC = "nerq-alerts"
 NTFY_URL = f"https://ntfy.sh/{NTFY_TOPIC}"
 DEDUP_FILE = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "logs", "alert_dedup.json")
-DEDUP_WINDOW = 1800  # 30 min
+DEDUP_WINDOW = 14400  # 4 hours — prevent alert storms from flapping agents
 
 LOG_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "logs")
 
@@ -51,7 +51,7 @@ def _send_alert(title, message, priority="default", tags=""):
     # Clean old entries
     dedup = {k: v for k, v in dedup.items() if now - v < DEDUP_WINDOW}
 
-    key = f"{title}:{message[:80]}"
+    key = title  # Dedup on TITLE only, not message content (prevents key-churn from flapping agents)
     if key in dedup:
         return  # Already sent recently
 
@@ -79,7 +79,9 @@ def check_launchagents():
     """
     CONTINUOUS = {
         "com.nerq.api", "com.nerq.master-watchdog",
-        "com.nerq.alert-monitor",
+    }
+    SKIP = {
+        "com.nerq.alert-monitor",  # Don't alert about ourselves
     }
     try:
         result = subprocess.run(["launchctl", "list"], capture_output=True, text=True, timeout=10)
@@ -90,6 +92,8 @@ def check_launchagents():
                 continue
             label = parts[2]
             if "com.nerq." not in label and "com.zarq." not in label:
+                continue
+            if label in SKIP:
                 continue
 
             pid = parts[0]       # PID or "-"
@@ -140,15 +144,22 @@ def check_replication():
         _send_alert("Replication Check Failed", str(e)[:200], priority="high", tags="rotating_light")
 
 
+_api_fail_count = 0
+
 def check_api():
-    """Check API health."""
+    """Check API health. Requires 2 consecutive failures before alerting."""
+    global _api_fail_count
     try:
         req = urllib.request.Request("http://localhost:8000/v1/health")
         with urllib.request.urlopen(req, timeout=30) as resp:
-            if resp.status != 200:
-                _send_alert("API Down", f"Health check returned {resp.status}", priority="urgent", tags="rotating_light")
+            if resp.status == 200:
+                _api_fail_count = 0
+                return
+            _api_fail_count += 1
     except Exception as e:
-        _send_alert("API Unreachable", f"localhost:8000 failed: {e}", priority="urgent", tags="rotating_light")
+        _api_fail_count += 1
+        if _api_fail_count >= 2:
+            _send_alert("API Unreachable", f"localhost:8000 failed {_api_fail_count}x: {e}", priority="urgent", tags="rotating_light")
 
 
 def check_disk():
