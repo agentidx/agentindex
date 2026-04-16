@@ -44,6 +44,7 @@ def _init_db():
 
 def _compute_category_stats(session):
     """Compute category rankings and averages."""
+    session.execute(text("SET LOCAL statement_timeout = '60s'"))
     rows = session.execute(text("""
         SELECT name, category, COALESCE(trust_score_v2, trust_score) as ts
         FROM entity_lookup
