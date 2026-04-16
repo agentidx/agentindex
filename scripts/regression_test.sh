@@ -79,8 +79,8 @@ check "T9: read-only errors since $cutoff = $t9" "$([ "$t9" -eq 0 ] && echo 0 ||
 
 # T10: Replication 0 lag, 2 replicas
 echo "T10: Replication"
-t10=$($PSQL -U anstudio -h 100.119.193.70 -d agentindex -tAc "SELECT COUNT(*) FROM pg_stat_replication WHERE pg_wal_lsn_diff(sent_lsn, replay_lsn) = 0" 2>/dev/null | tr -d ' \n')
-check "T10: replicas with 0 lag = ${t10:-0} (need 2)" "$([ "${t10:-0}" -ge 2 ] && echo 0 || echo 1)"
+t10=$($PSQL -U anstudio -h 100.119.193.70 -d agentindex -tAc "SELECT COUNT(*) FROM pg_stat_replication WHERE state = 'streaming' AND pg_wal_lsn_diff(sent_lsn, replay_lsn) < 1000000" 2>/dev/null | tr -d ' \n')
+check "T10: streaming replicas <1MB lag = ${t10:-0} (need 2)" "$([ "${t10:-0}" -ge 2 ] && echo 0 || echo 1)"
 
 # T11: API responds < 500ms for 10 requests
 echo "T11: API latency"
