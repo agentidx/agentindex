@@ -924,15 +924,21 @@ def discover(req: DiscoverRequest, request: Request, _=Depends(check_rate_limit)
 
     response_time = int((time.time() - start_time) * 1000)
 
-    # Log discovery request (no identifying info)
-    log_entry = DiscoveryLog(
-        query={"need": req.need, "category": req.category, "protocols": req.protocols, "search_method": search_method},
-        results_count=len(results),
-        top_result_id=fts_results[0].id if fts_results else None,
-        response_time_ms=response_time,
-    )
-    session.add(log_entry)
-    session.commit()
+    # Log discovery request (no identifying info) — write to primary
+    try:
+        from agentindex.db.models import get_write_session
+        ws = get_write_session()
+        log_entry = DiscoveryLog(
+            query={"need": req.need, "category": req.category, "protocols": req.protocols, "search_method": search_method},
+            results_count=len(results),
+            top_result_id=fts_results[0].id if fts_results else None,
+            response_time_ms=response_time,
+        )
+        ws.add(log_entry)
+        ws.commit()
+        ws.close()
+    except Exception:
+        pass  # Never fail API response for logging
     session.close()
 
     response = DiscoverResponse(
