@@ -644,7 +644,7 @@ def mount_seo_pages(app):
                 SELECT ajs.jurisdiction_id, ajs.status, ajs.risk_level,
                        ajs.triggered_criteria, ajs.compliance_notes,
                        jr.name as jurisdiction_name, jr.country, jr.effective_date,
-                       jr.penalty_max
+                       jr.penalty_max, ajs.assessed_at
                 FROM agent_jurisdiction_status ajs
                 JOIN jurisdiction_registry jr ON jr.id = ajs.jurisdiction_id
                 WHERE ajs.agent_id = :agent_id
@@ -652,7 +652,7 @@ def mount_seo_pages(app):
             """), {"agent_id": agent_id}).fetchall()
 
             j_list = [dict(zip(['j_id','status','risk_level','triggered','notes',
-                               'j_name','country','effective_date','penalty_max'], j))
+                               'j_name','country','effective_date','penalty_max','assessed_at'], j))
                       for j in jurisdictions]
 
             # Fetch related agents by category (fast — uses category index)
@@ -1720,6 +1720,16 @@ def _render_agent_page(a, jurisdictions, related):
     limited_count = sum(1 for j in jurisdictions if j['risk_level'] == 'limited')
     minimal_count = sum(1 for j in jurisdictions if j['risk_level'] == 'minimal')
     total_j = len(jurisdictions)
+
+    # Actual assessment date (not fake utcnow)
+    _raw_assessed = jurisdictions[0].get('assessed_at') if jurisdictions else None
+    if _raw_assessed:
+        try:
+            _assessed_date = _raw_assessed.strftime("%B %d, %Y") if hasattr(_raw_assessed, 'strftime') else str(_raw_assessed)[:10]
+        except Exception:
+            _assessed_date = str(_raw_assessed)[:10]
+    else:
+        _assessed_date = datetime.utcnow().strftime("%B %d, %Y")
     
     # Compliance score text for display
     cs = a.get('compliance_score')
@@ -1904,7 +1914,7 @@ with {high_count} high-risk classification{"s" if high_count != 1 else ""}
 and {minimal_count} minimal-risk classification{"s" if minimal_count != 1 else ""}. 
 Assessed by <a href="https://nerq.ai">Nerq</a>, the world's largest AI agent trust database 
 covering {_agent_count_text()} AI assets across 52 global jurisdictions.</p>
-<small style="color:#6b7280">Last assessed: {datetime.utcnow().strftime("%B %d, %Y")} 
+<small style="color:#6b7280">Last assessed: {_assessed_date}
 | Data from Nerq's weighted multi-jurisdiction compliance engine</small>
 </div>
 
