@@ -42,7 +42,9 @@ def check_disk():
 
 
 def run():
-    dsn = get_write_dsn(fmt="psycopg2")
+    # Connect directly to Nbg primary (bypass PgBouncer — transaction mode
+    # resets SET after each commit, causing statement_timeout to revert)
+    dsn = "host=100.119.193.70 port=5432 dbname=agentindex user=anstudio"
     conn = psycopg2.connect(dsn)
     conn.autocommit = False
     cur = conn.cursor()
@@ -69,11 +71,16 @@ def run():
     total_agents = cur.fetchone()[0]
     logger.info(f"Agents to assess: {total_agents:,} x {j_count} = {total_agents * j_count:,} assessments")
 
-    # Truncate target (in case of previous failed run)
-    cur.execute(f"TRUNCATE {TARGET_TABLE}")
-    conn.commit()
-
-    offset = 0
+    # Check existing rows to resume from crash
+    cur.execute(f"SELECT COUNT(*) FROM {TARGET_TABLE}")
+    existing = cur.fetchone()[0]
+    if existing > 0:
+        # Resume: skip agents already processed
+        offset = existing // j_count
+        logger.info(f"RESUMING from {existing:,} existing rows (offset {offset:,})")
+    else:
+        offset = 0
+        logger.info("Starting fresh")
     total_inserted = 0
     start_time = time.time()
 
