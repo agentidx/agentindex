@@ -13,15 +13,15 @@ from __future__ import annotations
 import logging
 import os
 import sys
+from pathlib import Path
 from urllib.parse import unquote
 
-import psycopg2
 import redis
 
-PG_DSN = os.environ.get(
-    "SMEDJAN_PG_DSN",
-    "host=100.119.193.70 port=5432 dbname=agentindex user=anstudio",
-)
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from smedjan import sources  # noqa: E402
+
 REGISTRIES = [s.strip() for s in os.environ.get("SMEDJAN_CANARY_REGS", "gems,homebrew").split(",") if s.strip()]
 DRY_RUN = os.environ.get("SMEDJAN_DRY_RUN") == "1"
 
@@ -31,15 +31,13 @@ log = logging.getLogger("smedjan.purge_redis")
 
 def main() -> int:
     slugs: set[str] = set()
-    with psycopg2.connect(PG_DSN) as conn:
-        conn.set_session(readonly=True)
-        with conn.cursor() as cur:
-            cur.execute(
-                "SELECT slug FROM public.software_registry "
-                "WHERE registry = ANY(%s) AND enriched_at IS NOT NULL",
-                (REGISTRIES,),
-            )
-            slugs = {r[0].lower() for r in cur.fetchall()}
+    with sources.nerq_readonly_cursor() as (_, cur):
+        cur.execute(
+            "SELECT slug FROM public.software_registry "
+            "WHERE registry = ANY(%s) AND enriched_at IS NOT NULL",
+            (REGISTRIES,),
+        )
+        slugs = {r[0].lower() for r in cur.fetchall()}
     log.info("loaded %d slugs for %s", len(slugs), REGISTRIES)
 
     r = redis.Redis(host="127.0.0.1", port=6379, db=1, socket_timeout=5)

@@ -1,25 +1,109 @@
 """
-Smedjan configuration — all environment-derived constants live here.
+Smedjan configuration — loads per-host config.toml + .env.
 
-Anchored to two principles: (1) no paid APIs, (2) read-only against Nerq
-tables; writes happen in the `smedjan` schema only.
+Principles: (1) no paid APIs, (2) writes go to the dedicated smedjan DB,
+(3) reads against Nerq are read-only. DSNs come from config.toml with
+${VAR} placeholders substituted from .env (mode 600) in the same dir.
+
+Config resolution order:
+    1. $SMEDJAN_CONFIG_DIR
+    2. ~/smedjan/config                  (Mac Studio layout)
+    3. /home/smedjan/smedjan/config      (smedjan.nbg1 layout)
+    4. Legacy hard-coded fallback — warns so the silent fallback is loud.
 """
 from __future__ import annotations
 
+import logging
 import os
+import re
+import tomllib
 from pathlib import Path
 
-# ── Postgres ──────────────────────────────────────────────────────────────
-# Smedjan writes to the `smedjan` schema inside the agentindex database
-# on the Nbg primary. A dedicated DB (or dedicated Postgres on smedjan.nerq)
-# is a future migration; for Phase A we share the cluster for operational
-# simplicity. Reads against public.software_registry / entity_lookup stay
-# read-only.
-PG_PRIMARY_DSN = os.environ.get(
-    "SMEDJAN_PG_DSN",
-    "host=100.119.193.70 port=5432 dbname=agentindex user=anstudio",
-)
 SMEDJAN_SCHEMA = "smedjan"
+
+_log = logging.getLogger("smedjan.config")
+
+
+def _candidate_dirs() -> list[Path]:
+    env = os.environ.get("SMEDJAN_CONFIG_DIR")
+    cands: list[Path] = []
+    if env:
+        cands.append(Path(env))
+    cands.append(Path.home() / "smedjan" / "config")
+    cands.append(Path("/home/smedjan/smedjan/config"))
+    return cands
+
+
+def _read_dotenv(path: Path) -> dict[str, str]:
+    out: dict[str, str] = {}
+    if not path.exists():
+        return out
+    for line in path.read_text().splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        k, _, v = line.partition("=")
+        out[k.strip()] = v.strip().strip('"').strip("'")
+    return out
+
+
+_VAR_RE = re.compile(r"\$\{([A-Z_][A-Z0-9_]*)\}")
+
+
+def _substitute(value: str, env: dict[str, str]) -> str:
+    def _sub(m: "re.Match[str]") -> str:
+        key = m.group(1)
+        if key not in env:
+            raise KeyError(f"config references unset secret ${{{key}}}; check .env")
+        return env[key]
+    return _VAR_RE.sub(_sub, value)
+
+
+def _load_config() -> tuple[dict, Path | None]:
+    for d in _candidate_dirs():
+        toml_path = d / "config.toml"
+        env_path = d / ".env"
+        if not toml_path.exists():
+            continue
+        env = _read_dotenv(env_path)
+        raw = tomllib.loads(toml_path.read_text())
+
+        def walk(node):
+            if isinstance(node, dict):
+                return {k: walk(v) for k, v in node.items()}
+            if isinstance(node, list):
+                return [walk(v) for v in node]
+            if isinstance(node, str):
+                return _substitute(node, env)
+            return node
+        return walk(raw), d
+    return {}, None
+
+
+_CONFIG, CONFIG_DIR = _load_config()
+
+
+def _dsn(section: str) -> str | None:
+    sec = _CONFIG.get(section) if _CONFIG else None
+    return (sec or {}).get("dsn")
+
+
+SMEDJAN_DB_DSN           = _dsn("smedjan_db")
+NERQ_RO_DSN              = _dsn("nerq_readonly_source")
+ANALYTICS_MIRROR_DSN     = _dsn("analytics_mirror")
+ANALYTICS_MIRROR_SCHEMA  = (
+    ((_CONFIG.get("analytics_mirror") or {}).get("schema")) if _CONFIG else None
+) or "analytics_mirror"
+WORKER_LOCATION          = (
+    ((_CONFIG.get("worker") or {}).get("location")) if _CONFIG else "mac_studio"
+)
+
+_LEGACY_DSN = "host=100.119.193.70 port=5432 dbname=agentindex user=anstudio"
+
+# Back-compat for scripts imported before M6 rolled out.
+PG_PRIMARY_DSN = SMEDJAN_DB_DSN or os.environ.get("SMEDJAN_PG_DSN") or _LEGACY_DSN
+if SMEDJAN_DB_DSN is None:
+    _log.warning("no config.toml found; falling back to legacy DSN %s", _LEGACY_DSN)
 
 # ── Filesystem ────────────────────────────────────────────────────────────
 REPO_ROOT     = Path("/Users/anstudio/agentindex")

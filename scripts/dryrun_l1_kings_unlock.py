@@ -24,20 +24,16 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-import psycopg2
 import psycopg2.extras
 import urllib.request
 
 sys.path.insert(0, os.path.expanduser("~/agentindex"))
 from agentindex.agent_safety_pages import _render_agent_page  # noqa: E402
+from smedjan import sources  # noqa: E402
 
 LOG = logging.getLogger("smedjan.dryrun_l1")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 
-PG_DSN = os.environ.get(
-    "SMEDJAN_PG_DSN",
-    "host=100.119.193.70 port=5432 dbname=agentindex user=anstudio",
-)
 PROD_BASE = os.environ.get("SMEDJAN_PROD_BASE", "http://localhost:8000")
 
 # Antipattern regexes — things that should NOT appear in a production page.
@@ -65,9 +61,7 @@ NOT_YET_MARKER = "Privacy assessment for"  # matches the disclaimer opener
 
 def pick_sample(registries: list[str], n_per_reg: int) -> list[dict[str, str]]:
     rows: list[dict[str, str]] = []
-    with psycopg2.connect(PG_DSN) as conn:
-        conn.set_session(readonly=True)
-        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+    with sources.nerq_readonly_cursor(dict_cursor=True) as (_, cur):
             cur.execute("SET statement_timeout = '60s';")
             for reg in registries:
                 # Exclude slugs that also exist as a King in another registry —

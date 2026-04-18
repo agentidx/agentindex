@@ -14,22 +14,27 @@ import json
 import logging
 import os
 import re
-import sqlite3
 import sys
 import urllib.request
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from urllib.parse import unquote
 
-import psycopg2
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-ANALYTICS_DB = os.path.expanduser("~/agentindex/logs/analytics.db")
-PG_DSN = os.environ.get(
-    "SMEDJAN_PG_DSN",
-    "host=100.119.193.70 port=5432 dbname=agentindex user=anstudio",
+from smedjan import sources  # noqa: E402
+
+# The baseline JSON is optional at runtime — the smedjan host may not have
+# it mounted. If missing, render a report without the "vs baseline" column.
+BASELINE_JSON = os.path.expanduser(
+    os.environ.get(
+        "SMEDJAN_BASELINE_JSON",
+        "~/smedjan/baselines/L1-canary-gems-homebrew-PRE-2026-04-18.json",
+    )
 )
-BASELINE_JSON = os.path.expanduser("~/smedjan/baselines/L1-canary-gems-homebrew-PRE-2026-04-18.json")
-REPORT_DIR    = Path(os.path.expanduser("~/smedjan/observations"))
+REPORT_DIR    = Path(os.path.expanduser(
+    os.environ.get("SMEDJAN_OBS_DIR", "~/smedjan/observations")
+))
 CANARY_REGS   = ["gems", "homebrew"]
 NTFY_TOPIC    = os.environ.get("SMEDJAN_NTFY_TOPIC", "nerq-alerts")
 
@@ -46,16 +51,14 @@ log = logging.getLogger("smedjan.observation")
 
 def load_canary_slugs() -> dict[str, set[str]]:
     out = {r: set() for r in CANARY_REGS}
-    with psycopg2.connect(PG_DSN) as conn:
-        conn.set_session(readonly=True)
-        with conn.cursor() as cur:
-            for reg in CANARY_REGS:
-                cur.execute(
-                    "SELECT slug FROM public.software_registry "
-                    "WHERE registry = %s AND is_king = false AND enriched_at IS NOT NULL",
-                    (reg,),
-                )
-                out[reg] = {r[0].lower() for r in cur.fetchall()}
+    with sources.nerq_readonly_cursor() as (_, cur):
+        for reg in CANARY_REGS:
+            cur.execute(
+                "SELECT slug FROM public.software_registry "
+                "WHERE registry = %s AND is_king = false AND enriched_at IS NOT NULL",
+                (reg,),
+            )
+            out[reg] = {r[0].lower() for r in cur.fetchall()}
     return out
 
 
@@ -71,26 +74,24 @@ def gather(reg_slugs: dict[str, set[str]]) -> dict:
             slug_to_reg[s] = reg
 
     ai_rx = re.compile("|".join(re.escape(h) for h in AI_REFERRER_HOSTS), re.I)
-    t_7d  = (datetime.now(timezone.utc) - timedelta(days=7)).strftime("%Y-%m-%dT%H:%M:%S")
-    t_24h = (datetime.now(timezone.utc) - timedelta(hours=24)).strftime("%Y-%m-%dT%H:%M:%S")
-    t_12h = (datetime.now(timezone.utc) - timedelta(hours=12)).strftime("%Y-%m-%dT%H:%M:%S")
+    now = datetime.now(timezone.utc)
+    t_7d  = now - timedelta(days=7)
+    t_24h = now - timedelta(hours=24)
+    t_12h = now - timedelta(hours=12)
 
-    conn = sqlite3.connect(f"file:{ANALYTICS_DB}?mode=ro", uri=True)
-    try:
-        cur = conn.cursor()
+    windows = {"7d": t_7d, "24h": t_24h, "12h": t_12h}
+    ai_bot = {w: {r: 0 for r in CANARY_REGS} for w in windows}
+    citations = {w: {r: 0 for r in CANARY_REGS} for w in windows}
+    status_5xx = {w: {r: {"total": 0, "5xx": 0} for r in CANARY_REGS} for w in windows}
+    ai_source_12h = {r: {} for r in CANARY_REGS}
 
-        # AI-bot crawls per registry in last 24h, last 12h, last 7d
-        windows = {"7d": t_7d, "24h": t_24h, "12h": t_12h}
-        ai_bot = {w: {r: 0 for r in CANARY_REGS} for w in windows}
-        citations = {w: {r: 0 for r in CANARY_REGS} for w in windows}
-        status_5xx = {w: {r: {"total": 0, "5xx": 0} for r in CANARY_REGS} for w in windows}
-        ai_source_12h = {r: {} for r in CANARY_REGS}
-
+    with sources.analytics_mirror_cursor() as (_, cur):
+        cur.execute("SET statement_timeout = '120s'")
         # One scan of the last 7d window covering everything is cheaper
         # than 3 separate queries.
         cur.execute(
             "SELECT ts, path, status, is_ai_bot, referrer_domain "
-            "FROM requests WHERE path LIKE '/safe/%' AND ts > ?",
+            "FROM requests WHERE path LIKE '/safe/%%' AND ts > %s",
             (t_7d,),
         )
         for ts, path, status, is_ai_bot, ref in cur:
@@ -116,14 +117,16 @@ def gather(reg_slugs: dict[str, set[str]]) -> dict:
                                 ai_source_12h[reg][h] = ai_source_12h[reg].get(h, 0) + 1
                                 break
 
-        # Whole-site 5xx last 12h (for context)
+        # Whole-site 5xx last 12h (for context). The mirror only holds
+        # filtered rows (is_ai_bot=1 OR /safe/* / /compare/* / /best/* /
+        # /alternatives/* OR status>=400), so "whole-site" here really
+        # means "filtered subset" — good enough for 5xx sanity, not for a
+        # true denominator. See analytics_mirror filter for exact scope.
         cur.execute(
             "SELECT COUNT(*), SUM(CASE WHEN status>=500 THEN 1 ELSE 0 END) "
-            "FROM requests WHERE ts > ?", (t_12h,),
+            "FROM requests WHERE ts > %s", (t_12h,),
         )
         whole_total, whole_5xx = cur.fetchone()
-    finally:
-        conn.close()
 
     return {
         "ai_bot":          ai_bot,
