@@ -8323,10 +8323,16 @@ def _render_agent_page(slug, agent_info, lang="en"):
         f'<a href="/was-{_cl_slug}-hacked" class="cross-link">{_t("cross_hacked", lang)}</a>',
     ])
 
-    # ── King-specific sections (only for is_king=true entities) ──
+    # ── Enriched-entity sections (L1 Kings Unlock 2026-04-18) ──
+    # Gate on is_king removed. Registries in _L1_UNLOCK_SKIP_REGISTRIES keep
+    # their own rich templates and are skipped here to avoid duplicate blocks.
     king_sections = ""
     _is_king = agent.get("is_king", False)
-    if _is_king:
+    _L1_UNLOCK_SKIP_REGISTRIES = {"city", "charity", "ingredient", "supplement",
+                                  "cosmetic_ingredient", "vpn", "country"}
+    _render_king_sections = _is_king or source not in _L1_UNLOCK_SKIP_REGISTRIES
+    _dims: list = []
+    if _render_king_sections:
         _dn_k = _esc(display_name)
         _today_k = datetime.now().strftime("%B %d, %Y")
         _desc = description or ""
@@ -8335,22 +8341,25 @@ def _render_agent_page(slug, agent_info, lang="en"):
         _sec = security_score
         _pop = popularity_score
 
-        # Use DB fields (populated by deep enrichment), fallback to estimates
-        _privacy_score = agent.get("privacy_score") or (_sec or 50)
-        _maintenance_est = activity_score or 60
-        _transparency_est = agent.get("transparency_score") or 50
-        _reliability_est = agent.get("reliability_score") or (_pop or 60)
+        # Honest null tracking — no synthetic fallbacks for non-Kings.
+        # Privacy-analysis block is wrapped in _has_privacy_score below and
+        # falls back to a "not yet available" disclaimer when missing.
+        _privacy_score = agent.get("privacy_score")
+        _has_privacy_score = _privacy_score is not None
         _jurisdiction = agent.get("jurisdiction")
         _has_audit = agent.get("has_independent_audit", False) or ("audit" in _desc.lower())
         _tracker_count = agent.get("tracker_count")
 
-        # 1. Detailed Score Analysis (5 dimensions from DB)
+        # 1. Detailed Score Analysis — 5 dims populated for every enriched entity.
+        _maintenance_score = agent.get("maintenance_score") or activity_score
+        _quality_score = agent.get("quality_score")
+        _community_score = agent.get("community_score")
         _dims = [
             ("Security", _sec),
-            ("Privacy", _privacy_score),
-            ("Reliability", _reliability_est),
-            ("Transparency", _transparency_est),
-            ("Maintenance", _maintenance_est),
+            ("Maintenance", _maintenance_score),
+            ("Popularity", _pop),
+            ("Quality", _quality_score),
+            ("Community", _community_score),
         ]
         _breakdown_rows = ""
         for dim_name, dim_score in _dims:
@@ -8366,54 +8375,62 @@ def _render_agent_page(slug, agent_info, lang="en"):
 <p style="font-size:12px;color:#94a3b8;margin-top:6px">Based on {len([d for d in _dims if d[1] is not None])} dimensions. Data from {_rp.get('data_sources', 'multiple sources')}.</p>
 </div>"""
 
-        # 2. Privacy Analysis — expanded, data-rich, with inline statistics
-        import re as _re
-        _priv_p = []
-        _ext_cite = []
-        if source == "vpn":
-            _jur = _jurisdiction or "undisclosed"
-            if not _jurisdiction:
-                _m = _re.search(r'(\w+)\s+jurisdiction', _desc, _re.I)
-                if _m: _jur = _m.group(1)
-            _servers = ""
-            _m = _re.search(r'(\d[\d,]*)\s+servers?\s+in\s+(\d+)\s+countries', _desc, _re.I)
-            if _m: _servers = f"{_m.group(1)} servers across {_m.group(2)} countries"
-            _five_eyes = _jur.lower() in ('panama','bvi','gibraltar','switzerland','sweden','romania','isle of man','finland')
-            _eyes_text = _t("vpn_outside_eyes", lang) if _five_eyes else ""
-            _priv_p.append(f"{_dn_k} {_t('vpn_operates_under', lang)} <b>{_esc(_jur)}</b> {_t('vpn_jurisdiction', lang)}{(' — ' + _eyes_text) if _eyes_text else ''}. {_t('vpn_significant', lang)}")
-            if _servers: _priv_p.append(f"{_t('vpn_server_infra', lang)}: {_servers}.")
-            if _has_audit:
-                _priv_p.append(f"{_t('vpn_logging_audited', lang, name=_dn_k)}")
-                _ext_cite.append(f"Independent audit confirms {_dn_k} no-logs policy.")
-            else:
-                _priv_p.append("Logging policy: claims no-logs but no independent audit has been published to verify this claim.")
-            _priv_p.append(f"{_t('privacy_score_label', lang)}: <b>{_privacy_score:.0f}/100</b>.")
-        elif source in ("ios", "android"):
-            _store = "App Store" if source == "ios" else "Google Play"
-            _priv_p.append(f"{_dn_k} is published by {_esc(author)} on {_store}{f', with approximately {_dl:,} downloads' if _dl else ''}.")
-            _priv_p.append(f"Privacy score: <b>{_privacy_score:.0f}/100</b>. Users should review the app's privacy labels (available on the {_store} listing) to understand what data categories are collected, including identifiers, usage data, and location information.")
-            _priv_p.append(f"Before granting permissions, check whether the app requests access to camera, microphone, contacts, or location — and whether each permission is necessary for the app's core functionality.")
-        elif source in ("npm", "pypi", "crates", "go", "gems", "packagist"):
-            _priv_p.append(f"{_dn_k} is a {_entity_word} maintained by {_esc(author)}.{f' It receives approximately {_dl:,} weekly downloads.' if _dl else ''}{f' Licensed under {_esc(_lic)}.' if _lic else ''}")
-            _priv_p.append(f"As a development package, {_dn_k} does not directly collect end-user personal data. However, applications built with it may collect data depending on implementation. Privacy score: <b>{_privacy_score:.0f}/100</b>.")
-            _priv_p.append("Review the package's dependencies for potential supply chain risks. Run your package manager's audit command regularly.")
-        elif source == "saas":
-            _priv_p.append(f"{_dn_k} is a {_entity_word}. {_esc(_desc[:250])}")
-            _priv_p.append(f"Privacy score: <b>{_privacy_score:.0f}/100</b>. As a SaaS platform, {_dn_k} processes user data in the cloud. Review the privacy policy for details on data retention, third-party sharing, and data processing locations.")
-            _priv_p.append("For business use, request a Data Processing Agreement (DPA) and verify GDPR compliance before uploading sensitive data.")
-        elif source == "ai_tool":
-            _priv_p.append(f"{_dn_k} is an AI tool. {_esc(_desc[:250])}")
-            _priv_p.append(f"Privacy score: <b>{_privacy_score:.0f}/100</b>. AI tools may use inputs for model improvement unless explicitly opted out. Check the data usage policy before sharing confidential information, code, or personal data.")
-            _priv_p.append("Consider whether the tool offers enterprise plans with data isolation, SOC 2 compliance, or on-premise deployment options.")
-        elif source == "website":
-            _priv_p.append(f"{_dn_k}: {_esc(_desc[:250])}")
-            _priv_p.append(f"Privacy score: <b>{_privacy_score:.0f}/100</b>. Review the privacy policy for data collection practices, cookie usage, and third-party tracking. Check for HTTPS encryption and transparent data handling.")
-        else:
-            _priv_p.append(f"{_dn_k} has a privacy score of <b>{_privacy_score:.0f}/100</b>. Review the documentation and privacy policy for data handling details.")
-
-        _priv_html = "".join(f'<p style="font-size:15px;line-height:1.7;color:#374151;margin-bottom:8px">{p}</p>' for p in _priv_p)
+        # 2. Privacy Analysis — guarded with has_real_data (L1 Kings Unlock 2026-04-18).
+        # When privacy_score is null we render a short "not yet available"
+        # disclaimer pointing to /methodology rather than synthesising numbers.
         _data_heading = _t("is_safe_visit", lang, name=_dn_k) if source == "country" else _t("is_legit_charity", lang, name=_dn_k) if source == "charity" else _t("what_data_collect", lang, name=_dn_k)
-        king_sections += f"""<div class="section">
+        if not _has_privacy_score:
+            king_sections += f"""<div class="section">
+<h2 class="section-title">{_data_heading}</h2>
+<p style="font-size:15px;line-height:1.7;color:#374151">Privacy assessment for {_dn_k} is not yet available. See our <a href="/methodology">methodology</a> for how Nerq measures privacy, or the <a href="/safe/{_esc(slug)}/privacy">public privacy review</a> for any community-contributed notes.</p>
+</div>"""
+        else:
+            import re as _re
+            _priv_p = []
+            _ext_cite = []
+            if source == "vpn":
+                _jur = _jurisdiction or "undisclosed"
+                if not _jurisdiction:
+                    _m = _re.search(r'(\w+)\s+jurisdiction', _desc, _re.I)
+                    if _m: _jur = _m.group(1)
+                _servers = ""
+                _m = _re.search(r'(\d[\d,]*)\s+servers?\s+in\s+(\d+)\s+countries', _desc, _re.I)
+                if _m: _servers = f"{_m.group(1)} servers across {_m.group(2)} countries"
+                _five_eyes = _jur.lower() in ('panama','bvi','gibraltar','switzerland','sweden','romania','isle of man','finland')
+                _eyes_text = _t("vpn_outside_eyes", lang) if _five_eyes else ""
+                _priv_p.append(f"{_dn_k} {_t('vpn_operates_under', lang)} <b>{_esc(_jur)}</b> {_t('vpn_jurisdiction', lang)}{(' — ' + _eyes_text) if _eyes_text else ''}. {_t('vpn_significant', lang)}")
+                if _servers: _priv_p.append(f"{_t('vpn_server_infra', lang)}: {_servers}.")
+                if _has_audit:
+                    _priv_p.append(f"{_t('vpn_logging_audited', lang, name=_dn_k)}")
+                    _ext_cite.append(f"Independent audit confirms {_dn_k} no-logs policy.")
+                else:
+                    _priv_p.append("Logging policy: claims no-logs but no independent audit has been published to verify this claim.")
+                _priv_p.append(f"{_t('privacy_score_label', lang)}: <b>{_privacy_score:.0f}/100</b>.")
+            elif source in ("ios", "android"):
+                _store = "App Store" if source == "ios" else "Google Play"
+                _priv_p.append(f"{_dn_k} is published by {_esc(author)} on {_store}{f', with approximately {_dl:,} downloads' if _dl else ''}.")
+                _priv_p.append(f"Privacy score: <b>{_privacy_score:.0f}/100</b>. Users should review the app's privacy labels (available on the {_store} listing) to understand what data categories are collected, including identifiers, usage data, and location information.")
+                _priv_p.append(f"Before granting permissions, check whether the app requests access to camera, microphone, contacts, or location — and whether each permission is necessary for the app's core functionality.")
+            elif source in ("npm", "pypi", "crates", "go", "gems", "packagist"):
+                _priv_p.append(f"{_dn_k} is a {_entity_word} maintained by {_esc(author)}.{f' It receives approximately {_dl:,} weekly downloads.' if _dl else ''}{f' Licensed under {_esc(_lic)}.' if _lic else ''}")
+                _priv_p.append(f"As a development package, {_dn_k} does not directly collect end-user personal data. However, applications built with it may collect data depending on implementation. Privacy score: <b>{_privacy_score:.0f}/100</b>.")
+                _priv_p.append("Review the package's dependencies for potential supply chain risks. Run your package manager's audit command regularly.")
+            elif source == "saas":
+                _priv_p.append(f"{_dn_k} is a {_entity_word}. {_esc(_desc[:250])}")
+                _priv_p.append(f"Privacy score: <b>{_privacy_score:.0f}/100</b>. As a SaaS platform, {_dn_k} processes user data in the cloud. Review the privacy policy for details on data retention, third-party sharing, and data processing locations.")
+                _priv_p.append("For business use, request a Data Processing Agreement (DPA) and verify GDPR compliance before uploading sensitive data.")
+            elif source == "ai_tool":
+                _priv_p.append(f"{_dn_k} is an AI tool. {_esc(_desc[:250])}")
+                _priv_p.append(f"Privacy score: <b>{_privacy_score:.0f}/100</b>. AI tools may use inputs for model improvement unless explicitly opted out. Check the data usage policy before sharing confidential information, code, or personal data.")
+                _priv_p.append("Consider whether the tool offers enterprise plans with data isolation, SOC 2 compliance, or on-premise deployment options.")
+            elif source == "website":
+                _priv_p.append(f"{_dn_k}: {_esc(_desc[:250])}")
+                _priv_p.append(f"Privacy score: <b>{_privacy_score:.0f}/100</b>. Review the privacy policy for data collection practices, cookie usage, and third-party tracking. Check for HTTPS encryption and transparent data handling.")
+            else:
+                _priv_p.append(f"{_dn_k} has a privacy score of <b>{_privacy_score:.0f}/100</b>. Review the documentation and privacy policy for data handling details.")
+
+            _priv_html = "".join(f'<p style="font-size:15px;line-height:1.7;color:#374151;margin-bottom:8px">{p}</p>' for p in _priv_p)
+            king_sections += f"""<div class="section">
 <h2 class="section-title">{_data_heading}</h2>
 {_priv_html}
 <p style="font-size:14px;color:#64748b">{_t("full_analysis", lang)} <a href="/safe/{_esc(slug)}/privacy">{_t("privacy_report", lang, name=_dn_k)}</a> · <a href="/privacy/{_esc(slug)}">Privacy review</a></p>
@@ -8987,13 +9004,13 @@ def _render_agent_page(slug, agent_info, lang="en"):
                 "@context": "https://schema.org",
                 "@type": "ItemList",
                 "name": f"Trust Score Breakdown for {display_name}",
-                "numberOfItems": len([d for d in _dims if d[1] is not None]) if _is_king else 0,
+                "numberOfItems": len([d for d in _dims if d[1] is not None]),
                 "itemListElement": [
                     {"@type": "ListItem", "position": i+1, "name": d[0], "description": f"{d[1]:.0f}/100"}
                     for i, d in enumerate(_dims) if d[1] is not None
-                ] if _is_king else []
+                ]
             }) + '</script>'
-        ) if _is_king else "",
+        ) if _render_king_sections and any(d[1] is not None for d in _dims) else "",
         "{{ deep_analysis }}": _get_deep_analysis(name, agent),
         "{{ safety_guide }}": _safety_guide(display_name, name, agent, alternatives, slug),
         "{{ faq_section_html }}": faq_section_html,
