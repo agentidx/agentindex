@@ -11,6 +11,7 @@ Usage in discovery.py:
 
 import json
 import logging
+import os
 from pathlib import Path
 from datetime import date, datetime
 
@@ -26,6 +27,16 @@ logger = logging.getLogger("nerq.safety_pages")
 TEMPLATE_DIR = Path(__file__).parent / "templates"
 SLUGS_PATH = Path(__file__).parent / "agent_safety_slugs.json"
 YEAR = date.today().year
+
+# L1 Kings Unlock canary allowlist. Empty set = all non-skip registries render
+# the unlocked sections for non-Kings. Non-empty set = ONLY the listed
+# registries render for non-Kings; everything else stays on the pre-unlock
+# behaviour (Kings-only). Kings are unaffected by this flag.
+# Deploy day-1 expected value: "gems,homebrew". Widen by restarting the API
+# with L1_UNLOCK_REGISTRIES=... , unset once the wave is 100 %.
+_L1_UNLOCK_ALLOWLIST: frozenset = frozenset(
+    s.strip() for s in os.environ.get("L1_UNLOCK_REGISTRIES", "").split(",") if s.strip()
+)
 
 # ── Internationalization ─────────────────────────────────────────────────
 # All user-visible strings are keyed here. _t(key, lang, **kwargs) returns
@@ -8324,13 +8335,20 @@ def _render_agent_page(slug, agent_info, lang="en"):
     ])
 
     # ── Enriched-entity sections (L1 Kings Unlock 2026-04-18) ──
-    # Gate on is_king removed. Registries in _L1_UNLOCK_SKIP_REGISTRIES keep
-    # their own rich templates and are skipped here to avoid duplicate blocks.
+    # Kings always render. Non-Kings render iff:
+    #   1) source is not in _L1_UNLOCK_SKIP_REGISTRIES (those keep their own
+    #      rich templates and would duplicate), AND
+    #   2) the module-level _L1_UNLOCK_ALLOWLIST is either empty (full rollout)
+    #      or contains this source (canary phase).
     king_sections = ""
     _is_king = agent.get("is_king", False)
     _L1_UNLOCK_SKIP_REGISTRIES = {"city", "charity", "ingredient", "supplement",
                                   "cosmetic_ingredient", "vpn", "country"}
-    _render_king_sections = _is_king or source not in _L1_UNLOCK_SKIP_REGISTRIES
+    _unlock_eligible = (
+        source not in _L1_UNLOCK_SKIP_REGISTRIES
+        and (not _L1_UNLOCK_ALLOWLIST or source in _L1_UNLOCK_ALLOWLIST)
+    )
+    _render_king_sections = _is_king or _unlock_eligible
     _dims: list = []
     if _render_king_sections:
         _dn_k = _esc(display_name)
