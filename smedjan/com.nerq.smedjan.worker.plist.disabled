@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+Smedjan factory worker LaunchAgent.
+
+Phase A ships this file with a `.disabled` suffix so `launchctl load` cannot
+find it in the normal scan path. Activation (Phase B) = rename to
+com.nerq.smedjan.worker.plist and `launchctl load -w`.
+
+The worker claims tasks continuously; KeepAlive=true restarts it if it dies
+mid-task (the in_progress task is picked up again on the next tick by the
+reclaim logic — future work for Phase B).
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.nerq.smedjan.worker</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/anstudio/agentindex/venv/bin/python3</string>
+        <string>-m</string>
+        <string>smedjan.worker</string>
+    </array>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PYTHONPATH</key>
+        <string>/Users/anstudio/agentindex</string>
+        <key>SMEDJAN_WORKER_DRY_RUN</key>
+        <string>0</string>
+    </dict>
+    <key>KeepAlive</key>
+    <true/>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>StandardOutPath</key>
+    <string>/Users/anstudio/smedjan/worker-logs/launchd.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/anstudio/smedjan/worker-logs/launchd.log</string>
+    <key>WorkingDirectory</key>
+    <string>/Users/anstudio/agentindex</string>
+</dict>
+</plist>

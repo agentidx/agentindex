@@ -1,0 +1,276 @@
+"""
+Smedjan CLI — single entry point used by the `smedjan` shell wrapper.
+
+Subcommands
+-----------
+    smedjan queue add --id T003 --title "..." --description "..." \
+                      --acceptance "..." [--risk low|medium|high] \
+                      [--deps T001,T002] [--whitelist path1,path2] \
+                      [--priority 100] [--session-group L2] \
+                      [--wait-for-evidence name] \
+                      [--fallback F1|F2|F3]
+    smedjan queue list [--status STATUS] [--registry REG]
+    smedjan queue show TASK_ID
+    smedjan queue approve TASK_ID [--start-at "YYYY-MM-DD HH:MM"]
+    smedjan queue block TASK_ID --reason "..."
+    smedjan queue next
+    smedjan queue resolve           # promote pending rows
+    smedjan queue evidence NAME [--payload '{"k":"v"}']  # record evidence
+    smedjan queue heartbeats
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import sys
+from datetime import datetime, timezone
+
+import psycopg2
+import psycopg2.extras
+
+from smedjan import factory_core
+from smedjan.config import PG_PRIMARY_DSN
+
+
+# ── helpers ──────────────────────────────────────────────────────────────
+
+def _conn():
+    return psycopg2.connect(PG_PRIMARY_DSN)
+
+
+def _parse_csv(value: str | None) -> list[str]:
+    if not value:
+        return []
+    return [v.strip() for v in value.split(",") if v.strip()]
+
+
+def _parse_start_at(value: str | None) -> datetime | None:
+    if not value:
+        return None
+    # Accept "YYYY-MM-DD HH:MM", ISO, or "YYYY-MM-DD". Local time → UTC.
+    for fmt in ("%Y-%m-%d %H:%M", "%Y-%m-%dT%H:%M", "%Y-%m-%d %H:%M:%S", "%Y-%m-%d"):
+        try:
+            dt = datetime.strptime(value, fmt)
+            return dt.astimezone()   # attach local tz
+        except ValueError:
+            continue
+    raise argparse.ArgumentTypeError(f"cannot parse --start-at {value!r}")
+
+
+def _fmt_task_row(r: dict) -> str:
+    tid = r["id"]
+    status = r["status"]
+    risk = r["risk_level"]
+    title = (r["title"] or "")[:60]
+    fb = r["fallback_category"] or ""
+    deps = ",".join(r["dependencies"] or []) or "-"
+    wait = r["wait_for_evidence"] or ""
+    sched = r["scheduled_start_at"].isoformat(timespec="minutes") if r["scheduled_start_at"] else ""
+    return f"{tid:6s} {status:15s} {risk:6s} {fb:3s} {deps:20s} {wait:22s} {sched:18s} {title}"
+
+
+# ── subcommand handlers ──────────────────────────────────────────────────
+
+def cmd_add(args: argparse.Namespace) -> int:
+    deps    = _parse_csv(args.deps)
+    wl      = _parse_csv(args.whitelist)
+
+    with _conn() as c, c.cursor() as cur:
+        cur.execute(
+            """
+            INSERT INTO smedjan.tasks
+                (id, title, description, acceptance_criteria,
+                 dependencies, risk_level, whitelisted_files,
+                 priority, session_group, wait_for_evidence,
+                 is_fallback, fallback_category, status)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 'pending')
+            """,
+            (
+                args.id, args.title, args.description, args.acceptance,
+                deps, args.risk, wl,
+                args.priority, args.session_group, args.wait_for_evidence,
+                bool(args.fallback), args.fallback,
+            ),
+        )
+    promoted = factory_core.resolve_ready_tasks()
+    print(f"added {args.id} (pending) — resolver: {promoted}")
+    return 0
+
+
+def cmd_list(args: argparse.Namespace) -> int:
+    clauses, params = [], []
+    if args.status:
+        clauses.append("status = %s")
+        params.append(args.status)
+    if args.fallback_only:
+        clauses.append("is_fallback = true")
+    where = ("WHERE " + " AND ".join(clauses)) if clauses else ""
+    with _conn() as c, c.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+        cur.execute(
+            f"SELECT * FROM smedjan.tasks {where} "
+            "ORDER BY priority, created_at",
+            params,
+        )
+        rows = cur.fetchall()
+
+    if not rows:
+        print("(no tasks)")
+        return 0
+    print(f"{'id':6s} {'status':15s} {'risk':6s} {'fb':3s} {'deps':20s} {'evidence':22s} {'start_at':18s} title")
+    print("-" * 140)
+    for r in rows:
+        print(_fmt_task_row(r))
+    return 0
+
+
+def cmd_show(args: argparse.Namespace) -> int:
+    with _conn() as c, c.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+        cur.execute("SELECT * FROM smedjan.tasks WHERE id = %s", (args.id,))
+        r = cur.fetchone()
+    if r is None:
+        print(f"task {args.id} not found", file=sys.stderr)
+        return 1
+    r_copy = dict(r)
+    for k, v in r_copy.items():
+        if isinstance(v, datetime):
+            r_copy[k] = v.isoformat()
+    print(json.dumps(r_copy, indent=2, default=str))
+    return 0
+
+
+def cmd_approve(args: argparse.Namespace) -> int:
+    try:
+        t = factory_core.approve(
+            args.id,
+            approver=os.environ.get("USER", "anders"),
+            start_at=_parse_start_at(args.start_at),
+        )
+    except factory_core.ApprovalError as e:
+        print(f"approve failed: {e}", file=sys.stderr)
+        return 2
+    extra = f" (start_at={t.scheduled_start_at.isoformat()})" if t.scheduled_start_at else ""
+    print(f"approved {t.id} — status={t.status}{extra}")
+    return 0
+
+
+def cmd_block(args: argparse.Namespace) -> int:
+    factory_core.mark_blocked(args.id, args.reason)
+    print(f"blocked {args.id}")
+    return 0
+
+
+def cmd_next(_args: argparse.Namespace) -> int:
+    t = factory_core.peek_next_task()
+    if t is None:
+        print("(queue empty)")
+        return 0
+    print(f"{t.id} [{t.status}] risk={t.risk_level} fb={t.fallback_category or '-'} "
+          f"priority={t.priority} session_group={t.session_group or '-'}")
+    print(f"  title: {t.title}")
+    if t.scheduled_start_at:
+        print(f"  scheduled_start_at: {t.scheduled_start_at.isoformat()}")
+    return 0
+
+
+def cmd_resolve(_args: argparse.Namespace) -> int:
+    counts = factory_core.resolve_ready_tasks()
+    print(f"resolver: {counts}")
+    return 0
+
+
+def cmd_evidence(args: argparse.Namespace) -> int:
+    payload = None
+    if args.payload:
+        try:
+            payload = json.loads(args.payload)
+        except json.JSONDecodeError as e:
+            print(f"--payload is not valid JSON: {e}", file=sys.stderr)
+            return 2
+    factory_core.record_evidence(args.name, payload=payload, created_by=os.environ.get("USER", "anders"))
+    print(f"evidence {args.name} recorded")
+    factory_core.resolve_ready_tasks()
+    return 0
+
+
+def cmd_heartbeats(_args: argparse.Namespace) -> int:
+    with _conn() as c, c.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+        cur.execute("SELECT * FROM smedjan.worker_heartbeats ORDER BY last_seen_at DESC")
+        rows = cur.fetchall()
+    if not rows:
+        print("(no workers have checked in)")
+        return 0
+    for r in rows:
+        print(f"{r['worker_id']:20s} last_seen={r['last_seen_at'].isoformat(timespec='seconds')} "
+              f"task={r['current_task'] or '-'} note={r['note'] or '-'}")
+    return 0
+
+
+# ── argparse setup ───────────────────────────────────────────────────────
+
+def _build_parser() -> argparse.ArgumentParser:
+    p = argparse.ArgumentParser("smedjan")
+    sub = p.add_subparsers(dest="cmd", required=True)
+
+    queue = sub.add_parser("queue", help="queue operations")
+    qsub = queue.add_subparsers(dest="sub", required=True)
+
+    add = qsub.add_parser("add", help="insert a task")
+    add.add_argument("--id", required=True)
+    add.add_argument("--title", required=True)
+    add.add_argument("--description", required=True)
+    add.add_argument("--acceptance", required=True)
+    add.add_argument("--risk", choices=("low", "medium", "high"), default="low")
+    add.add_argument("--deps", default="")
+    add.add_argument("--whitelist", default="")
+    add.add_argument("--priority", type=int, default=100)
+    add.add_argument("--session-group", default=None, dest="session_group")
+    add.add_argument("--wait-for-evidence", default=None, dest="wait_for_evidence")
+    add.add_argument("--fallback", choices=("F1", "F2", "F3"), default=None)
+    add.set_defaults(fn=cmd_add)
+
+    lst = qsub.add_parser("list", help="list tasks")
+    lst.add_argument("--status", default=None)
+    lst.add_argument("--fallback-only", action="store_true")
+    lst.set_defaults(fn=cmd_list)
+
+    show = qsub.add_parser("show", help="show task detail (JSON)")
+    show.add_argument("id")
+    show.set_defaults(fn=cmd_show)
+
+    ap = qsub.add_parser("approve", help="needs_approval → approved")
+    ap.add_argument("id")
+    ap.add_argument("--start-at", default=None, dest="start_at",
+                    help='YYYY-MM-DD HH:MM local time — required for risk=high')
+    ap.set_defaults(fn=cmd_approve)
+
+    blk = qsub.add_parser("block", help="force → blocked")
+    blk.add_argument("id")
+    blk.add_argument("--reason", required=True)
+    blk.set_defaults(fn=cmd_block)
+
+    nxt = qsub.add_parser("next", help="peek the next claimable task (no state change)")
+    nxt.set_defaults(fn=cmd_next)
+
+    rslv = qsub.add_parser("resolve", help="promote pending rows whose deps/evidence are ready")
+    rslv.set_defaults(fn=cmd_resolve)
+
+    ev = qsub.add_parser("evidence", help="record an evidence signal")
+    ev.add_argument("name")
+    ev.add_argument("--payload", default=None, help='JSON blob')
+    ev.set_defaults(fn=cmd_evidence)
+
+    hb = qsub.add_parser("heartbeats", help="list worker heartbeats")
+    hb.set_defaults(fn=cmd_heartbeats)
+
+    return p
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = _build_parser()
+    args = parser.parse_args(argv)
+    return args.fn(args)
+
+
+if __name__ == "__main__":
+    sys.exit(main())
