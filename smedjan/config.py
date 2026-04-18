@@ -149,7 +149,7 @@ NTFY_URL   = f"https://ntfy.sh/{NTFY_TOPIC}"
 
 # ── Worker ────────────────────────────────────────────────────────────────
 # `claude` CLI is the ONLY supported invocation. Paid APIs are forbidden.
-CLAUDE_CLI = os.environ.get("SMEDJAN_CLAUDE_CLI", "/usr/local/bin/claude")
+CLAUDE_CLI = os.environ.get("SMEDJAN_CLAUDE_CLI", "/opt/homebrew/bin/claude")
 CLAUDE_MODEL = os.environ.get("SMEDJAN_CLAUDE_MODEL", "")  # default = CLI default
 WORKER_IDLE_SLEEP_SECONDS = int(os.environ.get("SMEDJAN_WORKER_IDLE", "60"))
 WORKER_MAX_TASK_SECONDS   = int(os.environ.get("SMEDJAN_WORKER_MAX_TASK", "3600"))

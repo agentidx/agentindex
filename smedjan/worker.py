@@ -94,13 +94,49 @@ Session group : {task.session_group or '(none)'}
 ─── Acceptance criteria ───
 {task.acceptance_criteria}
 
+─── Environment you are running in ───
+- Host: Mac Studio (anderss-mac-studio). Nerq-prod lives here; the
+  Smedjan factory DB lives on smedjan.nbg1.hetzner via Tailscale.
+- Repo root: /Users/anstudio/agentindex (branch smedjan-factory-v0).
+  Consult the branch for existing helpers before writing new ones.
+- Smedjan working tree outside the repo: /Users/anstudio/smedjan/
+  (runbooks, baselines, observations, audit-reports, worker-logs).
+- Secrets: /Users/anstudio/smedjan/config/.env (mode 600) holds
+  SMEDJAN_APP_PW (smedjan DB writer) and NERQ_RO_PW (Nerq replica
+  reader). Source it when a shell needs PGPASSWORD.
+- Python package `smedjan` on PYTHONPATH=/Users/anstudio/agentindex
+  exposes three idiomatic data-access paths — PREFER THESE over
+  hand-rolled DSN strings:
+      from smedjan import sources
+      with sources.smedjan_db_cursor() as (_, cur): ...       # writes
+      with sources.nerq_readonly_cursor() as (_, cur): ...    # Nerq RO
+      with sources.analytics_mirror_cursor() as (_, cur): ... # requests mirror
+- Raw psql fallback (only when Python is inappropriate):
+      smedjan DB:    /opt/homebrew/Cellar/postgresql@16/16.11_1/bin/psql -h smedjan -U smedjan_app -d smedjan
+                     (PGPASSWORD=$SMEDJAN_APP_PW; SCHEMA 'smedjan' for factory tables,
+                      'analytics_mirror' for requests/preflight mirror)
+      Nerq RO:       /opt/homebrew/Cellar/postgresql@16/16.11_1/bin/psql -U smedjan_readonly -d agentindex
+                     (PGPASSWORD=$NERQ_RO_PW; local replica, read-only)
+- CLI: `~/agentindex/scripts/smedjan queue add|list|show|approve|block|next|
+  resolve|evidence|heartbeats` — use this to create follow-up tasks
+  instead of direct INSERT.
+
 ─── Rules ───
 - Only modify files listed under "Whitelisted" above, or paths clearly
   implied by the description. Any attempt to modify files on the forbidden
-  list (api/main.py, alembic/, robots.txt, sitemap.xml, CLAUDE.md) must
-  abort with STATUS: blocked.
-- Paid APIs are forbidden (no Anthropic API direct, no OpenAI, no paid
-  search). Use the Max-subscription Claude environment you are running in.
+  list (agentindex/api/main.py, alembic/, robots.txt, sitemap.xml,
+  CLAUDE.md, docs/buzz-context.md, .env files) must abort with
+  STATUS: blocked.
+- Paid APIs are forbidden (Anthropic API direct, OpenAI, paid search).
+  Use the Max-subscription Claude environment you are running in. If
+  a task seems to require a paid API, STATUS: needs_approval with notes.
+- Any Nerq-production-affecting change (plist edits, launchctl,
+  kickstart, Redis purges, Cloudflare, git push) MUST NOT be performed
+  without explicit task description authority. If the description asks
+  you to design/propose but not execute, do not execute.
+- Commit code changes on the current branch (smedjan-factory-v0) with
+  a single meaningful commit per task unless the description says
+  otherwise. Do NOT push to origin.
 - When work is complete (or you need to pause), emit a *single* result
   block at the end of your final message:
 
@@ -126,21 +162,28 @@ Go.
 def invoke_claude(prompt: str, *, dry_run: bool, timeout_seconds: int) -> tuple[int, str, str]:
     """Run `claude` CLI with the prompt on stdin, return (rc, stdout, stderr).
 
-    Phase A (dry_run=True): returns a canned stdout that the parser will
-    reject, so no real execution occurs — the loop records the attempt but
-    immediately marks the task as needs_approval with reason "dry-run".
-    Phase B (dry_run=False): real subprocess.
-
-    We never write the prompt to disk (it may contain file paths that are
-    merely internal context); it is piped via stdin.
+    dry_run=True: no subprocess fires; worker marks the task needs_approval.
+    dry_run=False: real invocation via `claude --print --permission-mode
+        bypassPermissions`. ANTHROPIC_API_KEY is stripped from the
+        subprocess env so the paid-API fallback can never fire even if
+        someone exports it into an outer shell; Max-subscription
+        (apiKeySource=claude.ai) is the only path. See
+        docs/smedjan/runbooks/claude-code-linux-auth.md for the auth
+        history.
     """
     if dry_run:
         LOG.info("DRY RUN — would invoke %s with %d-char prompt", CLAUDE_CLI, len(prompt))
         return 0, "DRY_RUN_NO_EXECUTION", ""
 
-    cmd = [CLAUDE_CLI]
+    cmd = [CLAUDE_CLI, "--print", "--permission-mode", "bypassPermissions"]
     if CLAUDE_MODEL:
         cmd += ["--model", CLAUDE_MODEL]
+
+    # Defense-in-depth: never inherit ANTHROPIC_API_KEY. Max-subscription
+    # OAuth is the only allowed auth path.
+    env = {k: v for k, v in os.environ.items() if k != "ANTHROPIC_API_KEY"}
+    env["ANTHROPIC_API_KEY"] = ""
+
     LOG.info("invoking: %s (timeout=%ds)", " ".join(cmd), timeout_seconds)
     try:
         proc = subprocess.run(
@@ -150,6 +193,8 @@ def invoke_claude(prompt: str, *, dry_run: bool, timeout_seconds: int) -> tuple[
             text=True,
             timeout=timeout_seconds,
             check=False,
+            env=env,
+            cwd="/Users/anstudio/agentindex",
         )
         return proc.returncode, proc.stdout or "", proc.stderr or ""
     except FileNotFoundError:
