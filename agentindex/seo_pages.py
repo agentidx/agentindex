@@ -2086,7 +2086,7 @@ def _build_schema(a, jurisdictions):
         "review": {
             "@type": "Review",
             "author": {"@type": "Organization", "name": "Nerq", "url": "https://nerq.ai"},
-            "datePublished": _dt.utcnow().strftime("%Y-%m-%d"),
+            "datePublished": _raw_assessed.strftime("%Y-%m-%d") if _raw_assessed and hasattr(_raw_assessed, 'strftime') else _dt.utcnow().strftime("%Y-%m-%d"),
             "reviewBody": f"Nerq Weighted Global Compliance Score: {compliance_score}/100. "
                          f"Assessed against {len(jurisdictions)} global AI regulations "
                          f"weighted by jurisdiction penalty severity. "
@@ -2127,7 +2127,7 @@ def _build_schema(a, jurisdictions):
         {"@type": "PropertyValue", "name": "jurisdictionsAssessed", "value": len(jurisdictions)},
         {"@type": "PropertyValue", "name": "highRiskJurisdictions", "value": high_count},
         {"@type": "PropertyValue", "name": "dataSource", "value": "Nerq.ai"},
-        {"@type": "PropertyValue", "name": "lastAssessed", "value": _dt.utcnow().strftime("%Y-%m-%d")}
+        {"@type": "PropertyValue", "name": "lastAssessed", "value": _raw_assessed.strftime("%Y-%m-%d") if _raw_assessed and hasattr(_raw_assessed, 'strftime') else _dt.utcnow().strftime("%Y-%m-%d")}
     ]
     
     # Only add rating if we have a real compliance score
