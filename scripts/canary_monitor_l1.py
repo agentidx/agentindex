@@ -14,9 +14,13 @@ Conditions
   2. Whole Nerq 5xx rate in the last 30 min > 0.2 %.
      Baseline: 3 / 1,194,849 = 0.00025 %. 0.2 % is ~800× baseline and
      matches the "20 % above baseline" spirit once baseline is non-zero.
-  3. analytics.db write rate in the last 5 min < 476 req/min.
-     Baseline p50: 953 req/min. 476 = 50 %. Triggers on a genuine hang
-     (LaunchAgent frozen, SQLite lock) without firing on normal valleys.
+  3. analytics.db write rate in the last 5 min < 150 req/min.
+     7d baseline p50 (5-min rolling): 736 req/min. 150 ≈ 20 % of p50
+     and sits below the 5-min-rolling p01 (188). Above this, SQLite
+     WAL-checkpoint batching produces legitimate dips (~11 % of 5-min
+     windows land below 476); below 150 indicates a genuine hang
+     (LaunchAgent frozen, SQLite lock). See
+     smedjan/observations/write-rate-investigation-20260418.md.
 
 Environment overrides (useful for tests)
   SMEDJAN_NTFY_TOPIC   default: nerq-alerts
@@ -53,7 +57,7 @@ DEDUP_WINDOW_SECONDS = 30 * 60  # don't re-page for the same alert within 30 min
 # Thresholds (doc above)
 CANARY_5XX_FLOOR_30M      = 3
 WHOLE_5XX_PCT_30M         = 0.2     # %
-WRITE_RATE_MIN_PER_MIN_5M = 476
+WRITE_RATE_MIN_PER_MIN_5M = 150
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger("smedjan.canary_monitor")
