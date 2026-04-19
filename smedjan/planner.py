@@ -24,16 +24,24 @@ Planner never writes to Nerq; it writes only to the smedjan DB.
 from __future__ import annotations
 
 import argparse
+import json
 import logging
 import re
 import sys
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 from typing import Iterable
 
 import psycopg2
 import psycopg2.extras
 
 from smedjan import factory_core, ntfy, sources
+
+# Registry of synthetic scale-bucket task templates. Used by
+# generate_quota_fill() when live-queue scale ratio < 70 % — the planner
+# instantiates tasks from this file rather than only warning. Ships empty;
+# templates are piled in over time without further code changes.
+SCALE_TEMPLATES_PATH = Path(__file__).parent / "config" / "scale_templates.json"
 
 log = logging.getLogger("smedjan.planner")
 
@@ -326,11 +334,95 @@ def _bump_queue_priorities(dry_run: bool) -> int:
     return len(bumps)
 
 
+def _load_scale_templates() -> list[dict]:
+    """Read scale_templates.json. Returns [] if the file is missing,
+    malformed, or contains no templates — callers treat that as 'nothing
+    to rebalance with, just warn' rather than a hard error."""
+    try:
+        raw = SCALE_TEMPLATES_PATH.read_text()
+    except FileNotFoundError:
+        log.info("scale_templates.json missing at %s — no auto-rebalance", SCALE_TEMPLATES_PATH)
+        return []
+    try:
+        doc = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        log.error("scale_templates.json invalid JSON: %s", exc)
+        return []
+    templates = doc.get("templates") if isinstance(doc, dict) else None
+    if not isinstance(templates, list):
+        log.error("scale_templates.json missing top-level list 'templates'")
+        return []
+    return templates
+
+
+def _generate_scale_fillers(dry_run: bool) -> int:
+    """Instantiate one task per scale_templates.json entry whose synthetic
+    id isn't already present. id = id_prefix + UTC date suffix, so a given
+    template can top up the queue at most once per UTC day. Returns the
+    number of tasks inserted (or would-insert under dry_run)."""
+    templates = _load_scale_templates()
+    if not templates:
+        return 0
+
+    existing = _existing_ids()
+    today = datetime.now(timezone.utc).strftime("%Y%m%d")
+    inserted = 0
+
+    for tmpl in templates:
+        prefix = tmpl.get("id_prefix")
+        title = tmpl.get("title")
+        if not prefix or not title:
+            log.warning("skipping malformed scale template: %s", tmpl)
+            continue
+        new_id = f"{prefix}-{today}"
+        if new_id in existing:
+            continue
+        risk = tmpl.get("risk_level", "low")
+        if risk != "low":
+            log.warning("scale template %s has risk_level=%s; refusing to auto-enqueue", prefix, risk)
+            continue
+        priority = tmpl.get("priority", 60)
+        if dry_run:
+            log.info("DRY: would enqueue scale filler %s (priority=%d)", new_id, priority)
+            inserted += 1
+            existing.add(new_id)
+            continue
+        with sources.smedjan_db_cursor() as (_, icur):
+            icur.execute(
+                """
+                INSERT INTO smedjan.tasks
+                    (id, title, description, acceptance_criteria,
+                     risk_level, whitelisted_files, priority,
+                     session_group, dependencies, status)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, 'pending')
+                ON CONFLICT (id) DO NOTHING
+                """,
+                (
+                    new_id, title,
+                    tmpl.get("description", ""),
+                    tmpl.get("acceptance_criteria", ""),
+                    risk,
+                    tmpl.get("whitelisted_files", []),
+                    priority,
+                    tmpl.get("session_group"),
+                    [],
+                ),
+            )
+        existing.add(new_id)
+        inserted += 1
+        log.info("enqueued scale filler %s", new_id)
+
+    if inserted and not dry_run:
+        factory_core.resolve_ready_tasks()
+    return inserted
+
+
 def generate_quota_fill(dry_run: bool = False) -> dict:
-    """Observe and warn. v1 does not auto-create tasks to top-up quota; it
-    logs drift so Anders (or a future Planner) can decide. Also bumps
-    priority on active-queue tasks that reference a top-tier
-    ai_demand_scores slug. Returns the composition + recommendation."""
+    """Observe, warn, and act. When scale ratio < 70 %, instantiate
+    synthetic scale-bucket tasks from smedjan/config/scale_templates.json
+    (idempotent per UTC day). Also bumps priority on active-queue tasks
+    that reference a top-tier ai_demand_scores slug. Returns the
+    composition + recommendation + action counters."""
     comp = _live_queue_composition()
     total = max(1, comp["total"])
     ratios = {
@@ -353,6 +445,12 @@ def generate_quota_fill(dry_run: bool = False) -> dict:
     for w in warnings:
         log.warning("quota warning: %s", w)
 
+    scale_fillers = 0
+    if ratios["scale"] < 0.70:
+        scale_fillers = _generate_scale_fillers(dry_run=dry_run)
+        log.info("scale-rebalance action: %d filler task(s) %s",
+                 scale_fillers, "dry-run" if dry_run else "enqueued")
+
     demand_bumps = _bump_queue_priorities(dry_run=dry_run)
 
     return {
@@ -361,6 +459,7 @@ def generate_quota_fill(dry_run: bool = False) -> dict:
         "verdict": verdict,
         "warnings": warnings,
         "demand_bumps": demand_bumps,
+        "scale_fillers": scale_fillers,
     }
 
 

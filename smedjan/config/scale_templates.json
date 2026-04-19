@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "description": "Synthetic scale-bucket task templates. Planner.generate_quota_fill instantiates one task per template when the live queue's scale ratio drops below 70%. Each new task's id = id_prefix + UTC date suffix, so the same template can replenish the queue at most once per day. Keep templates risk=low and whitelisted to paths inside smedjan/ or the agentindex static-render layer — they are auto-approved by the factory.",
+  "schema": {
+    "id_prefix": "string, unique base for generated task ids",
+    "title": "string",
+    "description": "string",
+    "acceptance_criteria": "string",
+    "risk_level": "'low' (required for scale bucket)",
+    "whitelisted_files": ["list of relative paths"],
+    "priority": "int, lower = more urgent (default 60)",
+    "session_group": "optional string"
+  },
+  "templates": []
+}
