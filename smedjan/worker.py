@@ -40,6 +40,7 @@ from smedjan.config import (
 )
 
 WORKER_ID = os.environ.get("SMEDJAN_WORKER_ID", f"{socket.gethostname()}:{os.getpid()}")
+WORKER_AFFINITY = os.environ.get("SMEDJAN_WORKER_AFFINITY") or None
 
 
 # ── logging ──────────────────────────────────────────────────────────────
@@ -208,7 +209,7 @@ def invoke_claude(prompt: str, *, dry_run: bool, timeout_seconds: int) -> tuple[
 def _run_once(dry_run: bool) -> bool:
     """Claim + execute one task. Returns True if a task was handled,
     False if the queue was empty."""
-    task = factory_core.claim_next_task(WORKER_ID)
+    task = factory_core.claim_next_task(WORKER_ID, affinity=WORKER_AFFINITY)
     if task is None:
         factory_core.heartbeat(WORKER_ID, None, "idle")
         return False

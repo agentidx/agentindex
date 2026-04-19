@@ -62,6 +62,7 @@ class Task:
     fallback_category: str | None
     evidence: Any
     notes: str | None
+    session_affinity: str | None = None
 
     @classmethod
     def from_row(cls, row: dict) -> "Task":
@@ -88,6 +89,7 @@ class Task:
             fallback_category=row["fallback_category"],
             evidence=row["evidence"],
             notes=row["notes"],
+            session_affinity=row.get("session_affinity"),
         )
 
 
@@ -194,6 +196,10 @@ def resolve_ready_tasks() -> dict[str, int]:
 
 # ── Claim next task ──────────────────────────────────────────────────────
 
+# Primary-queue claim. The `%(affinity)s` filter is either NULL (legacy /
+# generic pool) or matches the worker's own affinity tag. Workers with
+# affinity 'a' pick tasks tagged 'a' OR untagged. `NULL` workers (no
+# affinity set) pick any task (legacy behaviour).
 CLAIM_SQL = """
 WITH cte AS (
     SELECT id
@@ -204,19 +210,34 @@ WITH cte AS (
               AND (scheduled_start_at IS NULL OR scheduled_start_at <= now()))
       )
       AND NOT is_fallback
-    ORDER BY priority, created_at
+      AND (
+          %(affinity)s::text IS NULL
+          OR session_affinity IS NULL
+          OR session_affinity = %(affinity)s::text
+      )
+    ORDER BY
+        -- prefer own-affinity tasks over generic ones, so a worker's
+        -- matching backlog drains before it raids the generic pool.
+        CASE
+            WHEN %(affinity)s::text IS NOT NULL AND session_affinity = %(affinity)s::text THEN 0
+            ELSE 1
+        END,
+        priority, created_at
     FOR UPDATE SKIP LOCKED
     LIMIT 1
 )
 UPDATE smedjan.tasks t
    SET status      = 'in_progress',
-       claimed_by  = %s,
+       claimed_by  = %(worker_id)s,
        claimed_at  = now()
   FROM cte
  WHERE t.id = cte.id
 RETURNING t.*;
 """
 
+# Fallback claim follows the same affinity filter so a worker stuck on
+# an affinity with no fallback of its own can still draw NULL-tagged
+# fallback work (today's fallback_generator output is untagged).
 CLAIM_FALLBACK_SQL = """
 WITH cte AS (
     SELECT id
@@ -227,6 +248,11 @@ WITH cte AS (
               AND (scheduled_start_at IS NULL OR scheduled_start_at <= now()))
       )
       AND is_fallback
+      AND (
+          %(affinity)s::text IS NULL
+          OR session_affinity IS NULL
+          OR session_affinity = %(affinity)s::text
+      )
     ORDER BY
         CASE fallback_category
             WHEN 'F1' THEN 1
@@ -239,7 +265,7 @@ WITH cte AS (
 )
 UPDATE smedjan.tasks t
    SET status      = 'in_progress',
-       claimed_by  = %s,
+       claimed_by  = %(worker_id)s,
        claimed_at  = now()
   FROM cte
  WHERE t.id = cte.id
@@ -247,17 +273,23 @@ RETURNING t.*;
 """
 
 
-def claim_next_task(worker_id: str, *, include_fallback: bool = True) -> Task | None:
+def claim_next_task(worker_id: str, *, include_fallback: bool = True,
+                    affinity: str | None = None) -> Task | None:
     """Atomically claim the highest-priority ready task for `worker_id`.
+
+    `affinity`: worker's routing tag ('a', 'b', 'c', 'd' or None for a
+    legacy untagged worker). Workers only claim tasks with matching
+    session_affinity OR untagged tasks.
 
     Primary queue is tried first; the fallback layer (F1 > F2 > F3) is only
     consulted when the primary queue is empty.
     """
+    params = {"worker_id": worker_id, "affinity": affinity}
     with _connect() as conn, conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-        cur.execute(CLAIM_SQL, (worker_id,))
+        cur.execute(CLAIM_SQL, params)
         row = cur.fetchone()
         if row is None and include_fallback:
-            cur.execute(CLAIM_FALLBACK_SQL, (worker_id,))
+            cur.execute(CLAIM_FALLBACK_SQL, params)
             row = cur.fetchone()
     return Task.from_row(row) if row else None
 
@@ -402,6 +434,65 @@ def heartbeat(worker_id: str, current_task: str | None, note: str | None = None)
             """,
             (worker_id, current_task, note),
         )
+
+
+# ── Reclaim orphaned in_progress tasks ───────────────────────────────────
+
+def reclaim_stuck_tasks(
+    claim_ttl_minutes: int = 30,
+    heartbeat_timeout_minutes: int = 5,
+) -> list[dict]:
+    """Return tasks to the queue when their worker has gone quiet.
+
+    An in_progress task is considered stuck when BOTH:
+        - it was claimed more than `claim_ttl_minutes` ago, AND
+        - its worker's last heartbeat is older than
+          `heartbeat_timeout_minutes` (or there is no heartbeat row).
+
+    The reclaim transitions the task back to 'queued' and appends a
+    short note so the audit trail is not lost. Returns the list of
+    reclaimed task dicts for logging / ntfy.
+    """
+    with _connect() as conn, conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+        cur.execute(
+            """
+            WITH candidates AS (
+                SELECT t.id, t.claimed_by, t.claimed_at, t.title,
+                       h.last_seen_at,
+                       EXTRACT(EPOCH FROM (now() - t.claimed_at))/60 AS claim_age_min,
+                       EXTRACT(EPOCH FROM (now() - h.last_seen_at))/60 AS hb_age_min
+                FROM smedjan.tasks t
+                LEFT JOIN smedjan.worker_heartbeats h ON h.worker_id = t.claimed_by
+                WHERE t.status = 'in_progress'
+                  AND t.claimed_at < now() - (%s || ' minutes')::interval
+                  AND (h.last_seen_at IS NULL
+                       OR h.last_seen_at < now() - (%s || ' minutes')::interval)
+            )
+            UPDATE smedjan.tasks t
+               SET status = 'queued',
+                   claimed_by = NULL,
+                   claimed_at = NULL,
+                   notes = concat_ws(E'\\n',
+                       t.notes,
+                       '[reclaim ' || to_char(now(), 'YYYY-MM-DD HH24:MI:SS') ||
+                       '] returned to queue; prior worker ' || c.claimed_by ||
+                       ' idle since ' ||
+                       COALESCE(to_char(c.last_seen_at, 'YYYY-MM-DD HH24:MI:SS'), 'never'))
+              FROM candidates c
+             WHERE t.id = c.id
+             RETURNING t.id, t.title, c.claimed_by, c.claim_age_min, c.hb_age_min
+            """,
+            (claim_ttl_minutes, heartbeat_timeout_minutes),
+        )
+        rows = cur.fetchall()
+    for r in rows:
+        log.warning(
+            "reclaimed %s (claim_age=%.1fm hb_age=%s prior_worker=%s)",
+            r["id"], r["claim_age_min"],
+            f"{r['hb_age_min']:.1f}m" if r["hb_age_min"] is not None else "never",
+            r["claimed_by"],
+        )
+    return [dict(r) for r in rows]
 
 
 # ── Structured output parsing ────────────────────────────────────────────
