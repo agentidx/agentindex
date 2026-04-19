@@ -1338,6 +1338,14 @@ app.include_router(router_vitality)
 # Token scanner
 from agentindex.crypto.zarq_scan import router_scan, mount_scan_page
 app.include_router(router_scan)
+
+# ── /scan → /risk-scanner 301 (AUDIT-QUERY-20260418 #12; /scan 90.6% 404) ──
+# Registered before mount_scan_page so this handler wins over the legacy zarq.ai-gated page.
+from starlette.responses import RedirectResponse as _RR_scan
+@app.get("/scan", include_in_schema=False)
+async def _scan_to_risk_scanner():
+    return _RR_scan(url="/risk-scanner", status_code=301)
+
 mount_scan_page(app)
 
 # Sprint 2: Save Simulator
@@ -1440,6 +1448,68 @@ async def zarq_kya_redirect(path: str = ""):
 # The ZARQ Signal — Predictive Risk Feed
 from agentindex.signal_feed import router_signal
 app.include_router(router_signal)
+
+# ── Canned /v1/crypto/*/test example responses (AUDIT-QUERY-20260418 #10) ──
+# Docs use `{token}` placeholders; bots/LLMs GET the literal `test` path.
+# Must be registered BEFORE the path-parameter router below so literal wins.
+from fastapi.responses import JSONResponse as _JR_crypto_ex
+from datetime import datetime as _dt_crypto_ex
+
+_CRYPTO_EX_HINT = (
+    "Example payload. Replace 'test' with a real token id "
+    "(e.g. 'bitcoin', 'ethereum', 'solana'). See /v1/docs for full schema."
+)
+
+def _crypto_ex_meta():
+    return {
+        "api_version": "2.0.0",
+        "timestamp": _dt_crypto_ex.utcnow().isoformat() + "Z",
+        "example": True,
+        "hint": _CRYPTO_EX_HINT,
+    }
+
+@app.get("/v1/crypto/rating/test", tags=["crypto-v1"])
+async def _crypto_rating_example():
+    return _JR_crypto_ex({
+        "data": {
+            "token_id": "bitcoin", "symbol": "BTC", "name": "Bitcoin",
+            "market_cap_rank": 1, "rating": "Aaa", "score": 95.0,
+            "pillar_1": 98.0, "pillar_2": 92.0, "pillar_3": 96.0,
+            "pillar_4": 97.0, "pillar_5": 93.0,
+            "pillars": {"security": 98.0, "compliance": 92.0,
+                        "maintenance": 96.0, "popularity": 97.0, "ecosystem": 93.0},
+            "summary": _CRYPTO_EX_HINT,
+        },
+        "meta": _crypto_ex_meta(),
+    })
+
+@app.get("/v1/crypto/ndd/test", tags=["crypto-v1"])
+async def _crypto_ndd_example():
+    return _JR_crypto_ex({
+        "data": {
+            "token_id": "bitcoin", "symbol": "BTC", "name": "Bitcoin",
+            "trust_grade": "Aaa", "ndd": 3.42, "alert_level": "SAFE",
+            "ndd_trend": "stable", "ndd_change_4w": 0.05,
+            "crash_probability": 0.05, "hc_alert": 0, "hc_streak": 0,
+            "bottlefish_signal": "none",
+            "summary": _CRYPTO_EX_HINT,
+        },
+        "meta": _crypto_ex_meta(),
+    })
+
+@app.get("/v1/crypto/safety/test", tags=["crypto-v1"])
+async def _crypto_safety_example():
+    return _JR_crypto_ex({
+        "data": {
+            "token_id": "bitcoin", "symbol": "BTC", "name": "Bitcoin",
+            "rating": "Aaa", "score": 95.0, "market_cap_rank": 1,
+            "ndd": 3.42, "alert_level": "SAFE", "crash_probability": 0.05,
+            "risk_level": "SAFE", "structural_weakness": 0, "structural_strength": 3,
+            "flags": [], "safe": True,
+            "summary": _CRYPTO_EX_HINT,
+        },
+        "meta": _crypto_ex_meta(),
+    })
 
 # Sprint 2.5: v1/ crypto API endpoints
 from agentindex.crypto.crypto_api_v2 import router_v1 as crypto_v1_router
@@ -1759,7 +1829,15 @@ from agentindex.entity_pages import mount_entity_pages
 mount_entity_pages(app)
 
 # Registry hub pages + tiered sitemaps
-from agentindex.hub_pages import mount_hub_pages
+# Inject /homebrew hub (AUDIT-QUERY-20260418 #10; 44 hits/7d, 100% 404)
+# Mirrors /npm page structure via the shared HUBS → _render_hub pipeline.
+from agentindex.hub_pages import HUBS as _NERQ_HUBS, mount_hub_pages
+_NERQ_HUBS["homebrew"] = {
+    "title": "Homebrew Formula Trust Ratings",
+    "registries": ["homebrew"],
+    "desc": "Trust scores for Homebrew formulae and casks. Security, maintenance, and community analysis.",
+    "route_prefix": "homebrew",
+}
 mount_hub_pages(app)
 
 # Universal URL pattern routes (23 new patterns)
