@@ -60,7 +60,7 @@ TARGET_PER_CATEGORY = 10
 # pile up. F1 stays at 10 by default but is pause-flagged until signal
 # (f1_restore_flag or removal of f1_paused.flag); see _is_paused below.
 _TARGET_OVERRIDES = {
-    "F2": 1,
+    "F2": 5,
 }
 
 

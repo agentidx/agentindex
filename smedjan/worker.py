@@ -207,10 +207,9 @@ def invoke_claude(prompt: str, *, dry_run: bool, timeout_seconds: int) -> tuple[
 # ── main loop ────────────────────────────────────────────────────────────
 
 def _apply_session_budget_throttle() -> None:
-    """Check the rolling 5h claim-budget. Sleep if we are approaching
-    the Max 5h quota so Anders does not burn the window on cheap
-    tasks. No-op if the session_budget module is unavailable (e.g.
-    running outside Mac Studio)."""
+    """Check both the 5h-window and the Smedjan-share throttle. Sleep
+    for whichever asks longer. No-op if the session_budget module is
+    unavailable (e.g. running outside Mac Studio)."""
     try:
         import sys as _sys
         _sys.path.insert(0, "/Users/anstudio/smedjan/scripts")
@@ -218,16 +217,30 @@ def _apply_session_budget_throttle() -> None:
     except Exception as exc:  # noqa: BLE001 — throttle is best-effort
         LOG.debug("session_budget unavailable: %s", exc)
         return
+    # share_sleep_seconds() already max()'s against the 5h throttle.
+    try:
+        sleep_s = sb.share_sleep_seconds()
+    except Exception as exc:  # noqa: BLE001
+        LOG.debug("share throttle failed, falling back to 5h only: %s", exc)
+        sleep_s = sb.recommended_sleep_seconds()
+    if sleep_s == 0:
+        return
     snap = sb.snapshot()
-    if snap.sleep_seconds == 0:
+    if sleep_s < 0:
+        # share exhausted — pause for 5 minutes, then recheck
+        factory_core.heartbeat(WORKER_ID, None,
+                               f"share-exhausted {snap.weekly_percent:.0%}w sleep=300s")
+        LOG.warning("share exhausted — paused 300s. Anders must sync or reset must hit.")
+        import time
+        time.sleep(300)
         return
     factory_core.heartbeat(WORKER_ID, None,
-                           f"throttled:{snap.usage_percent:.0%} sleep={snap.sleep_seconds}s")
-    LOG.info("session budget throttle: claims=%d/%d (%.0f%%) sleep=%ds",
+                           f"throttled 5h={snap.usage_percent:.0%} sleep={sleep_s}s")
+    LOG.info("throttle: 5h=%d/%d (%.0f%%) sleep=%ds",
              snap.claims_in_window, sb.CLAIM_BUDGET_5H,
-             snap.usage_percent * 100, snap.sleep_seconds)
+             snap.usage_percent * 100, sleep_s)
     import time
-    time.sleep(snap.sleep_seconds)
+    time.sleep(sleep_s)
 
 
 def _run_once(dry_run: bool) -> bool:

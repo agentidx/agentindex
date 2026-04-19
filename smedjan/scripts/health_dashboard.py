@@ -442,6 +442,44 @@ def _render_projection(budget: dict) -> str:
     )
 
 
+def _render_smedjan_share(share: dict | None) -> str:
+    if not share:
+        return "<p class='meta'>Smedjan budget allocation config not available.</p>"
+    status = share.get("status", "green")
+    colour = {"green": "ok", "yellow": "warn", "red": "bad", "over": "bad"}.get(status, "ok")
+    dot = f"<span class='dot dot-{colour}'></span>"
+    stale_note = " · <strong>STALE sync (>6h)</strong>" if share.get("stale_sync") else ""
+    alloc = share["smedjan_allocated_pct"]
+    safe = share["safe_daily_pct"]
+    used = share["used_since_sync_pct"]
+    frac = share["share_fraction_consumed"] * 100
+    remaining = share["remaining_share_pct"]
+    return (
+        "<div class='grid'>"
+        "<div class='card'>"
+        "<div class='label'>Smedjan allocated</div>"
+        f"<div class='value mono'>{dot}{alloc:.1f}%</div>"
+        f"<div class='sub'>{share['share_pct']}% of remaining ({share['remaining_at_sync_pct']:.0f}% unused at sync)</div>"
+        "</div>"
+        "<div class='card'>"
+        "<div class='label'>safe daily burn</div>"
+        f"<div class='value mono'>{safe:.2f}%/day</div>"
+        f"<div class='sub'>{share['days_to_reset']:.1f} days to reset</div>"
+        "</div>"
+        "<div class='card'>"
+        "<div class='label'>used since sync</div>"
+        f"<div class='value mono'>{used:.2f}% ({share['claims_since_sync']} claims)</div>"
+        f"<div class='sub'>{frac:.1f}% of share consumed{stale_note}</div>"
+        "</div>"
+        "<div class='card'>"
+        "<div class='label'>remaining Smedjan share</div>"
+        f"<div class='value mono'>{remaining:.2f}%</div>"
+        f"<div class='sub'>last sync: {html.escape(share.get('last_observed_at') or '—')}</div>"
+        "</div>"
+        "</div>"
+    )
+
+
 def render_html(
     workers: list[dict],
     queue: dict[str, int],
@@ -449,6 +487,7 @@ def render_html(
     canary: dict | None,
     error: str | None = None,
     budget: dict | None = None,
+    share: dict | None = None,
 ) -> str:
     now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
     banner = f"<div class='banner'>{html.escape(error)}</div>" if error else ""
@@ -466,6 +505,8 @@ def render_html(
 {banner}
 <h2>Workers</h2>
 {_render_workers(workers)}
+<h2>Smedjan budget (weekly share of Claude Max)</h2>
+{_render_smedjan_share(share)}
 <h2>Session budget (Claude Code Max 5h window)</h2>
 {_render_budget(budget)}
 <h2>Queue depth</h2>
@@ -481,6 +522,24 @@ def render_html(
 
 
 # ── main ─────────────────────────────────────────────────────────────────
+
+def _fetch_smedjan_share() -> dict | None:
+    """Pull Anders' Smedjan-share allocation + claims-since-sync."""
+    try:
+        from smedjan import budget_config as bc
+        import sys as _sys
+        _sys.path.insert(0, str(Path.home() / "smedjan" / "scripts"))
+        import session_budget as sb  # type: ignore[import-not-found]
+        cfg = bc.load()
+        stamps = sb._read_locked()
+        n_since = sum(1 for s in stamps if cfg.last_observed_at and s > cfg.last_observed_at)
+        _cfg, alloc = bc.allocation(claims_since_sync=n_since)
+        d = bc.as_dict(_cfg, alloc)
+        d["claims_since_sync"] = n_since
+        return d
+    except Exception:  # noqa: BLE001
+        return None
+
 
 def _fetch_session_budget() -> dict | None:
     """Pull the rolling 5h claim budget from ~/smedjan/scripts/session_budget.
@@ -552,7 +611,9 @@ def generate(out_path: Path) -> int:
         )
 
     canary = _read_last_canary_obs()
-    html_text = render_html(workers, queue, recent, canary, error=error, budget=budget)
+    share = _fetch_smedjan_share()
+    html_text = render_html(workers, queue, recent, canary, error=error,
+                            budget=budget, share=share)
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     tmp = out_path.with_suffix(out_path.suffix + ".tmp")

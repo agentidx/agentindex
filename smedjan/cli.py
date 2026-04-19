@@ -383,6 +383,49 @@ def cmd_heartbeats(_args: argparse.Namespace) -> int:
 
 # ── argparse setup ───────────────────────────────────────────────────────
 
+def _claims_since(ts):
+    """Count session_budget stamps strictly after ts. No stamps file = 0."""
+    if ts is None:
+        return 0
+    try:
+        sys.path.insert(0, "/Users/anstudio/smedjan/scripts")
+        import session_budget as _sb  # type: ignore[import-not-found]
+        stamps = _sb._read_locked()
+        return sum(1 for s in stamps if s > ts)
+    except Exception:  # noqa: BLE001
+        return 0
+
+
+def cmd_budget_show(_args: argparse.Namespace) -> int:
+    from smedjan import budget_config as bc
+    cfg = bc.load()
+    n = _claims_since(cfg.last_observed_at)
+    _cfg, alloc = bc.allocation(claims_since_sync=n)
+    d = bc.as_dict(_cfg, alloc)
+    d["claims_since_sync"] = n
+    # Two-pane output: TOML-facing config + derived allocation
+    print(json.dumps(d, indent=2))
+    if alloc.stale_sync:
+        print("WARNING: sync is stale (> 6h). Run `smedjan budget sync --weekly-used N`.",
+              file=sys.stderr)
+    return 0
+
+
+def cmd_budget_sync(args: argparse.Namespace) -> int:
+    from smedjan import budget_config as bc
+    cfg = bc.update_sync(args.weekly_used)
+    print(f"synced: last_observed_weekly_used={cfg.last_observed_weekly_used} "
+          f"at={cfg.last_observed_at.isoformat(timespec='minutes')}")
+    return 0
+
+
+def cmd_budget_share(args: argparse.Namespace) -> int:
+    from smedjan import budget_config as bc
+    cfg = bc.update_share(args.share_pct)
+    print(f"share set: smedjan_share_of_remaining={cfg.smedjan_share_of_remaining}%")
+    return 0
+
+
 def _build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser("smedjan")
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -460,6 +503,23 @@ def _build_parser() -> argparse.ArgumentParser:
     rb_l1.add_argument("--dry-run", action="store_true", dest="dry_run",
                        help="print the plist edit + kickstart without executing")
     rb_l1.set_defaults(fn=cmd_rollback_l1)
+
+    # ── budget subcommand ────────────────────────────────────────────
+    bud = sub.add_parser("budget", help="weekly Max-budget allocation")
+    budsub = bud.add_subparsers(dest="sub", required=True)
+
+    bud_show = budsub.add_parser("show", help="show current allocation + burn")
+    bud_show.set_defaults(fn=cmd_budget_show)
+
+    bud_sync = budsub.add_parser("sync", help="record a Max-dashboard observation")
+    bud_sync.add_argument("--weekly-used", type=int, required=True,
+                          help="percent of Max weekly cap used (0-100)")
+    bud_sync.set_defaults(fn=cmd_budget_sync)
+
+    bud_share = budsub.add_parser("share", help="set Smedjan share of remaining")
+    bud_share.add_argument("--set", type=int, required=True, dest="share_pct",
+                           help="percent of remaining allocated to Smedjan (0-100)")
+    bud_share.set_defaults(fn=cmd_budget_share)
 
     return p
 
