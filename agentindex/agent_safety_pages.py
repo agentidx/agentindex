@@ -81,6 +81,32 @@ def _l2_block_2b_html(slug: str) -> str:
         return f"<!-- L2_BLOCK_2B_SHADOW\n{safe}\n-->"
     return raw  # live
 
+
+# L2 Block 2e gate (T118) — dimensions-dashboard renderer. Same three-mode
+# design as L2_BLOCK_2B_MODE. Reads public.software_registry.dimensions
+# on Nerq RO. Sits below king-sections and cross-registry links, above FAQ.
+def _l2_block_2e_mode() -> str:
+    m = os.environ.get("L2_BLOCK_2E_MODE", "off").strip().lower()
+    return m if m in ("shadow", "live") else "off"
+
+
+def _l2_block_2e_html(slug: str) -> str:
+    mode = _l2_block_2e_mode()
+    if mode == "off":
+        return ""
+    try:
+        from smedjan.renderers.block_2e import render_block_2e_html
+        raw = render_block_2e_html(slug)
+    except Exception as exc:
+        logger.warning("block_2e: render failed for %s: %s", slug, exc)
+        return ""
+    if not raw:
+        return ""
+    if mode == "shadow":
+        safe = raw.replace("--", "- -")
+        return f"<!-- L2_BLOCK_2E_SHADOW\n{safe}\n-->"
+    return raw  # live
+
 # ── Internationalization ─────────────────────────────────────────────────
 # All user-visible strings are keyed here. _t(key, lang, **kwargs) returns
 # the translated string or falls back to English.
@@ -9106,7 +9132,7 @@ def _render_agent_page(slug, agent_info, lang="en"):
         "{{ related_rankings }}": related_rankings + _security_stack,
         "{{ cross_product_html }}": cross_product_html,
         "{{ similar_entities }}": similar_entities_html,
-        "{{ king_sections }}": king_sections + _render_cross_registry_section(slug, source) + _l2_block_2b_html(slug),
+        "{{ king_sections }}": king_sections + _render_cross_registry_section(slug, source) + _l2_block_2b_html(slug) + _l2_block_2e_html(slug),
         "{{ king_jsonld_block }}": (
             '<script type="application/ld+json">' + json.dumps({
                 "@context": "https://schema.org",
