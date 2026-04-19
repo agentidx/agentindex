@@ -93,14 +93,16 @@ def cmd_add(args: argparse.Namespace) -> int:
             INSERT INTO smedjan.tasks
                 (id, title, description, acceptance_criteria,
                  dependencies, risk_level, whitelisted_files,
-                 priority, session_group, wait_for_evidence,
+                 priority, session_group, session_affinity,
+                 wait_for_evidence,
                  is_fallback, fallback_category, status)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 'pending')
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 'pending')
             """,
             (
                 args.id, args.title, args.description, args.acceptance,
                 deps, args.risk, wl,
-                args.priority, args.session_group, args.wait_for_evidence,
+                args.priority, args.session_group, args.session_affinity,
+                args.wait_for_evidence,
                 bool(args.fallback), args.fallback,
             ),
         )
@@ -369,6 +371,10 @@ def _build_parser() -> argparse.ArgumentParser:
     add.add_argument("--whitelist", default="")
     add.add_argument("--priority", type=int, default=100)
     add.add_argument("--session-group", default=None, dest="session_group")
+    add.add_argument("--session-affinity", default=None, dest="session_affinity",
+                     choices=("a", "b", "c", "d"),
+                     help="worker routing tag — workers with matching "
+                          "SMEDJAN_WORKER_AFFINITY preferentially claim these")
     add.add_argument("--wait-for-evidence", default=None, dest="wait_for_evidence")
     add.add_argument("--fallback", choices=("F1", "F2", "F3"), default=None)
     add.set_defaults(fn=cmd_add)
