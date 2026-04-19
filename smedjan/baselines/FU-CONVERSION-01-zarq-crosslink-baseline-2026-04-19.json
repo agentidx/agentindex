@@ -1,0 +1,36 @@
+{
+  "task_id": "FU-CONVERSION-20260418-01",
+  "captured_at": "2026-04-19T00:00:00Z",
+  "window": "30d (rolling, ending mirror freshness)",
+  "source": "analytics_mirror.requests on smedjan.nbg1 (via smedjan.sources.analytics_mirror_cursor)",
+  "mirror_freshness": {
+    "latest_ts": "2026-04-18T14:24:41Z",
+    "lag_seconds": 72612,
+    "lag_human": "~20h"
+  },
+  "baselines": {
+    "ai_mediated_total_sessions_30d": 36331,
+    "ai_mediated_distinct_ips_total_30d": 1480,
+    "ai_mediated_zarq_hits_30d": 1,
+    "ai_mediated_distinct_ips_to_zarq_30d": 3,
+    "ai_mediated_to_zarq_hit_share_pct": 0.00275,
+    "ai_mediated_to_zarq_ip_share_pct": 0.2027
+  },
+  "surface_breakdown_30d_status_lt_400_get": [
+    {"surface": "/dataset/*", "hits": 7074, "uniq_ips": 1189},
+    {"surface": "/model/*",   "hits": 4227, "uniq_ips": 949},
+    {"surface": "/profile/*", "hits": 4071, "uniq_ips": 1068},
+    {"surface": "/safe/*",    "hits": 3917, "uniq_ips": 1088},
+    {"surface": "/agent/*",   "hits": 2548, "uniq_ips": 916}
+  ],
+  "surface_rendering_modules": {
+    "/dataset/*": "agentindex/seo_asset_pages.py (_render_dataset_page)",
+    "/model/*":   "agentindex/seo_dynamic.py (_render_model_page)",
+    "/safe/*":    "agentindex/agent_safety_pages.py (mount_agent_safety_pages)",
+    "/profile/*": "agentindex/demand_pages.py (/profile/{slug})",
+    "/agent/*":   "301 -> /safe/{slug} (agentindex/api/discovery.py:543); change lands via /safe/*"
+  },
+  "primary_kpi": "ai_mediated_distinct_ips_to_zarq in 14d post-deploy",
+  "primary_kpi_target": ">=30 (10x baseline-normalized, ~1% of ai_mediated IPs)",
+  "notes": "Baseline matches AUDIT-CONVERSION-20260418 Finding 1 within ~1% for hits (7,074 vs 7,074 dataset; 4,227 vs 4,238 model; 3,917 vs 3,941 safe; 2,548 vs 2,556 agent). Mirror is run-not-blocked per freshness rubric."
+}
