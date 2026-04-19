@@ -1402,6 +1402,10 @@ for _bot_path in ["/about-us", "/contact", "/contact-us", "/team", "/company", "
 from agentindex.rss_feed import router_rss
 app.include_router(router_rss)
 
+# Per-registry RSS feeds: /feed/{registry}.xml
+from agentindex.api.rss_feeds import router_rss_feeds
+app.include_router(router_rss_feeds)
+
 # Return 204 for common bot probes that generate 404s (feeds, rss, wordpress, well-known)
 def _no_content_204():
     from starlette.responses import Response as _Resp
