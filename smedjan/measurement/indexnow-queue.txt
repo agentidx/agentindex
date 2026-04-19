@@ -1,0 +1,16 @@
+# Smedjan IndexNow batch queue (T152)
+#
+# One entry per line. Lines beginning with '#' and blank lines are ignored.
+# Two accepted formats:
+#   1. Bare slug          → resolves to https://nerq.ai/safe/{slug}
+#   2. Full URL           → submitted as-is, routed by host (nerq.ai/zarq.ai)
+#
+# This in-repo file is the canonical template/fallback. The runtime queue
+# read by auto_indexnow.py lives at:
+#   ~/smedjan/measurement/indexnow-queue.txt
+# When that file exists it takes precedence; otherwise this fallback is used.
+#
+# Operators add slugs/URLs here when they want a specific page re-pinged at
+# the next IndexNow run (e.g. after a manual content fix or a fallback
+# audit recommends re-submission). The list is processed every run; remove
+# entries once they have been successfully indexed.
