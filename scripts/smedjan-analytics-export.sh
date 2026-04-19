@@ -14,7 +14,14 @@ set -euo pipefail
 
 DB=${SMEDJAN_ANALYTICS_DB:-/Users/anstudio/agentindex/logs/analytics.db}
 OUT=${SMEDJAN_EXPORT_DIR:-/Users/anstudio/smedjan/analytics-export}
-RSYNC_TARGET=${SMEDJAN_RSYNC_TARGET:-smedjan:/home/smedjan/analytics-import/}
+# rsync target: route to the host's real sshd on the public IP, bypassing
+# Tailscale SSH. Tailscale SSH intercepts port 22 of the tailnet IP and can
+# drop non-interactive jobs into "check mode" (browser reauth), which timed
+# out the 2026-04-19 LaunchAgent run. The public IP sshd accepts only the
+# smedjan_ed25519 key (PasswordAuthentication=no), so this is equivalent
+# security with a non-interactive-safe auth path.
+RSYNC_TARGET=${SMEDJAN_RSYNC_TARGET:-smedjan@178.104.120.48:/home/smedjan/analytics-import/}
+RSYNC_SSH=${SMEDJAN_RSYNC_SSH:-ssh -i /Users/anstudio/.ssh/smedjan_ed25519 -o BatchMode=yes -o StrictHostKeyChecking=accept-new -o ServerAliveInterval=60 -o ConnectTimeout=30}
 WINDOW_DAYS=${SMEDJAN_WINDOW_DAYS:-30}
 LOG=${SMEDJAN_LOG:-/Users/anstudio/smedjan/worker-logs/analytics-export-$(date +%Y-%m-%d).log}
 
@@ -76,6 +83,6 @@ SELECT id, ts, q, q_normalized, result_count, duration_ms, ip, user_agent,
 echo "$(date -u +%FT%TZ)" > "$OUT/READY"
 
 echo "$(date -u +%FT%TZ) rsync → $RSYNC_TARGET"
-/usr/bin/rsync -az --delete --partial "$OUT/" "$RSYNC_TARGET"
+/usr/bin/rsync -az --delete --partial -e "$RSYNC_SSH" "$OUT/" "$RSYNC_TARGET"
 
 echo "$(date -u +%FT%TZ) export done"
