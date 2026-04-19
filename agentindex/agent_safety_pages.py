@@ -73,6 +73,41 @@ def _l2_block_2a_html(slug: str) -> str:
     return raw  # live
 
 
+# L2 Block 2a — in-king-sections variant (T004). Separate gate from
+# L2_BLOCK_2A_MODE because it has different semantics (registry
+# allowlist, L1 canary playbook) and different placement (ABOVE
+# "Detailed Score Analysis" inside king_sections, not below). Fail-closed
+# empty = disabled. Values are comma-separated registries or "*"/"all".
+_L2_BLOCK_2A_ALLOWLIST: frozenset = frozenset(
+    s.strip() for s in os.environ.get("L2_BLOCK_2A_REGISTRIES", "").split(",") if s.strip()
+)
+_L2_BLOCK_2A_ALL: bool = bool(_L2_BLOCK_2A_ALLOWLIST & {"*", "all"})
+
+
+def _l2_block_2a_registry_html(slug: str, source: str) -> str:
+    """Return Block 2a HTML for king-section placement, or "" when gated off.
+
+    Evaluated per-call so the dry-run harness can flip the env var
+    in-process. Allowlist is rebuilt on each call rather than cached at
+    import time so tests can set the var after import.
+    """
+    allow_raw = os.environ.get("L2_BLOCK_2A_REGISTRIES", "").strip()
+    if not allow_raw:
+        return ""
+    allowlist = {s.strip() for s in allow_raw.split(",") if s.strip()}
+    if not allowlist:
+        return ""
+    if not (allowlist & {"*", "all"}) and source not in allowlist:
+        return ""
+    try:
+        from agentindex.smedjan.l2_block_2a import render_external_trust_block
+        raw = render_external_trust_block(slug)
+    except Exception as exc:
+        logger.warning("block_2a (kings): render failed for %s: %s", slug, exc)
+        return ""
+    return raw or ""
+
+
 # L2 Block 2b gate (T112) — dependency-graph renderer. Parallel design to
 # L1_UNLOCK_REGISTRIES / L5_CROSSREG_LINKS. Three modes, default off:
 #   off    → no DB query, nothing emitted
@@ -105,6 +140,41 @@ def _l2_block_2b_html(slug: str) -> str:
         safe = raw.replace("--", "- -")
         return f"<!-- L2_BLOCK_2B_SHADOW\n{safe}\n-->"
     return raw  # live
+
+
+# L2 Block 2b — in-king-sections variant (T005). Separate gate from
+# L2_BLOCK_2B_MODE because it has different semantics (registry
+# allowlist, L1 canary playbook) and different placement (ABOVE Block
+# 2a inside king_sections, not below king_sections). Fail-closed empty
+# = disabled. Values are comma-separated registries or "*"/"all".
+_L2_BLOCK_2B_ALLOWLIST: frozenset = frozenset(
+    s.strip() for s in os.environ.get("L2_BLOCK_2B_REGISTRIES", "").split(",") if s.strip()
+)
+_L2_BLOCK_2B_ALL: bool = bool(_L2_BLOCK_2B_ALLOWLIST & {"*", "all"})
+
+
+def _l2_block_2b_registry_html(slug: str, source: str) -> str:
+    """Return Block 2b HTML for king-section placement, or "" when gated off.
+
+    Evaluated per-call so the dry-run harness can flip the env var
+    in-process. Allowlist is rebuilt on each call rather than cached at
+    import time so tests can set the var after import.
+    """
+    allow_raw = os.environ.get("L2_BLOCK_2B_REGISTRIES", "").strip()
+    if not allow_raw:
+        return ""
+    allowlist = {s.strip() for s in allow_raw.split(",") if s.strip()}
+    if not allowlist:
+        return ""
+    if not (allowlist & {"*", "all"}) and source not in allowlist:
+        return ""
+    try:
+        from agentindex.smedjan.l2_block_2b import render_dependency_graph_html
+        raw = render_dependency_graph_html(slug)
+    except Exception as exc:
+        logger.warning("block_2b (kings): render failed for %s: %s", slug, exc)
+        return ""
+    return raw or ""
 
 
 # L2 Block 2e gate (T118) — dimensions-dashboard renderer. Same three-mode
@@ -157,6 +227,33 @@ def _l2_block_2c_html(slug: str) -> str:
     if mode == "shadow":
         safe = raw.replace("--", "- -")
         return f"<!-- L2_BLOCK_2C_SHADOW\n{safe}\n-->"
+    return raw  # live
+
+
+# L2 Block 2d gate (T116) — signal-events feed renderer. Same three-mode
+# design as L2_BLOCK_2A/2B/2C/2E_MODE. Reads public.signal_events on the
+# Nerq RO replica, scoped to the top 500 slugs by ai_demand_score. Sits
+# below king-sections and cross-registry links, above FAQ.
+def _l2_block_2d_mode() -> str:
+    m = os.environ.get("L2_BLOCK_2D_MODE", "off").strip().lower()
+    return m if m in ("shadow", "live") else "off"
+
+
+def _l2_block_2d_html(slug: str) -> str:
+    mode = _l2_block_2d_mode()
+    if mode == "off":
+        return ""
+    try:
+        from smedjan.renderers.block_2d import render_block_2d_html
+        raw = render_block_2d_html(slug)
+    except Exception as exc:
+        logger.warning("block_2d: render failed for %s: %s", slug, exc)
+        return ""
+    if not raw:
+        return ""
+    if mode == "shadow":
+        safe = raw.replace("--", "- -")
+        return f"<!-- L2_BLOCK_2D_SHADOW\n{safe}\n-->"
     return raw  # live
 
 # ── Internationalization ─────────────────────────────────────────────────
@@ -8552,6 +8649,21 @@ def _render_agent_page(slug, agent_info, lang="en"):
         _has_audit = agent.get("has_independent_audit", False) or ("audit" in _desc.lower())
         _tracker_count = agent.get("tracker_count")
 
+        # -1. Dependency Graph (T005). Rendered above Block 2a when
+        # L2_BLOCK_2B_REGISTRIES names `source` (or is "*"/"all").
+        # Fail-closed empty = disabled. Reverse-dep counts and
+        # trust-score averages are Nerq-exclusive data; leading with
+        # them establishes differentiation before External Trust
+        # Signals' independent-verification evidence.
+        king_sections += _l2_block_2b_registry_html(slug, source)
+
+        # 0. External Trust Signals (T004). Rendered above the score
+        # breakdown when L2_BLOCK_2A_REGISTRIES names `source` (or is
+        # "*"/"all"). Fail-closed empty = disabled. Deliberately placed
+        # above Detailed Score Analysis so independent-verification
+        # evidence leads the citable prose.
+        king_sections += _l2_block_2a_registry_html(slug, source)
+
         # 1. Detailed Score Analysis — 5 dims populated for every enriched entity.
         _maintenance_score = agent.get("maintenance_score") or activity_score
         _quality_score = agent.get("quality_score")
@@ -9200,7 +9312,7 @@ def _render_agent_page(slug, agent_info, lang="en"):
         "{{ related_rankings }}": related_rankings + _security_stack,
         "{{ cross_product_html }}": cross_product_html,
         "{{ similar_entities }}": similar_entities_html,
-        "{{ king_sections }}": king_sections + _render_cross_registry_section(slug, source) + _l2_block_2a_html(slug) + _l2_block_2b_html(slug) + _l2_block_2c_html(slug) + _l2_block_2e_html(slug),
+        "{{ king_sections }}": king_sections + _render_cross_registry_section(slug, source) + _l2_block_2a_html(slug) + _l2_block_2b_html(slug) + _l2_block_2c_html(slug) + _l2_block_2d_html(slug) + _l2_block_2e_html(slug),
         "{{ king_jsonld_block }}": (
             '<script type="application/ld+json">' + json.dumps({
                 "@context": "https://schema.org",
