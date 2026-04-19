@@ -6316,6 +6316,27 @@ def _render_travel_page(slug, agent_info, lang="en"):
         f"{_dn} is {rec_text}."
     )
 
+    # D1/D2 sacred bytes — pplx-verdict + ai-summary. Coverage parity with
+    # _render_agent_page so the sacred_byte_verifier 99% floor passes on
+    # country/city pages too.
+    _today_iso_sb = datetime.now().strftime("%Y-%m-%d")
+    _pplx_verdict = (
+        f"<strong>{_dn}</strong> &mdash; Nerq Safety Score "
+        f"<strong>{score_str}/100 ({_esc(grade)})</strong>. "
+        f"Travel advisory: <strong>{_esc(advisory)}</strong>. "
+        f"Crime &amp; Safety {crime_score}/100, Health &amp; Medical {health_score}/100, "
+        f"Natural Disaster Risk {disaster_score}/100, Infrastructure {infra_score}/100. "
+        f"Updated {_today_iso_sb}."
+    )
+    ai_summary = (
+        f"{_dn} has a Nerq Safety Score of {score_str}/100 ({_esc(grade)}). "
+        f"Travel advisory: {_esc(advisory)}. "
+        f"Crime &amp; personal safety: {crime_score}/100. "
+        f"Health &amp; medical: {health_score}/100. "
+        f"Infrastructure &amp; transport: {infra_score}/100. "
+        f"Last verified: {_today_iso_sb}."
+    )
+
     # Travel dimensions for breakdown
     _travel_dims = [
         ("Crime & Personal Safety", crime_score, "30%"),
@@ -6543,7 +6564,7 @@ Overall safety: {score_str}/100. Health & medical: {health_score}/100. Infrastru
         "url": f"https://nerq.ai/safe/{slug}",
         "dateModified": _today_iso,
         "publisher": {"@type": "Organization", "name": "Nerq", "url": "https://nerq.ai"},
-        "speakable": {"@type": "SpeakableSpecification", "cssSelector": [".quick-verdict", ".verdict"]},
+        "speakable": {"@type": "SpeakableSpecification", "cssSelector": [".pplx-verdict", ".ai-summary", ".quick-verdict", ".verdict"]},
     })
 
     # JSON-LD: ItemList (safety dimensions)
@@ -6679,6 +6700,10 @@ h3{{font-size:16px;font-weight:600;margin:16px 0 8px;color:#1e293b}}
 <span class="pill {'pill-green' if score >= 70 else 'pill-yellow' if score >= 50 else 'pill-red'}">{_esc(grade)}</span>
 </div>
 </div>
+
+<p class="pplx-verdict" style="font-size:1.05em;line-height:1.65;margin:12px 0 16px;padding:14px 18px;background:{vb_bg};border-left:4px solid {vb_color};border-radius:4px">{_pplx_verdict}</p>
+
+<p class="ai-summary">{ai_summary}</p>
 
 <div class="quick-verdict">
 {definition_lead}
@@ -6819,6 +6844,29 @@ def _render_charity_page(slug, agent_info, lang="en"):
         f"Financial Transparency: {financial_transparency}/100. Program Effectiveness: {program_effectiveness}/100. "
         f"Governance: {governance_score}/100. "
         f"{_dn} is {rec_text}."
+    )
+
+    # D1/D2 sacred bytes — pplx-verdict + ai-summary. Coverage parity with
+    # _render_agent_page so the sacred_byte_verifier 99% floor passes on
+    # charity pages too.
+    _today_iso_sb = datetime.now().strftime("%Y-%m-%d")
+    _pplx_verdict = (
+        f"<strong>{_dn}</strong> &mdash; Nerq Trust Score "
+        f"<strong>{score_str}/100 ({_esc(grade)})</strong>. "
+        f"Donor recommendation: <strong>{_esc(rec_short)}</strong>. "
+        f"Financial Transparency {financial_transparency}/100, "
+        f"Program Effectiveness {program_effectiveness}/100, "
+        f"Governance {governance_score}/100. "
+        f"Estimated program expense ratio: {_program_ratio}%. "
+        f"Updated {_today_iso_sb}."
+    )
+    ai_summary = (
+        f"{_dn} has a Nerq Trust Score of {score_str}/100 ({_esc(grade)}). "
+        f"Donor recommendation: {_esc(rec_short)}. "
+        f"Estimated program expense ratio: {_program_ratio}%. "
+        f"Financial Transparency: {financial_transparency}/100. "
+        f"Program Effectiveness: {program_effectiveness}/100. "
+        f"Last verified: {_today_iso_sb}."
     )
 
     # Charity dimensions for breakdown
@@ -7018,7 +7066,7 @@ Accountability score: {accountability_score}/100 ({_rating_level(accountability_
         "url": f"https://nerq.ai/safe/{slug}",
         "dateModified": _today_iso,
         "publisher": {"@type": "Organization", "name": "Nerq", "url": "https://nerq.ai"},
-        "speakable": {"@type": "SpeakableSpecification", "cssSelector": [".quick-verdict", ".verdict"]},
+        "speakable": {"@type": "SpeakableSpecification", "cssSelector": [".pplx-verdict", ".ai-summary", ".quick-verdict", ".verdict"]},
     })
 
     # JSON-LD: ItemList (charity dimensions)
@@ -7151,6 +7199,10 @@ h3{{font-size:16px;font-weight:600;margin:16px 0 8px;color:#1e293b}}
 <span class="pill {'pill-green' if score >= 70 else 'pill-yellow' if score >= 50 else 'pill-red'}">{_esc(grade)}</span>
 </div>
 </div>
+
+<p class="pplx-verdict" style="font-size:1.05em;line-height:1.65;margin:12px 0 16px;padding:14px 18px;background:{vb_bg};border-left:4px solid {vb_color};border-radius:4px">{_pplx_verdict}</p>
+
+<p class="ai-summary">{ai_summary}</p>
 
 <div class="quick-verdict">
 {definition_lead}
@@ -7367,6 +7419,26 @@ def _render_ingredient_page(slug, agent_info, lang="en"):
         f"Based on regulatory data and scientific evidence, {_dn} has a Nerq Safety Score of {score_str}/100 ({_esc(grade)}). "
         f"{_reg_summary + '. ' if _reg_summary else ''}"
         f"{_dn} is {rec_text}. Consult a {'healthcare professional' if _is_supplement else 'dermatologist' if _is_cosmetic else 'dietitian'} for personalized advice."
+    )
+
+    # D1/D2 sacred bytes — pplx-verdict + ai-summary. Coverage parity with
+    # _render_agent_page so the sacred_byte_verifier 99% floor passes on
+    # ingredient/supplement/cosmetic_ingredient pages too.
+    _today_iso_sb = datetime.now().strftime("%Y-%m-%d")
+    _pplx_verdict = (
+        f"<strong>{_dn}</strong> &mdash; Nerq Safety Score "
+        f"<strong>{score_str}/100 ({_esc(grade)})</strong>. "
+        f"Verdict: <strong>{_esc(verdict_short)}</strong>. "
+        f"{_esc(_reg_summary) + '. ' if _reg_summary else ''}"
+        f"Category: {_esc(_type_noun)}. "
+        f"Updated {_today_iso_sb}."
+    )
+    ai_summary = (
+        f"{_dn} has a Nerq Safety Score of {score_str}/100 ({_esc(grade)}). "
+        f"{_esc(verdict_short)}. "
+        f"{_esc(_reg_summary) + '. ' if _reg_summary else ''}"
+        f"Category: {_esc(_type_noun)}. "
+        f"Last verified: {_today_iso_sb}."
     )
 
     # Score breakdown HTML — use JSONB dimensions if available, else regulatory data
@@ -7588,7 +7660,7 @@ def _render_ingredient_page(slug, agent_info, lang="en"):
         "url": f"https://nerq.ai/safe/{slug}",
         "dateModified": _today_iso,
         "publisher": {"@type": "Organization", "name": "Nerq", "url": "https://nerq.ai"},
-        "speakable": {"@type": "SpeakableSpecification", "cssSelector": [".quick-verdict", ".verdict"]},
+        "speakable": {"@type": "SpeakableSpecification", "cssSelector": [".pplx-verdict", ".ai-summary", ".quick-verdict", ".verdict"]},
     })
 
     # JSON-LD: ItemList (dimensions)
@@ -7723,6 +7795,10 @@ h3{{font-size:16px;font-weight:600;margin:16px 0 8px;color:#1e293b}}
 <span class="pill {'pill-green' if score >= 70 else 'pill-yellow' if score >= 50 else 'pill-red'}">{_esc(grade)}</span>
 </div>
 </div>
+
+<p class="pplx-verdict" style="font-size:1.05em;line-height:1.65;margin:12px 0 16px;padding:14px 18px;background:{vb_bg};border-left:4px solid {vb_color};border-radius:4px">{_pplx_verdict}</p>
+
+<p class="ai-summary">{ai_summary}</p>
 
 <div class="quick-verdict">
 {definition_lead}
