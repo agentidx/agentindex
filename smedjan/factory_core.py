@@ -233,15 +233,27 @@ def resolve_ready_tasks() -> dict[str, int]:
             counts[new_status] += 1
 
         # Rescue sweep: rows stranded in needs_approval that would now
-        # auto-yes under current policy. This catches: (a) FB-*/FU-* rows
+        # auto-yes under current policy. Catches: (a) FB-*/FU-* rows
         # that historical compute_ready_status demanded whitelist-file
         # matches for, (b) primary tasks whose deps completed AFTER the
         # initial resolve run (and whose whitelisted_files would now pass).
-        # Respects forbidden-paths. High-risk rows are never swept.
+        #
+        # Guards (critical — sweep runs every 2 min under the LaunchAgent):
+        #   * risk_level != 'high'          never auto-yes a risk-high row
+        #   * claimed_at IS NULL            row must be PRISTINE. If a
+        #                                   worker already claimed it and
+        #                                   escalated back to needs_approval
+        #                                   with a blocker_reason, the
+        #                                   escalation is a human-decision
+        #                                   point — promoting it re-queues
+        #                                   the worker into an infinite
+        #                                   approve/escalate loop.
         counts["rescued"] = 0
         cur.execute(
-            "SELECT * FROM smedjan.tasks WHERE status = 'needs_approval' "
-            "AND risk_level != 'high'"
+            "SELECT * FROM smedjan.tasks "
+            "WHERE status = 'needs_approval' "
+            "  AND risk_level != 'high' "
+            "  AND claimed_at IS NULL"
         )
         for row in cur.fetchall():
             t = Task.from_row(row)

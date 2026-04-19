@@ -76,6 +76,23 @@ def _fetch_queue_depth(cur) -> dict[str, int]:
     return {r["status"]: int(r["n"]) for r in cur.fetchall()}
 
 
+def _fetch_idle_worker_state(cur) -> dict[str, int]:
+    """Count workers that are live (heartbeat < 3 min) and idle (no
+    current_task), plus the fraction of claimable inventory. Used by the
+    dashboard to flag 'fabrik idle + inventory' — a state that indicates
+    either a claim-query bug or a blocked queue."""
+    cur.execute(
+        """
+        SELECT count(*) FILTER (WHERE current_task IS NULL
+                                   AND last_seen_at > now() - interval '3 minutes') AS idle,
+               count(*) FILTER (WHERE last_seen_at > now() - interval '3 minutes') AS live
+          FROM smedjan.worker_heartbeats
+        """
+    )
+    r = cur.fetchone()
+    return {"idle": int(r["idle"] or 0), "live": int(r["live"] or 0)}
+
+
 def _fetch_recent_tasks(cur) -> list[dict]:
     cur.execute(
         """
@@ -380,15 +397,33 @@ def generate(out_path: Path) -> int:
     workers: list[dict] = []
     queue: dict[str, int] = {}
     recent: list[dict] = []
+    idle_state: dict[str, int] = {"idle": 0, "live": 0}
     error: str | None = None
     try:
         with sources.smedjan_db_cursor(dict_cursor=True) as (_, cur):
             workers = _fetch_workers(cur)
             queue = _fetch_queue_depth(cur)
             recent = _fetch_recent_tasks(cur)
+            idle_state = _fetch_idle_worker_state(cur)
     except Exception as exc:  # noqa: BLE001 — render partial, do not crash the timer
         error = f"Smedjan DB unreachable: {exc}"
         log.error(error)
+
+    # Idle-with-inventory is a loud failure mode — surface in the banner.
+    claimable = queue.get("queued", 0) + queue.get("approved", 0)
+    if (
+        not error
+        and idle_state["idle"] > 0
+        and claimable == 0
+        and queue.get("needs_approval", 0) > 3
+    ):
+        error = (
+            f"fabriken idle + inventory: {idle_state['idle']} of "
+            f"{idle_state['live']} live workers idle, queued+approved=0, "
+            f"needs_approval={queue.get('needs_approval', 0)}. "
+            f"Continuous-sweep should page via INFRA_CRITICAL if this "
+            f"persists > 5 min."
+        )
 
     canary = _read_last_canary_obs()
     html_text = render_html(workers, queue, recent, canary, error=error)
