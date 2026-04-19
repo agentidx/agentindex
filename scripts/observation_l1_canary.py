@@ -7,9 +7,16 @@ Markdown report per run, with a cumulative JSON log so successive reports
 can show trend lines.
 
 Triggers via LaunchAgent every 12h for the first 48h post-deploy.
+
+With `--wave-comparator` an extra section is appended comparing Wave 1
+(gems+homebrew), Wave 2 (npm+pypi+crates) and Wave 3 (remaining registries)
+for AI-bot crawls, citations, and 24h 5xx — intended for every-other-tick
+(24h cadence) use from the smedjan-l1-observation systemd service. Without
+the flag the script produces byte-identical output to its pre-flag form.
 """
 from __future__ import annotations
 
+import argparse
 import json
 import logging
 import os
@@ -37,6 +44,12 @@ REPORT_DIR    = Path(os.path.expanduser(
 ))
 CANARY_REGS   = ["gems", "homebrew"]
 NTFY_TOPIC    = os.environ.get("SMEDJAN_NTFY_TOPIC", "nerq-alerts")
+
+# Wave definitions for --wave-comparator. Wave 3 is resolved at runtime
+# as "all enriched non-king registries not in Wave 1 or Wave 2", so it
+# tracks the L1 rollout frontier as new registries get enriched.
+WAVE_1_REGS = ["gems", "homebrew"]
+WAVE_2_REGS = ["npm", "pypi", "crates"]
 
 AI_REFERRER_HOSTS = [
     "chat.openai.com", "chatgpt.com", "claude.ai", "anthropic.com",
@@ -235,7 +248,149 @@ def render(baseline: dict, obs: dict) -> str:
     return "\n".join(lines)
 
 
-def main() -> int:
+def _discover_wave_regs() -> dict[str, list[str]]:
+    """Cheap query: list every enriched non-king registry (DISTINCT across
+    a 4.9M-row table is still fast because registry is indexed)."""
+    wave_regs: dict[str, list[str]] = {"wave1": list(WAVE_1_REGS), "wave2": list(WAVE_2_REGS), "wave3": []}
+    known = set(WAVE_1_REGS) | set(WAVE_2_REGS)
+    with sources.nerq_readonly_cursor() as (_, cur):
+        cur.execute(
+            "SELECT DISTINCT registry FROM public.software_registry "
+            "WHERE is_king = false AND enriched_at IS NOT NULL"
+        )
+        all_regs = [r[0] for r in cur.fetchall()]
+    wave_regs["wave3"] = sorted(r for r in all_regs if r not in known)
+    return wave_regs
+
+
+def _resolve_slug_waves(seen_slugs: set[str], wave_regs: dict[str, list[str]]) -> dict[str, str]:
+    """Map each seen slug → wave. Only queries for slugs that actually
+    appeared in the request scan, so the Postgres load is bounded by
+    analytics_mirror hits (thousands) rather than by the full enriched
+    corpus (millions)."""
+    if not seen_slugs:
+        return {}
+    reg_to_wave: dict[str, str] = {}
+    for r in WAVE_1_REGS:
+        reg_to_wave[r] = "wave1"
+    for r in WAVE_2_REGS:
+        reg_to_wave[r] = "wave2"
+    for r in wave_regs["wave3"]:
+        reg_to_wave[r] = "wave3"
+
+    slug_rows: list[tuple[str, str]] = []
+    with sources.nerq_readonly_cursor() as (_, cur):
+        cur.execute("SET statement_timeout = '60s'")
+        cur.execute(
+            "SELECT lower(slug), registry FROM public.software_registry "
+            "WHERE is_king = false AND enriched_at IS NOT NULL "
+            "AND registry = ANY(%s) AND lower(slug) = ANY(%s)",
+            (list(reg_to_wave.keys()), list(seen_slugs)),
+        )
+        slug_rows = cur.fetchall()
+
+    # Assign each slug to its lowest (earliest) wave — keeps Wave 1
+    # counts aligned with the canary "Trend vs baseline" section.
+    wave_rank = {"wave1": 0, "wave2": 1, "wave3": 2}
+    slug_to_wave: dict[str, str] = {}
+    for slug, reg in slug_rows:
+        w = reg_to_wave[reg]
+        prev = slug_to_wave.get(slug)
+        if prev is None or wave_rank[w] < wave_rank[prev]:
+            slug_to_wave[slug] = w
+    return slug_to_wave
+
+
+def gather_waves() -> tuple[dict[str, dict[str, int]], dict[str, list[str]]]:
+    """Single 7d/24h scan of /safe/* producing per-wave pivot metrics.
+
+    Returns (pivot, wave_regs). The scan is done first, then seen slugs
+    are resolved to waves in a second pass so Postgres isn't asked to
+    enumerate millions of slugs we'll never see traffic for.
+    """
+    ai_rx = re.compile("|".join(re.escape(h) for h in AI_REFERRER_HOSTS), re.I)
+    now = datetime.now(timezone.utc)
+    t_7d = now - timedelta(days=7)
+    t_24h = now - timedelta(hours=24)
+    waves = ("wave1", "wave2", "wave3")
+    pivot = {
+        w: {"ai_bot_crawls_7d": 0, "citations_7d": 0,
+            "fivexx_24h_total": 0, "fivexx_24h_count": 0}
+        for w in waves
+    }
+
+    rows: list[tuple] = []
+    seen_slugs: set[str] = set()
+    with sources.analytics_mirror_cursor() as (_, cur):
+        cur.execute("SET statement_timeout = '180s'")
+        cur.execute(
+            "SELECT ts, path, status, is_ai_bot, referrer_domain "
+            "FROM requests WHERE path LIKE '/safe/%%' AND ts > %s",
+            (t_7d,),
+        )
+        for ts, path, status, is_ai_bot, ref in cur:
+            slug = path_slug(path)
+            if slug is None:
+                continue
+            seen_slugs.add(slug)
+            rows.append((ts, slug, status, is_ai_bot, ref))
+
+    wave_regs = _discover_wave_regs()
+    slug_to_wave = _resolve_slug_waves(seen_slugs, wave_regs)
+
+    for ts, slug, status, is_ai_bot, ref in rows:
+        w = slug_to_wave.get(slug)
+        if w is None:
+            continue
+        if is_ai_bot == 1:
+            pivot[w]["ai_bot_crawls_7d"] += 1
+        elif ref and ai_rx.search(ref):
+            pivot[w]["citations_7d"] += 1
+        if ts > t_24h:
+            pivot[w]["fivexx_24h_total"] += 1
+            if status is not None and status >= 500:
+                pivot[w]["fivexx_24h_count"] += 1
+    return pivot, wave_regs
+
+
+def render_wave_comparator(wave_regs: dict[str, list[str]], pivot: dict[str, dict[str, int]]) -> str:
+    labels = {
+        "wave1": f"Wave 1 ({'+'.join(wave_regs['wave1'])})",
+        "wave2": f"Wave 2 ({'+'.join(wave_regs['wave2'])})",
+        "wave3": f"Wave 3 (remaining, {len(wave_regs['wave3'])} registries)",
+    }
+    lines = [
+        "",
+        "## Wave comparator (6h run)",
+        "",
+        "| Cohort | AI-bot crawls 7d | Citations 7d | 5xx 24h total | 5xx 24h count |",
+        "|---|---:|---:|---:|---:|",
+    ]
+    for w in ("wave1", "wave2", "wave3"):
+        p = pivot[w]
+        lines.append(
+            f"| {labels[w]} | {p['ai_bot_crawls_7d']:,} | {p['citations_7d']:,} | "
+            f"{p['fivexx_24h_total']:,} | {p['fivexx_24h_count']:,} |"
+        )
+    lines += [
+        "",
+        f"Wave 3 registries: {', '.join(wave_regs['wave3']) if wave_regs['wave3'] else '(none enriched yet)'}",
+    ]
+    return "\n".join(lines)
+
+
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument(
+        "--wave-comparator",
+        action="store_true",
+        help="Append a Wave 1/2/3 pivot section to the report (24h cadence).",
+    )
+    return p.parse_args(argv)
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv)
     REPORT_DIR.mkdir(parents=True, exist_ok=True)
     try:
         baseline = json.loads(Path(BASELINE_JSON).read_text())
@@ -246,6 +401,10 @@ def main() -> int:
     reg_slugs = load_canary_slugs()
     obs = gather(reg_slugs)
     md = render(baseline, obs)
+
+    if args.wave_comparator:
+        wave_pivot, wave_regs = gather_waves()
+        md = md + "\n" + render_wave_comparator(wave_regs, wave_pivot)
 
     ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     md_path = REPORT_DIR / f"L1-canary-obs-{ts}.md"
