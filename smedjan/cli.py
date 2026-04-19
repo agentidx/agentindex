@@ -16,6 +16,7 @@ Subcommands
     smedjan queue next
     smedjan queue resolve           # promote pending rows
     smedjan queue evidence NAME [--payload '{"k":"v"}']  # record evidence
+    smedjan queue evidence list                           # list recorded signals
     smedjan queue heartbeats
     smedjan queue stats             # aggregate counts + durations + blockers
     smedjan rollback L1 [--dry-run]
@@ -198,6 +199,8 @@ def cmd_resolve(_args: argparse.Namespace) -> int:
 
 
 def cmd_evidence(args: argparse.Namespace) -> int:
+    if args.name == "list":
+        return cmd_evidence_list(args)
     payload = None
     if args.payload:
         try:
@@ -208,6 +211,32 @@ def cmd_evidence(args: argparse.Namespace) -> int:
     factory_core.record_evidence(args.name, payload=payload, created_by=os.environ.get("USER", "anders"))
     print(f"evidence {args.name} recorded")
     factory_core.resolve_ready_tasks()
+    return 0
+
+
+def cmd_evidence_list(_args: argparse.Namespace) -> int:
+    with _conn() as c, c.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+        cur.execute(
+            "SELECT name, available_at, payload "
+            "FROM smedjan.evidence_signals "
+            "ORDER BY available_at DESC, name"
+        )
+        rows = cur.fetchall()
+    if not rows:
+        print("(no evidence signals)")
+        return 0
+    print(f"{'name':40s} {'available_at':26s} payload")
+    print("-" * 110)
+    for r in rows:
+        name = (r["name"] or "")[:40]
+        avail = r["available_at"].isoformat(timespec="seconds") if r["available_at"] else ""
+        if r["payload"] is None:
+            payload_summary = "-"
+        else:
+            payload_summary = json.dumps(r["payload"], separators=(",", ":"), default=str)
+            if len(payload_summary) > 60:
+                payload_summary = payload_summary[:57] + "..."
+        print(f"{name:40s} {avail:26s} {payload_summary}")
     return 0
 
 
@@ -410,9 +439,9 @@ def _build_parser() -> argparse.ArgumentParser:
     rslv = qsub.add_parser("resolve", help="promote pending rows whose deps/evidence are ready")
     rslv.set_defaults(fn=cmd_resolve)
 
-    ev = qsub.add_parser("evidence", help="record an evidence signal")
-    ev.add_argument("name")
-    ev.add_argument("--payload", default=None, help='JSON blob')
+    ev = qsub.add_parser("evidence", help="record or list evidence signals")
+    ev.add_argument("name", help="evidence name to record; pass 'list' to list all signals")
+    ev.add_argument("--payload", default=None, help='JSON blob (record mode only)')
     ev.set_defaults(fn=cmd_evidence)
 
     hb = qsub.add_parser("heartbeats", help="list worker heartbeats")
