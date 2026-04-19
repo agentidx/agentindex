@@ -41,6 +41,46 @@ _L1_UNLOCK_ALLOWLIST: frozenset = frozenset(
 )
 _L1_UNLOCK_ALL: bool = bool(_L1_UNLOCK_ALLOWLIST & {"*", "all"})
 
+# L5 cross-registry internal-linking gate (T153). off|shadow|live, default off.
+#   off    → no DB query, no render
+#   shadow → query runs (for metric/observability) but nothing rendered
+#   live   → render the "Also on other registries" section
+_L5_CROSSREG_MODE: str = os.environ.get("L5_CROSSREG_LINKS", "off").strip().lower()
+
+
+# L2 Block 2b gate (T112) — dependency-graph renderer. Parallel design to
+# L1_UNLOCK_REGISTRIES / L5_CROSSREG_LINKS. Three modes, default off:
+#   off    → no DB query, nothing emitted
+#   shadow → block is emitted wrapped in an HTML comment so the page is
+#            visually unchanged but raw output can be sampled from response
+#   live   → block is rendered verbatim between king-sections and FAQ
+# The var is read per-call so the dry-run harness can toggle in-process.
+def _l2_block_2b_mode() -> str:
+    m = os.environ.get("L2_BLOCK_2B_MODE", "off").strip().lower()
+    return m if m in ("shadow", "live") else "off"
+
+
+def _l2_block_2b_html(slug: str) -> str:
+    """Return the string to concatenate after king_sections. Fail-closed:
+    any import or runtime error is swallowed so the page still renders."""
+    mode = _l2_block_2b_mode()
+    if mode == "off":
+        return ""
+    try:
+        from smedjan.renderers.block_2b import render_block_2b_html
+        raw = render_block_2b_html(slug)
+    except Exception as exc:
+        logger.warning("block_2b: render failed for %s: %s", slug, exc)
+        return ""
+    if not raw:
+        return ""
+    if mode == "shadow":
+        # Neutralise "--" so the block body cannot prematurely close the
+        # wrapping HTML comment even if future edits introduce one.
+        safe = raw.replace("--", "- -")
+        return f"<!-- L2_BLOCK_2B_SHADOW\n{safe}\n-->"
+    return raw  # live
+
 # ── Internationalization ─────────────────────────────────────────────────
 # All user-visible strings are keyed here. _t(key, lang, **kwargs) returns
 # the translated string or falls back to English.
@@ -5762,6 +5802,52 @@ def _get_cross_products(author, current_registry, current_slug, limit=5):
         session.close()
 
 
+def _get_cross_registry_links(slug, current_registry, limit=10):
+    """Same-slug entries in OTHER registries (L5 cross-registry linking, T153).
+    Read-only; never mutates. Returns [] on any error so a render can never fail."""
+    if not slug:
+        return []
+    session = get_session()
+    try:
+        rows = session.execute(text("""
+            SELECT slug, registry, trust_score
+            FROM software_registry
+            WHERE slug = :slug AND registry != :reg
+              AND trust_score IS NOT NULL AND trust_score > 0
+            ORDER BY trust_score DESC
+            LIMIT :lim
+        """), {"slug": slug, "reg": current_registry or "", "lim": limit}).fetchall()
+        return [dict(r._mapping) for r in rows]
+    except Exception:
+        return []
+    finally:
+        session.close()
+
+
+def _render_cross_registry_section(slug, source):
+    """Build the 'Also on other registries' HTML for the L5 link section.
+    Returns '' when env=off, or when env=live but no cross-registry rows found.
+    Env=shadow runs the query for observability but renders nothing."""
+    mode = _L5_CROSSREG_MODE
+    if mode not in ("shadow", "live"):
+        return ""
+    rows = _get_cross_registry_links(slug, source, limit=10)
+    if mode == "shadow" or not rows:
+        return ""
+    _links = " &middot; ".join(
+        f'<a href="/safe/{_esc(r["slug"])}">'
+        f'{_esc(_REGISTRY_DISPLAY.get(r["registry"], r["registry"].replace("_", " ").title() if r["registry"] else "registry"))}'
+        f'</a>'
+        for r in rows
+    )
+    return (
+        '<section class="section cross-registry-links" '
+        'style="font-size:14px;color:#64748b;margin:8px 0">'
+        f'Also on: {_links}'
+        '</section>'
+    )
+
+
 def _make_slug(name):
     """Generate a URL slug from agent name."""
     slug = name.lower().strip()
@@ -9020,7 +9106,7 @@ def _render_agent_page(slug, agent_info, lang="en"):
         "{{ related_rankings }}": related_rankings + _security_stack,
         "{{ cross_product_html }}": cross_product_html,
         "{{ similar_entities }}": similar_entities_html,
-        "{{ king_sections }}": king_sections,
+        "{{ king_sections }}": king_sections + _render_cross_registry_section(slug, source) + _l2_block_2b_html(slug),
         "{{ king_jsonld_block }}": (
             '<script type="application/ld+json">' + json.dumps({
                 "@context": "https://schema.org",
