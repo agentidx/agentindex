@@ -6,6 +6,11 @@
 <title>{{ page_title }}</title>
 <meta name="description" content="{{ display_name }} has a Nerq Trust Score of {{ score }}/100 ({{ grade }}). {{ cve_text }} License: {{ license_text }}. Independent security analysis of {{ display_name }} — trust signals, vulnerabilities, compliance, and safer alternatives.">
 <link rel="canonical" href="{{ canonical_url }}">
+<link rel="alternate" type="application/json" href="https://nerq.ai/rating/{{ slug }}.json" title="Trust rating (L4 JSON-LD)">
+<link rel="alternate" type="application/json" href="https://nerq.ai/signals/{{ slug }}.json" title="Trust signals (L4 JSON-LD)">
+<link rel="alternate" type="application/json" href="https://nerq.ai/dependencies/{{ slug }}.json" title="Dependency graph (L4 JSON-LD)">
+<link rel="alternate" type="application/json" href="https://nerq.ai/prediction/{{ slug }}.json" title="Crash/deprecation prediction (L4 JSON-LD)">
+<link rel="alternate" type="application/json" href="https://nerq.ai/dimensions/{{ slug }}.json" title="5-dimension breakdown (L4 JSON-LD)">
 <link rel="alternate" type="application/atom+xml" href="/feed/recent" title="Nerq Trust Scores">
 {{ hreflang_tags }}
 <meta property="og:title" content="{{ og_title }}">
