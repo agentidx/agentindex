@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import argparse
 import logging
+import re
 import sys
 from datetime import datetime, timedelta, timezone
 from typing import Iterable
@@ -35,6 +36,81 @@ import psycopg2.extras
 from smedjan import factory_core, ntfy, sources
 
 log = logging.getLogger("smedjan.planner")
+
+
+# ── ai_demand_scores priority bias ────────────────────────────────────────
+# Percentile thresholds from smedjan.ai_demand_scores (last snapshot).
+# A task whose text mentions a slug in these tiers gets its priority bumped:
+#   top 1 %  → 10   (urgent: the slug is generating real AI demand today)
+#   top 10 % → 20
+#   otherwise → template default (unchanged)
+# Slugs shorter than 4 chars or containing non-[a-z0-9_-] chars are skipped
+# — they cause too many false-positive substring matches in task text.
+_DEMAND_PRIORITY_TOP_1 = 10
+_DEMAND_PRIORITY_TOP_10 = 20
+_DEMAND_PRIORITY_REMAINDER = 50
+_SLUG_WORDLIKE = re.compile(r"^[a-z0-9][a-z0-9_-]{3,}$")
+_TOKEN_RE = re.compile(r"[a-z0-9][a-z0-9_-]*")
+
+# Cached within the planner tick, keyed on snapshot computed_at timestamp.
+_DEMAND_CACHE: dict[str, tuple[frozenset[str], frozenset[str]]] = {}
+
+
+def _load_demand_percentiles() -> tuple[frozenset[str], frozenset[str]]:
+    """Return (top_1pct, top_10pct) slug sets from the latest snapshot.
+
+    Caches within the planner tick on the snapshot timestamp, so one planner
+    run costs exactly one read of ai_demand_scores even across many callers.
+    """
+    with sources.smedjan_db_cursor() as (_, cur):
+        cur.execute("SELECT max(computed_at) FROM smedjan.ai_demand_scores")
+        row = cur.fetchone()
+    max_ts = row[0] if row else None
+    if max_ts is None:
+        return frozenset(), frozenset()
+    key = max_ts.isoformat()
+    cached = _DEMAND_CACHE.get(key)
+    if cached is not None:
+        return cached
+    with sources.smedjan_db_cursor() as (_, cur):
+        cur.execute(
+            "SELECT slug FROM smedjan.ai_demand_scores "
+            "WHERE computed_at = %s ORDER BY score DESC",
+            (max_ts,),
+        )
+        ordered = [r[0] for r in cur.fetchall() if r[0] and _SLUG_WORDLIKE.match(r[0])]
+    n = len(ordered)
+    if n == 0:
+        _DEMAND_CACHE.clear()
+        _DEMAND_CACHE[key] = (frozenset(), frozenset())
+        return _DEMAND_CACHE[key]
+    top_1 = frozenset(ordered[: max(1, n // 100)])
+    top_10 = frozenset(ordered[: max(1, n // 10)])
+    _DEMAND_CACHE.clear()
+    _DEMAND_CACHE[key] = (top_1, top_10)
+    return top_1, top_10
+
+
+def _match_demand_tier(text: str) -> tuple[int | None, str | None, str | None]:
+    """Inspect `text` for any reference to a demand-tier slug.
+
+    Returns (priority, matched_slug, pct_label) where priority is 10/20 for
+    top-1/top-10 matches, or (None, None, None) if no tier-relevant slug is
+    mentioned. Token membership check is O(tokens) after percentile load.
+    """
+    if not text:
+        return None, None, None
+    top_1, top_10 = _load_demand_percentiles()
+    if not top_1 and not top_10:
+        return None, None, None
+    tokens = set(_TOKEN_RE.findall(text.lower()))
+    hit = tokens & top_1
+    if hit:
+        return _DEMAND_PRIORITY_TOP_1, next(iter(hit)), "1"
+    hit = tokens & (top_10 - top_1)
+    if hit:
+        return _DEMAND_PRIORITY_TOP_10, next(iter(hit)), "10"
+    return None, None, None
 
 
 # ── Follow-up rulebook ────────────────────────────────────────────────────
@@ -126,8 +202,22 @@ def generate_followup_tasks(dry_run: bool = False) -> int:
                 new_id = f"{parent_id}{tmpl['id_suffix']}"
                 if new_id in existing:
                     continue
+                template_priority = tmpl.get("priority", 100)
+                combined_text = " ".join(
+                    filter(None, [tmpl.get("title"), tmpl.get("description"),
+                                  tmpl.get("acceptance_criteria")])
+                )
+                biased, matched, pct = _match_demand_tier(combined_text)
+                effective_priority = template_priority
+                if biased is not None and biased < template_priority:
+                    log.info(
+                        "priority bump: slug=%s pct=%s%% old=%d new=%d (followup=%s)",
+                        matched, pct, template_priority, biased, new_id,
+                    )
+                    effective_priority = biased
                 if dry_run:
-                    log.info("DRY: would enqueue %s (parent %s)", new_id, parent_id)
+                    log.info("DRY: would enqueue %s (parent %s) priority=%d",
+                             new_id, parent_id, effective_priority)
                     inserted += 1
                     continue
                 with sources.smedjan_db_cursor() as (_, icur):
@@ -144,7 +234,7 @@ def generate_followup_tasks(dry_run: bool = False) -> int:
                             new_id, tmpl["title"], tmpl["description"],
                             tmpl["acceptance_criteria"], tmpl["risk_level"],
                             tmpl.get("whitelisted_files", []),
-                            tmpl.get("priority", 100),
+                            effective_priority,
                             tmpl.get("session_group"),
                             [parent_id],
                         ),
@@ -194,10 +284,53 @@ def _live_queue_composition() -> dict[str, int]:
     return out
 
 
+def _bump_queue_priorities(dry_run: bool) -> int:
+    """Scan active queue; bump priority on tasks that reference a top-tier
+    demand slug. Bumps only raise urgency (current_priority > new_priority);
+    we never demote a deliberately-chosen priority. Returns bump count.
+    """
+    with sources.smedjan_db_cursor(dict_cursor=True) as (_, cur):
+        cur.execute(
+            """
+            SELECT id, title, description, acceptance_criteria, priority
+            FROM smedjan.tasks
+            WHERE status IN ('pending','queued','needs_approval','approved')
+            """
+        )
+        rows = cur.fetchall()
+
+    bumps: list[tuple[str, int, int]] = []
+    for row in rows:
+        combined = " ".join(
+            filter(None, [row["title"], row["description"], row["acceptance_criteria"]])
+        )
+        biased, matched, pct = _match_demand_tier(combined)
+        if biased is None:
+            continue
+        current = row["priority"]
+        if biased >= current:
+            continue
+        log.info(
+            "priority bump: slug=%s pct=%s%% old=%d new=%d (task=%s)",
+            matched, pct, current, biased, row["id"],
+        )
+        bumps.append((row["id"], current, biased))
+
+    if bumps and not dry_run:
+        with sources.smedjan_db_cursor() as (_, cur):
+            for task_id, _old, new in bumps:
+                cur.execute(
+                    "UPDATE smedjan.tasks SET priority = %s WHERE id = %s",
+                    (new, task_id),
+                )
+    return len(bumps)
+
+
 def generate_quota_fill(dry_run: bool = False) -> dict:
     """Observe and warn. v1 does not auto-create tasks to top-up quota; it
-    logs drift so Anders (or a future Planner) can decide. Returns the
-    composition + recommendation."""
+    logs drift so Anders (or a future Planner) can decide. Also bumps
+    priority on active-queue tasks that reference a top-tier
+    ai_demand_scores slug. Returns the composition + recommendation."""
     comp = _live_queue_composition()
     total = max(1, comp["total"])
     ratios = {
@@ -219,7 +352,16 @@ def generate_quota_fill(dry_run: bool = False) -> dict:
     log.info("quota composition: %s ratios=%s verdict=%s", comp, {k: f"{v:.0%}" for k, v in ratios.items()}, verdict)
     for w in warnings:
         log.warning("quota warning: %s", w)
-    return {"composition": comp, "ratios": ratios, "verdict": verdict, "warnings": warnings}
+
+    demand_bumps = _bump_queue_priorities(dry_run=dry_run)
+
+    return {
+        "composition": comp,
+        "ratios": ratios,
+        "verdict": verdict,
+        "warnings": warnings,
+        "demand_bumps": demand_bumps,
+    }
 
 
 # ── main ──────────────────────────────────────────────────────────────────
