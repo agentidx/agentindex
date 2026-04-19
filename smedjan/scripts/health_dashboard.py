@@ -400,6 +400,44 @@ def _render_budget(budget: dict | None) -> str:
         f"<div class='value mono'>{html.escape(wk_rolls)}</div>"
         f"<div class='sub'>oldest claim + 7d</div>"
         "</div>"
+        + _render_projection(budget)
+        + "</div>"
+    )
+
+
+def _render_projection(budget: dict) -> str:
+    """Projected cap-hit + burn rate cards. Colour = overflow_status
+    (green if projected past reset, yellow if 12-48h before reset, red
+    if within 12h of reset or already past cap)."""
+    status = budget.get("overflow_status", "green")
+    colour = {"green": "ok", "yellow": "warn", "red": "bad"}.get(status, "ok")
+    dot = f"<span class='dot dot-{colour}'></span>"
+    proj = budget.get("projected_overflow_at")
+    reset = budget.get("weekly_reset_at") or "—"
+    burn = budget.get("burn_per_day", 0.0)
+    safe = budget.get("safe_per_day", 0.0)
+
+    # Humanise projection card — "OK" means projected past reset, else ISO.
+    if status == "green" and proj is None:
+        cap_display = "OK (no burn)"
+    elif status == "green":
+        cap_display = f"OK ({html.escape(proj)})"
+    else:
+        cap_display = html.escape(proj) if proj else "—"
+
+    budget_cap = budget.get("week_budget", 1) or 1
+    burn_pct = 100.0 * burn / budget_cap
+    safe_pct = 100.0 * safe / budget_cap
+    return (
+        "<div class='card'>"
+        "<div class='label'>projected cap-hit</div>"
+        f"<div class='value mono'>{dot}{cap_display}</div>"
+        f"<div class='sub'>reset at {html.escape(reset)}</div>"
+        "</div>"
+        "<div class='card'>"
+        "<div class='label'>burn rate</div>"
+        f"<div class='value mono'>{burn:.1f}/day · {burn_pct:.1f}%</div>"
+        f"<div class='sub'>safe budget: {safe:.1f}/day ({safe_pct:.1f}% to stay green)</div>"
         "</div>"
     )
 
@@ -466,6 +504,13 @@ def _fetch_session_budget() -> dict | None:
             "week_status": sb._snap_status(snap.weekly_percent),
             "week_rolls_at": snap.weekly_rolls_at.isoformat(timespec="minutes")
                 if snap.weekly_rolls_at else None,
+            "burn_per_day": snap.burn_rate_per_day,
+            "safe_per_day": snap.safe_burn_rate_per_day,
+            "projected_overflow_at": snap.projected_overflow_at.isoformat(timespec="minutes")
+                if snap.projected_overflow_at else None,
+            "weekly_reset_at": snap.weekly_reset_at.isoformat(timespec="minutes")
+                if snap.weekly_reset_at else None,
+            "overflow_status": snap.overflow_status,
         }
     except Exception:  # noqa: BLE001 — optional; never crash the dashboard
         return None
