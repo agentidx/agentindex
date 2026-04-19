@@ -429,6 +429,21 @@ TOOL_HANDLERS = {
     "nerq_stats": _nerq_stats,
 }
 
+# Tools 21–30 (T214): modular tool pack living in agentindex.mcp.
+# Appended here so MCP clients see a single flat list; the v2 schema
+# for the five tools above remains byte-for-byte unchanged.
+try:
+    from agentindex.mcp import TOOLS as _V3_TOOLS, TOOL_HANDLERS as _V3_HANDLERS
+    _existing_names = {t["name"] for t in TOOLS}
+    for _tool in _V3_TOOLS:
+        if _tool["name"] in _existing_names:
+            continue
+        TOOLS.append(_tool)
+    for _name, _handler in _V3_HANDLERS.items():
+        TOOL_HANDLERS.setdefault(_name, _handler)
+except Exception as _exc:  # pragma: no cover - keep server bootable even if tools_v3 has import errors
+    logger.warning("mcp tools_v3 unavailable: %s", _exc)
+
 # ============================================================
 # MCP PROTOCOL (STDIO)
 # ============================================================
