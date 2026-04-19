@@ -190,7 +190,7 @@ class PageCacheMiddleware(BaseHTTPMiddleware):
     _NO_CACHE = ("/v1/", "/flywheel", "/dashboard", "/admin", "/ab-", "/openapi",
                   "/robots.txt", "/llms.txt", "/sitemap", "/internal/", "/my/",
                   "/citation-dashboard", "/paper-trading",
-                  "/dependencies/")
+                  "/dependencies/", "/signals/")
     _TTL = 14400  # 4 hours — pages rarely change, enrichment flushes cache
     _pool = None
     _backoff = 0
@@ -1614,6 +1614,10 @@ app.include_router(router_commerce)
 # L4 — /dependencies/{slug}.json (Smedjan T142)
 from agentindex.api.endpoints.dependencies import router as router_dependencies
 app.include_router(router_dependencies)
+
+# L4 — /signals/{slug}.json (Smedjan T141)
+from agentindex.api.endpoints.signals import router as router_signals
+app.include_router(router_signals)
 
 # LangChain integration docs
 from agentindex.docs_langchain import router_docs_langchain
