@@ -230,6 +230,43 @@ def _l2_block_2c_html(slug: str) -> str:
     return raw  # live
 
 
+# L2 Block 2c — in-king-sections variant (T006). Separate gate from
+# L2_BLOCK_2C_MODE (T114, AI-demand timeline) because it has different
+# semantics (registry allowlist, L1 canary playbook), a different data
+# source (public.signal_events on Nerq RO, not smedjan.ai_demand_history),
+# and different placement (inside king_sections between Block 2b and
+# Block 2a, not below king_sections). Fail-closed empty = disabled.
+# Values are comma-separated registries or "*"/"all".
+_L2_BLOCK_2C_ALLOWLIST: frozenset = frozenset(
+    s.strip() for s in os.environ.get("L2_BLOCK_2C_REGISTRIES", "").split(",") if s.strip()
+)
+_L2_BLOCK_2C_ALL: bool = bool(_L2_BLOCK_2C_ALLOWLIST & {"*", "all"})
+
+
+def _l2_block_2c_registry_html(slug: str, source: str) -> str:
+    """Return Block 2c HTML for king-section placement, or "" when gated off.
+
+    Evaluated per-call so the dry-run harness can flip the env var
+    in-process. Allowlist is rebuilt on each call rather than cached at
+    import time so tests can set the var after import.
+    """
+    allow_raw = os.environ.get("L2_BLOCK_2C_REGISTRIES", "").strip()
+    if not allow_raw:
+        return ""
+    allowlist = {s.strip() for s in allow_raw.split(",") if s.strip()}
+    if not allowlist:
+        return ""
+    if not (allowlist & {"*", "all"}) and source not in allowlist:
+        return ""
+    try:
+        from agentindex.smedjan.l2_block_2c import render_signal_timeline_html
+        raw = render_signal_timeline_html(slug, source)
+    except Exception as exc:
+        logger.warning("block_2c (kings): render failed for %s: %s", slug, exc)
+        return ""
+    return raw or ""
+
+
 # L2 Block 2d gate (T116) — signal-events feed renderer. Same three-mode
 # design as L2_BLOCK_2A/2B/2C/2E_MODE. Reads public.signal_events on the
 # Nerq RO replica, scoped to the top 500 slugs by ai_demand_score. Sits
@@ -8640,6 +8677,15 @@ def _render_agent_page(slug, agent_info, lang="en"):
         # them establishes differentiation before External Trust
         # Signals' independent-verification evidence.
         king_sections += _l2_block_2b_registry_html(slug, source)
+
+        # -0.5. Signal Timeline (T006). Rendered between Block 2b and
+        # Block 2a when L2_BLOCK_2C_REGISTRIES names `source` (or is
+        # "*"/"all"). Fail-closed empty = disabled. Reads
+        # public.signal_events on Nerq RO and surfaces the last three
+        # meaningful trust-score moves — a scarce, high-citation-value
+        # surface that an LLM is far more likely to quote than a static
+        # score.
+        king_sections += _l2_block_2c_registry_html(slug, source)
 
         # 0. External Trust Signals (T004). Rendered above the score
         # breakdown when L2_BLOCK_2A_REGISTRIES names `source` (or is
