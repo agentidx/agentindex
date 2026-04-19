@@ -128,13 +128,27 @@ def compute_ready_status(
     risk_level: str,
     whitelisted_files: list[str],
     forbidden_hits: list[str],
+    task_id: str | None = None,
+    is_fallback: bool = False,
 ) -> str:
     """Given a task whose deps + evidence are resolved, decide whether it can
     skip approval.  Returns the *target* status: 'queued' | 'needs_approval'
     | 'blocked'.
+
+    Auto-yes paths (all require no forbidden-path overlap):
+      1. Factory-generated task (FB-* fallback, FU-* planner followup, or
+         is_fallback=True) at risk=low — the generating layer already
+         constrains scope via category, so a whitelist-file match is not
+         required.
+      2. Human-authored task at risk=low whose whitelisted_files all sit
+         inside AUTO_YES_WHITELIST_PREFIXES.
+    Everything else falls through to needs_approval.
     """
     if forbidden_hits:
         return "blocked"
+    tid = task_id or ""
+    if risk_level == "low" and (is_fallback or tid.startswith("FB-") or tid.startswith("FU-")):
+        return "queued"
     if risk_level == "low" and whitelisted_files and all(_is_whitelisted(p) for p in whitelisted_files):
         return "queued"
     return "needs_approval"
@@ -193,7 +207,10 @@ def resolve_ready_tasks() -> dict[str, int]:
                 counts["approved"] += 1
                 continue
 
-            new_status = compute_ready_status(t.risk_level, t.whitelisted_files, forbidden_hits)
+            new_status = compute_ready_status(
+                t.risk_level, t.whitelisted_files, forbidden_hits,
+                task_id=t.id, is_fallback=t.is_fallback,
+            )
 
             if new_status == "blocked":
                 cur.execute(
@@ -214,6 +231,41 @@ def resolve_ready_tasks() -> dict[str, int]:
                     (new_status, t.id),
                 )
             counts[new_status] += 1
+
+        # Rescue sweep: rows stranded in needs_approval that would now
+        # auto-yes under current policy. This catches: (a) FB-*/FU-* rows
+        # that historical compute_ready_status demanded whitelist-file
+        # matches for, (b) primary tasks whose deps completed AFTER the
+        # initial resolve run (and whose whitelisted_files would now pass).
+        # Respects forbidden-paths. High-risk rows are never swept.
+        counts["rescued"] = 0
+        cur.execute(
+            "SELECT * FROM smedjan.tasks WHERE status = 'needs_approval' "
+            "AND risk_level != 'high'"
+        )
+        for row in cur.fetchall():
+            t = Task.from_row(row)
+            if any(dep not in done_ids for dep in t.dependencies):
+                continue
+            forbidden_hits = _touches_forbidden(t.whitelisted_files)
+            if forbidden_hits:
+                continue
+            target = compute_ready_status(
+                t.risk_level, t.whitelisted_files, forbidden_hits,
+                task_id=t.id, is_fallback=t.is_fallback,
+            )
+            if target == "queued":
+                cur.execute(
+                    """
+                    UPDATE smedjan.tasks
+                       SET status = 'queued',
+                           approved_by = COALESCE(approved_by, 'factory-autoyes-rescue'),
+                           approved_at = COALESCE(approved_at, now())
+                     WHERE id = %s AND status = 'needs_approval'
+                    """,
+                    (t.id,),
+                )
+                counts["rescued"] += 1
 
     log.info("resolve_ready_tasks: %s", counts)
     return counts
