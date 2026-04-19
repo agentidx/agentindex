@@ -135,3 +135,83 @@ CREATE TABLE IF NOT EXISTS smedjan.ai_demand_history (
 
 CREATE INDEX IF NOT EXISTS idx_ai_demand_history_slug_recent
     ON smedjan.ai_demand_history (slug, computed_at DESC);
+
+-- AI-bot unserved paths (FU-QUERY-20260418-06) -----------------------------
+-- Weekly-refreshed materialised view of 404s served to AI crawlers
+-- (ChatGPT, Claude, ByteDance, Perplexity, …) during the last 7 days.
+--
+-- Source audit:  AUDIT-QUERY-20260418, finding #6 — "AI bots get 13,245
+-- 404s in 7 days". Every 404 served to an AI bot is measurable citation
+-- damage because crawlers cache the outcome.
+--
+-- Downstream consumers (coverage-backfill follow-ups, 2026-04-19 cohort):
+--   FU-QUERY-20260418-01 — /model/<slug> fallback renderer
+--   FU-QUERY-20260418-02 — lazy /compare/<a>-vs-<b> rendering
+--   FU-QUERY-20260418-04 — 404-driven /token/<slug> coverage backfill
+--   FU-QUERY-20260418-05 — /safe/<slug>/(privacy|security) backfill
+--
+-- Refresh cadence: weekly, Monday 05:17 Europe/Stockholm via
+-- com.nerq.smedjan.ai_bot_unserved_refresh.plist (see smedjan/ dir).
+-- Refreshes use REFRESH MATERIALIZED VIEW CONCURRENTLY; a unique index
+-- across (bot_name, path_shape, slug_key) makes that possible.
+DO $$ BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_matviews
+        WHERE schemaname = 'smedjan' AND matviewname = 'ai_bot_unserved_paths'
+    ) THEN
+        EXECUTE $ddl$
+            CREATE MATERIALIZED VIEW smedjan.ai_bot_unserved_paths AS
+            WITH shaped AS (
+                SELECT
+                    bot_name,
+                    ts,
+                    CASE
+                        WHEN path ~ '^/model/[^/]+$'                         THEN '/model/{slug}'
+                        WHEN path ~ '^/token/[^/]+$'                         THEN '/token/{slug}'
+                        WHEN path ~ '^/hacked/[^/]+$'                        THEN '/hacked/{slug}'
+                        WHEN path ~ '^/best/[^/]+$'                          THEN '/best/{slug}'
+                        WHEN path ~ '^/alternatives/[^/]+$'                  THEN '/alternatives/{slug}'
+                        WHEN path ~ '^/compare/[^/]+$'                       THEN '/compare/{pair}'
+                        WHEN path ~ '^/safe/[^/]+/(security|privacy|badge)$' THEN '/safe/{slug}/' || split_part(path, '/', 4)
+                        WHEN path ~ '^/is-[a-z0-9-]+/[^/]+$'                 THEN '/' || split_part(path, '/', 2) || '/{slug}'
+                        WHEN path ~ '^/sell-your-data/[^/]+$'                THEN '/sell-your-data/{slug}'
+                        WHEN path ~ '^/v1/'                                  THEN regexp_replace(path, '^(/v1/[^/?]+).*$', '\1')
+                        ELSE regexp_replace(path, '\?.*$', '')
+                    END AS path_shape,
+                    CASE
+                        WHEN path ~ '^/(model|token|hacked|best|alternatives|compare|safe|sell-your-data)/[^/]+' THEN split_part(path, '/', 3)
+                        WHEN path ~ '^/is-[a-z0-9-]+/[^/]+$' THEN split_part(path, '/', 3)
+                        ELSE NULL
+                    END AS slug
+                FROM analytics_mirror.requests
+                WHERE ts > now() - interval '7 days'
+                  AND status = 404
+                  AND is_ai_bot = 1
+                  AND path IS NOT NULL
+            )
+            SELECT
+                bot_name,
+                path_shape,
+                slug,
+                COALESCE(slug, '__no_slug__') AS slug_key,
+                count(*)::bigint  AS hits,
+                min(ts)           AS first_seen_at,
+                max(ts)           AS last_seen_at,
+                now()             AS refreshed_at
+            FROM shaped
+            WHERE bot_name IS NOT NULL
+            GROUP BY bot_name, path_shape, slug
+        $ddl$;
+    END IF;
+END $$;
+
+CREATE UNIQUE INDEX IF NOT EXISTS ux_ai_bot_unserved_paths_key
+    ON smedjan.ai_bot_unserved_paths (bot_name, path_shape, slug_key);
+CREATE INDEX IF NOT EXISTS idx_ai_bot_unserved_paths_shape_hits
+    ON smedjan.ai_bot_unserved_paths (path_shape, hits DESC);
+CREATE INDEX IF NOT EXISTS idx_ai_bot_unserved_paths_bot_hits
+    ON smedjan.ai_bot_unserved_paths (bot_name, hits DESC);
+
+COMMENT ON MATERIALIZED VIEW smedjan.ai_bot_unserved_paths IS
+    'Weekly aggregation of 7d AI-bot 404s (bot_name, path_shape, slug). '
+    'Source: AUDIT-QUERY-20260418 finding #6. Consumers: FU-QUERY-20260418-{01,02,04,05}.';

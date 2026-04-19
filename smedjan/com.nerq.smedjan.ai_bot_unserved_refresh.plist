@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Weekly refresh of smedjan.ai_bot_unserved_paths materialised view.
+     FU-QUERY-20260418-06. Mondays 05:17 Europe/Stockholm.
+
+     Install:
+         cp /Users/anstudio/agentindex/smedjan/com.nerq.smedjan.ai_bot_unserved_refresh.plist \
+            /Users/anstudio/Library/LaunchAgents/
+         launchctl load /Users/anstudio/Library/LaunchAgents/com.nerq.smedjan.ai_bot_unserved_refresh.plist
+
+     The refresh script sources ~/smedjan/config/.env via the EnvironmentVariables
+     block below (PYTHONPATH is all smedjan.sources needs; DSNs come from
+     ~/smedjan/config/config.toml which smedjan.config already reads).
+-->
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.nerq.smedjan.ai_bot_unserved_refresh</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/anstudio/agentindex/venv/bin/python3</string>
+        <string>/Users/anstudio/agentindex/scripts/refresh_ai_bot_unserved_paths.py</string>
+    </array>
+
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Weekday</key>
+        <integer>1</integer>
+        <key>Hour</key>
+        <integer>5</integer>
+        <key>Minute</key>
+        <integer>17</integer>
+    </dict>
+
+    <key>RunAtLoad</key>
+    <false/>
+
+    <key>StandardOutPath</key>
+    <string>/Users/anstudio/agentindex/logs/smedjan-ai-bot-unserved-refresh.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>/Users/anstudio/agentindex/logs/smedjan-ai-bot-unserved-refresh.log</string>
+
+    <key>WorkingDirectory</key>
+    <string>/Users/anstudio/agentindex</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PYTHONPATH</key>
+        <string>/Users/anstudio/agentindex</string>
+    </dict>
+
+    <key>Nice</key>
+    <integer>10</integer>
+</dict>
+</plist>
