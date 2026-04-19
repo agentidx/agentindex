@@ -352,13 +352,13 @@ def render_html(
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="refresh" content="900">
+<meta http-equiv="refresh" content="30">
 <title>Smedjan factory health</title>
 <style>{CSS}</style>
 </head>
 <body>
 <h1>Smedjan factory health</h1>
-<p class="meta">Generated {now} · auto-refresh 15 min</p>
+<p class="meta">Generated {now} · server regen 60s · browser refresh 30s</p>
 {banner}
 <h2>Workers</h2>
 {_render_workers(workers)}
