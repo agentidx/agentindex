@@ -63,6 +63,7 @@ class Task:
     evidence: Any
     notes: str | None
     session_affinity: str | None = None
+    deferred_start_at: datetime | None = None
 
     @classmethod
     def from_row(cls, row: dict) -> "Task":
@@ -90,6 +91,7 @@ class Task:
             evidence=row["evidence"],
             notes=row["notes"],
             session_affinity=row.get("session_affinity"),
+            deferred_start_at=row.get("deferred_start_at"),
         )
 
 
@@ -159,6 +161,7 @@ def resolve_ready_tasks() -> dict[str, int]:
         cur.execute("SELECT name FROM smedjan.evidence_signals")
         signals = {r["name"] for r in cur.fetchall()}
 
+        counts["approved"] = 0  # deferred-start promotion path
         for t in pending:
             if any(dep not in done_ids for dep in t.dependencies):
                 counts["pending"] += 1
@@ -168,6 +171,28 @@ def resolve_ready_tasks() -> dict[str, int]:
                 continue
 
             forbidden_hits = _touches_forbidden(t.whitelisted_files)
+
+            # Deferred-start short-circuit: if Anders pre-approved this task
+            # with `smedjan queue approve --defer-until-dep-done --start-at`,
+            # the deferred_start_at carries the intent. When deps clear we
+            # skip needs_approval and go straight to 'approved' with the
+            # stored time — worker claims when the clock rolls past it.
+            if t.deferred_start_at is not None and not forbidden_hits:
+                cur.execute(
+                    """
+                    UPDATE smedjan.tasks
+                       SET status             = 'approved',
+                           scheduled_start_at = deferred_start_at,
+                           deferred_start_at  = NULL,
+                           approved_by        = COALESCE(approved_by, 'deferred-start'),
+                           approved_at        = COALESCE(approved_at, now())
+                     WHERE id = %s AND status = 'pending'
+                    """,
+                    (t.id,),
+                )
+                counts["approved"] += 1
+                continue
+
             new_status = compute_ready_status(t.risk_level, t.whitelisted_files, forbidden_hits)
 
             if new_status == "blocked":
@@ -371,13 +396,49 @@ class ApprovalError(ValueError):
     """Raised by `approve()` when input violates the approval policy."""
 
 
-def approve(task_id: str, *, approver: str, start_at: datetime | None = None) -> Task:
-    """needs_approval → approved. For risk=high, start_at is required."""
+def approve(task_id: str, *, approver: str, start_at: datetime | None = None,
+            defer_until_dep_done: bool = False) -> Task:
+    """Approve a task.
+
+    Default path: needs_approval → approved (risk=high requires start_at).
+
+    Deferred-start path (`defer_until_dep_done=True`): task is still
+    pending on dependency / evidence. Stash start_at in
+    `deferred_start_at`; the resolver will promote pending → approved
+    and copy the stored time into scheduled_start_at once the deps
+    clear. No human-in-loop second pass.
+    """
     with _connect() as conn, conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
         cur.execute("SELECT * FROM smedjan.tasks WHERE id = %s FOR UPDATE", (task_id,))
         row = cur.fetchone()
         if row is None:
             raise ApprovalError(f"task {task_id} not found")
+
+        if defer_until_dep_done:
+            # Accept pending AND needs_approval — pending is the common
+            # case but a race where the resolver already promoted is fine
+            # (fall through to scheduled_start_at).
+            if row["status"] not in ("pending", "needs_approval"):
+                raise ApprovalError(
+                    f"task {task_id} is {row['status']}, "
+                    f"defer-until-dep-done requires pending or needs_approval"
+                )
+            if row["status"] == "pending":
+                cur.execute(
+                    """
+                    UPDATE smedjan.tasks
+                       SET deferred_start_at = %s,
+                           approved_by       = %s,
+                           approved_at       = now()
+                     WHERE id = %s
+                     RETURNING *
+                    """,
+                    (start_at, approver, task_id),
+                )
+                return Task.from_row(cur.fetchone())
+            # needs_approval already — fall through to normal approve flow
+            # below, just like if the operator hadn't passed the flag.
+
         if row["status"] != "needs_approval":
             raise ApprovalError(
                 f"task {task_id} is {row['status']}, only needs_approval can be approved"

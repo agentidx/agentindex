@@ -155,12 +155,17 @@ def cmd_approve(args: argparse.Namespace) -> int:
             args.id,
             approver=os.environ.get("USER", "anders"),
             start_at=_parse_start_at(args.start_at),
+            defer_until_dep_done=args.defer_until_dep_done,
         )
     except factory_core.ApprovalError as e:
         print(f"approve failed: {e}", file=sys.stderr)
         return 2
-    extra = f" (start_at={t.scheduled_start_at.isoformat()})" if t.scheduled_start_at else ""
-    print(f"approved {t.id} — status={t.status}{extra}")
+    if t.status == "pending" and t.deferred_start_at is not None:
+        print(f"deferred {t.id} — will auto-promote to approved @ "
+              f"{t.deferred_start_at.isoformat()} when deps clear")
+    else:
+        extra = f" (start_at={t.scheduled_start_at.isoformat()})" if t.scheduled_start_at else ""
+        print(f"approved {t.id} — status={t.status}{extra}")
     return 0
 
 
@@ -294,6 +299,11 @@ def _build_parser() -> argparse.ArgumentParser:
     ap.add_argument("id")
     ap.add_argument("--start-at", default=None, dest="start_at",
                     help='YYYY-MM-DD HH:MM local time — required for risk=high')
+    ap.add_argument("--defer-until-dep-done", action="store_true",
+                    dest="defer_until_dep_done",
+                    help="task is pending on a dep; stash start_at in "
+                         "deferred_start_at and let the resolver promote to "
+                         "approved automatically once deps clear")
     ap.set_defaults(fn=cmd_approve)
 
     blk = qsub.add_parser("block", help="force → blocked")
