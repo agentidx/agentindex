@@ -1,0 +1,126 @@
+<!--
+  Hero variant: AI-reader-tuned (FU-CONVERSION-20260418-06)
+  Purpose: Above-the-fold hero for nerq.ai homepage that answers the
+           literal questions ChatGPT/Claude/Perplexity ask on behalf of
+           humans ("Is X safe?", "What is the trust score for Y?").
+  Spec: /Users/anstudio/smedjan/discovery/F06-homepage-hero-ai-reader.md
+  Wire-in (NOT done by this task): register as variant E in
+           agentindex/ab_test.py (HERO_VARIANTS["E"] = _hero_e), bump
+           VARIANTS to ["A","B","C","D","E"], add hashing arm.
+  Drop-in constraints:
+    - Reuses existing classes from ab_test._STYLE: .hero, .hero-sub,
+      .search-box, .trust-bar, .pop-score, .score-a/b/c/d, .cat-card.
+    - Reuses /v1/preflight (existing endpoint, GET ?target=<slug>).
+    - Total above-the-fold height target: <=600px @ 1366x768 viewport.
+-->
+<div class="hero" data-hero-variant="ai-reader" data-ab-cta-context="E">
+
+  <!-- 1) Direct answer to the ai-reader question -->
+  <h1 style="font-size:34px;line-height:1.15;margin-bottom:8px">Is it safe? What's the trust score?</h1>
+  <p class="hero-sub" style="margin-bottom:16px">
+    Independent trust scores for 7.5M+ apps, packages, AI models, datasets, VPNs and crypto tokens.
+    Ask the way you'd ask ChatGPT &mdash; we answer in one screen.
+  </p>
+
+  <!-- 2) Prominent search, placeholder shaped like the AI-reader query -->
+  <div class="search-box" role="search" aria-label="Trust-score lookup">
+    <input
+      type="text"
+      id="search-input"
+      placeholder='Try "is tiktok safe", "trust score for express", "ledger nano risk"...'
+      autocomplete="off"
+      autofocus
+      aria-label="Ask: is X safe, or what is the trust score for Y">
+    <button data-ab-cta="E-search" onclick="doSearch()">Get Trust Score</button>
+  </div>
+  <div id="result-box" class="result-box" style="min-height:0;margin:0 auto 14px;max-width:560px"></div>
+
+  <!-- 3) One worked-example trust-score card so the answer-shape is
+       visible BEFORE the user types. AI readers that bounce on /
+       still see what the answer would have looked like. -->
+  <div style="max-width:640px;margin:0 auto 18px;padding:16px 18px;
+              border:1px solid #e5e5e3;border-radius:10px;background:#fff;
+              display:flex;align-items:center;gap:16px;text-align:left">
+    <span class="pop-score score-a" style="font-size:26px;padding:8px 16px;flex-shrink:0">82</span>
+    <div style="flex:1;min-width:0">
+      <div style="font-size:11px;color:#0d9488;font-weight:600;letter-spacing:0.04em;text-transform:uppercase">Example &middot; updated daily</div>
+      <strong style="font-size:16px;color:#0f172a">NordVPN &mdash; Trust Score 82 (A)</strong>
+      <div style="font-size:13px;color:#64748b;margin-top:2px;line-height:1.4">
+        Audited no-logs, Panama jurisdiction, 5 third-party security audits since 2018.
+        <a href="/is-nordvpn-safe" style="color:#0d9488;font-weight:600">See full report &rarr;</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4) Explicit ZARQ CTA — addresses Finding 1 (Nerq->ZARQ handoff
+       gap, 0.003% of ai_mediated traffic touches /zarq/*). -->
+  <div style="max-width:640px;margin:0 auto 16px;padding:14px 18px;
+              border:1px solid #c2956b;border-radius:10px;
+              background:linear-gradient(180deg,#fffaf2 0%,#fff 100%);
+              display:flex;align-items:center;gap:14px;text-align:left">
+    <span style="font-size:24px;flex-shrink:0">&#127919;</span>
+    <div style="flex:1;min-width:0">
+      <strong style="font-size:14px;color:#0f172a">Looking for a crypto token, exchange or DeFi protocol?</strong>
+      <div style="font-size:13px;color:#64748b;margin-top:2px;line-height:1.4">
+        ZARQ is our crypto-trust sister site &mdash; same methodology, with crash-probability and
+        Distance-to-Default for 200+ tokens.
+      </div>
+    </div>
+    <a href="https://zarq.ai/"
+       data-ab-cta="E-zarq"
+       style="flex-shrink:0;padding:10px 18px;background:#c2956b;color:#fff;
+              text-decoration:none;border-radius:8px;font-weight:600;font-size:13px;white-space:nowrap">
+      Open ZARQ &rarr;
+    </a>
+  </div>
+
+  <!-- 5) Trust bar: same as A/B/C/D for cross-variant comparability -->
+  <div class="trust-bar">
+    <span>7.5M+ entities rated</span>
+    <span>26 registries</span>
+    <span>20 languages</span>
+    <span>Updated daily</span>
+  </div>
+</div>
+
+<!--
+  Search behavior is identical to variant A so /v1/preflight load
+  characteristics stay comparable across arms. Only the placeholder
+  shape and the surrounding context change.
+-->
+<script>
+function doSearch(){
+  const raw=document.getElementById('search-input').value.trim();
+  if(!raw)return;
+  const q=raw.toLowerCase()
+    .replace(/^(is\s+|what\s+(is\s+the\s+)?trust\s+score\s+(for|of)\s+)/,'')
+    .replace(/\s+safe\??$/,'')
+    .replace(/[\s_]+/g,'-')
+    .replace(/[^a-z0-9-]/g,'')
+    .replace(/-+/g,'-')
+    .replace(/^-|-$/g,'') || raw.toLowerCase();
+  const rb=document.getElementById('result-box');
+  rb.style.display='block';
+  rb.innerHTML='<span style="color:#64748b">Looking up '+esc(q)+'...</span>';
+  fetch('/v1/preflight?target='+encodeURIComponent(q)).then(r=>r.json()).then(d=>{
+    if(d.target){
+      const slug=d.target.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+      const sc=d.target_trust||0;
+      const gr=d.target_grade||'?';
+      const cat=d.target_category||'';
+      const cls=sc>=75?'score-a':sc>=60?'score-b':sc>=45?'score-c':'score-d';
+      rb.innerHTML='<div style="display:flex;align-items:center;gap:12px;padding:12px 16px;'+
+        'border:1px solid #e5e5e3;border-radius:8px;background:#fff;text-align:left">'+
+        '<span class="pop-score '+cls+'" style="font-size:22px;padding:6px 14px">'+sc+'</span>'+
+        '<div><strong>'+esc(d.target)+'</strong> <span style="color:#64748b;font-size:13px">('+esc(gr)+')</span>'+
+        (cat?'<br><span style="color:#64748b;font-size:13px">'+esc(cat)+'</span>':'')+
+        (d.recommendation?'<br><span style="color:#64748b;font-size:13px">'+esc(d.recommendation.slice(0,140))+'</span>':'')+
+        '<br><a href="/is-'+encodeURIComponent(slug)+'-safe" style="font-size:13px;color:#0d9488;font-weight:600">Full safety report &rarr;</a>'+
+        '</div></div>';
+    } else {
+      rb.innerHTML='<span style="color:#64748b">No exact match. Try a package name (e.g. <code>express</code>) or brand (e.g. <code>nordvpn</code>).</span>';
+    }
+  }).catch(()=>{rb.innerHTML='<span style="color:#991b1b">Search failed. Try again.</span>';});
+}
+document.getElementById('search-input').addEventListener('keydown',function(e){if(e.key==='Enter')doSearch();});
+</script>
