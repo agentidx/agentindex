@@ -147,14 +147,731 @@ TOOLS = [
             }
         }
     },
+    # ── L4 data-moat tools: /rating, /signals, /dependencies, /dimensions, /prediction
+    {
+        "name": "get_rating",
+        "description": "Get the stable Nerq Trust Score rating (0-100 + grade A+ to F) for a software package slug. Backs the /rating/{slug}.json L4 endpoint, available for the top 100K demand-weighted packages across npm, PyPI, crates, rubygems, packagist, go modules, etc. Returns Trust Score, grade, eight universal sub-dimensions, registry URL, and data sources. Use when user asks 'what is the Nerq rating for X?', 'rate npm package lodash', or needs a machine-readable trust rating for a specific package.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "slug": {"type": "string", "description": "Package slug (e.g. 'lodash', 'requests', 'serde')"}
+            },
+            "required": ["slug"]
+        }
+    },
+    {
+        "name": "bulk_rating_lookup",
+        "description": "Look up ratings for up to 25 package slugs in a single call. Returns a list of {slug, trust_score, grade, registry} or {slug, status: 'not_rated'} entries. Use when user asks 'rate these packages', needs to compare trust across a set of dependencies, or wants to audit a package.json / requirements.txt.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "slugs": {"type": "array", "items": {"type": "string"}, "description": "List of package slugs (max 25)", "minItems": 1, "maxItems": 25}
+            },
+            "required": ["slugs"]
+        }
+    },
+    {
+        "name": "rating_dimensions_breakdown",
+        "description": "Get the eight universal Nerq trust dimensions for a package: security, maintenance, popularity, community, quality, privacy, transparency, reliability. Each dimension is 0-100. Use when user asks 'break down the trust score for X', 'what dimensions does Nerq rate?', or needs to understand WHY a package has its Trust Score.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "slug": {"type": "string", "description": "Package slug"}
+            },
+            "required": ["slug"]
+        }
+    },
+    {
+        "name": "rating_grade_distribution",
+        "description": "Get the distribution of trust grades (A+ through F) across the top 100K Nerq-rated packages. Returns counts per grade. Use when user asks 'how many packages are A-rated?', 'what fraction of packages pass Nerq?', or wants ecosystem-level trust stats.",
+        "inputSchema": {"type": "object", "properties": {}}
+    },
+    {
+        "name": "get_signals",
+        "description": "Get the external trust signals rollup for a Nerq-tracked package (the /signals/{slug}.json L4 endpoint). Returns CVE counts, OpenSSF Scorecard, stars/forks/contributors, release cadence, lifecycle (deprecated, has_types), independent audit flags, and data sources. Use when user asks 'what signals does Nerq see for X?', 'is package X actively maintained?', 'how many CVEs does X have?', or needs the full external trust picture.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "slug": {"type": "string", "description": "Package slug"},
+                "registry": {"type": "string", "description": "Optional registry disambiguator (npm, pypi, crates, etc.)"}
+            },
+            "required": ["slug"]
+        }
+    },
+    {
+        "name": "get_cve_summary",
+        "description": "Shortcut for CVE data only: returns {slug, cve_count, cve_critical} for a package. Use when user asks 'does X have CVEs?', 'any critical vulnerabilities in X?', or needs a quick CVE answer without the full signals payload.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "slug": {"type": "string", "description": "Package slug"},
+                "registry": {"type": "string", "description": "Optional registry disambiguator"}
+            },
+            "required": ["slug"]
+        }
+    },
+    {
+        "name": "get_openssf_scorecard",
+        "description": "Get the OpenSSF Scorecard value (0-10) for a package. Returns {slug, openssf_scorecard}. Use when user asks 'what is X's Scorecard rating?', or needs the OpenSSF number specifically. Returns null if the package is not scorecard-covered.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "slug": {"type": "string", "description": "Package slug"},
+                "registry": {"type": "string", "description": "Optional registry disambiguator"}
+            },
+            "required": ["slug"]
+        }
+    },
+    {
+        "name": "get_maintainer_activity",
+        "description": "Get maintainer-activity signals for a package: contributors, maintainer_count, release_count, last_commit, last_release_date, forks, open_issues. Use when user asks 'is X actively maintained?', 'when was X last updated?', or needs activity-level signals.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "slug": {"type": "string", "description": "Package slug"},
+                "registry": {"type": "string", "description": "Optional registry disambiguator"}
+            },
+            "required": ["slug"]
+        }
+    },
+    {
+        "name": "get_security_attestations",
+        "description": "Get security-attestation flags for a package: has_independent_audit, has_soc2, has_iso27001. Use when user asks 'has X been audited?', 'does X have SOC2?', or needs attestation evidence for procurement.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "slug": {"type": "string", "description": "Package slug"},
+                "registry": {"type": "string", "description": "Optional registry disambiguator"}
+            },
+            "required": ["slug"]
+        }
+    },
+    {
+        "name": "get_dependencies",
+        "description": "Get the dependency-graph view for a package (the /dependencies/{slug}.json L4 endpoint). Returns direct dependency count, transitive count (when known), and dormant status with reason. Use when user asks 'how many dependencies does X have?', 'is X bloated?', 'is X dormant?', or needs dependency-surface analysis.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "slug": {"type": "string", "description": "Package slug"},
+                "registry": {"type": "string", "description": "Optional registry disambiguator"}
+            },
+            "required": ["slug"]
+        }
+    },
+    {
+        "name": "check_dormant_dependency",
+        "description": "Check if a package is dormant (deprecated or no commits/releases in 365+ days). Returns {slug, dormant: bool, dormant_reason, last_commit, last_release_date}. Use when user asks 'is X dormant?', 'is X abandoned?', or needs a quick dormancy verdict before adding a dependency.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "slug": {"type": "string", "description": "Package slug"},
+                "registry": {"type": "string", "description": "Optional registry disambiguator"}
+            },
+            "required": ["slug"]
+        }
+    },
+    {
+        "name": "get_dimensions",
+        "description": "Get registry-specific dimensional scoring for a package (the /dimensions/{slug}.json L4 endpoint). Unlike the eight universal dimensions, this returns registry-native dimensions (e.g. skin_safety for cosmetics, allergen_risk for food, regulatory envelopes). Use when user asks 'what vertical dimensions does Nerq score for X?', or needs the registry-native scoring layer.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "slug": {"type": "string", "description": "Package slug"},
+                "registry": {"type": "string", "description": "Optional registry disambiguator"}
+            },
+            "required": ["slug"]
+        }
+    },
+    {
+        "name": "get_prediction",
+        "description": "Get the crash/failure prediction payload for a package (the /prediction/{slug}.json L4 endpoint). Returns model-output probabilities and top contributing signals. Use when user asks 'is X about to fail?', 'what is the crash probability for X?', or needs forward-looking risk.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "slug": {"type": "string", "description": "Package slug"},
+                "registry": {"type": "string", "description": "Optional registry disambiguator"}
+            },
+            "required": ["slug"]
+        }
+    },
+    # ── Demand-score tools (smedjan.ai_demand_scores)
+    {
+        "name": "lookup_demand_score",
+        "description": "Look up the Nerq AI-demand score for a package slug. Demand-score ranks entities by how often AI agents / crawlers reference them; only the top 100K get stable /rating/ endpoints. Returns {slug, score, rank} or {slug, in_top_100k: false}. Use when user asks 'is X in the Nerq top 100K?', 'how popular is X with AI agents?', or needs demand-weighted ranking.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "slug": {"type": "string", "description": "Package slug"}
+            },
+            "required": ["slug"]
+        }
+    },
+    {
+        "name": "top_demand_assets",
+        "description": "Get the top-N demand-weighted packages (by smedjan.ai_demand_scores). Returns ranked list of {slug, score, registry?}. Use when user asks 'what are the most in-demand packages?', 'which packages do AI agents reference most?', or wants a demand-weighted leaderboard.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "limit": {"type": "integer", "description": "Max results (default 25, max 500)", "default": 25},
+                "offset": {"type": "integer", "description": "Pagination offset (default 0)", "default": 0}
+            }
+        }
+    },
+    {
+        "name": "demand_score_percentile",
+        "description": "Get the demand-score percentile of a slug within the top 100K (0-100, higher = more in-demand). Use when user asks 'how in-demand is X compared to other packages?', or needs a relative ranking.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "slug": {"type": "string", "description": "Package slug"}
+            },
+            "required": ["slug"]
+        }
+    },
+    {
+        "name": "demand_score_coverage_stats",
+        "description": "Get coverage stats for the demand-weighted data moat: total slugs tracked, top-100K floor score, min/max scores. Use when user asks 'how big is the Nerq data moat?', or needs coverage metrics for the rating pipeline.",
+        "inputSchema": {"type": "object", "properties": {}}
+    },
+    # ── Registry-filtered search (sits on top of discover_agents)
+    {
+        "name": "search_npm_packages",
+        "description": "Search Nerq-indexed npm packages matching a natural-language query, returning top results with trust data. Use when user asks 'find npm packages for X', 'search npm for Y', or specifically wants JavaScript/Node results.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "need": {"type": "string", "description": "What you need"},
+                "limit": {"type": "integer", "default": 10}
+            },
+            "required": ["need"]
+        }
+    },
+    {
+        "name": "search_pypi_packages",
+        "description": "Search Nerq-indexed PyPI packages matching a natural-language query. Use when user asks 'find Python packages for X', 'search PyPI for Y', or specifically wants Python results.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "need": {"type": "string", "description": "What you need"},
+                "limit": {"type": "integer", "default": 10}
+            },
+            "required": ["need"]
+        }
+    },
+    {
+        "name": "search_mcp_servers_curated",
+        "description": "Search Nerq-indexed MCP servers specifically. Returns MCP server packages with trust scores and install snippets for Claude Desktop / Cursor / VS Code. Use when user asks 'find an MCP server for X', 'which MCP server does Y?', or is specifically looking for MCP (not generic npm/pypi).",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "need": {"type": "string", "description": "What you need the MCP server to do"},
+                "limit": {"type": "integer", "default": 10}
+            },
+            "required": ["need"]
+        }
+    },
+    {
+        "name": "search_huggingface_models",
+        "description": "Search Nerq-indexed HuggingFace models matching a natural-language query. Use when user asks 'find a HuggingFace model for X', 'search HF for Y', or specifically wants ML model results.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "need": {"type": "string", "description": "What you need"},
+                "limit": {"type": "integer", "default": 10}
+            },
+            "required": ["need"]
+        }
+    },
+    {
+        "name": "search_github_repos",
+        "description": "Search Nerq-indexed GitHub repositories matching a natural-language query. Use when user asks 'find a GitHub repo for X' or specifically wants source-code repos (not published packages).",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "need": {"type": "string", "description": "What you need"},
+                "limit": {"type": "integer", "default": 10}
+            },
+            "required": ["need"]
+        }
+    },
+    {
+        "name": "search_crates_packages",
+        "description": "Search Nerq-indexed Rust (crates.io) packages matching a natural-language query. Use when user asks 'find a Rust crate for X' or specifically wants Rust results.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "need": {"type": "string", "description": "What you need"},
+                "limit": {"type": "integer", "default": 10}
+            },
+            "required": ["need"]
+        }
+    },
+    # ── Reference / metadata tools
+    {
+        "name": "list_registries",
+        "description": "List all software registries Nerq tracks (npm, pypi, crates, rubygems, packagist, go, nuget, hex, cocoapods, pub, homebrew, conda). Returns registry IDs with canonical URL patterns. Use when user asks 'which registries does Nerq cover?', or needs the list of supported ecosystems.",
+        "inputSchema": {"type": "object", "properties": {}}
+    },
+    {
+        "name": "list_trust_dimensions",
+        "description": "List the eight universal trust dimensions that Nerq scores every package on: security, maintenance, popularity, community, quality, privacy, transparency, reliability. Returns dimension IDs + descriptions. Use when user asks 'what does Nerq score?', 'what are the Nerq dimensions?', or is building a dashboard around the dimensions.",
+        "inputSchema": {"type": "object", "properties": {}}
+    },
+    {
+        "name": "list_jurisdictions",
+        "description": "List all 52 global AI-regulation jurisdictions Nerq tracks (EU AI Act, Colorado AI Act, California SB53, UK AI regulation, etc.) with IDs, country, and effective dates. Use when user asks 'which regulations does Nerq cover?', 'list all jurisdictions', or needs the regulation set.",
+        "inputSchema": {"type": "object", "properties": {}}
+    },
+    {
+        "name": "get_llms_txt_url",
+        "description": "Return the canonical Nerq llms.txt / llms-full.txt URLs that AI crawlers should use for passive discovery. Use when user asks 'where is Nerq's llms.txt?', or when you (as an AI) need to locate the full documentation index.",
+        "inputSchema": {"type": "object", "properties": {}}
+    },
+    {
+        "name": "list_rss_feeds",
+        "description": "List all Nerq RSS feeds (per vertical + global). AI crawlers can subscribe for lastmod-driven re-crawl. Returns feed title + URL pairs. Use when user asks 'does Nerq have RSS?', 'list Nerq feeds', or wants to set up a crawl subscription.",
+        "inputSchema": {"type": "object", "properties": {}}
+    },
+    {
+        "name": "get_install_snippet",
+        "description": "Get copy-pasteable install/registration snippets for an MCP server across Claude Desktop, Cursor, and VS Code. Use when user asks 'how do I install X MCP server?', 'give me the MCP config for X', or wants ready-to-use integration code.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "slug": {"type": "string", "description": "MCP server slug"}
+            },
+            "required": ["slug"]
+        }
+    },
 ]
 
 SERVER_CARD = {
     "name": "agentindex",
-    "description": "ZARQ crypto risk intelligence + Nerq AI agent trust verification. 204K agents & tools indexed, 198 tokens rated. Preflight checks, KYA reports, benchmarks. Free API.",
-    "version": "1.1.0",
+    "description": "ZARQ crypto risk intelligence + Nerq AI agent trust verification. 204K agents & tools indexed, 198 tokens rated. Preflight checks, KYA reports, benchmarks, L4 rating/signals/dependencies/dimensions/prediction, demand-score lookups. Free API.",
+    "version": "1.2.0",
     "tools": TOOLS
 }
+
+
+# ── L4 tool handler helpers ────────────────────────────────────────────────
+# These back the 30+ expansion tools added for Smedjan v3.0 (T009). They sit
+# on top of the /rating, /signals, /dependencies, /dimensions, /prediction
+# endpoints and smedjan.ai_demand_scores. See ~/smedjan/docs/mcp-expansion.md.
+
+_L4_TOOLS = frozenset({
+    "get_rating", "bulk_rating_lookup", "rating_dimensions_breakdown",
+    "rating_grade_distribution", "get_signals", "get_cve_summary",
+    "get_openssf_scorecard", "get_maintainer_activity",
+    "get_security_attestations", "get_dependencies",
+    "check_dormant_dependency", "get_dimensions", "get_prediction",
+    "lookup_demand_score", "top_demand_assets", "demand_score_percentile",
+    "demand_score_coverage_stats",
+    "search_npm_packages", "search_pypi_packages",
+    "search_mcp_servers_curated", "search_huggingface_models",
+    "search_github_repos", "search_crates_packages",
+    "list_registries", "list_trust_dimensions", "list_jurisdictions",
+    "get_llms_txt_url", "list_rss_feeds", "get_install_snippet",
+})
+
+_REGISTRY_URL_PATTERNS = {
+    "npm": "https://www.npmjs.com/package/{slug}",
+    "pypi": "https://pypi.org/project/{slug}/",
+    "gems": "https://rubygems.org/gems/{slug}",
+    "rubygems": "https://rubygems.org/gems/{slug}",
+    "homebrew": "https://formulae.brew.sh/formula/{slug}",
+    "crates": "https://crates.io/crates/{slug}",
+    "cargo": "https://crates.io/crates/{slug}",
+    "nuget": "https://www.nuget.org/packages/{slug}",
+    "go": "https://pkg.go.dev/{slug}",
+    "packagist": "https://packagist.org/packages/{slug}",
+    "hex": "https://hex.pm/packages/{slug}",
+    "cocoapods": "https://cocoapods.org/pods/{slug}",
+    "pub": "https://pub.dev/packages/{slug}",
+    "conda": "https://anaconda.org/conda-forge/{slug}",
+}
+
+_UNIVERSAL_DIMENSIONS = [
+    {"id": "security", "description": "CVE exposure, audit coverage, attestations"},
+    {"id": "maintenance", "description": "Release cadence, last-commit recency, deprecation"},
+    {"id": "popularity", "description": "Stars, downloads, demand-weighted usage"},
+    {"id": "community", "description": "Contributor count, issue activity, forks"},
+    {"id": "quality", "description": "Test coverage proxies, type coverage, doc quality"},
+    {"id": "privacy", "description": "Data-handling transparency, PII flags"},
+    {"id": "transparency", "description": "License clarity, provenance, changelog"},
+    {"id": "reliability", "description": "Uptime proxies, breaking-change frequency"},
+]
+
+
+def _l4_get(client, path):
+    port = os.getenv("API_PORT", "8000")
+    url = f"http://localhost:{port}{path}"
+    resp = client.get(url)
+    if resp.status_code == 404:
+        return {"error": "slug_not_found", "path": path}
+    if resp.status_code == 503:
+        return {"error": "upstream_unavailable", "path": path}
+    resp.raise_for_status()
+    return resp.json()
+
+
+def _slug_and_registry(arguments):
+    slug = str(arguments.get("slug", "")).strip().lower()
+    if not slug:
+        return None, None, {"error": "missing_slug"}
+    registry = arguments.get("registry")
+    return slug, registry, None
+
+
+def _rating_path(slug):
+    return f"/rating/{slug}.json"
+
+
+def _signals_path(slug, registry=None):
+    path = f"/signals/{slug}.json"
+    return f"{path}?registry={registry}" if registry else path
+
+
+def _dependencies_path(slug, registry=None):
+    path = f"/dependencies/{slug}.json"
+    return f"{path}?registry={registry}" if registry else path
+
+
+def _dimensions_path(slug, registry=None):
+    path = f"/dimensions/{slug}.json"
+    return f"{path}?registry={registry}" if registry else path
+
+
+def _prediction_path(slug, registry=None):
+    path = f"/prediction/{slug}.json"
+    return f"{path}?registry={registry}" if registry else path
+
+
+def _smedjan_demand_query(sql, params=(), fetchone=False):
+    """Run a read-only query against smedjan.ai_demand_scores.
+
+    Isolated so a missing smedjan Python package / unreachable DB degrades
+    gracefully (tool returns {"error": "smedjan_unavailable"}) instead of
+    crashing the MCP dispatcher.
+    """
+    try:
+        from smedjan import sources
+    except Exception as exc:
+        return {"error": "smedjan_unavailable", "detail": str(exc)}
+    try:
+        with sources.smedjan_db_cursor() as (_, cur):
+            cur.execute(sql, params)
+            if fetchone:
+                row = cur.fetchone()
+                if row is None:
+                    return None
+                cols = [d[0] for d in cur.description]
+                return dict(zip(cols, row))
+            rows = cur.fetchall()
+            cols = [d[0] for d in cur.description]
+            return [dict(zip(cols, r)) for r in rows]
+    except Exception as exc:
+        return {"error": "smedjan_query_failed", "detail": str(exc)}
+
+
+def _handle_l4_tool(name, arguments, client):
+    if name == "get_rating":
+        slug, _, err = _slug_and_registry(arguments)
+        if err:
+            return err
+        return _l4_get(client, _rating_path(slug))
+
+    if name == "bulk_rating_lookup":
+        slugs = arguments.get("slugs") or []
+        if not isinstance(slugs, list) or not slugs:
+            return {"error": "slugs_required"}
+        slugs = [str(s).strip().lower() for s in slugs[:25] if s]
+        results = []
+        for slug in slugs:
+            payload = _l4_get(client, _rating_path(slug))
+            if isinstance(payload, dict) and payload.get("error") == "slug_not_found":
+                results.append({"slug": slug, "status": "not_rated"})
+            elif isinstance(payload, dict) and "error" in payload:
+                results.append({"slug": slug, "status": "error", "error": payload["error"]})
+            else:
+                results.append({
+                    "slug": slug,
+                    "status": "rated",
+                    "trust_score": payload.get("trust_score"),
+                    "grade": payload.get("trust_grade"),
+                    "registry": payload.get("registry"),
+                })
+        return {"count": len(results), "results": results}
+
+    if name == "rating_dimensions_breakdown":
+        slug, _, err = _slug_and_registry(arguments)
+        if err:
+            return err
+        payload = _l4_get(client, _rating_path(slug))
+        if isinstance(payload, dict) and "error" in payload:
+            return payload
+        return {
+            "slug": payload.get("slug", slug),
+            "trust_score": payload.get("trust_score"),
+            "grade": payload.get("trust_grade"),
+            "dimensions": payload.get("dimensions") or {},
+        }
+
+    if name == "rating_grade_distribution":
+        row = _smedjan_demand_query(
+            "SELECT COUNT(*) AS total FROM smedjan.ai_demand_scores",
+            fetchone=True,
+        )
+        if isinstance(row, dict) and "error" in row:
+            return row
+        return {
+            "note": "Per-grade counts are computed nightly by the rating pre-warmer.",
+            "total_tracked_slugs": (row or {}).get("total", 0),
+            "top_100k_floor": "See demand_score_coverage_stats for the floor score.",
+        }
+
+    if name == "get_signals":
+        slug, registry, err = _slug_and_registry(arguments)
+        if err:
+            return err
+        return _l4_get(client, _signals_path(slug, registry))
+
+    if name == "get_cve_summary":
+        slug, registry, err = _slug_and_registry(arguments)
+        if err:
+            return err
+        payload = _l4_get(client, _signals_path(slug, registry))
+        if isinstance(payload, dict) and "error" in payload:
+            return payload
+        sec = ((payload.get("external_trust_signals") or {}).get("security") or {})
+        return {
+            "slug": payload.get("slug", slug),
+            "cve_count": sec.get("cve_count", 0),
+            "cve_critical": sec.get("cve_critical", 0),
+        }
+
+    if name == "get_openssf_scorecard":
+        slug, registry, err = _slug_and_registry(arguments)
+        if err:
+            return err
+        payload = _l4_get(client, _signals_path(slug, registry))
+        if isinstance(payload, dict) and "error" in payload:
+            return payload
+        ets = payload.get("external_trust_signals") or {}
+        return {
+            "slug": payload.get("slug", slug),
+            "openssf_scorecard": ets.get("openssf_scorecard"),
+        }
+
+    if name == "get_maintainer_activity":
+        slug, registry, err = _slug_and_registry(arguments)
+        if err:
+            return err
+        payload = _l4_get(client, _signals_path(slug, registry))
+        if isinstance(payload, dict) and "error" in payload:
+            return payload
+        activity = ((payload.get("external_trust_signals") or {}).get("activity") or {})
+        return {"slug": payload.get("slug", slug), "activity": activity}
+
+    if name == "get_security_attestations":
+        slug, registry, err = _slug_and_registry(arguments)
+        if err:
+            return err
+        payload = _l4_get(client, _signals_path(slug, registry))
+        if isinstance(payload, dict) and "error" in payload:
+            return payload
+        sec = ((payload.get("external_trust_signals") or {}).get("security") or {})
+        return {
+            "slug": payload.get("slug", slug),
+            "has_independent_audit": sec.get("has_independent_audit"),
+            "has_soc2": sec.get("has_soc2"),
+            "has_iso27001": sec.get("has_iso27001"),
+        }
+
+    if name == "get_dependencies":
+        slug, registry, err = _slug_and_registry(arguments)
+        if err:
+            return err
+        return _l4_get(client, _dependencies_path(slug, registry))
+
+    if name == "check_dormant_dependency":
+        slug, registry, err = _slug_and_registry(arguments)
+        if err:
+            return err
+        payload = _l4_get(client, _dependencies_path(slug, registry))
+        if isinstance(payload, dict) and "error" in payload:
+            return payload
+        deps = payload.get("dependencies") or {}
+        return {
+            "slug": payload.get("slug", slug),
+            "dormant": bool(deps.get("dormant")),
+            "dormant_reason": deps.get("dormant_reason"),
+            "dormant_threshold_days": deps.get("dormant_threshold_days"),
+        }
+
+    if name == "get_dimensions":
+        slug, registry, err = _slug_and_registry(arguments)
+        if err:
+            return err
+        return _l4_get(client, _dimensions_path(slug, registry))
+
+    if name == "get_prediction":
+        slug, registry, err = _slug_and_registry(arguments)
+        if err:
+            return err
+        return _l4_get(client, _prediction_path(slug, registry))
+
+    if name == "lookup_demand_score":
+        slug, _, err = _slug_and_registry(arguments)
+        if err:
+            return err
+        row = _smedjan_demand_query(
+            "SELECT slug, score FROM smedjan.ai_demand_scores WHERE slug = %s",
+            (slug,), fetchone=True,
+        )
+        if isinstance(row, dict) and "error" in row:
+            return row
+        if not row:
+            return {"slug": slug, "in_top_100k": False}
+        return {"slug": slug, "in_top_100k": True, "score": row.get("score")}
+
+    if name == "top_demand_assets":
+        limit = min(int(arguments.get("limit", 25) or 25), 500)
+        offset = max(int(arguments.get("offset", 0) or 0), 0)
+        rows = _smedjan_demand_query(
+            "SELECT slug, score FROM smedjan.ai_demand_scores "
+            "ORDER BY score DESC, slug ASC LIMIT %s OFFSET %s",
+            (limit, offset),
+        )
+        if isinstance(rows, dict) and "error" in rows:
+            return rows
+        return {"count": len(rows or []), "results": rows or []}
+
+    if name == "demand_score_percentile":
+        slug, _, err = _slug_and_registry(arguments)
+        if err:
+            return err
+        row = _smedjan_demand_query(
+            "SELECT COUNT(*) AS below FROM smedjan.ai_demand_scores "
+            "WHERE score <= (SELECT score FROM smedjan.ai_demand_scores WHERE slug = %s)",
+            (slug,), fetchone=True,
+        )
+        total_row = _smedjan_demand_query(
+            "SELECT COUNT(*) AS total FROM smedjan.ai_demand_scores",
+            fetchone=True,
+        )
+        if isinstance(row, dict) and "error" in row:
+            return row
+        if isinstance(total_row, dict) and "error" in total_row:
+            return total_row
+        below = (row or {}).get("below") or 0
+        total = (total_row or {}).get("total") or 0
+        if not total or not below:
+            return {"slug": slug, "in_top_100k": False}
+        pct = round(100.0 * below / total, 2)
+        return {"slug": slug, "in_top_100k": True, "percentile": pct, "total_tracked": total}
+
+    if name == "demand_score_coverage_stats":
+        row = _smedjan_demand_query(
+            "SELECT COUNT(*) AS total, MIN(score) AS min_score, "
+            "MAX(score) AS max_score, AVG(score) AS avg_score "
+            "FROM smedjan.ai_demand_scores",
+            fetchone=True,
+        )
+        if isinstance(row, dict) and "error" in row:
+            return row
+        return {
+            "total_slugs": (row or {}).get("total"),
+            "min_score": float((row or {}).get("min_score") or 0),
+            "max_score": float((row or {}).get("max_score") or 0),
+            "avg_score": float((row or {}).get("avg_score") or 0),
+        }
+
+    # Registry-filtered search: proxy to /v1/discover with a type hint.
+    _REGISTRY_TYPE_MAP = {
+        "search_npm_packages": "npm_package",
+        "search_pypi_packages": "pypi_package",
+        "search_mcp_servers_curated": "mcp_server",
+        "search_huggingface_models": "huggingface_model",
+        "search_github_repos": "github_repo",
+        "search_crates_packages": "crates_package",
+    }
+    if name in _REGISTRY_TYPE_MAP:
+        port = os.getenv("API_PORT", "8000")
+        body = {
+            "need": arguments.get("need", ""),
+            "type": _REGISTRY_TYPE_MAP[name],
+            "limit": min(int(arguments.get("limit", 10) or 10), 50),
+        }
+        resp = client.post(f"http://localhost:{port}/v1/discover", json=body)
+        resp.raise_for_status()
+        return resp.json()
+
+    if name == "list_registries":
+        return {
+            "count": len(_REGISTRY_URL_PATTERNS),
+            "registries": [
+                {"id": rid, "url_pattern": pattern}
+                for rid, pattern in sorted(_REGISTRY_URL_PATTERNS.items())
+            ],
+        }
+
+    if name == "list_trust_dimensions":
+        return {"count": len(_UNIVERSAL_DIMENSIONS), "dimensions": _UNIVERSAL_DIMENSIONS}
+
+    if name == "list_jurisdictions":
+        port = os.getenv("API_PORT", "8000")
+        try:
+            resp = client.get(f"http://localhost:{port}/v1/jurisdictions")
+            if resp.status_code == 200:
+                return resp.json()
+        except Exception:
+            pass
+        return {
+            "note": "Live endpoint unavailable; returning reference stub.",
+            "count": 52,
+            "examples": [
+                {"id": "eu_ai_act", "name": "EU AI Act", "country": "EU"},
+                {"id": "us_co_sb205", "name": "Colorado AI Act (SB205)", "country": "US"},
+                {"id": "us_ca_sb53", "name": "California SB53", "country": "US"},
+                {"id": "uk_ai_regulation", "name": "UK AI Regulation", "country": "UK"},
+            ],
+        }
+
+    if name == "get_llms_txt_url":
+        return {
+            "llms_txt": "https://nerq.ai/llms.txt",
+            "llms_full": "https://nerq.ai/llms-full.txt",
+        }
+
+    if name == "list_rss_feeds":
+        return {
+            "feeds": [
+                {"title": "Nerq — All updates", "url": "https://nerq.ai/rss.xml"},
+                {"title": "Nerq — npm", "url": "https://nerq.ai/rss/npm.xml"},
+                {"title": "Nerq — PyPI", "url": "https://nerq.ai/rss/pypi.xml"},
+                {"title": "Nerq — crates.io", "url": "https://nerq.ai/rss/crates.xml"},
+                {"title": "Nerq — MCP servers", "url": "https://nerq.ai/rss/mcp.xml"},
+                {"title": "Nerq — High-risk alerts", "url": "https://nerq.ai/rss/alerts.xml"},
+            ]
+        }
+
+    if name == "get_install_snippet":
+        slug, _, err = _slug_and_registry(arguments)
+        if err:
+            return err
+        return {
+            "slug": slug,
+            "claude_desktop": {
+                "mcpServers": {
+                    slug: {"command": "npx", "args": ["-y", slug]},
+                },
+            },
+            "cursor": {"mcpServers": {slug: {"command": "npx", "args": ["-y", slug]}}},
+            "vscode": {"mcp.servers": {slug: {"command": "npx", "args": ["-y", slug]}}},
+            "note": "Generic npx snippet; verify the package name and replace with python/pip snippet if the server ships as a Python package.",
+        }
+
+    return {"error": f"l4_handler_not_implemented: {name}"}
 
 
 def _call_tool(name, arguments):
@@ -162,6 +879,8 @@ def _call_tool(name, arguments):
     base_url = f"http://localhost:{port}/v1"
     try:
         client = httpx.Client(timeout=30)
+        if name in _L4_TOOLS:
+            return _handle_l4_tool(name, arguments, client)
         if name == "discover_agents":
             response = client.post(f"{base_url}/discover", json={
                 "need": arguments.get("need", ""),
