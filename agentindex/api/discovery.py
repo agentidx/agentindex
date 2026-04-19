@@ -1639,6 +1639,16 @@ app.include_router(router_rating)
 from agentindex.api.endpoints.hacked import router as router_hacked
 app.include_router(router_hacked)
 
+# /model/{slug} 200-with-noindex fallback + backfill enqueue (FU-QUERY-20260418-01)
+# AUDIT-QUERY-20260418 finding #1: /model/<slug> 404ed on 54.2% of 7d
+# requests (1086/2002). This installs an HTTP middleware that rewrites
+# upstream 404s to a 200 fallback + queues the missed slug for backfill,
+# and mounts /v1/ops/model-miss-metrics for the next audit to verify the
+# drop below 10%. Must be installed before any request is served; route
+# registration order does not matter because this is a middleware.
+from agentindex.api.endpoints.model_fallback import install as install_model_fallback
+install_model_fallback(app)
+
 # LangChain integration docs
 from agentindex.docs_langchain import router_docs_langchain
 app.include_router(router_docs_langchain)
