@@ -48,6 +48,31 @@ _L1_UNLOCK_ALL: bool = bool(_L1_UNLOCK_ALLOWLIST & {"*", "all"})
 _L5_CROSSREG_MODE: str = os.environ.get("L5_CROSSREG_LINKS", "off").strip().lower()
 
 
+# L2 Block 2a gate (T110) — external-trust-signals renderer. Parallel
+# design to L2_BLOCK_2B_MODE / L2_BLOCK_2E_MODE. Three modes, default off.
+def _l2_block_2a_mode() -> str:
+    m = os.environ.get("L2_BLOCK_2A_MODE", "off").strip().lower()
+    return m if m in ("shadow", "live") else "off"
+
+
+def _l2_block_2a_html(slug: str) -> str:
+    mode = _l2_block_2a_mode()
+    if mode == "off":
+        return ""
+    try:
+        from smedjan.renderers.block_2a import render_block_2a_html
+        raw = render_block_2a_html(slug)
+    except Exception as exc:
+        logger.warning("block_2a: render failed for %s: %s", slug, exc)
+        return ""
+    if not raw:
+        return ""
+    if mode == "shadow":
+        safe = raw.replace("--", "- -")
+        return f"<!-- L2_BLOCK_2A_SHADOW\n{safe}\n-->"
+    return raw  # live
+
+
 # L2 Block 2b gate (T112) — dependency-graph renderer. Parallel design to
 # L1_UNLOCK_REGISTRIES / L5_CROSSREG_LINKS. Three modes, default off:
 #   off    → no DB query, nothing emitted
@@ -9148,7 +9173,7 @@ def _render_agent_page(slug, agent_info, lang="en"):
         "{{ related_rankings }}": related_rankings + _security_stack,
         "{{ cross_product_html }}": cross_product_html,
         "{{ similar_entities }}": similar_entities_html,
-        "{{ king_sections }}": king_sections + _render_cross_registry_section(slug, source) + _l2_block_2b_html(slug) + _l2_block_2e_html(slug),
+        "{{ king_sections }}": king_sections + _render_cross_registry_section(slug, source) + _l2_block_2a_html(slug) + _l2_block_2b_html(slug) + _l2_block_2e_html(slug),
         "{{ king_jsonld_block }}": (
             '<script type="application/ld+json">' + json.dumps({
                 "@context": "https://schema.org",
