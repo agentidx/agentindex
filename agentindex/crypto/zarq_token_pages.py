@@ -92,6 +92,124 @@ def _esc(text):
     return str(text).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
 
 
+import re
+_SLUG_RE = re.compile(r"^[a-z0-9][a-z0-9._-]{0,63}$")
+
+
+def _is_plausible_token_slug(slug):
+    """Reject obvious hallucinated / attack slugs so we don't reward crawlers.
+
+    Real token_ids are short, lowercase, [a-z0-9-._]+. Longer than 64 chars or
+    containing non-ASCII is a crawler-guessed template URL — keep 404ing those.
+    """
+    if not slug or not isinstance(slug, str):
+        return False
+    return bool(_SLUG_RE.match(slug))
+
+
+def _get_token_data_safe(token_id):
+    """Fetch rating/ndd/risk rows without raising. Returns (rating, ndd, risk)."""
+    rating = ndd = risk = None
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
+        try:
+            rating = conn.execute("""
+                SELECT r.token_id, r.symbol, r.name, r.rating, r.score,
+                       r.pillar_1, r.pillar_2, r.pillar_3, r.pillar_4, r.pillar_5,
+                       r.price_usd, r.price_change_24h, r.price_change_7d, r.run_date
+                FROM crypto_rating_daily r
+                WHERE r.token_id = ?
+                ORDER BY r.run_date DESC LIMIT 1
+            """, (token_id,)).fetchone()
+        except Exception as e:
+            logger.debug(f"rating lookup failed for {token_id}: {e}")
+        try:
+            ndd = conn.execute("""
+                SELECT n.ndd, n.crash_probability, n.alert_level, n.price_usd, n.symbol, n.name
+                FROM crypto_ndd_daily n
+                WHERE n.token_id = ?
+                ORDER BY n.run_date DESC LIMIT 1
+            """, (token_id,)).fetchone()
+        except Exception as e:
+            logger.debug(f"ndd lookup failed for {token_id}: {e}")
+        try:
+            risk = conn.execute("""
+                SELECT s.risk_level, s.structural_weakness, s.trust_score, s.ndd_current,
+                       s.sig6_structure, s.trust_p3, s.drawdown_90d
+                FROM nerq_risk_signals s
+                WHERE s.token_id = ?
+                ORDER BY s.signal_date DESC LIMIT 1
+            """, (token_id,)).fetchone()
+        except Exception as e:
+            logger.debug(f"risk lookup failed for {token_id}: {e}")
+        conn.close()
+    except Exception as e:
+        logger.warning(f"_get_token_data_safe connect failed for {token_id}: {e}")
+    return rating, ndd, risk
+
+
+def _render_pending_token_page(slug, token_info):
+    """Minimal noindex page for tokens we know exist but have no scored data yet.
+
+    Handles T3/T5 tokens and DB-resident tokens without rating/NDD rows. Keeps
+    the URL returning 2xx (so AI crawlers and ZARQ-internal links don't 404)
+    while honestly admitting the rating is pending. noindex prevents thin-
+    content penalties from Google.
+    """
+    name = token_info.get("name") or slug.replace("-", " ").title()
+    symbol = (token_info.get("symbol") or slug.split("-")[0]).upper()
+    today = date.today().isoformat()
+    webpage_jsonld = json.dumps({
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "name": f"{name} ({symbol}) — Rating Pending | ZARQ",
+        "description": f"ZARQ has not yet assigned a risk rating to {name} ({symbol}). Full scoring pending.",
+        "url": f"https://zarq.ai/token/{slug}",
+        "publisher": {"@type": "Organization", "name": "ZARQ", "url": "https://zarq.ai"},
+        "dateModified": today,
+    })
+    return f"""<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{_esc(name)} ({_esc(symbol)}) — Rating Pending | ZARQ</title>
+<meta name="description" content="ZARQ has not yet assigned a risk rating to {_esc(name)} ({_esc(symbol)}). Full scoring across five pillars is pending. Browse rated tokens at /tokens.">
+<link rel="canonical" href="https://zarq.ai/token/{_esc(slug)}">
+<meta name="robots" content="noindex, follow">
+<meta property="og:title" content="{_esc(name)} ({_esc(symbol)}) — Rating Pending | ZARQ">
+<meta property="og:url" content="https://zarq.ai/token/{_esc(slug)}">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="ZARQ">
+<meta name="zarq:rating" content="Pending">
+<script type="application/ld+json">
+{webpage_jsonld}
+</script>
+<style>
+body{{font-family:system-ui,-apple-system,"DM Sans",sans-serif;color:#1a1a1a;background:#fafaf9;line-height:1.6;margin:0}}
+.wrap{{max-width:720px;margin:0 auto;padding:48px 24px}}
+h1{{font-family:"DM Serif Display",Georgia,serif;font-size:1.8rem;margin:0 0 8px}}
+.sym{{font-family:"JetBrains Mono",monospace;color:#78716c;font-size:14px}}
+.pending{{display:inline-block;padding:6px 14px;border:1px solid #c2956b;background:rgba(194,149,107,.08);color:#8a6d4a;font-family:"JetBrains Mono",monospace;font-size:11px;text-transform:uppercase;letter-spacing:.1em;margin:16px 0}}
+p{{font-size:15px;color:#44403c}}
+a{{color:#c2956b}}
+.links{{margin-top:32px;padding-top:24px;border-top:1px solid #e7e5e4;font-size:13px}}
+</style></head><body>
+<div class="wrap">
+<nav style="font-size:12px;color:#78716c;margin-bottom:16px"><a href="/">ZARQ</a> &rsaquo; <a href="/tokens">Tokens</a> &rsaquo; {_esc(name)}</nav>
+<h1>{_esc(name)} <span class="sym">({_esc(symbol)})</span></h1>
+<div class="pending">Rating Pending</div>
+<p>ZARQ has not yet assigned a quantitative risk rating to {_esc(name)}. Pillar scoring, Distance-to-Default, and crash-probability estimates require sufficient on-chain activity and price history before we publish them.</p>
+<p>Check the ZARQ <a href="/tokens">token ratings hub</a> for currently rated assets, or use <a href="/zarq/docs">the API</a> to check any token's live status.</p>
+<div class="links">
+<a href="/tokens">Browse all rated tokens &rarr;</a> &middot;
+<a href="/v1/crypto/rating/{_esc(slug)}">API status for {_esc(slug)}</a>
+</div>
+<p style="margin-top:32px;font-size:12px;color:#78716c">ZARQ publishes risk intelligence, not investment advice. All crypto assets carry risk of total loss.</p>
+</div>
+</body></html>"""
+
+
 def _rating_color(rating):
     if not rating:
         return "#78716c"
@@ -1934,13 +2052,20 @@ def mount_token_pages(app):
 
     @app.get("/token/{slug}", response_class=HTMLResponse)
     async def token_page(slug: str):
-        _load_slugs()
-        # In new format, slug == token_id
-        token_id = slug
-        if token_id not in _slug_ids:
-            return HTMLResponse(status_code=404, content="<h1>Token not found</h1><p>No rating data available for this token.</p>")
+        """Resolve /token/{slug} via a cascade: full rendering → data-driven
+        risk-signal/NDD page → pending-rating minimal page → 404.
 
-        # Build token_info from slug map
+        Audit FU-404-20260419-01 found 4,425 404s on /token/* in 7d driven
+        mainly by disabled tiers (T3/T5) and a handful of unknown slugs.
+        The cascade keeps known/monitored slugs on 2xx while still 404ing
+        obvious hallucinations, and wraps every render in try/except so a
+        bad row never 500s (historically /token/coinw did).
+        """
+        _load_slugs()
+        if not _is_plausible_token_slug(slug):
+            return HTMLResponse(status_code=404, content="<h1>Token not found</h1>")
+
+        token_id = slug
         slug_data = _slug_map.get(token_id, {})
         token_info = {
             "name": slug_data.get("name"),
@@ -1948,15 +2073,46 @@ def mount_token_pages(app):
             "tier": slug_data.get("tier"),
             "risk_grade": slug_data.get("risk_grade"),
         }
+        in_slug_map = token_id in _slug_ids
+        tier = slug_data.get("tier")
 
-        try:
-            html = _render_token_page(slug, token_id, token_info)
-            if html is None:
-                return HTMLResponse(status_code=404, content="<h1>Token not found</h1><p>No rating data available for this token.</p>")
-            return HTMLResponse(content=html)
-        except Exception as e:
-            logger.error(f"Error rendering token page {slug}: {e}")
-            return HTMLResponse(status_code=500, content=f"<h1>Error</h1><p>{_esc(str(e))}</p>")
+        # Strategy 1: full renderer (handles T1 Moody's, T2/T4 risk-signal/NDD)
+        if in_slug_map and tier in ENABLED_TIERS:
+            try:
+                html = _render_token_page(slug, token_id, token_info)
+                if html:
+                    return HTMLResponse(content=html)
+            except Exception as e:
+                logger.error(f"_render_token_page failed for {slug}: {e}", exc_info=True)
+
+        # Strategy 2: data-driven render regardless of tier — if we have any
+        # data rows, use them. Covers T3/T5 slugs that picked up data later
+        # and unknown slugs that exist in DB but not the slug JSON.
+        _, ndd_row, risk_row = _get_token_data_safe(token_id)
+        if ndd_row and risk_row:
+            try:
+                html = _render_risk_signal_page(slug, token_id, token_info, risk_row, ndd_row)
+                if html:
+                    return HTMLResponse(content=html)
+            except Exception as e:
+                logger.error(f"_render_risk_signal_page failed for {slug}: {e}", exc_info=True)
+        if ndd_row:
+            try:
+                html = _render_ndd_only_page(slug, token_id, token_info, ndd_row)
+                if html:
+                    return HTMLResponse(content=html)
+            except Exception as e:
+                logger.error(f"_render_ndd_only_page failed for {slug}: {e}", exc_info=True)
+
+        # Strategy 3: known slug with no data → pending-rating minimal page
+        if in_slug_map:
+            try:
+                return HTMLResponse(content=_render_pending_token_page(slug, token_info))
+            except Exception as e:
+                logger.error(f"_render_pending_token_page failed for {slug}: {e}", exc_info=True)
+
+        # Strategy 4: unknown slug, no data → 404
+        return HTMLResponse(status_code=404, content="<h1>Token not found</h1><p>No rating data available for this token.</p>")
 
     # ================================================================
     # SAFE TOKEN PAGES — "Is {token} safe to buy?"
