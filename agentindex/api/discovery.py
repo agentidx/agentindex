@@ -443,10 +443,12 @@ def check_rate_limit(request: Request):
 # --- Endpoints ---
 
 @app.get("/search", response_class=HTMLResponse)
-async def search_page(q: str = ""):
+async def search_page(request: Request, q: str = ""):
     """HTML search results page."""
     from agentindex.nerq_design import nerq_head, NERQ_FOOTER
+    from agentindex.api.search_events import log_search_event
     import html as _h
+    import time as _t
     if not q or len(q) < 2:
         _head = nerq_head("Search — Nerq", "Search 2.5M+ software packages, apps, and tools for trust scores.", "https://nerq.ai/search")
         return HTMLResponse(f"""{_head}
@@ -455,6 +457,7 @@ async def search_page(q: str = ""):
 <p style="color:#64748b">Search 2.5M+ entities across npm, PyPI, Chrome, WordPress, and 11 more registries.</p>
 </main>{NERQ_FOOTER}</body></html>""")
 
+    _t0 = _t.time()
     session = get_session()
     try:
         session.execute(text("SET LOCAL statement_timeout = '3s'"))
@@ -467,6 +470,20 @@ async def search_page(q: str = ""):
         """), {"pat": f"%{q}%"}).fetchall()
     finally:
         session.close()
+
+    try:
+        log_search_event(
+            q=q,
+            result_count=len(rows),
+            duration_ms=round((_t.time() - _t0) * 1000, 1),
+            ip=request.headers.get("cf-connecting-ip") or request.headers.get("x-forwarded-for") or (request.client.host if request.client else None),
+            user_agent=request.headers.get("user-agent"),
+            referrer=request.headers.get("referer"),
+            country=(request.headers.get("cf-ipcountry") or "").replace("XX", "").replace("T1", "") or None,
+            source="/search",
+        )
+    except Exception:
+        pass
 
     results_html = ""
     for r in rows:

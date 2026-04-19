@@ -9,10 +9,12 @@
 --      OR path LIKE '/compare/%'
 --      OR path LIKE '/best/%'
 --      OR path LIKE '/alternatives/%'
+--      OR path LIKE '/search%'
 --      OR status >= 400
 --
--- Retention: last 30 days of preflight_analytics + requests; full copy
--- of requests_daily. Rebuild model (TRUNCATE + COPY) — no delta upsert.
+-- Retention: last 30 days of preflight_analytics + requests + search_events;
+-- full copy of requests_daily. Rebuild model (TRUNCATE + COPY) — no delta
+-- upsert.
 
 CREATE SCHEMA IF NOT EXISTS analytics_mirror;
 ALTER SCHEMA analytics_mirror OWNER TO smedjan_app;
@@ -92,6 +94,39 @@ CREATE INDEX IF NOT EXISTS idx_amp_rd_day
     ON analytics_mirror.requests_daily (day);
 CREATE INDEX IF NOT EXISTS idx_amp_rd_ai_bot_day
     ON analytics_mirror.requests_daily (is_ai_bot, day);
+
+-- search_events mirror — populated from Nerq's /search endpoint
+-- (agentindex/api/search_events.py -> logs/analytics.db:search_events ->
+-- nightly export -> COPY into this table). Source: FU-QUERY-20260418-08.
+-- Unblocks the "top search queries" and "top zero-result queries" cut in
+-- AUDIT-QUERY weekly runs; `search_query` on `requests` was populated on
+-- 7 / 7.2M rows at audit #1 because the Nerq search path was not wired
+-- into the middleware.
+CREATE TABLE IF NOT EXISTS analytics_mirror.search_events (
+    id            bigint PRIMARY KEY,
+    ts            timestamptz NOT NULL,
+    q             text NOT NULL,
+    q_normalized  text,
+    result_count  integer NOT NULL DEFAULT 0,
+    duration_ms   double precision,
+    ip            text,
+    user_agent    text,
+    referrer      text,
+    bot_name      text,
+    is_bot        integer NOT NULL DEFAULT 0,
+    is_ai_bot     integer NOT NULL DEFAULT 0,
+    visitor_type  text,
+    country       text,
+    source        text
+);
+CREATE INDEX IF NOT EXISTS idx_amp_se_ts
+    ON analytics_mirror.search_events (ts);
+CREATE INDEX IF NOT EXISTS idx_amp_se_q_norm
+    ON analytics_mirror.search_events (q_normalized);
+CREATE INDEX IF NOT EXISTS idx_amp_se_zero_ts
+    ON analytics_mirror.search_events (ts) WHERE result_count = 0;
+CREATE INDEX IF NOT EXISTS idx_amp_se_visitor_ts
+    ON analytics_mirror.search_events (visitor_type, ts);
 
 -- ai_demand_scores — MOVES from agentindex.public to smedjan.smedjan
 -- in M10. Create it here so the M10 data load has a target, and so

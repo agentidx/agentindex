@@ -54,12 +54,23 @@ SELECT id, ts, method, path, status, duration_ms, ip, user_agent, bot_name,
         OR path LIKE '/compare/%'
         OR path LIKE '/best/%'
         OR path LIKE '/alternatives/%'
+        OR path LIKE '/search%'
         OR status >= 400)"
 
 dump requests_daily "
 SELECT day, bot_name, is_ai_bot, is_bot, status, is_gptbot, is_preflight,
        visitor_type, country, lang, count
   FROM requests_daily"
+
+# search_events (FU-QUERY-20260418-08) — full window, unfiltered; rows are
+# cheap (one per /search hit). Populates analytics_mirror.search_events so
+# the weekly AUDIT-QUERY cut can answer "top search queries" and
+# "top zero-result queries".
+dump search_events "
+SELECT id, ts, q, q_normalized, result_count, duration_ms, ip, user_agent,
+       referrer, bot_name, is_bot, is_ai_bot, visitor_type, country, source
+  FROM search_events
+ WHERE ts > '${CUTOFF}'"
 
 # Also ship a simple ready-marker so the importer waits for complete data.
 echo "$(date -u +%FT%TZ)" > "$OUT/READY"
