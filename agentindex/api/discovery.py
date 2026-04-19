@@ -1632,6 +1632,13 @@ app.include_router(router_dimensions)
 from agentindex.api.rating import router as router_rating
 app.include_router(router_rating)
 
+# /hacked/{slug} — breach-history renderer (FU-QUERY-20260418-03)
+# Eliminates the 100 % 404 rate AUDIT-QUERY-20260418 finding #3 observed
+# on 7,462 weekly hits. Reads breach_history + software_registry; always
+# returns 200 HTML with structured data so AI bots can cite.
+from agentindex.api.endpoints.hacked import router as router_hacked
+app.include_router(router_hacked)
+
 # LangChain integration docs
 from agentindex.docs_langchain import router_docs_langchain
 app.include_router(router_docs_langchain)
