@@ -258,6 +258,32 @@ SIGNAL_SPECS: dict[str, SignalSpec] = {
 
 # ── Emission ─────────────────────────────────────────────────────────────
 
+# Evidence signals that, when emitted, should also clear a fallback-
+# category pause flag (~/smedjan/config/<cat>_paused.flag). This closes
+# the loop between "upstream fix deployed" (signal) and "resume the
+# paused audit category" without requiring manual flag removal.
+_SIGNAL_UNPAUSES_CATEGORY = {
+    "l1b_canary_48h_green": "F3",  # set by L1b /compare/ canary — resume F3 audits
+}
+
+
+def _maybe_clear_pause_flag(signal_name: str) -> None:
+    cat = _SIGNAL_UNPAUSES_CATEGORY.get(signal_name)
+    if not cat:
+        return
+    from pathlib import Path
+    flag = Path.home() / "smedjan" / "config" / f"{cat.lower()}_paused.flag"
+    try:
+        if flag.exists():
+            flag.unlink()
+            log.info("auto-unpaused category %s — removed %s (triggered by %s)",
+                     cat, flag, signal_name)
+        else:
+            log.debug("category %s already unpaused at %s", cat, signal_name)
+    except Exception as e:  # noqa: BLE001
+        log.error("failed to remove pause flag %s: %s", flag, e)
+
+
 def _emit(verdict: Verdict, *, dry_run: bool) -> None:
     if dry_run:
         log.info("[DRY-RUN] would record %s payload=%s", verdict.name, verdict.payload)
@@ -268,6 +294,10 @@ def _emit(verdict: Verdict, *, dry_run: bool) -> None:
         created_by="emit_evidence.auto",
     )
     log.info("recorded evidence signal %s", verdict.name)
+
+    # Auto-unpause hook (runs before resolve so any task gated on the
+    # new signal picks up in the same resolve pass).
+    _maybe_clear_pause_flag(verdict.name)
 
     # Promote any pending tasks that were blocked on this signal.
     try:

@@ -42,6 +42,7 @@ import logging
 import re
 import sys
 from datetime import datetime, timezone
+from pathlib import Path
 
 import psycopg2.extras
 
@@ -352,6 +353,25 @@ def _insert_task(cur, t: dict) -> bool:
     return cur.rowcount == 1
 
 
+# ── Pause flags ──────────────────────────────────────────────────────────
+
+# Per-category pause: if `~/smedjan/config/<cat_lower>_paused.flag` exists
+# the generator skips that category. Used when an existing run is waiting
+# on an upstream deploy (F3 paused until L1b live — every new F3 audit
+# would re-discover the same compare-page regression, wasting worker time
+# and Anders' attention). Unpause by deleting the flag; the evidence-
+# emitter will do that automatically when "l1b_canary_48h_green" signals
+# arrive (see smedjan/scripts/emit_evidence.py).
+_PAUSE_FLAG_DIR = Path.home() / "smedjan" / "config"
+
+
+def _is_paused(cat: str) -> bool:
+    try:
+        return (_PAUSE_FLAG_DIR / f"{cat.lower()}_paused.flag").exists()
+    except Exception:  # noqa: BLE001 — filesystem blip = assume not paused
+        return False
+
+
 # ── Main entrypoint ───────────────────────────────────────────────────────
 
 def generate() -> dict[str, int]:
@@ -368,6 +388,10 @@ def generate() -> dict[str, int]:
             log.info("live fallback counts: %s (target %d)", counts, TARGET_PER_CATEGORY)
 
             for cat in CATEGORIES:
+                if _is_paused(cat):
+                    log.info("category %s paused via %s_paused.flag — skipping",
+                             cat, cat.lower())
+                    continue
                 shortfall = TARGET_PER_CATEGORY - counts.get(cat, 0)
                 if shortfall <= 0:
                     continue
