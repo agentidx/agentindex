@@ -53,6 +53,19 @@ log = logging.getLogger("smedjan.fallback_generator")
 
 
 TARGET_PER_CATEGORY = 10
+
+# Per-category overrides. F2 reduced to 1 steady-state (from 10) because
+# the brand value of additional F2 audits beyond a single active one is
+# minimal — one running audit surfaces the current signal, more just
+# pile up. F1 stays at 10 by default but is pause-flagged until signal
+# (f1_restore_flag or removal of f1_paused.flag); see _is_paused below.
+_TARGET_OVERRIDES = {
+    "F2": 1,
+}
+
+
+def _target_for(cat: str) -> int:
+    return _TARGET_OVERRIDES.get(cat, TARGET_PER_CATEGORY)
 LIVE_STATUSES = ("pending", "queued", "approved", "in_progress")
 CATEGORIES = ("F1", "F2", "F3")
 
@@ -392,7 +405,8 @@ def generate() -> dict[str, int]:
                     log.info("category %s paused via %s_paused.flag — skipping",
                              cat, cat.lower())
                     continue
-                shortfall = TARGET_PER_CATEGORY - counts.get(cat, 0)
+                target = _target_for(cat)
+                shortfall = target - counts.get(cat, 0)
                 if shortfall <= 0:
                     continue
                 counter = _max_counter_today(cur, cat, date_str)

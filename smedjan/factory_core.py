@@ -64,6 +64,7 @@ class Task:
     notes: str | None
     session_affinity: str | None = None
     deferred_start_at: datetime | None = None
+    strategic_class: str = "default"
 
     @classmethod
     def from_row(cls, row: dict) -> "Task":
@@ -92,6 +93,7 @@ class Task:
             notes=row["notes"],
             session_affinity=row.get("session_affinity"),
             deferred_start_at=row.get("deferred_start_at"),
+            strategic_class=row.get("strategic_class") or "default",
         )
 
 
@@ -311,6 +313,15 @@ WITH cte AS (
             WHEN %(affinity)s::text IS NOT NULL AND session_affinity = %(affinity)s::text THEN 0
             ELSE 1
         END,
+        -- Strategic-first picker: claim value-creating tasks before
+        -- diagnostic/report-only when the claim budget is tight.
+        CASE strategic_class
+            WHEN 'strategic'       THEN 0
+            WHEN 'default'         THEN 1
+            WHEN 'diagnostic_only' THEN 2
+            WHEN 'report_only'     THEN 3
+            ELSE 1
+        END,
         priority, created_at
     FOR UPDATE SKIP LOCKED
     LIMIT 1
@@ -343,6 +354,15 @@ WITH cte AS (
           OR session_affinity = %(affinity)s::text
       )
     ORDER BY
+        -- Same strategic-first bias so a diagnostic_only fallback can't
+        -- steal the primary pool's oxygen when budget is tight.
+        CASE strategic_class
+            WHEN 'strategic'       THEN 0
+            WHEN 'default'         THEN 1
+            WHEN 'diagnostic_only' THEN 2
+            WHEN 'report_only'     THEN 3
+            ELSE 1
+        END,
         CASE fallback_category
             WHEN 'F1' THEN 1
             WHEN 'F2' THEN 2

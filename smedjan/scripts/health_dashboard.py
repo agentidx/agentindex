@@ -370,6 +370,14 @@ def _render_budget(budget: dict | None) -> str:
     else:
         sleep_txt = f"{sleep_s}s throttle"
     rolls = budget.get("rolls_at") or "—"
+
+    # Weekly trajectory card (FAS 5). Colour maps to status:
+    # green < 50%, yellow 50-75%, red >= 75%.
+    wk_pct = budget.get("week_pct", 0.0)
+    wk_status = budget.get("week_status", "green")
+    wk_colour = {"green": "ok", "yellow": "warn", "red": "bad"}.get(wk_status, "ok")
+    wk_dot = f"<span class='dot dot-{wk_colour}'></span>"
+    wk_rolls = budget.get("week_rolls_at") or "—"
     return (
         "<div class='grid'>"
         "<div class='card'>"
@@ -381,6 +389,16 @@ def _render_budget(budget: dict | None) -> str:
         "<div class='label'>window rolls at</div>"
         f"<div class='value mono'>{html.escape(rolls)}</div>"
         f"<div class='sub'>oldest claim + 5h</div>"
+        "</div>"
+        "<div class='card'>"
+        "<div class='label'>weekly usage</div>"
+        f"<div class='value mono'>{wk_dot}{budget['week_claims']}/{budget['week_budget']}</div>"
+        f"<div class='sub'>{wk_pct:.1f}% of 7d budget · status {wk_status}</div>"
+        "</div>"
+        "<div class='card'>"
+        "<div class='label'>weekly rolls at</div>"
+        f"<div class='value mono'>{html.escape(wk_rolls)}</div>"
+        f"<div class='sub'>oldest claim + 7d</div>"
         "</div>"
         "</div>"
     )
@@ -442,6 +460,12 @@ def _fetch_session_budget() -> dict | None:
             "sleep_s": snap.sleep_seconds,
             "rolls_at": snap.window_rolls_at.isoformat(timespec="minutes")
                 if snap.window_rolls_at else None,
+            "week_claims": snap.claims_in_week,
+            "week_budget": sb.CLAIM_BUDGET_WEEKLY,
+            "week_pct": snap.weekly_percent * 100,
+            "week_status": sb._snap_status(snap.weekly_percent),
+            "week_rolls_at": snap.weekly_rolls_at.isoformat(timespec="minutes")
+                if snap.weekly_rolls_at else None,
         }
     except Exception:  # noqa: BLE001 — optional; never crash the dashboard
         return None
