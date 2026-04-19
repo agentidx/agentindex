@@ -5947,7 +5947,7 @@ def _get_alternatives(category, current_name, current_score, limit=5):
     session = get_session()
     try:
         rows = session.execute(text("""
-            SELECT name, COALESCE(trust_score_v2, trust_score) as trust_score,
+            SELECT name, slug, COALESCE(trust_score_v2, trust_score) as trust_score,
                    trust_grade, category, source, stars
             FROM entity_lookup
             WHERE is_active = true
@@ -8039,7 +8039,7 @@ def _render_agent_page(slug, agent_info, lang="en"):
     if alternatives:
         cards = ""
         for alt in alternatives:
-            alt_slug = _make_slug(alt["name"])
+            alt_slug = alt.get("slug") or _make_slug(alt["name"])
             alt_score = alt.get("trust_score") or 0
             cards += (
                 f'<a href="/safe/{_esc(alt_slug)}" class="alt-card">'
@@ -8498,7 +8498,7 @@ def _render_agent_page(slug, agent_info, lang="en"):
         if _safer:
             _sa_cards = ""
             for alt in _safer[:4]:
-                alt_slug = _make_slug(alt["name"])
+                alt_slug = alt.get("slug") or _make_slug(alt["name"])
                 alt_score = alt.get("trust_score") or 0
                 _sa_cards += (
                     f'<a href="/safe/{_esc(alt_slug)}" class="alt-card">'
@@ -8615,7 +8615,7 @@ def _render_agent_page(slug, agent_info, lang="en"):
     # Compare links with top alternative
     _compare_links = ""
     if alternatives:
-        _alt_slug = _make_slug(alternatives[0]["name"])
+        _alt_slug = alternatives[0].get("slug") or _make_slug(alternatives[0]["name"])
         _compare_links = f'<a href="/compare/{_cl_slug}-vs-{_esc(_alt_slug)}" class="cross-link">Compare</a>'
 
     cross_links_html = "".join([
