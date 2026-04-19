@@ -149,6 +149,23 @@ TOOLS = [
     },
 ]
 
+# Merge in T214 expansion tools defined in agentindex/mcp/tools_v3.py.
+# tools_v3 is the single source of truth for the compare_packages /
+# find_similar / get_verticals / list_by_registry / get_alternatives /
+# get_trust_history / search_by_dimension tools; duplicates by name
+# (e.g. get_rating/get_signals/get_dependencies which pre-existed in
+# this file) are left untouched so the SSE handler keeps its historical
+# wiring.
+try:
+    from agentindex.mcp.tools_v3 import TOOLS as _V3_TOOLS_EXTRA
+    _existing_names = {t["name"] for t in TOOLS}
+    for _t in _V3_TOOLS_EXTRA:
+        if _t.get("name") and _t["name"] not in _existing_names:
+            TOOLS.append(_t)
+            _existing_names.add(_t["name"])
+except Exception:  # noqa: BLE001 — advertising failure must not break the server
+    pass
+
 SERVER_CARD = {
     "name": "agentindex",
     "description": "ZARQ crypto risk intelligence + Nerq AI agent trust verification. 204K agents & tools indexed, 198 tokens rated. Preflight checks, KYA reports, benchmarks. Free API.",

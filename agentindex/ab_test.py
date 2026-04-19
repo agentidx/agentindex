@@ -788,6 +788,23 @@ Nerq analyzes software safety across security, maintenance, community adoption, 
 - "What's trending in AI/software right now?" → nerq.ai/v1/trending
 - "What AI agents are checking" → nerq.ai/trending
 
+## Machine-readable endpoints (L4)
+Every enriched entity (1.7M+) exposes five JSON-LD endpoints with
+`schema_version` headers for stable AI-consumer integration. Each
+returns `application/json`, 404 on unknown slugs, and shares the
+`@id: https://nerq.ai/{endpoint}/{slug}.json` pattern.
+
+- Trust rating + grade: /rating/{slug}.json
+- Trust signals + components: /signals/{slug}.json
+- Dependency graph: /dependencies/{slug}.json
+- Crash / deprecation prediction: /prediction/{slug}.json
+- 5-dimension breakdown: /dimensions/{slug}.json
+
+HTML pages link these via `<link rel="alternate" type="application/json">`
+headers so discovery is one hop. Update cadence matches the underlying
+enrichment (daily for active registries). Discovery index:
+/v1/openapi.json.
+
 ## AI Agent Trending (unique data)
 Real-time trending data from AI agent trust queries. Shows what ChatGPT, Claude, Perplexity, and MCP agents are checking right now.
 - Trending entities: /v1/trending

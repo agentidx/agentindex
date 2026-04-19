@@ -6282,6 +6282,11 @@ Overall safety: {score_str}/100. Health & medical: {health_score}/100. Infrastru
 <title>{_t("title_safe_visit", lang, name=_dn, year=datetime.now().year)}</title>
 <meta name="description" content="{_dn} safety score: {score_str}/100 ({_esc(grade)}). Travel advisory: {_esc(advisory)}. Crime, health, disaster risks, tips for solo, women, LGBTQ+, and family travelers.">
 <link rel="canonical" href="https://nerq.ai/safe/{_esc(slug)}">
+<link rel="alternate" type="application/json" href="https://nerq.ai/rating/{_esc(slug)}.json" title="Trust rating (L4 JSON-LD)">
+<link rel="alternate" type="application/json" href="https://nerq.ai/signals/{_esc(slug)}.json" title="Trust signals (L4 JSON-LD)">
+<link rel="alternate" type="application/json" href="https://nerq.ai/dependencies/{_esc(slug)}.json" title="Dependency graph (L4 JSON-LD)">
+<link rel="alternate" type="application/json" href="https://nerq.ai/prediction/{_esc(slug)}.json" title="Crash/deprecation prediction (L4 JSON-LD)">
+<link rel="alternate" type="application/json" href="https://nerq.ai/dimensions/{_esc(slug)}.json" title="5-dimension breakdown (L4 JSON-LD)">
 {render_hreflang(f"/safe/{slug}")}
 <meta property="og:title" content="Is {_dn} Safe to Visit? Safety Score {score_str}/100 — Nerq">
 <meta property="og:description" content="{_dn} — {_esc(grade)} safety grade, {score_str}/100. Independent travel safety assessment by Nerq.">
@@ -6751,6 +6756,11 @@ Accountability score: {accountability_score}/100 ({_rating_level(accountability_
 <title>{_t("title_charity", lang, name=_dn, year=datetime.now().year)}</title>
 <meta name="description" content="{_dn} charity trust score: {score_str}/100 ({_esc(grade)}). {_esc(rec_short)}. Financial transparency, program effectiveness, governance, and donor trust analysis.">
 <link rel="canonical" href="https://nerq.ai/safe/{_esc(slug)}">
+<link rel="alternate" type="application/json" href="https://nerq.ai/rating/{_esc(slug)}.json" title="Trust rating (L4 JSON-LD)">
+<link rel="alternate" type="application/json" href="https://nerq.ai/signals/{_esc(slug)}.json" title="Trust signals (L4 JSON-LD)">
+<link rel="alternate" type="application/json" href="https://nerq.ai/dependencies/{_esc(slug)}.json" title="Dependency graph (L4 JSON-LD)">
+<link rel="alternate" type="application/json" href="https://nerq.ai/prediction/{_esc(slug)}.json" title="Crash/deprecation prediction (L4 JSON-LD)">
+<link rel="alternate" type="application/json" href="https://nerq.ai/dimensions/{_esc(slug)}.json" title="5-dimension breakdown (L4 JSON-LD)">
 {render_hreflang(f"/safe/{slug}")}
 <meta property="og:title" content="Is {_dn} Trustworthy? Charity Trust Score {score_str}/100 — Nerq">
 <meta property="og:description" content="{_dn} — {_esc(grade)} trust grade, {score_str}/100. Independent nonprofit trust assessment by Nerq.">
@@ -7318,6 +7328,11 @@ def _render_ingredient_page(slug, agent_info, lang="en"):
 <title>{_t("title_ingredient", lang, name=_dn, year=datetime.now().year)}</title>
 <meta name="description" content="{_dn} safety score: {score_str}/100 ({_esc(grade)}). {_esc(verdict_short)}. {'Toxicology, regulatory status, allergen risk, and long-term safety analysis.' if _is_ingredient else 'Evidence base, safety profile, drug interactions, and quality analysis.' if _is_supplement else 'Skin safety, toxicology, sensitization risk, and regulatory analysis.'}">
 <link rel="canonical" href="https://nerq.ai/safe/{_esc(slug)}">
+<link rel="alternate" type="application/json" href="https://nerq.ai/rating/{_esc(slug)}.json" title="Trust rating (L4 JSON-LD)">
+<link rel="alternate" type="application/json" href="https://nerq.ai/signals/{_esc(slug)}.json" title="Trust signals (L4 JSON-LD)">
+<link rel="alternate" type="application/json" href="https://nerq.ai/dependencies/{_esc(slug)}.json" title="Dependency graph (L4 JSON-LD)">
+<link rel="alternate" type="application/json" href="https://nerq.ai/prediction/{_esc(slug)}.json" title="Crash/deprecation prediction (L4 JSON-LD)">
+<link rel="alternate" type="application/json" href="https://nerq.ai/dimensions/{_esc(slug)}.json" title="5-dimension breakdown (L4 JSON-LD)">
 {render_hreflang(f"/safe/{slug}")}
 <meta property="og:title" content="{page_title} — Nerq">
 <meta property="og:description" content="{_dn} — {_esc(grade)} safety grade, {score_str}/100. Independent health safety analysis by Nerq.">
