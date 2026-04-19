@@ -9551,6 +9551,46 @@ def _render_hub_page():
     return html
 
 
+def _resolve_agent_info_with_fallback(slug):
+    """Resolve agent_info for /safe/{slug} renders with the same fallback chain
+    used by the base route: software_registry → slug file → entity_lookup → name-only.
+
+    Always returns a non-empty dict so callers never need to 404 on lookup miss
+    (low/zero-score pages are still rendered and tagged ``noindex`` by the renderer).
+    Used by both /safe/{slug} and /safe/{slug}/{privacy|security} so sub-pages
+    are atomic with the base page.
+    """
+    resolved = _resolve_entity(slug)
+    if resolved and resolved.get("trust_score"):
+        return resolved
+    agent_info = _slug_map.get(slug, {})
+    if not agent_info or not agent_info.get("name"):
+        session = get_session()
+        try:
+            row = session.execute(text("""
+                SELECT name, COALESCE(trust_score_v2, trust_score) as trust_score,
+                       trust_grade, category, stars, description,
+                       author, source_url, license, agent_type
+                FROM entity_lookup
+                WHERE (name_lower = :slug OR name_lower = :dehyphen) AND is_active = true
+                ORDER BY COALESCE(stars, 0) DESC LIMIT 1
+            """), {"slug": slug, "dehyphen": slug.replace('-', ' ')}).fetchone()
+            if row:
+                agent_info = {
+                    "name": row[0], "slug": slug,
+                    "trust_score": row[1], "trust_grade": row[2],
+                    "category": row[3], "stars": row[4],
+                    "description": row[5], "author": row[6],
+                    "source_url": row[7], "license": row[8],
+                    "agent_type": row[9],
+                }
+        finally:
+            session.close()
+    if not agent_info or not agent_info.get("name"):
+        agent_info = {"name": slug.replace("-", " ")}
+    return agent_info
+
+
 def mount_agent_safety_pages(app):
     """Mount /safe/{slug} and /safe routes."""
     _load_slugs()
@@ -9570,16 +9610,12 @@ def mount_agent_safety_pages(app):
         _load_slugs()
 
         # Sub-page routes: /safe/{slug}/privacy, /safe/{slug}/security
+        # Mirror the base /safe/{slug} fallback chain so sub-pages are atomic
+        # with the base page (FU-QUERY-20260418-05 / AUDIT-QUERY-20260418#5).
         if repo in ("privacy", "security"):
             entity_slug = owner.lower()
-            agent = _resolve_entity(entity_slug)
-            if not agent:
-                norm = entity_slug.replace("-", "").replace("_", "")
-                if norm != entity_slug:
-                    agent = _resolve_entity(norm)
-            if agent:
-                return HTMLResponse(_render_sub_page(entity_slug, agent, repo))
-            return HTMLResponse(status_code=404, content="<h1>Not found</h1>")
+            agent = _resolve_agent_info_with_fallback(entity_slug)
+            return HTMLResponse(_render_sub_page(entity_slug, agent, repo))
 
         # Regular owner/repo handling
         candidates = [
@@ -9599,39 +9635,7 @@ def mount_agent_safety_pages(app):
     @app.get("/safe/{slug}", response_class=HTMLResponse)
     async def agent_safety_page(slug: str):
         _load_slugs()
-        # Try software_registry FIRST (with registry priority + King priority)
-        resolved = _resolve_entity(slug)
-        if resolved and resolved.get("trust_score"):
-            agent_info = resolved
-        else:
-            # Fallback to slug file (agents table)
-            agent_info = _slug_map.get(slug, {})
-            if not agent_info or not agent_info.get("name"):
-                session = get_session()
-                try:
-                    # Exact name match only — no broad LIKE (was scanning 5M rows)
-                    row = session.execute(text("""
-                        SELECT name, COALESCE(trust_score_v2, trust_score) as trust_score,
-                               trust_grade, category, stars, description,
-                               author, source_url, license, agent_type
-                        FROM entity_lookup
-                        WHERE (name_lower = :slug OR name_lower = :dehyphen) AND is_active = true
-                        ORDER BY COALESCE(stars, 0) DESC LIMIT 1
-                    """), {"slug": slug, "dehyphen": slug.replace('-', ' ')}).fetchone()
-                    if row:
-                        agent_info = {
-                            "name": row[0], "slug": slug,
-                            "trust_score": row[1], "trust_grade": row[2],
-                            "category": row[3], "stars": row[4],
-                            "description": row[5], "author": row[6],
-                            "source_url": row[7], "license": row[8],
-                            "agent_type": row[9],
-                        }
-                finally:
-                    session.close()
-        if not agent_info or not agent_info.get("name"):
-            # Final fallback: treat slug as partial name
-            agent_info = {"name": slug.replace("-", " ")}
+        agent_info = _resolve_agent_info_with_fallback(slug)
 
         import time
         cache_key = slug
