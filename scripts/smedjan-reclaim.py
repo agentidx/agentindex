@@ -18,7 +18,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from smedjan import factory_core, ntfy  # noqa: E402
+from smedjan import factory_core  # noqa: E402
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger("smedjan.reclaim")
@@ -31,15 +31,15 @@ def main() -> int:
         claim_ttl_minutes=ttl,
         heartbeat_timeout_minutes=hb,
     )
+    # Reclaim is normal plumbing — restarts, SIGKILLs, flaps. Log it and
+    # let the dashboard surface it. ntfy only fires on the dead-worker +
+    # reclaim-failed combination, and that check lives in the canary /
+    # watchdog path, not here.
     if reclaimed:
-        lines = [f"{r['id']} ({r['title'][:60]})" for r in reclaimed]
-        ntfy.push(
-            f"[SMEDJAN] reclaim — {len(reclaimed)} task(s) returned to queue",
-            "\n".join(lines),
-            priority="default",
-            tags="arrows_counterclockwise",
-        )
-    log.info("reclaim cycle: %d task(s) returned", len(reclaimed))
+        ids = ", ".join(r["id"] for r in reclaimed)
+        log.info("reclaim cycle: %d task(s) returned (%s)", len(reclaimed), ids)
+    else:
+        log.info("reclaim cycle: 0 task(s) returned")
     return 0
 
 

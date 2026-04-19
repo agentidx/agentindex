@@ -36,7 +36,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Callable
 
-from smedjan import factory_core, ntfy, sources  # noqa: F401 — sources kept for future signals
+from smedjan import factory_core, sources  # noqa: F401 — sources kept for future signals
 
 log = logging.getLogger("smedjan.emit_evidence")
 
@@ -276,13 +276,11 @@ def _emit(verdict: Verdict, *, dry_run: bool) -> None:
     except Exception as e:  # noqa: BLE001 — never crash the emitter on resolver blip
         log.error("resolve_ready_tasks failed: %s", e)
 
-    # Best-effort ntfy — failures are already swallowed inside ntfy.push.
-    ntfy.push(
-        title=f"[SMEDJAN] evidence {verdict.name}",
-        body=f"{verdict.name} emitted. {verdict.reason}",
-        priority="default",
-        tags="white_check_mark",
-    )
+    # Evidence emission is telemetry: the signal lands in
+    # smedjan.evidence_signals and the approve flow promotes dependent
+    # tasks. No ntfy — Anders sees the consequence (tasks ready) in the
+    # dashboard queue.
+    log.info("evidence emission complete: %s (%s)", verdict.name, verdict.reason)
 
 
 def run(signal: str | None, *, dry_run: bool) -> int:

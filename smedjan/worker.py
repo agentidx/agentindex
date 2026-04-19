@@ -224,15 +224,16 @@ def _run_once(dry_run: bool) -> bool:
     if dry_run:
         reason = "Phase-A dry-run — worker claimed but execution not activated (Phase B pending)."
         factory_core.mark_needs_approval(task.id, reason)
-        ntfy.task_needs_approval(task.id, task.title, reason)
+        ntfy.task_needs_approval(task.id, task.title, reason, risk_level=task.risk_level)
         LOG.info("dry-run mark_needs_approval %s", task.id)
         return True
 
-    # Real-execution path (Phase B).
+    # Real-execution path (Phase B). All lifecycle transitions below are
+    # telemetry — they land in the dashboard + this log. ntfy only fires
+    # when a human decision is required (risk=high needs_approval).
     if rc != 0:
         msg = f"claude CLI exit {rc}: {stderr[:400]}"
         factory_core.mark_blocked(task.id, msg)
-        ntfy.task_blocked(task.id, task.title, msg)
         LOG.error("blocked %s — rc=%d", task.id, rc)
         return True
 
@@ -240,25 +241,22 @@ def _run_once(dry_run: bool) -> bool:
         parsed = factory_core.parse_task_result(stdout)
     except factory_core.ResultParseError as e:
         factory_core.mark_blocked(task.id, f"no result block: {e}")
-        ntfy.task_blocked(task.id, task.title, f"no result block: {e}")
         LOG.error("blocked %s — parse failed: %s", task.id, e)
         return True
 
     status = parsed["status"]
     if status == "done":
         factory_core.mark_done(task.id, parsed["output_paths"], parsed["evidence"], parsed["notes"])
-        ntfy.task_done(task.id, task.title, parsed["output_paths"])
         LOG.info("done %s — outputs=%s", task.id, parsed["output_paths"])
     elif status == "blocked":
         reason = parsed["notes"] or "worker reported blocked"
         factory_core.mark_blocked(task.id, reason)
-        ntfy.task_blocked(task.id, task.title, reason)
         LOG.info("blocked %s — %s", task.id, reason)
     elif status == "needs_approval":
         reason = parsed["notes"] or "worker requested approval"
         factory_core.mark_needs_approval(task.id, reason)
-        ntfy.task_needs_approval(task.id, task.title, reason)
-        LOG.info("needs_approval %s — %s", task.id, reason)
+        ntfy.task_needs_approval(task.id, task.title, reason, risk_level=task.risk_level)
+        LOG.info("needs_approval %s risk=%s — %s", task.id, task.risk_level, reason)
     return True
 
 
@@ -283,7 +281,6 @@ def main(argv: list[str] | None = None) -> int:
     dry_run = False if args.live else args.dry_run
 
     _install_signal_handlers()
-    ntfy.worker_up(WORKER_ID, None)
     LOG.info("worker %s started (dry_run=%s, claim_ttl=%dm)",
              WORKER_ID, dry_run, WORKER_CLAIM_TTL_MINUTES)
 

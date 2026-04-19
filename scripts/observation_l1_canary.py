@@ -416,22 +416,11 @@ def main(argv: list[str] | None = None) -> int:
     with jsonl.open("a") as fh:
         fh.write(json.dumps({"ts": ts, "obs": obs}, default=str) + "\n")
 
-    # ntfy headline (ASCII-safe to avoid Latin-1 encoding issues)
-    try:
-        deploy_t = datetime.fromisoformat("2026-04-18T11:34:18+00:00")
-        hours_in = (datetime.now(timezone.utc) - deploy_t).total_seconds() / 3600
-        urllib.request.urlopen(urllib.request.Request(
-            f"https://ntfy.sh/{NTFY_TOPIC}",
-            data=(f"T+{hours_in:.1f}h canary report. "
-                  f"gems 5xx/12h = {obs['status_5xx']['12h']['gems']['5xx']}/{obs['status_5xx']['12h']['gems']['total']}, "
-                  f"homebrew = {obs['status_5xx']['12h']['homebrew']['5xx']}/{obs['status_5xx']['12h']['homebrew']['total']}. "
-                  f"Citations 12h = {obs['citations']['12h']['gems']+obs['citations']['12h']['homebrew']}. "
-                  f"Details: {md_path.name}").encode("ascii", errors="replace"),
-            headers={"Title": "[SMEDJAN L1] 12h canary report", "Tags": "chart_with_upwards_trend"},
-        ), timeout=10)
-    except Exception as e:
-        log.warning("ntfy failed: %s", e)
-
+    # 12h canary observations are telemetry: the Markdown report lands in
+    # ~/smedjan/observations/ and the JSONL feeds the health dashboard.
+    # Regression alerts (5xx spike, write-rate drop) fire from
+    # canary_monitor_l1.py, which IS action-required. This report is not.
+    log.info("canary observation written: %s", md_path.name)
     return 0
 
 

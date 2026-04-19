@@ -1,29 +1,32 @@
 #!/usr/bin/env python3
 """
-External alert — sends push notification if system is down.
-Runs every 5 minutes via cron. Uses ntfy.sh (free, no signup).
-Install ntfy app on phone and subscribe to topic "nerq-alerts".
+External alert — sends push notification if Nerq API/Redis is down.
+Runs every 5 minutes via cron. Gated by the Smedjan action-required
+policy (trigger #6, INFRA_CRITICAL). Only fires after 3 consecutive
+failures (15 min sustained) to avoid single-probe flaps.
 """
 import json
 import os
+import sys
 import time
 import urllib.request
 import urllib.error
 
+sys.path.insert(0, "/Users/anstudio/agentindex")
+
+from smedjan.scripts import ntfy_action_required as _ar  # noqa: E402
+
 STATE_FILE = os.path.expanduser("~/agentindex/logs/alert_state.json")
-NTFY_TOPIC = "nerq-alerts"
 
 
-def _post_ntfy(msg, priority="default", tags="warning"):
-    try:
-        req = urllib.request.Request(
-            f"https://ntfy.sh/{NTFY_TOPIC}",
-            data=msg.encode(),
-            headers={"Priority": priority, "Tags": tags},
-        )
-        urllib.request.urlopen(req, timeout=10)
-    except Exception:
-        pass
+def _page_down(what: str, detail: str) -> None:
+    _ar.infra_critical(what=what, detail=detail)
+
+
+def _page_recovery(detail: str) -> None:
+    # Recovery is telemetry, not action-required — log only.
+    # (Anders already knows he paid attention; the dashboard shows green.)
+    pass
 
 
 def _check_health():
@@ -63,26 +66,21 @@ def check_and_alert():
     consecutive = state.get("consecutive_fails", 0)
 
     if api_ok and redis_ok:
-        if consecutive >= 3:
-            _post_ntfy(
-                f"NERQ RECOVERED after {consecutive} failures ({consecutive * 5}min downtime)",
-                priority="default", tags="white_check_mark"
-            )
+        # Recovery is silent — green on dashboard is the signal.
         state["consecutive_fails"] = 0
     else:
         consecutive += 1
         state["consecutive_fails"] = consecutive
         details = f"API={'OK' if api_ok else 'DOWN'}, Redis={'OK' if redis_ok else 'DOWN'}"
 
+        # Page at 3rd consecutive fail (15 min sustained), then every
+        # hour while still down. All of these are INFRA_CRITICAL #6.
         if consecutive == 3:
-            _post_ntfy(
-                f"NERQ DOWN: {details} ({consecutive * 5}min)",
-                priority="urgent", tags="rotating_light"
-            )
+            _page_down("Nerq down", f"{details} ({consecutive * 5}min sustained)")
         elif consecutive > 3 and consecutive % 12 == 0:
-            _post_ntfy(
-                f"NERQ STILL DOWN: {details} ({consecutive * 5}min)",
-                priority="high", tags="warning"
+            _page_down(
+                "Nerq still down",
+                f"{details} (still down after {consecutive * 5}min)",
             )
 
     state["last_check"] = time.strftime("%Y-%m-%d %H:%M:%S")

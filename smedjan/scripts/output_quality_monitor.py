@@ -26,7 +26,7 @@ import re
 import sys
 from pathlib import Path
 
-from smedjan import config, ntfy, sources
+from smedjan import config, sources
 
 log = logging.getLogger("smedjan.output_quality_monitor")
 
@@ -200,9 +200,15 @@ def _alert_if_below(results: dict[str, dict], *, dry_run: bool) -> list[str]:
                 f"Missing audits: {stats['missing']}."
             )
             if dry_run:
-                log.info("DRY-RUN would push ntfy: %s — %s", title, body)
+                log.info("DRY-RUN would page Anders: %s — %s", title, body)
             else:
-                ntfy.push(title, body, priority="high", tags="warning")
+                from smedjan.scripts import ntfy_action_required as _ar
+                _ar.actionable_ratio_low(
+                    category=cat,
+                    ratio_pct=stats["ratio"] * 100,
+                    lookback_days=LOOKBACK_DAYS,
+                    detail=f"missing audits: {stats['missing']}",
+                )
     return fired
 
 

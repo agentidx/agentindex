@@ -67,17 +67,17 @@ def _iso(delta_seconds: float) -> str:
     return (datetime.now(timezone.utc) - timedelta(seconds=delta_seconds)).strftime("%Y-%m-%dT%H:%M:%S")
 
 
-def _ntfy(title: str, message: str, priority: str = "high", tags: str = "rotating_light") -> None:
+def _alert_regression(metric: str, detail: str) -> None:
+    """Route threshold-breach pages through the canonical action-required
+    wrapper. Callers must already have established that the metric
+    breached its threshold — this helper does not re-check."""
     try:
-        req = urllib.request.Request(
-            f"https://ntfy.sh/{NTFY_TOPIC}",
-            data=message.encode(),
-            headers={"Title": title, "Priority": priority, "Tags": tags},
-        )
-        urllib.request.urlopen(req, timeout=10)
-        log.info("ntfy delivered: %s", title)
+        sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+        from smedjan.scripts import ntfy_action_required as _ar
+        _ar.l1_canary_regression(metric=metric, detail=detail)
+        log.info("action-required alert delivered: %s", metric)
     except Exception as e:
-        log.error("ntfy failed: %s", e)
+        log.error("action-required alert failed: %s", e)
 
 
 def _load_state() -> dict:
@@ -168,10 +168,12 @@ def mark_paged(state: dict, key: str) -> None:
 
 def main() -> int:
     if os.environ.get("SMEDJAN_FORCE_TEST"):
-        _ntfy("[SMEDJAN TEST] canary monitor alive",
-              f"Probe at {datetime.now().isoformat(timespec='seconds')}. "
-              "If you see this, the ntfy plumbing is live.",
-              priority="default", tags="white_check_mark")
+        # Dev-only probe — goes through the canonical wrapper so this
+        # path exercises the same code as real alerts. Manual flag only.
+        _alert_regression(
+            metric="probe",
+            detail=f"test probe at {datetime.now().isoformat(timespec='seconds')}",
+        )
         return 0
 
     state = _load_state()
@@ -180,8 +182,17 @@ def main() -> int:
     try:
         canary = _canary_slugs_set()
     except Exception as e:
-        _ntfy("[SMEDJAN monitor] can't load canary slugs",
-              f"postgres query failed: {e}", tags="warning")
+        # Data-source failure for the monitor itself — infra-critical
+        # (the monitor can't do its job), not a canary regression.
+        try:
+            sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+            from smedjan.scripts import ntfy_action_required as _ar
+            _ar.infra_critical(
+                what="canary monitor data source",
+                detail=f"postgres query for canary slugs failed: {e}",
+            )
+        except Exception as e2:
+            log.error("canary-monitor bootstrap alert failed: %s", e2)
         return 1
     log.info("canary slug set size=%d", len(canary))
 
@@ -198,42 +209,45 @@ def main() -> int:
     log.info("30m: canary_5xx=%d/%d, whole_5xx=%d/%d (%.3f%%), 5m write_rate=%d/min",
              can5, can_total, whole5, whole_total, whole_pct, wrate)
 
-    # Condition 1
+    # Condition 1 — canary 5xx spike
     if can5 >= CANARY_5XX_FLOOR_30M:
         if should_page(state, "canary_5xx"):
-            _ntfy(
-                "[SMEDJAN L1] canary 5xx spike",
-                f"{CANARY_REGS} /safe/* saw {can5} 5xx / {can_total} reqs in 30 min "
-                f"(threshold ≥ {CANARY_5XX_FLOOR_30M}). Consider rollback: "
-                "~/smedjan/runbooks/L1-rollback.md",
-                priority="urgent", tags="rotating_light",
+            _alert_regression(
+                metric="canary 5xx spike",
+                detail=(
+                    f"{CANARY_REGS} /safe/* saw {can5} 5xx / {can_total} reqs in 30 min "
+                    f"(threshold >= {CANARY_5XX_FLOOR_30M}). "
+                    "Consider rollback: ~/smedjan/runbooks/L1-rollback.md"
+                ),
             )
             mark_paged(state, "canary_5xx")
         else:
             log.info("canary_5xx alert active but recently paged; deduped")
 
-    # Condition 2
+    # Condition 2 — whole-site 5xx elevated
     if whole_pct > WHOLE_5XX_PCT_30M:
         if should_page(state, "whole_5xx"):
-            _ntfy(
-                "[SMEDJAN L1] whole-Nerq 5xx elevated",
-                f"Whole-site 5xx at {whole_pct:.3f}% over 30 min "
-                f"({whole5}/{whole_total}, threshold > {WHOLE_5XX_PCT_30M}%). "
-                "Investigate ~/agentindex/logs/api_error.log",
-                priority="urgent", tags="rotating_light",
+            _alert_regression(
+                metric="whole-site 5xx elevated",
+                detail=(
+                    f"Whole-site 5xx at {whole_pct:.3f}% over 30 min "
+                    f"({whole5}/{whole_total}, threshold > {WHOLE_5XX_PCT_30M}%). "
+                    "Investigate ~/agentindex/logs/api_error.log"
+                ),
             )
             mark_paged(state, "whole_5xx")
         else:
             log.info("whole_5xx alert active but recently paged; deduped")
 
-    # Condition 3
+    # Condition 3 — analytics write-rate drop
     if wrate < WRITE_RATE_MIN_PER_MIN_5M:
         if should_page(state, "write_rate"):
-            _ntfy(
-                "[SMEDJAN L1] analytics write rate low",
-                f"5m avg write rate {wrate} req/min < {WRITE_RATE_MIN_PER_MIN_5M}. "
-                "Possible ingestion hang — check api / discovery_log writers.",
-                priority="high", tags="warning",
+            _alert_regression(
+                metric="analytics write rate low",
+                detail=(
+                    f"5m avg write rate {wrate} req/min < {WRITE_RATE_MIN_PER_MIN_5M}. "
+                    "Possible ingestion hang — check api / discovery_log writers."
+                ),
             )
             mark_paged(state, "write_rate")
         else:

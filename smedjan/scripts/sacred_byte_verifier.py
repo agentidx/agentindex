@@ -49,7 +49,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 
-from smedjan import ntfy, sources
+from smedjan import sources
 
 log = logging.getLogger("smedjan.sacred_byte_verifier")
 
@@ -345,11 +345,14 @@ def run(
         log.info("[DRY-RUN] would ntfy + enqueue regression task")
         return 0
 
-    ntfy.push(
-        title="[SMEDJAN] sacred-byte regression",
-        body=f"{len(breached)} byte(s) below {COVERAGE_FLOOR*100:.0f}%: {summary}. Report: {report_path}",
-        priority="high",
-        tags="rotating_light",
+    # Sacred-byte coverage is trigger #7 — mutation in deploy. Fire one
+    # page per worst-offender byte so Anders sees the severity.
+    from smedjan.scripts import ntfy_action_required as _ar
+    worst = min(breached, key=lambda n: cov[n])
+    _ar.sacred_byte_mutation(
+        byte_name=worst,
+        coverage_pct=cov[worst] * 100,
+        report_path=str(report_path),
     )
     enqueue_regression(results, cov, base_url=base_url, report_path=report_path)
     return 0

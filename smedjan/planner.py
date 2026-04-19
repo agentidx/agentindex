@@ -35,7 +35,7 @@ from typing import Iterable
 import psycopg2
 import psycopg2.extras
 
-from smedjan import factory_core, ntfy, sources
+from smedjan import factory_core, sources
 
 # Registry of synthetic scale-bucket task templates. Used by
 # generate_quota_fill() when live-queue scale ratio < 70 % — the planner
@@ -472,18 +472,13 @@ def run(dry_run: bool = False) -> int:
     quota = generate_quota_fill(dry_run=dry_run)
 
     # Broadcast a summary only when something non-trivial happened.
-    material = followups > 0 or quota["warnings"]
-    if material:
-        body = (
-            f"followups enqueued: {followups}\n"
-            f"queue composition: {quota['composition']}\n"
-            f"verdict: {quota['verdict']}\n"
-            f"warnings: {', '.join(quota['warnings']) or 'none'}"
-        )
-        ntfy.push("[SMEDJAN] planner run", body, priority="default", tags="compass")
-
-    log.info("planner run done followups=%d resolved=%s quota_verdict=%s",
-             followups, resolved, quota["verdict"])
+    # Planner run summary is telemetry — goes to log + dashboard queue.
+    # ntfy stays silent on normal operation per the action-required policy.
+    log.info(
+        "planner run done followups=%d resolved=%s quota_verdict=%s warnings=%s",
+        followups, resolved, quota["verdict"],
+        ", ".join(quota["warnings"]) or "none",
+    )
     return 0
 
 
