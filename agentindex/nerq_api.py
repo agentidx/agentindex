@@ -354,16 +354,29 @@ def agent_stats(response: Response):
         """)).fetchall()
         frameworks = {r[0]: r[1] for r in fw_rows}
 
-        # Language distribution — language not in entity_lookup; use agents with guards
-        session.execute(text("SET LOCAL work_mem = '2MB'"))
-        session.execute(text("SET LOCAL statement_timeout = '5s'"))
-        lang_rows = session.execute(text(f"""
-            SELECT COALESCE(language, 'unknown') as lang, COUNT(*)
-            FROM agents
-            WHERE is_active = true AND {_ACTUAL_AGENTS}
-            GROUP BY lang ORDER BY COUNT(*) DESC LIMIT 20
-        """)).fetchall()
-        languages = {r[0]: r[1] for r in lang_rows}
+        # Language distribution — language not in entity_lookup; scan agents table.
+        # This query reads ~250K rows via an index scan and takes ~10s cold / ~1s warm,
+        # so we (a) bump statement_timeout well above the cold-cache cost and (b) isolate
+        # it in its own savepoint so a timeout here does not abort the outer transaction
+        # and take the whole endpoint down (see FU-QUERY-20260418-07 / AUDIT-QUERY-20260418).
+        languages: dict = {}
+        try:
+            with session.begin_nested():
+                session.execute(text("SET LOCAL work_mem = '2MB'"))
+                session.execute(text("SET LOCAL statement_timeout = '30s'"))
+                lang_rows = session.execute(text(f"""
+                    SELECT COALESCE(language, 'unknown') as lang, COUNT(*)
+                    FROM agents
+                    WHERE is_active = true AND {_ACTUAL_AGENTS}
+                    GROUP BY lang ORDER BY COUNT(*) DESC LIMIT 20
+                """)).fetchall()
+                languages = {r[0]: r[1] for r in lang_rows}
+        except Exception as lang_err:
+            logger.warning(f"agent_stats language query failed, returning empty: {lang_err}")
+            # Fall back to stale cached languages if we have any; otherwise empty.
+            prior = (_stats_cache.get("data") or {}).get("languages")
+            if prior:
+                languages = prior
 
         # New agents (24h / 7d) — TABLESAMPLE for speed
         cutoff_24h = (datetime.now(timezone.utc) - timedelta(hours=24)).isoformat()
@@ -409,6 +422,12 @@ def agent_stats(response: Response):
         return result
     except Exception as e:
         logger.error(f"agent_stats error: {e}")
+        # Stale-while-error: if we have any prior cached payload, serve it rather than 503.
+        stale = _stats_cache.get("data")
+        if stale:
+            response.headers["X-Cache"] = "STALE"
+            response.headers["Cache-Control"] = "public, max-age=60"
+            return stale
         return JSONResponse(status_code=503, content={"error": "Database unavailable"})
     finally:
         session.close()
