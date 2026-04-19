@@ -121,3 +121,17 @@ CREATE TABLE IF NOT EXISTS smedjan.worker_heartbeats (
     current_task  text,
     note          text
 );
+
+-- AI-demand score history (T131) -------------------------------------------
+-- Append-only snapshots written at the end of every compute_ai_demand_score
+-- run. Used by smedjan.ai_demand_velocity to detect 3σ surges against a
+-- 7-snapshot rolling baseline.
+CREATE TABLE IF NOT EXISTS smedjan.ai_demand_history (
+    slug         text         NOT NULL,
+    computed_at  timestamptz  NOT NULL,
+    score        real         NOT NULL,
+    PRIMARY KEY (slug, computed_at)
+);
+
+CREATE INDEX IF NOT EXISTS idx_ai_demand_history_slug_recent
+    ON smedjan.ai_demand_history (slug, computed_at DESC);

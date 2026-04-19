@@ -43,6 +43,12 @@ ON CONFLICT (slug) DO UPDATE SET
     computed_at      = EXCLUDED.computed_at;
 """
 
+HISTORY_INSERT_SQL = """
+INSERT INTO smedjan.ai_demand_history (slug, computed_at, score)
+VALUES %s
+ON CONFLICT (slug, computed_at) DO NOTHING;
+"""
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger("smedjan.ai_demand")
 
@@ -102,6 +108,20 @@ def upsert(rows: list[tuple[str, float, int, datetime]]) -> int:
     return len(rows)
 
 
+def append_history(rows: list[tuple[str, float, int, datetime]]) -> int:
+    """Snapshot every scored slug into smedjan.ai_demand_history.
+
+    Feeds the 3σ velocity detector (smedjan.ai_demand_velocity). Append-only;
+    conflict-free via (slug, computed_at) PK.
+    """
+    if not rows:
+        return 0
+    history_rows = [(slug, ts, score) for slug, score, _queries, ts in rows]
+    with sources.smedjan_db_cursor() as (_, cur):
+        execute_values(cur, HISTORY_INSERT_SQL, history_rows, page_size=1000)
+    return len(history_rows)
+
+
 def report_join_coverage() -> None:
     # Total + per-slug set from smedjan DB
     with sources.smedjan_db_cursor() as (_, cur):
@@ -147,7 +167,16 @@ def main() -> int:
     rows = score_rows(counts)
     written = upsert(rows)
     log.info("upserted %d rows into smedjan.ai_demand_scores", written)
+    snapshotted = append_history(rows)
+    log.info("appended %d rows into smedjan.ai_demand_history", snapshotted)
     report_join_coverage()
+    # Run the 3σ surge detector AFTER the score refresh (T131). Any failure
+    # here must not mask a successful score-refresh run, so we catch and log.
+    try:
+        from smedjan import ai_demand_velocity
+        ai_demand_velocity.run()
+    except Exception:  # noqa: BLE001 — velocity is advisory, never fatal
+        log.exception("ai_demand_velocity run failed")
     return 0
 
 
