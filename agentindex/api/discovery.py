@@ -191,7 +191,7 @@ class PageCacheMiddleware(BaseHTTPMiddleware):
                   "/robots.txt", "/llms.txt", "/sitemap", "/internal/", "/my/",
                   "/citation-dashboard", "/paper-trading",
                   "/dependencies/", "/signals/", "/prediction/",
-                  "/dimensions/")
+                  "/dimensions/", "/rating/")
     _TTL = 14400  # 4 hours — pages rarely change, enrichment flushes cache
     _pool = None
     _backoff = 0
@@ -1627,6 +1627,10 @@ app.include_router(router_prediction)
 # L4 — /dimensions/{slug}.json (Smedjan T144)
 from agentindex.api.endpoints.dimensions import router as router_dimensions
 app.include_router(router_dimensions)
+
+# L4 — /rating/{slug}.json (Smedjan T007)
+from agentindex.api.rating import router as router_rating
+app.include_router(router_rating)
 
 # LangChain integration docs
 from agentindex.docs_langchain import router_docs_langchain
