@@ -35,9 +35,19 @@ import os
 import sys
 import urllib.error
 import urllib.request
+from pathlib import Path
 
 NTFY_TOPIC = os.environ.get("SMEDJAN_NTFY_TOPIC", "nerq-alerts")
 NTFY_URL = f"https://ntfy.sh/{NTFY_TOPIC}"
+
+# Hard kill-switch. If this flag file does NOT exist, all ntfy pushes
+# are suppressed (logged at INFO instead) — EXCEPT the 6 critical
+# override triggers below. Default state: disabled (flag missing) so
+# the fabric is silent by default and Anders opts in by touching the
+# flag. This is defense-in-depth on top of the action-required policy:
+# even if a caller bypasses the wrapper and hits a remaining direct
+# push, `smedjan.ntfy.push()` routes through the same gate.
+FLAG_PATH = Path.home() / "smedjan" / "config" / "ntfy_enabled.flag"
 
 log = logging.getLogger("smedjan.ntfy_action_required")
 
@@ -51,6 +61,41 @@ class Trigger(str, enum.Enum):
     INFRA_CRITICAL = "infra_critical"
     SACRED_BYTE_MUTATION = "sacred_byte_mutation"
     ACTIONABLE_RATIO_LOW = "actionable_ratio_low"
+
+
+# Triggers that bypass the kill-switch. True infra / security pages
+# that must reach Anders even when he has silenced telemetry. The two
+# NON-override triggers (HIGH_RISK_APPROVAL, ACTIONABLE_RATIO_LOW) are
+# both latency-tolerant — Anders sees them in the dashboard queue /
+# weekly audit and can act on his own cadence.
+OVERRIDE_TRIGGERS: frozenset[Trigger] = frozenset({
+    Trigger.L1_CANARY_REGRESSION,
+    Trigger.WORKER_DEAD_RECLAIM_FAIL,
+    Trigger.PAID_API_DETECTED,
+    Trigger.GIT_PUSH_FAILED_3X,
+    Trigger.INFRA_CRITICAL,
+    Trigger.SACRED_BYTE_MUTATION,
+})
+
+
+def _flag_enabled() -> bool:
+    try:
+        return FLAG_PATH.exists()
+    except Exception:  # noqa: BLE001 — any filesystem blip = assume disabled
+        return False
+
+
+def ntfy_enabled(trigger: Trigger | None = None) -> bool:
+    """Public shim so `smedjan.ntfy.push` + legacy call sites can ask
+    the same question: should I actually fire? `trigger` may be None
+    (low-level pushes with no trigger context — default gated, no
+    override possible).
+    """
+    if _flag_enabled():
+        return True
+    if trigger is not None and trigger in OVERRIDE_TRIGGERS:
+        return True
+    return False
 
 
 _PRIORITY = {
@@ -84,7 +129,9 @@ def _push(title: str, body: str, priority: str, tags: str) -> bool:
 
 
 def alert(trigger: Trigger, *, title: str, body: str) -> bool:
-    """Send an action-required ntfy. Returns True on HTTP 200.
+    """Send an action-required ntfy. Returns True on HTTP 200 OR when
+    suppressed by the kill-switch (suppressed = "successfully routed
+    away from Anders' phone" as far as callers are concerned).
 
     Callers must supply the plain-English `title` and `body` themselves —
     this module enforces *which* triggers are allowed, not the wording.
@@ -94,6 +141,10 @@ def alert(trigger: Trigger, *, title: str, body: str) -> bool:
             f"ntfy_action_required.alert called with non-Trigger: {trigger!r}. "
             "Add a new Trigger enum member or drop to logger.info()."
         )
+    if not ntfy_enabled(trigger):
+        log.info("ntfy suppressed (flag missing, non-override) — trigger=%s title=%r",
+                 trigger.value, title)
+        return True
     priority, tags = _PRIORITY[trigger]
     prefixed = f"[SMEDJAN action-required] {title}"
     return _push(prefixed, body, priority, tags)

@@ -28,7 +28,24 @@ log = logging.getLogger("smedjan.ntfy")
 
 def push(title: str, body: str, *, priority: str = "default",
          tags: str = "hammer_and_wrench") -> bool:
-    """Low-level ntfy POST. Use via ntfy_action_required wrappers only."""
+    """Low-level ntfy POST. Direct callers are deprecated — route
+    through smedjan.scripts.ntfy_action_required.alert() instead so the
+    trigger-type is known and can override the kill-switch.
+
+    Hard kill-switch: if ~/smedjan/config/ntfy_enabled.flag is missing,
+    this call is suppressed (logged + returns True). No trigger context
+    here means no override is possible — callers that need guaranteed
+    delivery MUST use the action-required wrapper with a Trigger enum.
+    """
+    try:
+        from smedjan.scripts.ntfy_action_required import ntfy_enabled
+        if not ntfy_enabled(None):
+            log.info("ntfy.push suppressed by kill-switch: %s", title)
+            return True
+    except Exception as e:  # noqa: BLE001 — wrapper import failure: fail-closed
+        log.warning("ntfy.push kill-switch check failed (%s) — suppressing "
+                    "to protect Anders from spam", e)
+        return True
     try:
         req = urllib.request.Request(
             NTFY_URL,
