@@ -206,13 +206,48 @@ def invoke_claude(prompt: str, *, dry_run: bool, timeout_seconds: int) -> tuple[
 
 # ── main loop ────────────────────────────────────────────────────────────
 
+def _apply_session_budget_throttle() -> None:
+    """Check the rolling 5h claim-budget. Sleep if we are approaching
+    the Max 5h quota so Anders does not burn the window on cheap
+    tasks. No-op if the session_budget module is unavailable (e.g.
+    running outside Mac Studio)."""
+    try:
+        import sys as _sys
+        _sys.path.insert(0, "/Users/anstudio/smedjan/scripts")
+        import session_budget as sb  # type: ignore[import-not-found]
+    except Exception as exc:  # noqa: BLE001 — throttle is best-effort
+        LOG.debug("session_budget unavailable: %s", exc)
+        return
+    snap = sb.snapshot()
+    if snap.sleep_seconds == 0:
+        return
+    factory_core.heartbeat(WORKER_ID, None,
+                           f"throttled:{snap.usage_percent:.0%} sleep={snap.sleep_seconds}s")
+    LOG.info("session budget throttle: claims=%d/%d (%.0f%%) sleep=%ds",
+             snap.claims_in_window, sb.CLAIM_BUDGET_5H,
+             snap.usage_percent * 100, snap.sleep_seconds)
+    import time
+    time.sleep(snap.sleep_seconds)
+
+
 def _run_once(dry_run: bool) -> bool:
     """Claim + execute one task. Returns True if a task was handled,
     False if the queue was empty."""
+    _apply_session_budget_throttle()
     task = factory_core.claim_next_task(WORKER_ID, affinity=WORKER_AFFINITY)
     if task is None:
         factory_core.heartbeat(WORKER_ID, None, "idle")
         return False
+
+    # Record the claim immediately so the next worker that wakes up
+    # sees the increment when it reads its budget snapshot.
+    try:
+        import sys as _sys
+        _sys.path.insert(0, "/Users/anstudio/smedjan/scripts")
+        import session_budget as sb  # type: ignore[import-not-found]
+        sb.record_claim()
+    except Exception as exc:  # noqa: BLE001
+        LOG.debug("session_budget record_claim failed: %s", exc)
 
     factory_core.heartbeat(WORKER_ID, task.id, "running")
     LOG.info("claimed %s (%s) risk=%s", task.id, task.title, task.risk_level)

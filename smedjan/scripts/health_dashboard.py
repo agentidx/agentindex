@@ -356,12 +356,43 @@ def _render_canary(obs: dict | None) -> str:
     return "<div class='grid'>" + "".join(chunks) + "</div>"
 
 
+def _render_budget(budget: dict | None) -> str:
+    if not budget:
+        return "<p class='meta'>Session budget tracker not available on this host.</p>"
+    pct = budget["pct"]
+    colour = "ok" if pct < 70 else "warn" if pct < 85 else "bad"
+    dot = f"<span class='dot dot-{colour}'></span>"
+    sleep_s = budget["sleep_s"]
+    if sleep_s == 0:
+        sleep_txt = "no throttle"
+    elif sleep_s < 0:
+        sleep_txt = "block until window rolls"
+    else:
+        sleep_txt = f"{sleep_s}s throttle"
+    rolls = budget.get("rolls_at") or "—"
+    return (
+        "<div class='grid'>"
+        "<div class='card'>"
+        "<div class='label'>5h claim budget</div>"
+        f"<div class='value mono'>{dot}{budget['claims']}/{budget['budget']}</div>"
+        f"<div class='sub'>{pct:.1f}% used · {sleep_txt}</div>"
+        "</div>"
+        "<div class='card'>"
+        "<div class='label'>window rolls at</div>"
+        f"<div class='value mono'>{html.escape(rolls)}</div>"
+        f"<div class='sub'>oldest claim + 5h</div>"
+        "</div>"
+        "</div>"
+    )
+
+
 def render_html(
     workers: list[dict],
     queue: dict[str, int],
     recent: list[dict],
     canary: dict | None,
     error: str | None = None,
+    budget: dict | None = None,
 ) -> str:
     now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
     banner = f"<div class='banner'>{html.escape(error)}</div>" if error else ""
@@ -379,6 +410,8 @@ def render_html(
 {banner}
 <h2>Workers</h2>
 {_render_workers(workers)}
+<h2>Session budget (Claude Code Max 5h window)</h2>
+{_render_budget(budget)}
 <h2>Queue depth</h2>
 {_render_queue(queue)}
 <h2>Recent tasks (last {RECENT_TASK_LIMIT})</h2>
@@ -393,11 +426,33 @@ def render_html(
 
 # ── main ─────────────────────────────────────────────────────────────────
 
+def _fetch_session_budget() -> dict | None:
+    """Pull the rolling 5h claim budget from ~/smedjan/scripts/session_budget.
+    Returns None if the module is unavailable (e.g. running on a host
+    without the Mac-Studio-side tracker)."""
+    try:
+        import sys as _sys
+        _sys.path.insert(0, str(Path.home() / "smedjan" / "scripts"))
+        import session_budget as sb  # type: ignore[import-not-found]
+        snap = sb.snapshot()
+        return {
+            "claims": snap.claims_in_window,
+            "budget": sb.CLAIM_BUDGET_5H,
+            "pct": snap.usage_percent * 100,
+            "sleep_s": snap.sleep_seconds,
+            "rolls_at": snap.window_rolls_at.isoformat(timespec="minutes")
+                if snap.window_rolls_at else None,
+        }
+    except Exception:  # noqa: BLE001 — optional; never crash the dashboard
+        return None
+
+
 def generate(out_path: Path) -> int:
     workers: list[dict] = []
     queue: dict[str, int] = {}
     recent: list[dict] = []
     idle_state: dict[str, int] = {"idle": 0, "live": 0}
+    budget: dict | None = None
     error: str | None = None
     try:
         with sources.smedjan_db_cursor(dict_cursor=True) as (_, cur):
@@ -408,6 +463,8 @@ def generate(out_path: Path) -> int:
     except Exception as exc:  # noqa: BLE001 — render partial, do not crash the timer
         error = f"Smedjan DB unreachable: {exc}"
         log.error(error)
+
+    budget = _fetch_session_budget()
 
     # Idle-with-inventory is a loud failure mode — surface in the banner.
     claimable = queue.get("queued", 0) + queue.get("approved", 0)
@@ -426,7 +483,7 @@ def generate(out_path: Path) -> int:
         )
 
     canary = _read_last_canary_obs()
-    html_text = render_html(workers, queue, recent, canary, error=error)
+    html_text = render_html(workers, queue, recent, canary, error=error, budget=budget)
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     tmp = out_path.with_suffix(out_path.suffix + ".tmp")
