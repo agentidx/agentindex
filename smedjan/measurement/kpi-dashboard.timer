@@ -1,0 +1,15 @@
+[Unit]
+Description=Rebuild Smedjan Stage-1 Trinity KPI dashboard daily
+Documentation=https://github.com/anders/agentindex/blob/main/smedjan/measurement/build_kpi_dashboard.py
+
+[Timer]
+# 03:17 UTC daily — well after the GSC pull (T170) settles for the day,
+# and offset off the top-of-hour herd.
+OnCalendar=*-*-* 03:17:00 UTC
+Persistent=true
+AccuracySec=1m
+RandomizedDelaySec=120
+Unit=kpi-dashboard.service
+
+[Install]
+WantedBy=timers.target

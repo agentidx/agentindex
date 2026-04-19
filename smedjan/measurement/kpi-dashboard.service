@@ -1,0 +1,26 @@
+[Unit]
+Description=Smedjan Stage-1 Trinity KPI dashboard renderer (T173)
+Documentation=https://github.com/anders/agentindex/blob/main/smedjan/measurement/build_kpi_dashboard.py
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=smedjan
+Group=smedjan
+WorkingDirectory=/home/smedjan/agentindex
+Environment=PYTHONPATH=/home/smedjan/agentindex
+Environment=SMEDJAN_CONFIG_DIR=/home/smedjan/smedjan/config
+ExecStart=/usr/bin/python3 -m smedjan.measurement.build_kpi_dashboard
+StandardOutput=append:/home/smedjan/smedjan/worker-logs/kpi-dashboard.log
+StandardError=inherit
+TimeoutStartSec=5m
+Nice=10
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/smedjan/smedjan
+PrivateTmp=true
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target
