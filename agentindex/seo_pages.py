@@ -408,6 +408,8 @@ def mount_seo_pages(app):
             xml += f'  <sitemap><loc>{SITE_URL}/sitemap-static.xml</loc><lastmod>{now}</lastmod></sitemap>\n'
             xml += f'  <sitemap><loc>{SITE_URL}/sitemap-comparisons.xml</loc><lastmod>{now}</lastmod></sitemap>\n'
             xml += f'  <sitemap><loc>{SITE_URL}/sitemap-vs.xml</loc><lastmod>{now}</lastmod></sitemap>\n'
+            # L4 machine-readable endpoint patterns (5 entries, one per family)
+            xml += f'  <sitemap><loc>{SITE_URL}/sitemap-endpoints.xml</loc><lastmod>{now}</lastmod></sitemap>\n'
             # Safe pages: chunked at 50K each (576K+ slugs)
             try:
                 import agentindex.agent_safety_pages as _asp

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  L4 machine-readable endpoint patterns. One entry per endpoint family;
+  individual slugs are discovered via rel=alternate on /safe/ HTML pages
+  and by the llms.txt "Machine-readable endpoints" section. See also
+  https://nerq.ai/v1/openapi.json for the full API surface.
+-->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://nerq.ai/rating/react.json</loc>
+    <lastmod>2026-04-19</lastmod>
+    <changefreq>daily</changefreq>
+  </url>
+  <url>
+    <loc>https://nerq.ai/signals/react.json</loc>
+    <lastmod>2026-04-19</lastmod>
+    <changefreq>daily</changefreq>
+  </url>
+  <url>
+    <loc>https://nerq.ai/dependencies/react.json</loc>
+    <lastmod>2026-04-19</lastmod>
+    <changefreq>daily</changefreq>
+  </url>
+  <url>
+    <loc>https://nerq.ai/prediction/react.json</loc>
+    <lastmod>2026-04-19</lastmod>
+    <changefreq>daily</changefreq>
+  </url>
+  <url>
+    <loc>https://nerq.ai/dimensions/react.json</loc>
+    <lastmod>2026-04-19</lastmod>
+    <changefreq>daily</changefreq>
+  </url>
+</urlset>
