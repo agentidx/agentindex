@@ -17,6 +17,7 @@ Subcommands
     smedjan queue resolve           # promote pending rows
     smedjan queue evidence NAME [--payload '{"k":"v"}']  # record evidence
     smedjan queue heartbeats
+    smedjan queue stats             # aggregate counts + durations + blockers
     smedjan rollback L1 [--dry-run]
 """
 from __future__ import annotations
@@ -250,6 +251,92 @@ def cmd_rollback_l1(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_stats(_args: argparse.Namespace) -> int:
+    with _conn() as c, c.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+        cur.execute(
+            "SELECT status::text AS status, COUNT(*) AS n "
+            "FROM smedjan.tasks GROUP BY status ORDER BY status"
+        )
+        by_status = cur.fetchall()
+
+        cur.execute(
+            "SELECT COALESCE(session_affinity, '(none)') AS session_affinity, "
+            "       COUNT(*) AS n "
+            "FROM smedjan.tasks GROUP BY 1 ORDER BY n DESC, 1"
+        )
+        by_affinity = cur.fetchall()
+
+        cur.execute(
+            "SELECT COALESCE(fallback_category, '(none)') AS fallback_category, "
+            "       COUNT(*) AS n "
+            "FROM smedjan.tasks GROUP BY 1 ORDER BY n DESC, 1"
+        )
+        by_fallback = cur.fetchall()
+
+        cur.execute(
+            """
+            SELECT
+                COUNT(*)                                                         AS n,
+                percentile_cont(0.5)  WITHIN GROUP (ORDER BY duration_seconds)  AS p50,
+                percentile_cont(0.95) WITHIN GROUP (ORDER BY duration_seconds)  AS p95
+            FROM (
+                SELECT EXTRACT(EPOCH FROM (done_at - claimed_at)) AS duration_seconds
+                FROM smedjan.tasks
+                WHERE status = 'done'
+                  AND done_at IS NOT NULL
+                  AND claimed_at IS NOT NULL
+                  AND done_at >= now() - interval '7 days'
+                  AND done_at >= claimed_at
+            ) d
+            """
+        )
+        dur = cur.fetchone()
+
+        cur.execute(
+            """
+            SELECT blocker_reason, COUNT(*) AS n
+            FROM smedjan.tasks
+            WHERE blocker_reason IS NOT NULL AND blocker_reason <> ''
+            GROUP BY blocker_reason
+            ORDER BY n DESC, blocker_reason
+            LIMIT 3
+            """
+        )
+        top_blockers = cur.fetchall()
+
+    print("── tasks per status ─────────────────────────────────")
+    for r in by_status:
+        print(f"  {r['status']:16s} {r['n']:>6d}")
+
+    print("\n── tasks per session_affinity ───────────────────────")
+    for r in by_affinity:
+        print(f"  {r['session_affinity']:16s} {r['n']:>6d}")
+
+    print("\n── tasks per fallback_category ──────────────────────")
+    for r in by_fallback:
+        print(f"  {r['fallback_category']:16s} {r['n']:>6d}")
+
+    print("\n── task duration (done, last 7d) ────────────────────")
+    n = dur["n"] or 0
+    if n == 0:
+        print("  (no tasks completed in the last 7 days)")
+    else:
+        p50 = float(dur["p50"]) if dur["p50"] is not None else 0.0
+        p95 = float(dur["p95"]) if dur["p95"] is not None else 0.0
+        print(f"  sample n         {n:>6d}")
+        print(f"  p50              {p50/60:>6.1f} min ({p50:.0f} s)")
+        print(f"  p95              {p95/60:>6.1f} min ({p95:.0f} s)")
+
+    print("\n── top 3 blockers ───────────────────────────────────")
+    if not top_blockers:
+        print("  (no blocker_reason values recorded)")
+    else:
+        for r in top_blockers:
+            reason = (r["blocker_reason"] or "")[:60]
+            print(f"  {r['n']:>3d}  {reason}")
+    return 0
+
+
 def cmd_heartbeats(_args: argparse.Namespace) -> int:
     with _conn() as c, c.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
         cur.execute("SELECT * FROM smedjan.worker_heartbeats ORDER BY last_seen_at DESC")
@@ -324,6 +411,9 @@ def _build_parser() -> argparse.ArgumentParser:
 
     hb = qsub.add_parser("heartbeats", help="list worker heartbeats")
     hb.set_defaults(fn=cmd_heartbeats)
+
+    st = qsub.add_parser("stats", help="aggregate queue stats")
+    st.set_defaults(fn=cmd_stats)
 
     rb = sub.add_parser("rollback", help="operational rollbacks")
     rbsub = rb.add_subparsers(dest="sub", required=True)
