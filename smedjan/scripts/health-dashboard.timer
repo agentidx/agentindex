@@ -1,0 +1,14 @@
+[Unit]
+Description=Run smedjan factory health dashboard generator every 15 min
+Documentation=https://github.com/anders/agentindex/blob/main/smedjan/scripts/health_dashboard.py
+
+[Timer]
+# Every 15 minutes, offset by 3 to avoid the top-of-hour cron herd.
+OnCalendar=*-*-* *:03,18,33,48:00 UTC
+Persistent=true
+AccuracySec=30s
+RandomizedDelaySec=30
+Unit=health-dashboard.service
+
+[Install]
+WantedBy=timers.target
