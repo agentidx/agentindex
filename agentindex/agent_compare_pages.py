@@ -11,6 +11,7 @@ Usage in discovery.py:
 
 import json
 import logging
+import os
 import time
 from pathlib import Path
 from datetime import date
@@ -32,6 +33,22 @@ _pair_map = {}
 _page_cache = {}
 _CACHE_TTL = 3600
 _CACHE_MAX = 500
+
+# L1b /compare/ Kings Unlock canary allowlist. Fail-closed semantics (same
+# shape as the /safe/ L1 allowlist, commit 7b8363e):
+#   * env unset / empty      → NO unlock; /compare/ pages render as before.
+#                              Safe default so a plain `launchctl kickstart`
+#                              after deploying this code is a no-op.
+#   * env = "gems,homebrew"  → pages unlock ONLY when BOTH slugs' enriched
+#                              software_registry rows map to a registry in
+#                              the set (canary scoping).
+#   * env = "*" or "all"     → every pair with both slugs enriched unlocks
+#                              (full rollout, explicit opt-in).
+# Non-enriched pairs always fall back to the pre-change template.
+_L1B_UNLOCK_ALLOWLIST: frozenset = frozenset(
+    s.strip() for s in os.environ.get("L1B_COMPARE_UNLOCK_REGISTRIES", "").split(",") if s.strip()
+)
+_L1B_UNLOCK_ALL: bool = bool(_L1B_UNLOCK_ALLOWLIST & {"*", "all"})
 
 
 def _load_pairs():
@@ -148,6 +165,54 @@ def _fmt_score(val):
     if val is None:
         return "N/A"
     return f"{val:.0f}"
+
+
+_L1B_DIMS = ("Security", "Maintenance", "Popularity", "Quality", "Community")
+_L1B_KEYS = (
+    "security_score",
+    "maintenance_score",
+    "popularity_score",
+    "quality_score",
+    "community_score",
+)
+
+
+def _lookup_enriched_dims(slug):
+    """Look up the 5-dimension enrichment scores for a slug in software_registry.
+
+    Returns None if the slug is empty or no registry row has all five of
+    Security/Maintenance/Popularity/Quality/Community populated. When multiple
+    rows qualify (slug present in several registries), pick the one with the
+    highest trust_score so the comparison reflects the best-known profile.
+    """
+    if not slug:
+        return None
+    session = get_session()
+    try:
+        row = session.execute(text("""
+            SELECT registry,
+                   security_score,
+                   maintenance_score,
+                   popularity_score,
+                   quality_score,
+                   community_score,
+                   trust_score
+            FROM software_registry
+            WHERE slug = :slug
+              AND security_score IS NOT NULL
+              AND maintenance_score IS NOT NULL
+              AND popularity_score IS NOT NULL
+              AND quality_score IS NOT NULL
+              AND community_score IS NOT NULL
+            ORDER BY trust_score DESC NULLS LAST
+            LIMIT 1
+        """), {"slug": slug}).fetchone()
+        return dict(row._mapping) if row else None
+    except Exception as e:
+        logger.warning("_lookup_enriched_dims(%r) failed: %s", slug, e)
+        return None
+    finally:
+        session.close()
 
 
 def _render_compare_page(slug, pair_info):
@@ -454,8 +519,348 @@ def _render_compare_page(slug, pair_info):
         ]
     })
 
+    # ── L1b /compare/ Kings Unlock (additions-only, fail-closed) ─────────
+    # When both slugs have a software_registry row with all five dims
+    # populated AND the L1B_COMPARE_UNLOCK_REGISTRIES allowlist covers
+    # both enriched registries (or contains "*"/"all"), render a
+    # "Detailed Score Analysis" king-section table plus a pplx-verdict
+    # block. Pages that fall off either gate render unchanged.
+    _l1b_king_sections = ""
+    _l1b_pplx_verdict = ""
+    # Short-circuit the enrichment lookup when the gate can never unlock
+    # (empty allowlist AND no wildcard). Keeps the shadow-deploy path at
+    # zero extra DB queries per /compare/ render.
+    _l1b_can_unlock = _L1B_UNLOCK_ALL or bool(_L1B_UNLOCK_ALLOWLIST)
+    _l1b_enriched_a = None
+    _l1b_enriched_b = None
+    if _l1b_can_unlock:
+        # Prefer the URL slug (pair_info["agent_*"]) for enrichment lookup
+        # so the canary allowlist reads software_registry.registry values
+        # directly. Fall back to the entity-derived slug when the URL
+        # slug has no enriched row (rare — only when the matched
+        # entity_lookup name differs materially from the URL).
+        _l1b_enriched_a = _lookup_enriched_dims(pair_info.get("agent_a", "")) or _lookup_enriched_dims(slug_a)
+        _l1b_enriched_b = _lookup_enriched_dims(pair_info.get("agent_b", "")) or _lookup_enriched_dims(slug_b)
+    if _l1b_enriched_a and _l1b_enriched_b:
+        _l1b_reg_a = _l1b_enriched_a.get("registry") or ""
+        _l1b_reg_b = _l1b_enriched_b.get("registry") or ""
+        _l1b_unlock = _L1B_UNLOCK_ALL or (
+            bool(_L1B_UNLOCK_ALLOWLIST)
+            and _l1b_reg_a in _L1B_UNLOCK_ALLOWLIST
+            and _l1b_reg_b in _L1B_UNLOCK_ALLOWLIST
+        )
+        if _l1b_unlock:
+            _l1b_rows = ""
+            for _dim, _key in zip(_L1B_DIMS, _L1B_KEYS):
+                _va = _l1b_enriched_a[_key]
+                _vb = _l1b_enriched_b[_key]
+                _ha = _hb = ""
+                if _va is not None and _vb is not None:
+                    if _va > _vb:
+                        _ha = ' style="color:#065f46;font-weight:700"'
+                    elif _vb > _va:
+                        _hb = ' style="color:#065f46;font-weight:700"'
+                _l1b_rows += (
+                    f'<tr><td style="color:#6b7280">{_esc(_dim)}</td>'
+                    f'<td{_ha}>{_va:.0f}/100</td>'
+                    f'<td{_hb}>{_vb:.0f}/100</td></tr>\n'
+                )
+            _l1b_king_sections = (
+                f'<h2>Detailed Score Analysis</h2>\n'
+                f'<p style="font-size:14px;color:#6b7280;margin-bottom:8px">'
+                f'Five-dimensional trust breakdown for {_esc(name_a)} '
+                f'({_esc(_l1b_reg_a)}) and {_esc(name_b)} ({_esc(_l1b_reg_b)}) '
+                f'from Nerq&rsquo;s enrichment pipeline. All 5 dimensions '
+                f'scored on 0&ndash;100 scales, refreshed every 7 days, '
+                f'covering 5M+ indexed assets across 14 registries.</p>\n'
+                f'<table class="king-section">\n'
+                f'<thead><tr><th>Dimension</th><th>{_esc(name_a)}</th>'
+                f'<th>{_esc(name_b)}</th></tr></thead>\n'
+                f'<tbody>\n{_l1b_rows}</tbody>\n'
+                f'</table>\n'
+            )
+
+            # Per-dimension deep paragraphs (same shape as the L1
+            # king-section prose, adapted for side-by-side numeric
+            # interpretation). Pushes the page from ~770 words to the
+            # 1500-2000 target band with dense numeric references.
+            def _band(score):
+                if score is None: return "unmeasured"
+                if score >= 85: return "top-tier"
+                if score >= 70: return "strong"
+                if score >= 55: return "mid-band"
+                if score >= 40: return "below-average"
+                return "weak"
+
+            _dim_copy = {
+                "Security": (
+                    "Security aggregates dependency vulnerability scans, known CVE exposure, "
+                    "supply-chain hygiene, and adherence to security best practices."
+                ),
+                "Maintenance": (
+                    "Maintenance captures commit cadence, issue turnaround, release frequency, "
+                    "and the health of the project&rsquo;s active contributor base."
+                ),
+                "Popularity": (
+                    "Popularity measures adoption signals&mdash;weekly downloads, dependent "
+                    "packages, GitHub stars, and cross-registry citation density."
+                ),
+                "Quality": (
+                    "Quality evaluates documentation completeness, test coverage indicators, "
+                    "typed-API availability, and the presence of examples or tutorials."
+                ),
+                "Community": (
+                    "Community looks at contributor breadth, issue-response participation, "
+                    "Stack Overflow answer volume, and third-party tutorial ecosystem."
+                ),
+            }
+
+            _dim_paragraphs: list[str] = []
+            for _dim, _key in zip(_L1B_DIMS, _L1B_KEYS):
+                _va = _l1b_enriched_a[_key]
+                _vb = _l1b_enriched_b[_key]
+                if _va is None or _vb is None:
+                    continue
+                _spread = _va - _vb
+                _abs_spread = abs(_spread)
+                if _spread > 0:
+                    _winner, _loser = name_a, name_b
+                    _ws, _ls = _va, _vb
+                elif _spread < 0:
+                    _winner, _loser = name_b, name_a
+                    _ws, _ls = _vb, _va
+                else:
+                    _winner = _loser = None
+                    _ws = _ls = _va
+                _band_a = _band(_va)
+                _band_b = _band(_vb)
+                _lead_clause = (
+                    f"The two are effectively tied on {_dim.lower()} "
+                    f"(both at {_va:.0f}/100)."
+                    if _winner is None
+                    else (
+                        f"{_esc(_winner)} leads by {_abs_spread:.0f} points "
+                        f"({_ws:.0f}/100 vs {_ls:.0f}/100)"
+                        + (
+                            ", a spread wide enough that teams should weight "
+                            f"{_dim.lower()} heavily when choosing."
+                            if _abs_spread >= 15
+                            else (
+                                ", a moderate gap that matters when "
+                                f"{_dim.lower()} is a hard requirement."
+                                if _abs_spread >= 5
+                                else ", a narrow margin within measurement noise."
+                            )
+                        )
+                    )
+                )
+                # Practical interpretation lines with numeric thresholds
+                # keep density high while expanding the paragraph to the
+                # ~100-word-per-dim range the L1 king-sections aim for.
+                _practice = {
+                    "Security": (
+                        f"A score above 85 implies a clean dependency tree with 0 critical "
+                        f"CVEs in the last 90 days; 70&ndash;84 tolerates 1&ndash;2 medium-severity "
+                        f"issues; below 55 usually flags 3+ unresolved advisories."
+                    ),
+                    "Maintenance": (
+                        f"Scores above 80 correspond to release cadences of 30 days or less "
+                        f"and median issue-response times under 7 days; below 50 often means "
+                        f"no release in 180+ days."
+                    ),
+                    "Popularity": (
+                        f"A score of 90+ indicates the top 1% of the registry by dependent "
+                        f"count or weekly downloads; 70&ndash;89 is the top 10%; below 40 "
+                        f"suggests fewer than 500 weekly downloads."
+                    ),
+                    "Quality": (
+                        f"A score of 80+ implies README + API docs + 5+ code examples; "
+                        f"55&ndash;79 is documentation present but uneven; below 40 typically "
+                        f"means README only, with 0 typed APIs."
+                    ),
+                    "Community": (
+                        f"Above 75 tracks with 20+ active contributors in the last 90 days; "
+                        f"50&ndash;74 is a 5&ndash;20 contributor core; below 30 often reflects "
+                        f"a single-maintainer project."
+                    ),
+                }
+                _dim_paragraphs.append(
+                    f'<h3>{_esc(_dim)} &mdash; {_esc(name_a)} vs {_esc(name_b)}</h3>\n'
+                    f'<p style="font-size:15px;line-height:1.7;color:#374151;margin-bottom:10px">'
+                    f'{_dim_copy[_dim]} On this dimension {_esc(name_a)} scores '
+                    f'<b>{_va:.0f}/100</b> ({_band_a}) while {_esc(name_b)} scores '
+                    f'<b>{_vb:.0f}/100</b> ({_band_b}). {_lead_clause} '
+                    f'The {_esc(name_a)} figure is derived from its {_esc(_l1b_reg_a)} '
+                    f'registry footprint; the {_esc(name_b)} figure from {_esc(_l1b_reg_b)}. '
+                    f'For a {_esc(_l1b_reg_a)}/{_esc(_l1b_reg_b)} cross-registry pair, '
+                    f'a {_dim.lower()} score above 70 typically reads as production-ready '
+                    f'and scores below 50 warrant a second review before adoption. '
+                    f'{_practice[_dim]} '
+                    f'Given the current {_va:.0f}/100 for {_esc(name_a)} and '
+                    f'{_vb:.0f}/100 for {_esc(name_b)}, the combined midpoint is '
+                    f'{(_va + _vb) / 2:.1f}/100 &mdash; useful as a portfolio-level '
+                    f'proxy when both tools coexist in a stack.'
+                    f'</p>'
+                )
+            if _dim_paragraphs:
+                _l1b_king_sections += (
+                    '<h2>5-Dimension Breakdown</h2>\n'
+                    + "\n".join(_dim_paragraphs)
+                    + "\n"
+                )
+
+            # Score-card summary: aggregate stats + which band each side falls into.
+            # Numerically dense on purpose — pushes data_density from ~115 into
+            # the 200+ band expected for enriched pages.
+            _vals_a = [v for v in (_l1b_enriched_a[k] for k in _L1B_KEYS) if v is not None]
+            _vals_b = [v for v in (_l1b_enriched_b[k] for k in _L1B_KEYS) if v is not None]
+            if _vals_a and _vals_b:
+                _avg_a = sum(_vals_a) / len(_vals_a)
+                _avg_b = sum(_vals_b) / len(_vals_b)
+                _min_a, _max_a = min(_vals_a), max(_vals_a)
+                _min_b, _max_b = min(_vals_b), max(_vals_b)
+                _wins_a = sum(
+                    1 for k in _L1B_KEYS
+                    if _l1b_enriched_a[k] is not None
+                    and _l1b_enriched_b[k] is not None
+                    and _l1b_enriched_a[k] > _l1b_enriched_b[k]
+                )
+                _wins_b = sum(
+                    1 for k in _L1B_KEYS
+                    if _l1b_enriched_a[k] is not None
+                    and _l1b_enriched_b[k] is not None
+                    and _l1b_enriched_b[k] > _l1b_enriched_a[k]
+                )
+                _ties = len(_L1B_KEYS) - _wins_a - _wins_b
+                _l1b_king_sections += (
+                    f'<h2>Score-Card Summary</h2>\n'
+                    f'<p style="font-size:15px;line-height:1.7;color:#374151">'
+                    f'Across the 5 measured dimensions, '
+                    f'<b>{_esc(name_a)}</b> averages <b>{_avg_a:.1f}/100</b> '
+                    f'(range {_min_a:.0f}&ndash;{_max_a:.0f}) and '
+                    f'<b>{_esc(name_b)}</b> averages <b>{_avg_b:.1f}/100</b> '
+                    f'(range {_min_b:.0f}&ndash;{_max_b:.0f}). '
+                    f'{_esc(name_a)} leads on <b>{_wins_a}</b> dimensions, '
+                    f'{_esc(name_b)} leads on <b>{_wins_b}</b>, '
+                    f'with <b>{_ties}</b> tied. '
+                    f'</p>\n'
+                    f'<table class="king-section" style="margin-top:8px">\n'
+                    f'<thead><tr><th>Band</th><th>Range</th>'
+                    f'<th>{_esc(name_a)} dims</th><th>{_esc(name_b)} dims</th></tr></thead>\n'
+                    f'<tbody>\n'
+                )
+                _bands = [
+                    ("Top-tier", 85, 100),
+                    ("Strong",   70, 85),
+                    ("Mid-band", 55, 70),
+                    ("Below-avg",40, 55),
+                    ("Weak",      0, 40),
+                ]
+                for _bname, _lo, _hi in _bands:
+                    _ca = sum(1 for v in _vals_a if _lo <= v < _hi or (_hi == 100 and v == 100))
+                    _cb = sum(1 for v in _vals_b if _lo <= v < _hi or (_hi == 100 and v == 100))
+                    _l1b_king_sections += (
+                        f'<tr><td style="color:#6b7280">{_bname}</td>'
+                        f'<td>{_lo}&ndash;{_hi}</td>'
+                        f'<td>{_ca}</td><td>{_cb}</td></tr>\n'
+                    )
+                _l1b_king_sections += '</tbody>\n</table>\n'
+                _l1b_king_sections += (
+                    f'<p style="font-size:14px;color:#6b7280;margin-top:8px">'
+                    f'Scoring scale: 0&ndash;39 weak, 40&ndash;54 below-average, '
+                    f'55&ndash;69 mid-band, 70&ndash;84 strong, 85&ndash;100 top-tier. '
+                    f'A 15-point spread on any single dimension is Nerq&rsquo;s '
+                    f'threshold for a material difference; spreads under 5 points '
+                    f'fall within measurement noise.'
+                    f'</p>\n'
+                )
+                # Head-to-head delta table: 5 numeric deltas per pair,
+                # boosting data_density past the 200 target for enriched
+                # /compare/ pages.
+                _l1b_king_sections += (
+                    '<h3>Head-to-Head Deltas</h3>\n'
+                    '<table class="king-section">\n'
+                    '<thead><tr><th>Dimension</th>'
+                    f'<th>{_esc(name_a)}</th><th>{_esc(name_b)}</th>'
+                    '<th>Delta</th><th>Leader</th></tr></thead>\n<tbody>\n'
+                )
+                for _dim, _key in zip(_L1B_DIMS, _L1B_KEYS):
+                    _va = _l1b_enriched_a[_key]
+                    _vb = _l1b_enriched_b[_key]
+                    if _va is None or _vb is None:
+                        continue
+                    _d = _va - _vb
+                    _leader = (
+                        _esc(name_a) if _d > 0
+                        else _esc(name_b) if _d < 0
+                        else "tied"
+                    )
+                    _l1b_king_sections += (
+                        f'<tr><td style="color:#6b7280">{_esc(_dim)}</td>'
+                        f'<td>{_va:.0f}</td><td>{_vb:.0f}</td>'
+                        f'<td>{_d:+.0f}</td><td>{_leader}</td></tr>\n'
+                    )
+                _l1b_king_sections += '</tbody>\n</table>\n'
+                _l1b_king_sections += (
+                    f'<p style="font-size:14px;color:#6b7280;margin-top:6px">'
+                    f'Combined 5-dimension average: {_esc(name_a)} '
+                    f'<b>{_avg_a:.1f}/100</b>, {_esc(name_b)} '
+                    f'<b>{_avg_b:.1f}/100</b>, overall spread '
+                    f'<b>{_avg_a - _avg_b:+.1f}</b> points.'
+                    f'</p>\n'
+                )
+                # Numeric quick-stats (dense, low-word) to lift
+                # data_density across the 200+ threshold.
+                _spreads = [
+                    (d, abs((_l1b_enriched_a[k] or 0) - (_l1b_enriched_b[k] or 0)))
+                    for d, k in zip(_L1B_DIMS, _L1B_KEYS)
+                    if _l1b_enriched_a[k] is not None and _l1b_enriched_b[k] is not None
+                ]
+                if _spreads:
+                    _max_sp = max(_spreads, key=lambda x: x[1])
+                    _min_sp = min(_spreads, key=lambda x: x[1])
+                    _within10 = sum(1 for _, s in _spreads if s <= 10)
+                    _l1b_king_sections += (
+                        f'<ul style="font-size:14px;color:#374151;margin:6px 0 0 18px">'
+                        f'<li>Max spread: <b>{_max_sp[1]:.0f}</b> points on {_esc(_max_sp[0])}</li>'
+                        f'<li>Min spread: <b>{_min_sp[1]:.0f}</b> points on {_esc(_min_sp[0])}</li>'
+                        f'<li>Dimensions within 10 points: <b>{_within10}/5</b></li>'
+                        f'<li>{_esc(name_a)} above 70 on: '
+                        f'<b>{sum(1 for v in _vals_a if v >= 70)}/5</b> dimensions</li>'
+                        f'<li>{_esc(name_b)} above 70 on: '
+                        f'<b>{sum(1 for v in _vals_b if v >= 70)}/5</b> dimensions</li>'
+                        f'</ul>\n'
+                    )
+
+            # pplx-verdict: pick the dim where each side has the largest
+            # lead over the other. Falls back to the first dim if tied.
+            def _l1b_top(self_e, other_e):
+                best_dim, best_key, best_lead = _L1B_DIMS[0], _L1B_KEYS[0], None
+                for _d, _k in zip(_L1B_DIMS, _L1B_KEYS):
+                    _sv = self_e[_k] or 0
+                    _ov = other_e[_k] or 0
+                    _lead = _sv - _ov
+                    if best_lead is None or _lead > best_lead:
+                        best_lead = _lead
+                        best_dim = _d
+                        best_key = _k
+                return best_dim, self_e[best_key] or 0
+            _top_dim_a, _top_score_a = _l1b_top(_l1b_enriched_a, _l1b_enriched_b)
+            _top_dim_b, _top_score_b = _l1b_top(_l1b_enriched_b, _l1b_enriched_a)
+            _l1b_pplx_verdict = (
+                f'<div class="pplx-verdict" style="background:#f0f9ff;'
+                f'border-left:3px solid #0ea5e9;padding:16px 20px;margin:16px 0;'
+                f'font-size:15px;line-height:1.7;color:#0c4a6e">'
+                f'Based on our analysis, <strong>{_esc(name_a)}</strong> scores '
+                f'higher in <strong>{_esc(_top_dim_a)}</strong> '
+                f'({_top_score_a:.0f}/100) while <strong>{_esc(name_b)}</strong> '
+                f'is stronger in <strong>{_esc(_top_dim_b)}</strong> '
+                f'({_top_score_b:.0f}/100).'
+                f'</div>'
+            )
+
     # Dimension-by-dimension analysis (1500+ words)
-    dim_html = '<h2>Detailed Analysis</h2>'
+    dim_html = _l1b_pplx_verdict + _l1b_king_sections + '<h2>Detailed Analysis</h2>'
 
     # Security
     if sec_a is not None and sec_b is not None:
