@@ -55,6 +55,83 @@ class TestStats:
         assert isinstance(data["categories"], dict)
 
 
+# --- 3b. Nerq /v1/agent/stats (regression for FU-QUERY-20260418-07) ---
+
+class TestAgentStats:
+    """Regression coverage for /v1/agent/stats.
+
+    AUDIT-QUERY-20260418 finding #7: endpoint returned 500/503 on 27/27 requests
+    over 7d because the language GROUP BY on agents timed out (5s) cold-cache and
+    the outer handler converted any subquery failure into 503. The handler now
+    degrades gracefully — the endpoint must always return 200 with the core
+    payload, even when the language query fails.
+    """
+
+    def test_agent_stats_returns_200(self):
+        r = client.get("/v1/agent/stats")
+        assert r.status_code == 200, f"expected 200, got {r.status_code}: {r.text[:300]}"
+
+    def test_agent_stats_has_required_fields(self):
+        data = client.get("/v1/agent/stats").json()
+        for field in (
+            "total_assets",
+            "total_agents",
+            "total_tools",
+            "total_mcp_servers",
+            "categories",
+            "frameworks",
+            "languages",
+            "trust_distribution",
+            "updated_at",
+        ):
+            assert field in data, f"Missing field: {field}"
+        assert isinstance(data["categories"], dict)
+        assert isinstance(data["languages"], dict)
+        assert isinstance(data["trust_distribution"], dict)
+
+    def test_agent_stats_survives_language_query_failure(self, monkeypatch):
+        """If the language subquery raises (e.g. statement timeout), the endpoint
+        must still return 200 with the rest of the payload populated."""
+        import agentindex.nerq_api as nerq_api
+
+        # Bust the cache so the handler actually executes the queries.
+        nerq_api._stats_cache["data"] = None
+        nerq_api._stats_cache["ts"] = 0
+
+        real_session_factory = nerq_api.get_session
+
+        class _LangFailSession:
+            def __init__(self, inner):
+                self._inner = inner
+
+            def execute(self, stmt, *args, **kwargs):
+                sql = str(stmt)
+                if "FROM agents" in sql and "GROUP BY lang" in sql:
+                    raise RuntimeError("simulated statement timeout")
+                return self._inner.execute(stmt, *args, **kwargs)
+
+            def begin_nested(self):
+                return self._inner.begin_nested()
+
+            def close(self):
+                return self._inner.close()
+
+            def __getattr__(self, name):
+                return getattr(self._inner, name)
+
+        def _wrapped():
+            return _LangFailSession(real_session_factory())
+
+        monkeypatch.setattr(nerq_api, "get_session", _wrapped)
+        r = client.get("/v1/agent/stats")
+        assert r.status_code == 200, f"expected 200 with language failure, got {r.status_code}: {r.text[:300]}"
+        data = r.json()
+        assert data["languages"] == {} or isinstance(data["languages"], dict)
+        # Core fields must still be present.
+        assert "total_agents" in data
+        assert "categories" in data
+
+
 # --- 4. Semantic status ---
 
 class TestSemanticStatus:
