@@ -231,3 +231,76 @@ Ordered by expected ROI × speed. Data source in parens.
 - Intent-gap was 100 queries, not exhaustive — SERP composition changes daily and these are a point-in-time sample from 2026-04-17.
 - GSC returns top 25,000 rows per dimension; nerq.ai's real page count on Google is likely higher.
 - WebSearch results reflect US-geolocated Google SERPs; international SERPs may differ.
+
+---
+
+## Appendix — Data inventory for follow-on weekly audits (added 2026-04-19)
+
+This baseline audit was sourced from GSC, Bing Webmaster, live curls, and the
+local `analytics.db` SQLite. **Subsequent weekly audits run from the Smedjan
+factory and read `analytics_mirror` (Postgres on smedjan.nbg1.hetzner) plus
+the Nerq read-only replica.** Those sources expose a different schema than
+the ones referenced inline in §1–§7. To prevent re-derivation drift in
+later audit runs, this appendix records what `analytics_mirror` and the
+Nerq RO replica actually contain as of 2026-04-19, and how the brief's
+intended dimensions map onto them.
+
+### What `analytics_mirror` contains (Postgres, schema = `analytics_mirror`)
+
+| Table | Rows (2026-04-19) | Purpose |
+| --- | ---: | --- |
+| `requests` | 7,183,367 | Raw request log: `ts, method, path, status, duration_ms, ip, user_agent, bot_name, is_bot, is_ai_bot, referrer, referrer_domain, query_string, search_query, country, ai_source, visitor_type, bot_purpose`. |
+| `requests_daily` | 29,342 | Daily roll-up keyed by `(day, bot_name, is_ai_bot, is_bot, status, is_gptbot, is_preflight, visitor_type, country, lang)` with a `count` column. |
+| `preflight_analytics` | 151,655 | AI-bot preflight probes: `ts, target, bot_name, ip, status, duration_ms, country`. |
+| `_sync_state` | 3 | Mirror freshness: per-table `row_count, synced_at, source_host, source_hash, notes`. |
+
+Mirror freshness as of 2026-04-19T01:30Z; the syncer publishes a fresh
+`_sync_state` row each cycle.
+
+### What `analytics_mirror` does NOT contain
+
+The AUDIT-QUERY-20260418 task description named four tables that **do not
+exist in any reachable schema**:
+
+- `analytics_mirror.query_log` — not present
+- `analytics_mirror.search_events` — not present
+- `analytics_mirror.zero_result_queries` — not present
+- `public.query_coverage` (Nerq RO) — not present
+
+`requests.search_query` is populated on **7 of 7,183,367 rows** (≈0%), so
+even the existing column is not a usable corpus for "what users typed into
+Nerq's search box". `FU-QUERY-20260418-08` tracks the work to instrument
+that signal end-to-end.
+
+### What the Nerq RO replica contains
+
+`smedjan_readonly`@`agentindex` exposes the production tables documented in
+CLAUDE.md "Database tables" — notably `public.agents`, `public.entity_lookup`,
+`public.nerq_risk_signals`, `public.crash_model_v3_predictions`,
+`public.crypto_rating_daily`, `public.defi_protocol_tokens`. There is **no
+`public.query_coverage`** table; coverage gaps must be derived by joining
+`analytics_mirror.requests` (404 paths) against `entity_lookup` (known slugs).
+
+### How the brief's dimensions map onto what we have
+
+| Brief dimension | Where to source it from `analytics_mirror` |
+| --- | --- |
+| Query classification (§1) | Not directly available — needs GSC/Bing or a future `search_events` table. |
+| High-opportunity queries (§2) | Not in mirror — depends on rank data (GSC). |
+| Low-CTR queries (§3) | Not in mirror — depends on impressions/clicks (GSC). |
+| Zero-impression pages (§4) | Substitute: `requests` paths with status 200 but `count<N` per day. |
+| Dead content (§5) | Substitute: `requests_daily` per-path roll-up over a 30/90-day window. |
+| Intent gap (§6) | Not in mirror — requires WebSearch sample of competitor SERPs. |
+| Path-hygiene (404 distribution) | Native: `requests.status` per `path` regex. This is what the 2026-04-18 weekly audit pivoted to. |
+| AI-bot citation damage | Native: `requests` filtered on `is_ai_bot=1` joined to `status=404`. |
+
+### Provisioning vs. amending — current state
+
+- **Provisioning** the four named tables is blocked on `FU-QUERY-20260418-08`
+  (instrument the Nerq search endpoint to write `search_events`) and on a
+  separate Nerq production change to land `public.query_coverage`. Neither
+  is in scope for this follow-up.
+- **Amendment** is this appendix. Future weekly audits should treat the
+  inventory above as authoritative for `analytics_mirror`/Nerq RO sources
+  and only rely on §1–§7 of this brief for the GSC/Bing-derived analysis
+  that originally produced the baseline.
