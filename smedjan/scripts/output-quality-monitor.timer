@@ -1,0 +1,13 @@
+[Unit]
+Description=Run smedjan output-quality actionable-ratio monitor daily at 05:00 Europe/Stockholm
+Documentation=https://github.com/anders/agentindex/blob/main/smedjan/scripts/output_quality_monitor.py
+
+[Timer]
+OnCalendar=*-*-* 05:00:00 Europe/Stockholm
+Persistent=true
+AccuracySec=1min
+RandomizedDelaySec=120
+Unit=output-quality-monitor.service
+
+[Install]
+WantedBy=timers.target

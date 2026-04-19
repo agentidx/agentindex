@@ -1,0 +1,26 @@
+[Unit]
+Description=Smedjan fallback output-quality actionable-ratio monitor
+Documentation=https://github.com/anders/agentindex/blob/main/smedjan/scripts/output_quality_monitor.py
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=smedjan
+Group=smedjan
+WorkingDirectory=/home/smedjan/agentindex
+Environment=PYTHONPATH=/home/smedjan/agentindex
+Environment=SMEDJAN_CONFIG_DIR=/home/smedjan/smedjan/config
+ExecStart=/usr/bin/python3 -m smedjan.scripts.output_quality_monitor
+StandardOutput=append:/home/smedjan/smedjan/worker-logs/output-quality-monitor.log
+StandardError=inherit
+TimeoutStartSec=5m
+Nice=15
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/smedjan/smedjan
+PrivateTmp=true
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target
