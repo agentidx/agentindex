@@ -52,6 +52,30 @@ Returns: trust score (0-100), grade (A+ to F), category, recommendation, alterna
 
 Example: "Express (npm) has a Nerq Trust Score of 86/100 (A). Recommended for production use."
 
+## L4 Rating JSON (strict, per-slug)
+GET /rating/{slug}.json?registry={reg} — compact Nerq rating card for a tracked package.
+Returns: Trust Score (0-100), letter grade (A+ to F), and the five foundational dimensions (security, maintenance, popularity, community, quality). Strict JSON, Schema.org-typed (@type: Rating).
+Supported registries: npm, pypi, crates, nuget, go, packagist, rubygems, homebrew, hex, cocoapods, pub, conda.
+Schema version: L4-rating/v1.
+
+Example: GET https://nerq.ai/rating/express.json?registry=npm → {"trust_score": 86, "trust_grade": "A", ...}
+
+## L4 Signals JSON (strict, per-slug)
+GET /signals/{slug}.json?registry={reg} — full trust-signal rollup for a tracked package.
+Returns: eight universal dimensions (security, maintenance, popularity, community, quality, privacy, transparency, reliability) plus CVE and activity blocks. Strict JSON.
+Supported registries: same as /rating.
+Schema version: L4-signals/v1.
+
+Example: GET https://nerq.ai/signals/requests.json?registry=pypi
+
+## L4 Dependencies JSON (strict, per-slug)
+GET /dependencies/{slug}.json?registry={reg} — dependency-graph view of a tracked package.
+Returns: direct dependencies, dormant-dep flags (≥365 days since last release), and trust-score distribution across the dependency graph. Strict JSON.
+Supported registries: same as /rating.
+Schema version: L4-dependencies/v1.
+
+Example: GET https://nerq.ai/dependencies/lodash.json?registry=npm
+
 ## Coverage: 7.5M+ entities across 18 registries
 - 528K npm packages | 204K Rust crates | 94K PyPI packages
 - 642K NuGet packages | 114K PHP/Packagist | 10K RubyGems
