@@ -17,12 +17,14 @@ Subcommands
     smedjan queue resolve           # promote pending rows
     smedjan queue evidence NAME [--payload '{"k":"v"}']  # record evidence
     smedjan queue heartbeats
+    smedjan rollback L1 [--dry-run]
 """
 from __future__ import annotations
 
 import argparse
 import json
 import os
+import subprocess
 import sys
 from datetime import datetime, timezone
 
@@ -31,6 +33,14 @@ import psycopg2.extras
 
 from smedjan import factory_core
 from smedjan.config import PG_PRIMARY_DSN
+
+
+# ── rollback constants ───────────────────────────────────────────────────
+
+NERQ_API_PLIST = os.path.expanduser("~/Library/LaunchAgents/com.nerq.api.plist")
+NERQ_API_LABEL = "com.nerq.api"
+L1_UNLOCK_KEY  = "L1_UNLOCK_REGISTRIES"
+PLISTBUDDY     = "/usr/libexec/PlistBuddy"
 
 
 # ── helpers ──────────────────────────────────────────────────────────────
@@ -193,6 +203,48 @@ def cmd_evidence(args: argparse.Namespace) -> int:
     return 0
 
 
+# ── rollback ─────────────────────────────────────────────────────────────
+
+def _plist_has_l1_unlock() -> bool:
+    """True iff :EnvironmentVariables:L1_UNLOCK_REGISTRIES exists in the plist."""
+    r = subprocess.run(
+        [PLISTBUDDY, "-c", f"Print :EnvironmentVariables:{L1_UNLOCK_KEY}", NERQ_API_PLIST],
+        capture_output=True, text=True,
+    )
+    return r.returncode == 0
+
+
+def cmd_rollback_l1(args: argparse.Namespace) -> int:
+    uid = os.getuid()
+    delete_cmd   = [PLISTBUDDY, "-c", f"Delete :EnvironmentVariables:{L1_UNLOCK_KEY}", NERQ_API_PLIST]
+    kickstart_cmd = ["launchctl", "kickstart", "-k", f"gui/{uid}/{NERQ_API_LABEL}"]
+
+    if not _plist_has_l1_unlock():
+        print(f"{L1_UNLOCK_KEY} not set in {NERQ_API_PLIST} — already rolled back, nothing to do.")
+        return 0
+
+    if args.dry_run:
+        print("[dry-run] would run:")
+        print("  " + " ".join(delete_cmd))
+        print("  " + " ".join(kickstart_cmd))
+        return 0
+
+    print(f"removing {L1_UNLOCK_KEY} from {NERQ_API_PLIST} …")
+    r = subprocess.run(delete_cmd, capture_output=True, text=True)
+    if r.returncode != 0:
+        sys.stderr.write(f"PlistBuddy Delete failed: {r.stderr.strip() or r.stdout.strip()}\n")
+        return 2
+
+    print(f"kickstarting {NERQ_API_LABEL} …")
+    r = subprocess.run(kickstart_cmd, capture_output=True, text=True)
+    if r.returncode != 0:
+        sys.stderr.write(f"launchctl kickstart failed: {r.stderr.strip() or r.stdout.strip()}\n")
+        return 2
+
+    print(f"rollback L1: done — {L1_UNLOCK_KEY} removed, {NERQ_API_LABEL} kickstarted.")
+    return 0
+
+
 def cmd_heartbeats(_args: argparse.Namespace) -> int:
     with _conn() as c, c.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
         cur.execute("SELECT * FROM smedjan.worker_heartbeats ORDER BY last_seen_at DESC")
@@ -262,6 +314,17 @@ def _build_parser() -> argparse.ArgumentParser:
 
     hb = qsub.add_parser("heartbeats", help="list worker heartbeats")
     hb.set_defaults(fn=cmd_heartbeats)
+
+    rb = sub.add_parser("rollback", help="operational rollbacks")
+    rbsub = rb.add_subparsers(dest="sub", required=True)
+
+    rb_l1 = rbsub.add_parser(
+        "L1",
+        help="remove L1_UNLOCK_REGISTRIES from the nerq api plist and kickstart",
+    )
+    rb_l1.add_argument("--dry-run", action="store_true", dest="dry_run",
+                       help="print the plist edit + kickstart without executing")
+    rb_l1.set_defaults(fn=cmd_rollback_l1)
 
     return p
 
