@@ -24,6 +24,16 @@ from pathlib import Path
 LOG_PATH = "/tmp/auto-indexnow.log"
 STATE_PATH = Path(__file__).parent / "auto_indexnow_state.json"
 
+# Smedjan batch-trigger source (T152). The runtime queue lives outside the
+# repo at ~/smedjan/measurement/indexnow-queue.txt; the in-repo path is the
+# canonical template/fallback (one URL or slug per line, # for comments).
+SMEDJAN_QUEUE_FILES = [
+    Path.home() / "smedjan" / "measurement" / "indexnow-queue.txt",
+    Path(__file__).resolve().parent.parent / "smedjan" / "measurement" / "indexnow-queue.txt",
+]
+SMEDJAN_BATCH_TOP_DEMAND = 100
+SMEDJAN_BATCH_ENRICHED_HOURS = 24
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s %(levelname)s %(message)s",
@@ -263,6 +273,123 @@ def submit_to_indexnow(host: str, urls: list[str], key_location: str) -> tuple[i
     return success, fail
 
 
+# ── Smedjan batch trigger (T152) ────────────────────────────────
+# Adds a separate URL source to the daily IndexNow run, sourced from:
+#   1. software_registry rows whose enriched_at moved in the last 24h
+#   2. top-N entries from smedjan.ai_demand_scores (N=100)
+#   3. operator-curated list at ~/smedjan/measurement/indexnow-queue.txt
+# All three feed nerq.ai/safe/{slug}; the queue file may also contain full
+# URLs (any host) — those are routed by host. Failures here are logged and
+# swallowed so the existing IndexNow flow keeps running.
+
+def _slug_to_safe_url(slug: str) -> str:
+    return f"https://nerq.ai/safe/{slug}"
+
+
+def _normalize_queue_entry(line: str):
+    """Map a queue file line to (host, url) or None for blanks/comments."""
+    s = line.strip()
+    if not s or s.startswith("#"):
+        return None
+    if s.startswith("http://") or s.startswith("https://"):
+        from urllib.parse import urlparse
+        host = urlparse(s).netloc
+        if not host:
+            return None
+        return host, s
+    # bare slug → default to nerq.ai/safe/{slug}
+    return "nerq.ai", _slug_to_safe_url(s)
+
+
+def _load_smedjan_queue_file():
+    entries = []
+    for path in SMEDJAN_QUEUE_FILES:
+        if not path.exists():
+            continue
+        try:
+            with open(path) as f:
+                for line in f:
+                    pair = _normalize_queue_entry(line)
+                    if pair is not None:
+                        entries.append(pair)
+            logger.info("  Smedjan queue file %s: %d entries", path, len(entries))
+            return entries  # first existing file wins
+        except Exception as e:
+            logger.warning("  Could not read smedjan queue %s: %s", path, e)
+    return entries
+
+
+def _smedjan_top_demand_slugs(limit: int = SMEDJAN_BATCH_TOP_DEMAND) -> list[str]:
+    """Top-N slugs by ai_demand_score from smedjan DB. Empty list on failure."""
+    try:
+        from smedjan import sources as _sm_sources
+        with _sm_sources.smedjan_db_cursor() as (_conn, cur):
+            cur.execute(
+                "SELECT slug FROM smedjan.ai_demand_scores "
+                "ORDER BY score DESC NULLS LAST LIMIT %s",
+                (limit,),
+            )
+            return [r[0] for r in cur.fetchall() if r[0]]
+    except Exception as e:
+        logger.warning("  Smedjan top-demand query failed: %s", e)
+        return []
+
+
+def _smedjan_recently_enriched_slugs(hours: int = SMEDJAN_BATCH_ENRICHED_HOURS) -> list[str]:
+    """Slugs whose enriched_at moved in the last N hours (Nerq RO)."""
+    try:
+        import psycopg2
+        conn = psycopg2.connect(dbname="agentindex", user="anstudio")
+        conn.set_session(readonly=True)
+        cur = conn.cursor()
+        cur.execute(
+            "SELECT DISTINCT slug FROM software_registry "
+            "WHERE enriched_at >= NOW() - (%s || ' hours')::interval "
+            "  AND slug IS NOT NULL AND slug <> ''",
+            (str(hours),),
+        )
+        slugs = [r[0] for r in cur.fetchall()]
+        cur.close()
+        conn.close()
+        return slugs
+    except Exception as e:
+        logger.warning("  Smedjan enriched-at query failed: %s", e)
+        return []
+
+
+def collect_smedjan_batch_urls():
+    """Return {host: [urls]} for the Smedjan T152 batch trigger.
+
+    Sources:
+      - top-100 demand slugs
+      - recently enriched (24h) slugs
+      - queue file entries (may include foreign hosts)
+
+    Deduplicated per host. Provenance is logged but not embedded in output.
+    """
+    by_host = {"nerq.ai": set(), "zarq.ai": set()}
+
+    top = _smedjan_top_demand_slugs()
+    for s in top:
+        by_host["nerq.ai"].add(_slug_to_safe_url(s))
+    if top:
+        logger.info("  Smedjan top-demand: %d slugs", len(top))
+
+    enriched = _smedjan_recently_enriched_slugs()
+    for s in enriched:
+        by_host["nerq.ai"].add(_slug_to_safe_url(s))
+    if enriched:
+        logger.info("  Smedjan enriched(<24h): %d slugs", len(enriched))
+
+    queued = _load_smedjan_queue_file()
+    for host, url in queued:
+        by_host.setdefault(host, set()).add(url)
+    if queued:
+        logger.info("  Smedjan queue file: %d entries", len(queued))
+
+    return {host: sorted(urls) for host, urls in by_host.items() if urls}
+
+
 def detect_new_urls(prev_state: dict) -> tuple[list[str], list[str], dict]:
     """Detect new/changed URLs since last run.
     Returns (zarq_new_urls, nerq_new_urls, new_state).
@@ -389,6 +516,20 @@ def detect_new_urls(prev_state: dict) -> tuple[list[str], list[str], dict]:
 
     new_state["zarq_urls"] = list(current_zarq_urls)
     new_state["nerq_urls"] = list(current_nerq_urls)
+
+    # T152: Smedjan batch trigger — fold in URLs from demand/enriched/queue.
+    try:
+        smedjan_batch = collect_smedjan_batch_urls()
+        for host, urls in smedjan_batch.items():
+            if host == "zarq.ai":
+                zarq_new.extend(urls)
+            else:
+                nerq_new.extend(urls)
+        if smedjan_batch:
+            logger.info("  Smedjan batch trigger contributed: %s",
+                        {h: len(u) for h, u in smedjan_batch.items()})
+    except Exception as e:
+        logger.warning("  Smedjan batch trigger failed (existing flow continues): %s", e)
 
     # Deduplicate
     zarq_new = list(set(zarq_new))
@@ -598,6 +739,14 @@ def main(dry_run=False, max_urls=0):
 
 
 if __name__ == "__main__":
+    if "--smedjan-batch-only" in sys.argv:
+        # T152: report what the Smedjan batch source would queue, no submit.
+        batch = collect_smedjan_batch_urls()
+        total = sum(len(v) for v in batch.values())
+        logger.info("Smedjan batch trigger preview: %d total URLs", total)
+        for host, urls in batch.items():
+            logger.info("  %s: %d URLs (sample: %s)", host, len(urls), urls[:3])
+        sys.exit(0)
     _dry = "--dry-run" in sys.argv
     _max = 0
     for _a in sys.argv:
