@@ -1,0 +1,26 @@
+[Unit]
+Description=Smedjan sacred-byte verifier (samples /safe/* and verifies SEO/GEO bytes)
+Documentation=https://github.com/anders/agentindex/blob/main/smedjan/scripts/sacred_byte_verifier.py
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=smedjan
+Group=smedjan
+WorkingDirectory=/home/smedjan/agentindex
+Environment=PYTHONPATH=/home/smedjan/agentindex
+Environment=SMEDJAN_CONFIG_DIR=/home/smedjan/smedjan/config
+ExecStart=/usr/bin/python3 -m smedjan.scripts.sacred_byte_verifier
+StandardOutput=append:/home/smedjan/smedjan/worker-logs/sacred-byte-verifier.log
+StandardError=inherit
+TimeoutStartSec=20m
+Nice=10
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/smedjan/smedjan
+PrivateTmp=true
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

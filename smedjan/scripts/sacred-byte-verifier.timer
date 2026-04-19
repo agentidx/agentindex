@@ -1,0 +1,15 @@
+[Unit]
+Description=Run smedjan sacred-byte verifier every 6h
+Documentation=https://github.com/anders/agentindex/blob/main/smedjan/scripts/sacred_byte_verifier.py
+
+[Timer]
+# Every 6h on the wall clock (00:07, 06:07, 12:07, 18:07 UTC).
+# Offset of 7 minutes spreads load away from the top-of-hour cron herd.
+OnCalendar=*-*-* 00,06,12,18:07:00 UTC
+Persistent=true
+AccuracySec=1m
+RandomizedDelaySec=60
+Unit=sacred-byte-verifier.service
+
+[Install]
+WantedBy=timers.target
