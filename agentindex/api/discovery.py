@@ -331,6 +331,12 @@ class PageCacheMiddleware(BaseHTTPMiddleware):
         return response
 
 
+# Rescue /compare/<a>-vs-<b> 404s via lazy entity_lookup rendering.
+# Registered before PageCacheMiddleware so the rewritten 200 response is
+# cacheable. Source: AUDIT-QUERY-20260418 finding #2, task FU-QUERY-20260418-02.
+from agentindex.renderers.compare_fallback import install_compare_fallback
+install_compare_fallback(app)
+
 app.add_middleware(PageCacheMiddleware)
 
 
