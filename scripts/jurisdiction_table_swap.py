@@ -140,6 +140,13 @@ def run():
     elapsed = time.time() - start_time
     logger.info(f"COMPLETE: {total_inserted:,} rows in {elapsed/60:.1f} min")
 
+    # Build indexes before RENAME (while table is not serving live traffic)
+    logger.info("Building indexes on _new table...")
+    for idx_name, idx_col in [("idx_ajs_agent_id", "agent_id"), ("idx_ajs_jurisdiction_id", "jurisdiction_id")]:
+        cur.execute(f"CREATE INDEX {idx_name} ON {TARGET_TABLE} ({idx_col})")
+        conn.commit()
+        logger.info(f"  Index {idx_name} created")
+
     # Verify
     cur.execute(f"SELECT COUNT(*), MIN(assessed_at)::date, MAX(assessed_at)::date FROM {TARGET_TABLE}")
     count, min_date, max_date = cur.fetchone()
