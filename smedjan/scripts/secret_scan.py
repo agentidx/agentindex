@@ -73,6 +73,15 @@ EXCLUDE_PATH_PREFIXES: tuple[Path, ...] = (
 # Don't scan the scanner itself — its own regex literals would match.
 SELF_PATH = Path(__file__).resolve()
 
+# Filename allowlist: files by basename that are expected to contain a
+# PEM-armoured private key as a placeholder for future integration work
+# (e.g. a GitHub App install key). The allowlist only suppresses the
+# scan — the file must still be .gitignored (git never sees it).
+# Add a filename here instead of exfiltrating the key to silence a flap.
+ALLOWLIST_FILENAMES: frozenset[str] = frozenset({
+    "github-app-private-key.pem",
+})
+
 # Max file size to scan (bytes). 10 MB is generous for source; anything
 # larger is almost certainly data/binary and already pruned by the
 # binary-detect heuristic, but we short-circuit on size for speed.
@@ -138,6 +147,9 @@ def _iter_files(root: Path):
             except OSError:
                 continue
             if resolved == SELF_PATH:
+                continue
+            if fn in ALLOWLIST_FILENAMES:
+                log.debug("skip %s: allowlisted filename", p)
                 continue
             try:
                 st = p.stat()

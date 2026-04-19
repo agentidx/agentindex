@@ -7489,6 +7489,14 @@ def _render_ingredient_page(slug, agent_info, lang="en"):
         faq_details += f'<details><summary>{fq}</summary><div class="faq-a">{fa}</div></details>\n'
     faq_html = f'<div class="section faq"><h2 class="section-title">{_t("faq", lang)}</h2>{faq_details}</div>'
 
+    # L2 Block 2e — 5-dim breakdown on the ingredient path. T118 wired
+    # this into _render_agent_page only; the 1,837 slugs with dimensions
+    # that route here (source = ingredient/supplement/cosmetic_ingredient)
+    # never rendered it and the shadow-coverage gate could not pass.
+    # Reuses the same L2_BLOCK_2E_MODE env-var gate (off/shadow/live);
+    # fail-closed default remains "off".
+    block_2e_html = _l2_block_2e_html(slug)
+
     # Similar items
     similar_html = ""
     try:
@@ -7732,6 +7740,8 @@ Overall assessment: {_dn} is {rec_text}.
 {concerns_html}
 
 {faq_html}
+
+{block_2e_html}
 
 {similar_html}
 
