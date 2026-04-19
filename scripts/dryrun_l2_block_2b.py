@@ -1,29 +1,39 @@
 #!/usr/bin/env python3
 """
-dryrun_l2_block_2b.py — L2 Block 2b shadow-mode dry-run harness (T112).
+dryrun_l2_block_2b.py — L2 Block 2b dry-run harness.
 
-Renders the Block 2b snippet for the top N slugs by `ai_demand_score` in
-all three modes (off / shadow / live) and emits a diff report plus a
-sacred-byte audit.
+Two implementations share the task number:
 
-Sacred tokens that must NEVER appear inside the block (the block lives
-below king-sections and above FAQ — it must not echo any of these
-GEO-critical markers into its own body):
+* **T112** (shadow-mode dependency-edges stub) lives in
+  ``smedjan/renderers/block_2b.py`` and renders direct / transitive /
+  cycle features inside an HTML comment.
+* **T005** (king-section trust-score block) lives in
+  ``agentindex/smedjan/l2_block_2b.py`` and renders a prose
+  "Depended on by N — avg dep trust M/100 — dormant?" snippet gated by
+  ``L2_BLOCK_2B_REGISTRIES``.
+
+This harness exercises **both** so the T112 shadow stream keeps its
+regression tests and the T005 path has its 100-slug acceptance
+evidence.
+
+Sacred tokens that must NEVER appear in either rendered block (those
+belong to GEO/SEO-critical markup elsewhere on the page):
 
     pplx-verdict
     ai-summary
     SpeakableSpecification
     FAQPage
 
-Usage (from repo root, so `smedjan.*` imports resolve):
+Usage (from repo root, so both ``smedjan.*`` and
+``agentindex.smedjan.*`` imports resolve):
 
     python3 scripts/dryrun_l2_block_2b.py            # default N=100
     python3 scripts/dryrun_l2_block_2b.py --limit 25 # smaller sample
 
 The report is written to
-`~/smedjan/audit-reports/l2-block-2b-dryrun-<UTC timestamp>.json` when
-that directory exists, otherwise to `/tmp/`. A short summary is echoed
-to stdout.
+``~/smedjan/audit-reports/l2-block-2b-dryrun-<UTC timestamp>.json``
+when that directory exists, otherwise to ``/tmp/``. A short summary is
+echoed to stdout.
 """
 from __future__ import annotations
 
@@ -120,28 +130,42 @@ def main() -> int:
     ap.add_argument("--limit", type=int, default=100)
     args = ap.parse_args()
 
+    # Exercise the T005 registry-gated path end-to-end by flipping the
+    # env var in-process before importing the renderer wrapper. The
+    # module-level allowlist in ``agent_safety_pages`` is rebuilt on
+    # every call, so this just re-confirms the live branch is wired.
+    os.environ["L2_BLOCK_2B_REGISTRIES"] = "npm"
+
+    from agentindex.smedjan.l2_block_2b import render_dependency_graph_html  # noqa: E402
+    from agentindex.agent_safety_pages import _l2_block_2b_registry_html  # noqa: E402
+
     slugs = _pick_top_slugs(args.limit)
     if not slugs:
         print("no candidate slugs found (no ai_demand × dependency_edges overlap)")
         return 1
 
     per_slug = []
-    n_none = 0
-    n_rendered = 0
+    n_t112_rendered = 0
+    n_t005_rendered = 0
+    n_crashes = 0
     sacred_hits: list[dict] = []
 
     for slug in slugs:
-        raw = render_block_2b_html(slug)
-        off_out = _wrap(raw, "off")
-        shadow_out = _wrap(raw, "shadow")
-        live_out = _wrap(raw, "live")
+        # T112 shadow-mode stub
+        try:
+            raw_t112 = render_block_2b_html(slug)
+        except Exception as exc:
+            n_crashes += 1
+            per_slug.append({"slug": slug, "crash": f"T112: {exc!r}"})
+            continue
 
-        if raw is None:
-            n_none += 1
-        else:
-            n_rendered += 1
+        off_out = _wrap(raw_t112, "off")
+        shadow_out = _wrap(raw_t112, "shadow")
+        live_out = _wrap(raw_t112, "live")
 
-        # Sacred-byte audit on whatever we'd splice into the page.
+        if raw_t112 is not None:
+            n_t112_rendered += 1
+
         for mode_name, payload in (
             ("off", off_out),
             ("shadow", shadow_out),
@@ -149,23 +173,55 @@ def main() -> int:
         ):
             hits = _audit_sacred(payload)
             if hits:
-                sacred_hits.append({"slug": slug, "mode": mode_name, "tokens": hits})
+                sacred_hits.append({"impl": "T112", "slug": slug, "mode": mode_name, "tokens": hits})
+
+        # T005 king-section trust-score block (direct render + full
+        # gated wrapper so we cover both the helper and the dispatcher).
+        try:
+            raw_t005 = render_dependency_graph_html(slug)
+            gated = _l2_block_2b_registry_html(slug, "npm")
+        except Exception as exc:
+            n_crashes += 1
+            per_slug.append({"slug": slug, "crash": f"T005: {exc!r}"})
+            continue
+
+        if raw_t005 is not None:
+            n_t005_rendered += 1
+
+        for variant, payload in (
+            ("direct", raw_t005 or ""),
+            ("gated", gated),
+        ):
+            hits = _audit_sacred(payload)
+            if hits:
+                sacred_hits.append({"impl": "T005", "slug": slug, "variant": variant, "tokens": hits})
+
+        # Gated output should exactly equal the direct render when the
+        # allowlist names the slug's registry. Any divergence is an
+        # antipattern — callers would silently drop content.
+        gate_divergence = None
+        if (raw_t005 or "") != gated:
+            gate_divergence = {
+                "direct_bytes": len(raw_t005 or ""),
+                "gated_bytes": len(gated),
+            }
 
         per_slug.append({
             "slug": slug,
-            "rendered": raw is not None,
-            "bytes_live": len(live_out),
-            "bytes_shadow": len(shadow_out),
-            "bytes_off": len(off_out),
-            "live_shadow_diff_bytes": len(shadow_out) - len(live_out),
+            "t112_rendered": raw_t112 is not None,
+            "t005_rendered": raw_t005 is not None,
+            "t005_gated_bytes": len(gated),
+            "t112_bytes_live": len(live_out),
+            "gate_divergence": gate_divergence,
         })
 
     report = {
-        "task": "T112",
+        "task": "T005",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "sample_size": len(slugs),
-        "rendered": n_rendered,
-        "empty_or_no_data": n_none,
+        "t112_rendered": n_t112_rendered,
+        "t005_rendered": n_t005_rendered,
+        "crashes": n_crashes,
         "sacred_token_hits": sacred_hits,
         "sacred_tokens_checked": list(SACRED_TOKENS),
         "per_slug": per_slug,
@@ -178,14 +234,20 @@ def main() -> int:
     out_path = out_dir / f"l2-block-2b-dryrun-{stamp}.json"
     out_path.write_text(json.dumps(report, indent=2))
 
-    print(f"task          : T112 L2 Block 2b dry-run")
-    print(f"sample        : {len(slugs)} slugs (top by ai_demand_score, npm-filtered)")
-    print(f"rendered      : {n_rendered}")
-    print(f"no-data       : {n_none}")
-    print(f"sacred hits   : {len(sacred_hits)}")
-    print(f"report        : {out_path}")
+    divergence_count = sum(1 for row in per_slug if row.get("gate_divergence"))
 
-    return 0 if not sacred_hits else 2
+    print(f"task            : T005 L2 Block 2b dry-run (T112 + T005 impls)")
+    print(f"sample          : {len(slugs)} slugs (top by ai_demand_score, npm-filtered)")
+    print(f"t112 rendered   : {n_t112_rendered}")
+    print(f"t005 rendered   : {n_t005_rendered}")
+    print(f"crashes         : {n_crashes}")
+    print(f"sacred hits     : {len(sacred_hits)}")
+    print(f"gate divergence : {divergence_count}")
+    print(f"report          : {out_path}")
+
+    if n_crashes or sacred_hits or divergence_count:
+        return 2
+    return 0
 
 
 if __name__ == "__main__":
