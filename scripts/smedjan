@@ -4,13 +4,17 @@
 # Adds the agentindex tree to PYTHONPATH so `import smedjan` resolves.
 set -euo pipefail
 
-REPO="/Users/anstudio/agentindex"
-PYTHON="${REPO}/venv/bin/python3"
+# Worktree layout (see ~/smedjan/runbooks/worktree-architecture.md):
+#   FACTORY_REPO holds the smedjan package (pinned to smedjan-factory-v0)
+#   VENV_REPO holds the shared venv (on main)
+FACTORY_REPO="/Users/anstudio/agentindex-factory"
+VENV_REPO="/Users/anstudio/agentindex"
+PYTHON="${VENV_REPO}/venv/bin/python3"
 
 if [[ ! -x "${PYTHON}" ]]; then
     echo "smedjan: venv python not found at ${PYTHON}" >&2
     exit 127
 fi
 
-export PYTHONPATH="${REPO}${PYTHONPATH:+:${PYTHONPATH}}"
+export PYTHONPATH="${FACTORY_REPO}${PYTHONPATH:+:${PYTHONPATH}}"
 exec "${PYTHON}" -m smedjan.cli "$@"
