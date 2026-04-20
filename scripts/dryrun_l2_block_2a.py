@@ -1,20 +1,25 @@
 #!/usr/bin/env python3
 """
-dryrun_l2_block_2a.py — T004 L2 Block 2a dry-run (registry-allowlist variant).
+dryrun_l2_block_2a.py — L2 Block 2a dry-run harness.
 
-For N random enriched non-Kings per target registry (default: npm):
-  OLD html = curl http://localhost:8000/safe/<slug>     (running API)
-  NEW html = _render_agent_page(slug, …) with
-             L2_BLOCK_2A_REGISTRIES=<registry> set in-process.
+Two harnesses live in this file, selected by `--mode`:
 
-Produces a JSON summary + spot-check HTML pairs. No production state is
-modified. Gates the canary rollout in T004b.
+  --mode kings      (default, T004 registry-allowlist variant)
+      For N random enriched non-Kings per target registry (default: npm):
+        OLD html = curl http://localhost:8000/safe/<slug>     (running API)
+        NEW html = _render_agent_page(slug, …) with
+                   L2_BLOCK_2A_REGISTRIES=<registry> set in-process.
+      Produces a JSON summary + spot-check HTML pairs. Gates the canary
+      rollout in T004b.
 
-This replaces the earlier T110 shadow-mode render harness (still usable
-via `--mode legacy-shadow`). The L1-mirror mode is the default because
-T004's acceptance criterion is "0 crashes and 0 antipatterns with the
-block added" — that is best measured by rendering through the full
-`_render_agent_page` pipeline, not the isolated block function.
+  --mode standalone (T110/T300 L2_BLOCK_2A_MODE variant)
+      For top N slugs by ai_demand_score that also have ≥1 row in
+      zarq.external_trust_signals, render the block in off / shadow /
+      live and audit each output for the four sacred GEO-critical
+      tokens (pplx-verdict, ai-summary, SpeakableSpecification,
+      FAQPage). Acceptance: 0 sacred_token_hits across the sample.
+
+No production state is modified.
 """
 
 from __future__ import annotations
@@ -48,6 +53,7 @@ os.environ.setdefault("L2_BLOCK_2A_REGISTRIES", ",".join(_early_registries.regis
 
 from agentindex.agent_safety_pages import _render_agent_page  # noqa: E402
 from smedjan import sources  # noqa: E402
+from smedjan.renderers.block_2a import render_block_2a_html  # noqa: E402
 
 LOG = logging.getLogger("smedjan.dryrun_l2_2a")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
@@ -210,15 +216,164 @@ def write_spotchecks(rows: list[dict[str, Any]],
     return saved
 
 
+def _pick_standalone_slugs(limit: int) -> list[str]:
+    """Top slugs by ai_demand_score that also have ≥1 row in
+    zarq.external_trust_signals. Falls back to top-by-signal-count
+    agents when the demand × signal overlap is shorter than `limit`.
+    """
+    with sources.smedjan_db_cursor() as (_, cur):
+        cur.execute(
+            "SELECT slug FROM smedjan.ai_demand_scores "
+            "ORDER BY score DESC LIMIT %s",
+            (max(limit * 20, 2000),),
+        )
+        candidates = [r[0] for r in cur.fetchall()]
+    with_signals: list[str] = []
+    if candidates:
+        with sources.nerq_readonly_cursor() as (_, cur):
+            cur.execute(
+                "SELECT DISTINCT agent_name FROM zarq.external_trust_signals "
+                "WHERE agent_name COLLATE \"C\" = ANY(%s)",
+                (candidates,),
+            )
+            hit = {r[0] for r in cur.fetchall()}
+        with_signals = [s for s in candidates if s in hit]
+    if len(with_signals) >= limit:
+        return with_signals[:limit]
+
+    needed = limit - len(with_signals)
+    have = set(with_signals)
+    with sources.nerq_readonly_cursor() as (_, cur):
+        cur.execute(
+            "SELECT agent_name, COUNT(*) AS c "
+            "FROM zarq.external_trust_signals "
+            "GROUP BY agent_name ORDER BY c DESC LIMIT %s",
+            (limit * 3,),
+        )
+        for row in cur.fetchall():
+            if needed <= 0:
+                break
+            s = row[0]
+            if s not in have:
+                with_signals.append(s)
+                have.add(s)
+                needed -= 1
+    return with_signals[:limit]
+
+
+def _wrap_for_mode(raw: str | None, mode: str) -> str:
+    """Mirror agent_safety_pages._l2_block_2a_html exactly."""
+    if raw is None or mode == "off":
+        return ""
+    if mode == "shadow":
+        safe = raw.replace("--", "- -")
+        return f"<!-- L2_BLOCK_2A_SHADOW\n{safe}\n-->"
+    return raw  # live
+
+
+def _audit_sacred(s: str) -> list[str]:
+    return [tok for tok in SACRED_TOKENS if tok in s]
+
+
+def run_standalone(limit: int, out_dir: Path) -> int:
+    """T300 / T110 harness: render block in off/shadow/live for `limit`
+    slugs and audit each output for sacred tokens.
+    """
+    slugs = _pick_standalone_slugs(limit)
+    if not slugs:
+        LOG.error("no candidate slugs found (no ai_demand × external_trust_signals overlap)")
+        return 1
+
+    per_slug: list[dict[str, Any]] = []
+    n_none = 0
+    n_rendered = 0
+    sacred_hits: list[dict[str, Any]] = []
+
+    for slug in slugs:
+        raw = render_block_2a_html(slug)
+        off_out = _wrap_for_mode(raw, "off")
+        shadow_out = _wrap_for_mode(raw, "shadow")
+        live_out = _wrap_for_mode(raw, "live")
+
+        if raw is None:
+            n_none += 1
+        else:
+            n_rendered += 1
+
+        for mode_name, payload in (
+            ("off", off_out),
+            ("shadow", shadow_out),
+            ("live", live_out),
+        ):
+            hits = _audit_sacred(payload)
+            if hits:
+                sacred_hits.append({"slug": slug, "mode": mode_name, "tokens": hits})
+
+        per_slug.append({
+            "slug": slug,
+            "rendered": raw is not None,
+            "bytes_off": len(off_out),
+            "bytes_shadow": len(shadow_out),
+            "bytes_live": len(live_out),
+            "shadow_minus_live_bytes": len(shadow_out) - len(live_out),
+        })
+
+    report = {
+        "task":                  "T300",
+        "harness":               "standalone (L2_BLOCK_2A_MODE)",
+        "generated_at":          datetime.now(timezone.utc).isoformat(),
+        "sample_size":           len(slugs),
+        "rendered":              n_rendered,
+        "empty_or_no_data":      n_none,
+        "sacred_token_hits":     sacred_hits,
+        "sacred_tokens_checked": list(SACRED_TOKENS),
+        "per_slug":              per_slug,
+    }
+
+    out_dir.mkdir(parents=True, exist_ok=True)
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    out_path = out_dir / f"l2-block-2a-standalone-{stamp}.json"
+    out_path.write_text(json.dumps(report, indent=2))
+
+    LOG.info("sample        : %d slugs", len(slugs))
+    LOG.info("rendered      : %d", n_rendered)
+    LOG.info("no-data       : %d", n_none)
+    LOG.info("sacred hits   : %d", len(sacred_hits))
+    LOG.info("report        : %s", out_path)
+
+    if sacred_hits:
+        LOG.warning("VERDICT: HOLD — sacred token leaked into block body")
+        return 2
+    LOG.info("VERDICT: GO — 0 sacred_token_hits across %d-slug sample", len(slugs))
+    return 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--mode",
+        choices=("kings", "standalone"),
+        default="kings",
+        help="kings = T004 registry-allowlist harness (default); "
+             "standalone = T300 L2_BLOCK_2A_MODE off/shadow/live audit.",
+    )
     parser.add_argument("--n-per-reg", type=int, default=50)
+    parser.add_argument(
+        "--limit", type=int, default=100,
+        help="Sample size for --mode standalone (ignored in kings mode).",
+    )
     parser.add_argument("--registries", nargs="+", default=["npm"])
     parser.add_argument(
         "--out",
         default=os.path.expanduser("~/smedjan/audit-reports/l2-block-2a-kings"),
     )
     args = parser.parse_args()
+
+    if args.mode == "standalone":
+        out_dir = Path(args.out)
+        if out_dir.name == "l2-block-2a-kings":
+            out_dir = out_dir.parent / "l2-block-2a-standalone"
+        return run_standalone(args.limit, out_dir)
 
     # Force both gates ON for the target registries — dry-run scope
     # only. Setting these has no effect after module import for
