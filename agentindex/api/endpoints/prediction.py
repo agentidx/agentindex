@@ -21,6 +21,9 @@ from __future__ import annotations
 import json
 import logging
 import math
+import threading
+import time
+from collections import OrderedDict
 from datetime import datetime, timedelta, timezone
 from typing import Any, Optional
 
@@ -38,6 +41,43 @@ VELOCITY_WINDOW_DAYS = 30
 SURGE_WINDOW_SNAPSHOTS = 7
 SURGE_MIN_HISTORY = 4
 SURGE_SIGMA_THRESHOLD = 3.0
+
+# T220: in-process response cache and pooled smedjan connection.
+# Baseline profiling on 2026-04-20 showed ~560 ms per cold call, almost
+# entirely spent opening a fresh Tailscale-side smedjan connection
+# (~290 ms) and issuing three sequential queries (~230 ms). Cloudflare
+# caches every response for 24h (Cache-Control immutable, see response
+# headers), so origin QPS is low and a single persistent connection
+# behind a pool is sufficient.
+_CACHE_TTL_SECONDS = 300
+_CACHE_MAX_ENTRIES = 4096
+_cache_lock = threading.Lock()
+_response_cache: "OrderedDict[tuple[str, Optional[str]], tuple[float, bytes]]" = OrderedDict()
+
+_smedjan_pool_lock = threading.Lock()
+_smedjan_pool: Any = None  # psycopg2.pool.ThreadedConnectionPool or False (disabled)
+
+
+def _cache_get(key: tuple[str, Optional[str]]) -> Optional[bytes]:
+    now = time.monotonic()
+    with _cache_lock:
+        entry = _response_cache.get(key)
+        if entry is None:
+            return None
+        ts, body = entry
+        if now - ts > _CACHE_TTL_SECONDS:
+            _response_cache.pop(key, None)
+            return None
+        _response_cache.move_to_end(key)
+        return body
+
+
+def _cache_put(key: tuple[str, Optional[str]], body: bytes) -> None:
+    with _cache_lock:
+        _response_cache[key] = (time.monotonic(), body)
+        _response_cache.move_to_end(key)
+        while len(_response_cache) > _CACHE_MAX_ENTRIES:
+            _response_cache.popitem(last=False)
 
 _REGISTRY_URL_PATTERNS: dict[str, str] = {
     "npm": "https://www.npmjs.com/package/{slug}",
@@ -121,6 +161,65 @@ def _fetch_registry_row(
     return dict(row) if row else None
 
 
+def _get_smedjan_pool():
+    """Lazily build a thread-safe connection pool to the smedjan DB.
+
+    Returns None (and memoises the decision via the sentinel False) when
+    no DSN is configured or the pool cannot be built, so repeated callers
+    fall through to the graceful "source_available: false" path without
+    re-attempting the connect on every request.
+    """
+    global _smedjan_pool
+    if _smedjan_pool is False:
+        return None
+    if _smedjan_pool is not None:
+        return _smedjan_pool
+    with _smedjan_pool_lock:
+        if _smedjan_pool is False:
+            return None
+        if _smedjan_pool is not None:
+            return _smedjan_pool
+        try:
+            import psycopg2
+            from psycopg2.pool import ThreadedConnectionPool
+            from smedjan import config
+        except Exception as exc:  # pragma: no cover - dep missing in tests
+            logger.info("smedjan pool init skipped: %s", exc)
+            _smedjan_pool = False
+            return None
+        dsn = getattr(config, "SMEDJAN_DB_DSN", None)
+        if not dsn:
+            _smedjan_pool = False
+            return None
+        try:
+            _smedjan_pool = ThreadedConnectionPool(
+                minconn=1, maxconn=4, dsn=dsn, connect_timeout=10
+            )
+        except psycopg2.OperationalError as exc:
+            logger.warning("smedjan pool init failed: %s", exc)
+            _smedjan_pool = False
+            return None
+    return _smedjan_pool
+
+
+def _reset_smedjan_pool() -> None:
+    """Drop the current pool so the next request rebuilds it.
+
+    Called when a pooled connection has gone stale (peer reset, Tailscale
+    flap). The cost is one fresh connect; the alternative is poisoning
+    every subsequent request with the same dead conn.
+    """
+    global _smedjan_pool
+    with _smedjan_pool_lock:
+        pool = _smedjan_pool
+        _smedjan_pool = None
+        if pool and pool is not False:
+            try:
+                pool.closeall()
+            except Exception:
+                pass
+
+
 def _fetch_ai_demand(slug: str) -> dict[str, Any]:
     """Return current score + 30d velocity + surge stats for a slug.
 
@@ -129,7 +228,8 @@ def _fetch_ai_demand(slug: str) -> dict[str, Any]:
     DB is unreachable (the /prediction contract still holds for the
     slug-metadata half sourced from Nerq).
     """
-    from smedjan import sources
+    import psycopg2
+    import psycopg2.extras
 
     out: dict[str, Any] = {
         "score": None,
@@ -145,56 +245,94 @@ def _fetch_ai_demand(slug: str) -> dict[str, Any]:
         "source_available": False,
     }
 
+    pool = _get_smedjan_pool()
+    if pool is None:
+        return out
+
+    cutoff = datetime.now(timezone.utc) - timedelta(days=VELOCITY_WINDOW_DAYS)
+    # Single round-trip: score row + recent snapshots (union of top-N for
+    # surge and last-30d for velocity). A `kind` discriminator lets the
+    # caller partition rows without issuing two statements. Column types
+    # are left uncast so psycopg2's text-mode decode of `real` matches
+    # the pre-T220 behaviour (no float4->float8 precision noise).
+    sql = """
+        SELECT 'score' AS kind,
+               s.computed_at AS ts,
+               s.score AS score,
+               s.last_30d_queries AS q
+        FROM smedjan.ai_demand_scores s
+        WHERE s.slug = %(slug)s
+        UNION ALL
+        SELECT 'hist' AS kind,
+               h.computed_at AS ts,
+               h.score AS score,
+               NULL::int AS q
+        FROM smedjan.ai_demand_history h
+        WHERE h.slug = %(slug)s
+          AND (
+            h.computed_at >= %(cutoff)s
+            OR h.computed_at IN (
+              SELECT computed_at FROM smedjan.ai_demand_history
+              WHERE slug = %(slug)s
+              ORDER BY computed_at DESC
+              LIMIT %(surge)s
+            )
+          )
+    """
+    params = {
+        "slug": slug,
+        "cutoff": cutoff,
+        "surge": SURGE_WINDOW_SNAPSHOTS,
+    }
+
+    conn = None
+    broken = False
     try:
-        with sources.smedjan_db_cursor(dict_cursor=True) as (_, cur):
-            cur.execute(
-                """
-                SELECT score, last_30d_queries, computed_at
-                FROM smedjan.ai_demand_scores
-                WHERE slug = %s
-                """,
-                (slug,),
-            )
-            score_row = cur.fetchone()
-
-            cur.execute(
-                """
-                SELECT computed_at, score
-                FROM smedjan.ai_demand_history
-                WHERE slug = %s
-                ORDER BY computed_at DESC
-                LIMIT %s
-                """,
-                (slug, SURGE_WINDOW_SNAPSHOTS),
-            )
-            history = [(r["computed_at"], float(r["score"])) for r in cur.fetchall()]
-
-            cutoff = datetime.now(timezone.utc) - timedelta(days=VELOCITY_WINDOW_DAYS)
-            cur.execute(
-                """
-                SELECT computed_at, score
-                FROM smedjan.ai_demand_history
-                WHERE slug = %s
-                  AND computed_at >= %s
-                ORDER BY computed_at ASC
-                """,
-                (slug, cutoff),
-            )
-            window = [(r["computed_at"], float(r["score"])) for r in cur.fetchall()]
-    except sources.SourceUnavailable as exc:
+        conn = pool.getconn()
+        try:
+            conn.autocommit = True
+            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                cur.execute(sql, params)
+                rows = cur.fetchall()
+        except (psycopg2.InterfaceError, psycopg2.OperationalError):
+            broken = True
+            raise
+    except psycopg2.OperationalError as exc:
         logger.info("Smedjan DB unavailable for /prediction/%s: %s", slug, exc)
         return out
+    except psycopg2.InterfaceError as exc:
+        logger.info("Smedjan DB interface error for /prediction/%s: %s", slug, exc)
+        return out
+    finally:
+        if conn is not None:
+            try:
+                pool.putconn(conn, close=broken)
+            except Exception:
+                pass
+            if broken:
+                _reset_smedjan_pool()
+
+    score_row: Optional[dict[str, Any]] = None
+    hist_rows: list[tuple[Any, float]] = []
+    for r in rows:
+        if r["kind"] == "score":
+            score_row = r
+        else:
+            hist_rows.append((r["ts"], float(r["score"])))
+
+    hist_rows.sort(key=lambda x: x[0], reverse=True)
+    history = hist_rows[:SURGE_WINDOW_SNAPSHOTS]
+    window = [(ts, sc) for ts, sc in hist_rows if ts >= cutoff]
+    window.sort(key=lambda x: x[0])
 
     out["source_available"] = True
 
     if score_row is not None:
         out["score"] = _float_or_none(score_row.get("score"))
         out["last_30d_queries"] = (
-            int(score_row["last_30d_queries"])
-            if score_row.get("last_30d_queries") is not None
-            else None
+            int(score_row["q"]) if score_row.get("q") is not None else None
         )
-        out["score_computed_at"] = _to_iso(score_row.get("computed_at"))
+        out["score_computed_at"] = _to_iso(score_row.get("ts"))
 
     if window:
         first_ts, first_score = window[0]
@@ -245,9 +383,24 @@ def prediction_json(
         raise HTTPException(status_code=400, detail="invalid_slug")
 
     normalised_slug = slug.lower()
-    row = _fetch_registry_row(
-        normalised_slug, registry.lower() if registry else None
-    )
+    normalised_registry = registry.lower() if registry else None
+    cache_key = (normalised_slug, normalised_registry)
+
+    cached_body = _cache_get(cache_key)
+    if cached_body is not None:
+        return Response(
+            content=cached_body,
+            media_type="application/json; charset=utf-8",
+            headers={
+                "Cache-Control": "public, max-age=86400, immutable",
+                "nerq:data": f'<{LLMS_TXT_URL}>; rel="describedby"',
+                "Vary": "Accept",
+                "X-Schema-Version": SCHEMA_VERSION,
+                "X-Cache": "hit",
+            },
+        )
+
+    row = _fetch_registry_row(normalised_slug, normalised_registry)
     if row is None:
         raise HTTPException(status_code=404, detail="slug_not_found")
 
@@ -291,7 +444,8 @@ def prediction_json(
         "llms_txt": LLMS_TXT_URL,
     }
 
-    body = json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
+    body = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+    _cache_put(cache_key, body)
     return Response(
         content=body,
         media_type="application/json; charset=utf-8",
@@ -300,5 +454,6 @@ def prediction_json(
             "nerq:data": f'<{LLMS_TXT_URL}>; rel="describedby"',
             "Vary": "Accept",
             "X-Schema-Version": SCHEMA_VERSION,
+            "X-Cache": "miss",
         },
     )
