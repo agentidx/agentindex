@@ -1,10 +1,15 @@
 #!/usr/bin/env python3
 """
 Jurisdiction Incremental Update — daily at 03:00 CET.
-Updates assessments for agents whose trust data changed in last 24h.
+Updates assessments for agents whose trust or crawl data changed in last 25h.
+
+Hybrid F strategy (2026-04-20):
+  - WHERE: trust_calculated_at > 25h OR last_crawled > 25h (no risk_class filter)
+  - ntfy alert if 0 agents found 3 consecutive days
 """
-import logging, os, sys, time
+import logging, os, sys, json
 from datetime import datetime
+from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -13,8 +18,45 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s [juris-incr] %(messa
               logging.StreamHandler()])
 log = logging.getLogger("juris-incr")
 
+ZERO_STREAK_FILE = os.path.expanduser("~/agentindex/logs/.juris_incr_zero_streak")
+NTFY_TOPIC = "nerq-alerts"
+
+
+def _check_zero_streak(agents_found: int):
+    """Track consecutive days with 0 agents. Alert via ntfy after 3."""
+    import urllib.request
+    if agents_found > 0:
+        if os.path.exists(ZERO_STREAK_FILE):
+            os.remove(ZERO_STREAK_FILE)
+        return
+
+    streak = 0
+    if os.path.exists(ZERO_STREAK_FILE):
+        try:
+            streak = int(Path(ZERO_STREAK_FILE).read_text().strip())
+        except (ValueError, OSError):
+            streak = 0
+    streak += 1
+    Path(ZERO_STREAK_FILE).write_text(str(streak))
+    log.warning(f"Zero-agent streak: {streak} consecutive runs")
+
+    if streak >= 3:
+        msg = (f"juris-incremental: 0 agents found for {streak} consecutive runs. "
+               f"Crawl and trust pipelines may both be stalled.")
+        log.error(msg)
+        try:
+            req = urllib.request.Request(
+                f"https://ntfy.sh/{NTFY_TOPIC}",
+                data=msg.encode(),
+                headers={"Title": "Jurisdiction Incremental: Pipeline Stall",
+                          "Priority": "high", "Tags": "warning"})
+            urllib.request.urlopen(req, timeout=10)
+        except Exception as e:
+            log.error(f"ntfy send failed: {e}")
+
+
 def run():
-    import psycopg2, psycopg2.extras, json
+    import psycopg2, psycopg2.extras
     from multi_jurisdiction_assess import assess_agent_jurisdiction
 
     conn = psycopg2.connect("host=100.119.193.70 port=5432 dbname=agentindex user=anstudio")
@@ -30,17 +72,18 @@ def run():
             try: j['high_risk_criteria'] = json.loads(j['high_risk_criteria'])
             except: j['high_risk_criteria'] = {}
 
-    # Get agents updated in last 24h
+    # Hybrid F: 25h window, no risk_class filter (crawled agents lack risk_class)
     cur.execute("""
         SELECT id, risk_class, agent_type, domains, name, description
         FROM agents
-        WHERE risk_class IS NOT NULL
-          AND (trust_calculated_at > now() - interval '24 hours'
-               OR last_crawled > now() - interval '24 hours')
+        WHERE trust_calculated_at > now() - interval '25 hours'
+           OR last_crawled > now() - interval '25 hours'
         ORDER BY id
     """)
     agents = cur.fetchall()
-    log.info(f"Agents to update: {len(agents)} (changed in last 24h)")
+    log.info(f"Agents to update: {len(agents)} (changed in last 25h)")
+
+    _check_zero_streak(len(agents))
 
     if not agents:
         log.info("No agents changed. Done.")
@@ -71,7 +114,7 @@ def run():
 
     conn.commit()
     conn.close()
-    log.info(f"COMPLETE: {updated} agents × {len(jurisdictions)} jurisdictions updated")
+    log.info(f"COMPLETE: {updated} agents x {len(jurisdictions)} jurisdictions updated")
 
 if __name__ == "__main__":
     run()

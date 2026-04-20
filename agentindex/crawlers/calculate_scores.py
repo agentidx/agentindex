@@ -15,7 +15,7 @@ from pathlib import Path
 from sqlalchemy import text
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
-from agentindex.db.models import get_session
+from agentindex.db.models import get_session, get_write_session
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)-6s %(message)s")
 log = logging.getLogger("calculate_scores")
@@ -118,10 +118,12 @@ VPN_REGS = {"vpn"}
 
 
 def main():
-    session = get_session()
+    # Read from replica, write to primary
+    read_session = get_session()
+    write_session = get_write_session()
     try:
-        session.execute(text("SET statement_timeout = '10s'"))
-        rows = session.execute(text("""
+        read_session.execute(text("SET statement_timeout = '120s'"))
+        rows = read_session.execute(text("""
             SELECT id, registry, downloads, weekly_downloads, cve_count, cve_critical,
                    release_count, maintainer_count, license, description, has_types,
                    deprecated, trust_score
@@ -129,7 +131,7 @@ def main():
             WHERE enriched_at IS NOT NULL
             ORDER BY registry, COALESCE(downloads, 0) DESC
         """)).fetchall()
-        session.execute(text("SET statement_timeout = '10s'"))
+        read_session.close()
 
         cols = ["id", "registry", "downloads", "weekly_downloads", "cve_count", "cve_critical",
                 "release_count", "maintainer_count", "license", "description", "has_types",
@@ -153,7 +155,7 @@ def main():
                 scores = calc_package(r)  # fallback
 
             try:
-                session.execute(text("""
+                write_session.execute(text("""
                     UPDATE software_registry SET
                         trust_score = :s, trust_grade = :g,
                         security_score = :sec, maintenance_score = :m,
@@ -166,18 +168,18 @@ def main():
                 })
                 updated += 1
             except Exception:
-                session.rollback()
+                write_session.rollback()
 
             if (i + 1) % 1000 == 0:
-                session.commit()
+                write_session.commit()
                 log.info(f"Progress: {updated}/{total}")
 
-        session.commit()
+        write_session.commit()
         log.info(f"Score calculation complete: {updated}/{total} updated")
     except Exception as e:
         log.error(f"Fatal: {e}")
     finally:
-        session.close()
+        write_session.close()
 
 
 if __name__ == "__main__":
