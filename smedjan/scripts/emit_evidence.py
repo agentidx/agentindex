@@ -271,17 +271,31 @@ def _maybe_clear_pause_flag(signal_name: str) -> None:
     cat = _SIGNAL_UNPAUSES_CATEGORY.get(signal_name)
     if not cat:
         return
+    # Primary: delete the shared DB row so Hetzner's fallback-generator
+    # picks up the change within one tick.
+    try:
+        with sources.smedjan_db_cursor() as (_, cur):
+            cur.execute(
+                "DELETE FROM smedjan.pause_flags WHERE category = %s RETURNING 1",
+                (cat,),
+            )
+            if cur.fetchone():
+                log.info("auto-unpaused category %s (DB) — triggered by %s",
+                         cat, signal_name)
+            else:
+                log.debug("category %s already unpaused in DB at %s", cat, signal_name)
+    except Exception as e:  # noqa: BLE001
+        log.error("failed to remove pause DB row for %s: %s", cat, e)
+
+    # Compatibility: also remove the legacy file flag if still present.
     from pathlib import Path
     flag = Path.home() / "smedjan" / "config" / f"{cat.lower()}_paused.flag"
     try:
         if flag.exists():
             flag.unlink()
-            log.info("auto-unpaused category %s — removed %s (triggered by %s)",
-                     cat, flag, signal_name)
-        else:
-            log.debug("category %s already unpaused at %s", cat, signal_name)
+            log.info("auto-unpaused category %s — removed legacy flag %s", cat, flag)
     except Exception as e:  # noqa: BLE001
-        log.error("failed to remove pause flag %s: %s", flag, e)
+        log.warning("legacy flag %s not removed: %s (non-fatal — DB authoritative)", flag, e)
 
 
 def _emit(verdict: Verdict, *, dry_run: bool) -> None:

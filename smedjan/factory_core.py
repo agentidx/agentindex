@@ -348,6 +348,14 @@ WITH cte AS (
               AND (scheduled_start_at IS NULL OR scheduled_start_at <= now()))
       )
       AND is_fallback
+      -- Claim-side pause-check: never claim a fallback whose category
+      -- is in smedjan.pause_flags. Belt-and-suspenders with the
+      -- generator-side check in fallback_generator._is_paused, because
+      -- the Hetzner generator may lag this code on deploy cadence.
+      AND (
+          fallback_category IS NULL
+          OR fallback_category NOT IN (SELECT category FROM smedjan.pause_flags)
+      )
       AND (
           %(affinity)s::text IS NULL
           OR session_affinity IS NULL

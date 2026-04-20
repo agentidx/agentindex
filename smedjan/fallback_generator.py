@@ -368,20 +368,40 @@ def _insert_task(cur, t: dict) -> bool:
 
 # ── Pause flags ──────────────────────────────────────────────────────────
 
-# Per-category pause: if `~/smedjan/config/<cat_lower>_paused.flag` exists
-# the generator skips that category. Used when an existing run is waiting
-# on an upstream deploy (F3 paused until L1b live — every new F3 audit
-# would re-discover the same compare-page regression, wasting worker time
-# and Anders' attention). Unpause by deleting the flag; the evidence-
-# emitter will do that automatically when "l1b_canary_48h_green" signals
-# arrive (see smedjan/scripts/emit_evidence.py).
-_PAUSE_FLAG_DIR = Path.home() / "smedjan" / "config"
+# Per-category pause. Reads `smedjan.pause_flags` in the shared Postgres
+# DB so both Mac-Studio-side workers and the Hetzner-side generator see
+# the same state. (Previous file-based implementation lived only on Mac
+# Studio's filesystem and silently no-op'd on Hetzner — 10 FB-F3 tasks
+# slipped through the overnight 00:00 UTC run on 2026-04-20 because of
+# exactly that split-brain.)
+#
+# Local filesystem flag (~/smedjan/config/<cat>_paused.flag) is kept as
+# a compatibility fallback for hosts where the DB table hasn't been
+# migrated yet, and as a human-readable signal. DB check takes priority.
 
 
 def _is_paused(cat: str) -> bool:
+    # Primary: shared DB table
     try:
-        return (_PAUSE_FLAG_DIR / f"{cat.lower()}_paused.flag").exists()
-    except Exception:  # noqa: BLE001 — filesystem blip = assume not paused
+        from smedjan.sources import get_smedjan_db
+        conn = get_smedjan_db()
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "SELECT 1 FROM smedjan.pause_flags WHERE category = %s",
+                    (cat,),
+                )
+                if cur.fetchone() is not None:
+                    return True
+        finally:
+            conn.close()
+    except Exception as exc:  # noqa: BLE001
+        log.warning("pause check (DB) failed for %s: %s — falling back to file flag", cat, exc)
+
+    # Fallback: legacy file flag. Only useful when DB is unreachable.
+    try:
+        return (Path.home() / "smedjan" / "config" / f"{cat.lower()}_paused.flag").exists()
+    except Exception:  # noqa: BLE001
         return False
 
 
