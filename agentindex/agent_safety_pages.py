@@ -329,6 +329,34 @@ def _l2_block_2d_html(slug: str) -> str:
         return f"<!-- L2_BLOCK_2D_SHADOW\n{safe}\n-->"
     return raw  # live
 
+
+# L5 Block 2f gate (T305) — cross-registry internal-linking renderer. Same
+# three-mode design as the L2 blocks, but the default is *shadow* (not
+# off) so the block ships in comment-wrapped form by default and the
+# "also on other registries" behaviour is opt-in via live. Reads
+# public.software_registry on the Nerq read-only replica.
+def _l2_block_2f_mode() -> str:
+    m = os.environ.get("L5_CROSS_REGISTRY_MODE", "shadow").strip().lower()
+    return m if m in ("off", "shadow", "live") else "shadow"
+
+
+def _l2_block_2f_html(slug: str, source: str) -> str:
+    mode = _l2_block_2f_mode()
+    if mode == "off":
+        return ""
+    try:
+        from smedjan.renderers.block_2f import render_block_2f_html
+        raw = render_block_2f_html(slug, source or "")
+    except Exception as exc:
+        logger.warning("block_2f: render failed for %s: %s", slug, exc)
+        return ""
+    if not raw:
+        return ""
+    if mode == "shadow":
+        safe = raw.replace("--", "- -")
+        return f"<!-- L5_CROSS_REGISTRY_SHADOW\n{safe}\n-->"
+    return raw  # live
+
 # ── Internationalization ─────────────────────────────────────────────────
 # All user-visible strings are keyed here. _t(key, lang, **kwargs) returns
 # the translated string or falls back to English.
@@ -6500,6 +6528,9 @@ Overall safety: {score_str}/100. Health & medical: {health_score}/100. Infrastru
         faq_details += f'<details><summary>{fq}</summary><div class="faq-a">{fa}</div></details>\n'
     faq_html = f'<div class="section faq"><h2 class="section-title">{_t("faq", lang)}</h2>{faq_details}</div>'
 
+    # L5 Block 2f — cross-registry internal linking (T305). Shadow by default.
+    block_2f_html = _l2_block_2f_html(slug, source)
+
     # Similar destinations
     similar_html = ""
     try:
@@ -6770,6 +6801,8 @@ Overall assessment: {_dn} is {rec_text}.
 
 {faq_html}
 
+{block_2f_html}
+
 {similar_html}
 
 {methodology_html}
@@ -7003,6 +7036,9 @@ Accountability score: {accountability_score}/100 ({_rating_level(accountability_
     for fq, fa in _faq_items:
         faq_details += f'<details><summary>{fq}</summary><div class="faq-a">{fa}</div></details>\n'
     faq_html = f'<div class="section faq"><h2 class="section-title">{_t("faq", lang)}</h2>{faq_details}</div>'
+
+    # L5 Block 2f — cross-registry internal linking (T305). Shadow by default.
+    block_2f_html = _l2_block_2f_html(slug, source)
 
     # Similar charities
     similar_html = ""
@@ -7266,6 +7302,8 @@ Overall assessment: {_dn} is {rec_text}.
 {governance_html}
 
 {faq_html}
+
+{block_2f_html}
 
 {similar_html}
 
@@ -7620,6 +7658,9 @@ def _render_ingredient_page(slug, agent_info, lang="en"):
     # fail-closed default remains "off".
     block_2e_html = _l2_block_2e_html(slug)
 
+    # L5 Block 2f — cross-registry internal linking (T305). Shadow by default.
+    block_2f_html = _l2_block_2f_html(slug, source)
+
     # Similar items
     similar_html = ""
     try:
@@ -7874,6 +7915,8 @@ Overall assessment: {_dn} is {rec_text}.
 {concerns_html}
 
 {faq_html}
+
+{block_2f_html}
 
 {block_2e_html}
 
@@ -9501,7 +9544,7 @@ def _render_agent_page(slug, agent_info, lang="en"):
         ) if _render_king_sections and any(d[1] is not None for d in _dims) else "",
         "{{ deep_analysis }}": _get_deep_analysis(name, agent),
         "{{ safety_guide }}": _safety_guide(display_name, name, agent, alternatives, slug),
-        "{{ faq_section_html }}": faq_section_html,
+        "{{ faq_section_html }}": faq_section_html + _l2_block_2f_html(slug, source),
         "{{ definition_lead }}": definition_lead,
         "{{ nerq_answer }}": _esc(nerq_answer),
         "{{ data_sources }}": _rp.get("data_sources", "multiple public sources"),
