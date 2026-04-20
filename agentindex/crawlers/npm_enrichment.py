@@ -19,7 +19,7 @@ import requests
 from sqlalchemy import text
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
-from agentindex.db.models import get_session
+from agentindex.db.models import get_session, get_write_session
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)-6s %(message)s")
 log = logging.getLogger("npm_enrichment")
@@ -301,19 +301,19 @@ def calculate_npm_trust(session, pkg_id):
 def main():
     limit = int(sys.argv[1]) if len(sys.argv) > 1 else 100000
 
-    session = get_session()
+    # Read from replica, write to primary
+    read_session = get_session()
+    session = get_write_session()
     try:
-        # Set longer timeout for bulk queries
-        session.execute(text("SET statement_timeout = '10s'"))
-
-        # Get unenriched npm packages (use partial index, no expensive sort)
-        rows = session.execute(text("""
+        # Get unenriched npm packages from replica
+        read_session.execute(text("SET statement_timeout = '30s'"))
+        rows = read_session.execute(text("""
             SELECT id, name FROM software_registry
             WHERE registry = 'npm' AND enriched_at IS NULL
             ORDER BY COALESCE(downloads, 0) DESC, name ASC
             LIMIT :lim
         """), {"lim": limit}).fetchall()
-        session.execute(text("SET statement_timeout = '10s'"))
+        read_session.close()
 
         total = len(rows)
         log.info(f"npm enrichment: {total} packages to process (limit={limit})")
