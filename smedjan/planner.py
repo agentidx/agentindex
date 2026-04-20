@@ -471,12 +471,26 @@ def run(dry_run: bool = False) -> int:
     followups = generate_followup_tasks(dry_run=dry_run)
     quota = generate_quota_fill(dry_run=dry_run)
 
+    # Autonomous backlog top-up. Runs last so that resolver + followups
+    # get to surface all their work first — we only seed from backlog
+    # when the queue is actually below the threshold after the planner
+    # has done its usual job. Never crashes the planner on failure.
+    backlog_summary: dict = {}
+    try:
+        from smedjan import backlog_seeder
+        backlog_summary = backlog_seeder.run(dry_run=dry_run)
+    except Exception as exc:  # noqa: BLE001
+        log.warning("backlog seeder failed: %s", exc)
+        backlog_summary = {"reason": f"error:{exc}"}
+
     # Broadcast a summary only when something non-trivial happened.
     # Planner run summary is telemetry — goes to log + dashboard queue.
     # ntfy stays silent on normal operation per the action-required policy.
     log.info(
-        "planner run done followups=%d resolved=%s quota_verdict=%s warnings=%s",
+        "planner run done followups=%d resolved=%s quota_verdict=%s "
+        "backlog_seeded=%s warnings=%s",
         followups, resolved, quota["verdict"],
+        backlog_summary.get("seeded") or backlog_summary.get("reason"),
         ", ".join(quota["warnings"]) or "none",
     )
     return 0

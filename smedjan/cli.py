@@ -426,6 +426,103 @@ def cmd_budget_share(args: argparse.Namespace) -> int:
     return 0
 
 
+# ── backlog subcommand handlers ──────────────────────────────────────
+
+def _backlog_paths():
+    from pathlib import Path as _P
+    return (
+        _P.home() / "smedjan" / "config" / "backlog.yaml",
+        _P.home() / "smedjan" / "config" / "backlog_seeder_paused.flag",
+        _P.home() / "smedjan" / "worker-logs" / "last-backlog-seed.state",
+    )
+
+
+def cmd_backlog_show(_args: argparse.Namespace) -> int:
+    from smedjan import backlog_seeder
+    loaded = backlog_seeder._load_yaml()
+    if loaded is None:
+        print("backlog.yaml not loaded — see log for reason", file=sys.stderr)
+        return 2
+    thresh, entries = loaded
+    yaml_path, flag_path, _ = _backlog_paths()
+    print(f"# backlog.yaml — {yaml_path}")
+    print(f"# threshold: min_primary={thresh.min_primary} "
+          f"max_per_cycle={thresh.max_per_cycle} "
+          f"min_interval={thresh.min_interval_min}m")
+    print(f"# paused: {flag_path.exists()}")
+    print(f"# total items: {len(entries)}")
+    print()
+    for i, e in enumerate(entries[:10], 1):
+        affinity = e.session_affinity or "-"
+        print(f"{i:2d}. {e.id:<8} [{e.risk_level}/{e.strategic_class:<15} aff={affinity}] {e.title[:70]}")
+    if len(entries) > 10:
+        print(f"    … and {len(entries) - 10} more")
+    return 0
+
+
+def cmd_backlog_status(_args: argparse.Namespace) -> int:
+    from datetime import datetime, timedelta, timezone
+    from smedjan import backlog_seeder
+    _, flag, state = _backlog_paths()
+    paused = flag.exists()
+    last = backlog_seeder._read_last_seed_at()
+    loaded = backlog_seeder._load_yaml()
+    thresh = loaded[0] if loaded else None
+
+    # Primary queue count
+    with factory_core._connect() as conn, conn.cursor() as cur:
+        cur.execute(
+            "SELECT count(*) FROM smedjan.tasks "
+            "WHERE is_fallback=FALSE AND status IN ('queued','approved')"
+        )
+        primary = cur.fetchone()[0]
+
+    now = datetime.now(timezone.utc)
+    next_eligible = None
+    if last and thresh:
+        next_eligible = last + timedelta(minutes=thresh.min_interval_min)
+
+    print(f"backlog seeder: {'PAUSED' if paused else 'active'}")
+    print(f"  flag: {flag}")
+    print(f"  primary queue (queued+approved, non-fallback): {primary}")
+    if thresh:
+        print(f"  seed threshold: primary < {thresh.min_primary}")
+        print(f"  max per cycle: {thresh.max_per_cycle}")
+    print(f"  last seed: {last.isoformat() if last else '(never)'}")
+    if next_eligible:
+        delta = (next_eligible - now).total_seconds()
+        if delta > 0:
+            print(f"  next check eligible in {int(delta / 60)}m{int(delta % 60)}s")
+        else:
+            print(f"  next check: now (interval elapsed)")
+    return 0
+
+
+def cmd_backlog_pause(_args: argparse.Namespace) -> int:
+    _, flag, _ = _backlog_paths()
+    flag.parent.mkdir(parents=True, exist_ok=True)
+    flag.touch()
+    print(f"paused: {flag}")
+    return 0
+
+
+def cmd_backlog_resume(_args: argparse.Namespace) -> int:
+    _, flag, _ = _backlog_paths()
+    if flag.exists():
+        flag.unlink()
+        print(f"resumed: removed {flag}")
+    else:
+        print("already active (flag not present)")
+    return 0
+
+
+def cmd_backlog_dry_run(_args: argparse.Namespace) -> int:
+    from smedjan import backlog_seeder
+    summary = backlog_seeder.run(dry_run=True)
+    print(json.dumps(summary, indent=2))
+    return 0
+
+
 def _build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser("smedjan")
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -520,6 +617,21 @@ def _build_parser() -> argparse.ArgumentParser:
     bud_share.add_argument("--set", type=int, required=True, dest="share_pct",
                            help="percent of remaining allocated to Smedjan (0-100)")
     bud_share.set_defaults(fn=cmd_budget_share)
+
+    # ── backlog subcommand ───────────────────────────────────────────
+    bk = sub.add_parser("backlog", help="autonomous backlog seeder")
+    bksub = bk.add_subparsers(dest="sub", required=True)
+
+    bksub.add_parser("show", help="print backlog.yaml top-10 + flags") \
+         .set_defaults(fn=cmd_backlog_show)
+    bksub.add_parser("status", help="seeder state: primary queue, last seed, next check") \
+         .set_defaults(fn=cmd_backlog_status)
+    bksub.add_parser("pause", help="create backlog_seeder_paused.flag") \
+         .set_defaults(fn=cmd_backlog_pause)
+    bksub.add_parser("resume", help="remove backlog_seeder_paused.flag") \
+         .set_defaults(fn=cmd_backlog_resume)
+    bk_dry = bksub.add_parser("dry-run", help="report what would be seeded, no writes")
+    bk_dry.set_defaults(fn=cmd_backlog_dry_run)
 
     return p
 

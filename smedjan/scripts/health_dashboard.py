@@ -93,6 +93,124 @@ def _fetch_idle_worker_state(cur) -> dict[str, int]:
     return {"idle": int(r["idle"] or 0), "live": int(r["live"] or 0)}
 
 
+def _fetch_pipeline(cur) -> dict:
+    """Collect everything needed for the Pipeline & backlog section in
+    one pass (running/queued/approved/pending/blocked, plus a per-
+    blocker rollup)."""
+    out: dict = {}
+    cur.execute(
+        """
+        SELECT id, title, claimed_by
+          FROM smedjan.tasks
+         WHERE status = 'in_progress'
+         ORDER BY claimed_at DESC NULLS LAST
+        """
+    )
+    out["running"] = [dict(r) for r in cur.fetchall()]
+    cur.execute(
+        """
+        SELECT
+          count(*) FILTER (WHERE status='queued'   AND NOT is_fallback) AS queued,
+          count(*) FILTER (WHERE status='approved' AND NOT is_fallback
+                           AND (scheduled_start_at IS NULL
+                                OR scheduled_start_at <= now()))     AS approved_ready,
+          count(*) FILTER (WHERE status='approved' AND NOT is_fallback
+                           AND scheduled_start_at > now())           AS approved_scheduled,
+          count(*) FILTER (WHERE status='pending'  AND NOT is_fallback) AS pending,
+          count(*) FILTER (WHERE status='blocked'  AND NOT is_fallback) AS blocked,
+          count(*) FILTER (WHERE status='needs_approval'
+                           AND NOT is_fallback)                        AS needs_approval
+          FROM smedjan.tasks
+        """
+    )
+    out["counts"] = dict(cur.fetchone())
+    cur.execute(
+        """
+        SELECT min(scheduled_start_at) AS earliest
+          FROM smedjan.tasks
+         WHERE status='approved' AND scheduled_start_at > now()
+        """
+    )
+    r = cur.fetchone()
+    out["earliest_scheduled"] = r["earliest"] if r else None
+    # Blocked tasks grouped by rough reason-category.
+    cur.execute(
+        """
+        SELECT id, COALESCE(blocker_reason, '') AS reason
+          FROM smedjan.tasks
+         WHERE status='blocked'
+         ORDER BY updated_at DESC NULLS LAST
+         LIMIT 40
+        """
+    )
+    out["blocked_sample"] = [dict(r) for r in cur.fetchall()]
+    # Pending rows with evidence or deps waits.
+    cur.execute(
+        """
+        SELECT id, wait_for_evidence, dependencies
+          FROM smedjan.tasks
+         WHERE status IN ('pending','needs_approval')
+           AND NOT is_fallback
+         ORDER BY id
+         LIMIT 20
+        """
+    )
+    out["pending_sample"] = [dict(r) for r in cur.fetchall()]
+    return out
+
+
+def _fetch_throughput(cur) -> dict:
+    cur.execute(
+        """
+        SELECT
+          count(*) FILTER (WHERE status='done'
+                           AND done_at > now() - interval '24 hours') AS done_24h,
+          count(*) FILTER (WHERE status='blocked'
+                           AND updated_at > now() - interval '24 hours') AS blocked_24h
+          FROM smedjan.tasks
+        """
+    )
+    r = dict(cur.fetchone())
+    cur.execute(
+        """
+        SELECT AVG(EXTRACT(EPOCH FROM (done_at - claimed_at))) AS avg_sec
+          FROM (
+            SELECT done_at, claimed_at
+              FROM smedjan.tasks
+             WHERE status='done' AND claimed_at IS NOT NULL AND done_at IS NOT NULL
+             ORDER BY done_at DESC LIMIT 20
+          ) s
+        """
+    )
+    avg = cur.fetchone()["avg_sec"]
+    r["avg_duration_sec"] = float(avg) if avg else None
+    return r
+
+
+def _fetch_backlog_preview() -> dict | None:
+    try:
+        import sys as _sys
+        _sys.path.insert(0, "/Users/anstudio/agentindex-factory")
+        from smedjan import backlog_seeder as bs
+        loaded = bs._load_yaml()
+        if loaded is None:
+            return None
+        thresh, entries = loaded
+        from pathlib import Path as _P
+        flag = _P.home() / "smedjan" / "config" / "backlog_seeder_paused.flag"
+        return {
+            "paused": flag.exists(),
+            "total": len(entries),
+            "top": [{"id": e.id, "title": e.title,
+                     "yield_class": getattr(e, "strategic_class", "default"),
+                     "risk": e.risk_level}
+                    for e in entries[:3]],
+            "min_primary": thresh.min_primary,
+        }
+    except Exception:  # noqa: BLE001
+        return None
+
+
 def _fetch_recent_tasks(cur) -> list[dict]:
     cur.execute(
         """
@@ -480,6 +598,123 @@ def _render_smedjan_share(share: dict | None) -> str:
     )
 
 
+def _render_pipeline(pipeline: dict | None, backlog: dict | None) -> str:
+    if not pipeline:
+        return "<p class='meta'>Pipeline snapshot unavailable.</p>"
+    c = pipeline.get("counts", {}) or {}
+    running = pipeline.get("running", []) or []
+    scheduled = c.get("approved_scheduled", 0)
+    earliest = pipeline.get("earliest_scheduled")
+    earliest_s = earliest.strftime("%H:%M UTC") if earliest else "—"
+
+    running_html = "".join(
+        f"<div class='mono'>{html.escape(r['claimed_by'] or '?')}: "
+        f"<b>{html.escape(r['id'])}</b></div>"
+        for r in running[:4]
+    ) or "<div class='meta'>(all idle)</div>"
+
+    queued = c.get("queued", 0); approved = c.get("approved_ready", 0)
+    waiting_html = (
+        f"<div class='mono'>{queued} queued · {approved} approved</div>"
+        f"<div class='sub'>{scheduled} scheduled for later "
+        f"({'earliest ' + earliest_s if scheduled else 'none'})</div>"
+    )
+
+    blocked_n = c.get("blocked", 0)
+    needs_appr = c.get("needs_approval", 0)
+    pending_n = c.get("pending", 0)
+    # Rollup blocked by reason prefix
+    reasons: dict[str, int] = {}
+    for b in pipeline.get("blocked_sample", []) or []:
+        key = (b.get("reason") or "")[:60].lower()
+        if "f3 paused" in key or "f3 pending" in key:
+            group = "F3 audits paused"
+        elif "superseded" in key:
+            group = "superseded"
+        elif "whitelist touches forbidden" in key:
+            group = "forbidden-path blocks"
+        elif "awaiting" in key:
+            group = "awaiting upstream"
+        else:
+            group = "other"
+        reasons[group] = reasons.get(group, 0) + 1
+    blocked_lines = "".join(
+        f"<div class='sub mono'>{n} {html.escape(k)}</div>"
+        for k, n in sorted(reasons.items(), key=lambda kv: -kv[1])[:4]
+    )
+    blocked_html = (
+        f"<div class='mono'>{blocked_n} blocked"
+        f" · {needs_appr} needs_approval · {pending_n} pending</div>"
+        + (blocked_lines or "")
+    )
+
+    if backlog:
+        bk_status = "PAUSED" if backlog.get("paused") else "active"
+        top_html = "".join(
+            f"<div class='mono'><b>{i+1}. {html.escape(t['id'])}</b> "
+            f"<span class='sub'>[{html.escape(t['risk'])}] "
+            f"{html.escape(t['title'][:50])}</span></div>"
+            for i, t in enumerate(backlog.get("top", []))
+        )
+        remainder = max(backlog.get("total", 0) - len(backlog.get("top", [])), 0)
+        backlog_html = (
+            f"<div class='sub'>seeder: {bk_status}</div>"
+            + top_html
+            + (f"<div class='sub'>+ {remainder} more in backlog.yaml</div>" if remainder else "")
+        )
+    else:
+        backlog_html = "<div class='meta'>backlog.yaml not loaded</div>"
+
+    return (
+        "<div class='grid'>"
+        "<div class='card'><div class='label'>Running now</div>"
+        + running_html + "</div>"
+        "<div class='card'><div class='label'>Waiting to start</div>"
+        + waiting_html + "</div>"
+        "<div class='card'><div class='label'>Next from backlog</div>"
+        + backlog_html + "</div>"
+        "<div class='card'><div class='label'>Blocked / pending</div>"
+        + blocked_html + "</div>"
+        "</div>"
+    )
+
+
+def _render_throughput(throughput: dict | None, pipeline: dict | None,
+                       live_workers: int) -> str:
+    if not throughput:
+        return "<p class='meta'>Throughput stats unavailable.</p>"
+    done_24h = throughput.get("done_24h", 0)
+    blocked_24h = throughput.get("blocked_24h", 0)
+    avg = throughput.get("avg_duration_sec")
+    avg_s = f"{int(avg // 60)}m{int(avg % 60):02d}s" if avg else "—"
+    counts = (pipeline or {}).get("counts", {}) or {}
+    actionable = (counts.get("queued", 0) + counts.get("approved_ready", 0)
+                  + len((pipeline or {}).get("running", []) or []))
+    # Expected next 24h: avg-duration inverse × workers × 24h × 0.7 utilization
+    if avg and avg > 0 and live_workers > 0:
+        per_day = int((86400.0 / avg) * live_workers * 0.7)
+        next_low = int(per_day * 0.75)
+        next_high = int(per_day * 1.15)
+        projection = f"~{next_low}-{next_high} done"
+    else:
+        projection = "insufficient history"
+
+    return (
+        "<div class='grid'>"
+        "<div class='card'>"
+        "<div class='label'>Last 24h</div>"
+        f"<div class='value mono'>{done_24h} done · {blocked_24h} blocked</div>"
+        f"<div class='sub'>avg duration {avg_s} · {actionable} actionable now</div>"
+        "</div>"
+        "<div class='card'>"
+        "<div class='label'>Expected next 24h</div>"
+        f"<div class='value mono'>{projection}</div>"
+        f"<div class='sub'>at current tempo, {live_workers} workers · 70% utilization</div>"
+        "</div>"
+        "</div>"
+    )
+
+
 def render_html(
     workers: list[dict],
     queue: dict[str, int],
@@ -488,9 +723,13 @@ def render_html(
     error: str | None = None,
     budget: dict | None = None,
     share: dict | None = None,
+    pipeline: dict | None = None,
+    throughput: dict | None = None,
+    backlog_preview: dict | None = None,
 ) -> str:
     now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
     banner = f"<div class='banner'>{html.escape(error)}</div>" if error else ""
+    live = sum(1 for w in workers if (w.get("age_sec") or 999) < 180)
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -505,6 +744,10 @@ def render_html(
 {banner}
 <h2>Workers</h2>
 {_render_workers(workers)}
+<h2>Pipeline &amp; backlog</h2>
+{_render_pipeline(pipeline, backlog_preview)}
+<h2>Throughput &amp; pipeline health</h2>
+{_render_throughput(throughput, pipeline, live)}
 <h2>Smedjan budget (weekly share of Claude Max)</h2>
 {_render_smedjan_share(share)}
 <h2>Session budget (Claude Code Max 5h window)</h2>
@@ -515,7 +758,8 @@ def render_html(
 {_render_recent(recent)}
 <h2>Canary status</h2>
 {_render_canary(canary)}
-<footer>smedjan.scripts.health_dashboard · index at {html.escape(str(DEFAULT_OUT))}</footer>
+<footer>smedjan.scripts.health_dashboard · index at {html.escape(str(DEFAULT_OUT))}
+ · backlog (editable): /Users/anstudio/smedjan/config/backlog.yaml</footer>
 </body>
 </html>
 """
@@ -580,6 +824,8 @@ def generate(out_path: Path) -> int:
     queue: dict[str, int] = {}
     recent: list[dict] = []
     idle_state: dict[str, int] = {"idle": 0, "live": 0}
+    pipeline: dict | None = None
+    throughput: dict | None = None
     budget: dict | None = None
     error: str | None = None
     try:
@@ -588,10 +834,13 @@ def generate(out_path: Path) -> int:
             queue = _fetch_queue_depth(cur)
             recent = _fetch_recent_tasks(cur)
             idle_state = _fetch_idle_worker_state(cur)
+            pipeline = _fetch_pipeline(cur)
+            throughput = _fetch_throughput(cur)
     except Exception as exc:  # noqa: BLE001 — render partial, do not crash the timer
         error = f"Smedjan DB unreachable: {exc}"
         log.error(error)
 
+    backlog_preview = _fetch_backlog_preview()
     budget = _fetch_session_budget()
 
     # Idle-with-inventory is a loud failure mode — surface in the banner.
@@ -613,7 +862,9 @@ def generate(out_path: Path) -> int:
     canary = _read_last_canary_obs()
     share = _fetch_smedjan_share()
     html_text = render_html(workers, queue, recent, canary, error=error,
-                            budget=budget, share=share)
+                            budget=budget, share=share,
+                            pipeline=pipeline, throughput=throughput,
+                            backlog_preview=backlog_preview)
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     tmp = out_path.with_suffix(out_path.suffix + ".tmp")
