@@ -421,6 +421,20 @@ def main(argv: list[str] | None = None) -> int:
     # Regression alerts (5xx spike, write-rate drop) fire from
     # canary_monitor_l1.py, which IS action-required. This report is not.
     log.info("canary observation written: %s", md_path.name)
+
+    # After writing the latest observation, ask emit_evidence to
+    # re-evaluate l1_canary_observation_48h. Before T+48h the evaluator
+    # is a no-op that logs "NOT green ... gate not met"; at the first
+    # tick past T+48h with a clean window it auto-emits and downstream
+    # resolve_ready_tasks promotes dependents. L1b has the same hook —
+    # see observation_l1b_canary.py; this one was missing, which is why
+    # no l1_canary_observation_48h signal reached smedjan.evidence_signals
+    # despite L1 Wave 1 passing the 48h green gate on 2026-04-19.
+    try:
+        from smedjan.scripts import emit_evidence as _ee
+        _ee.run(signal="l1_canary_observation_48h", dry_run=False)
+    except Exception as e:  # noqa: BLE001 — observer must not fail on emitter
+        log.warning("emit_evidence chain skipped: %s", e)
     return 0
 
 
