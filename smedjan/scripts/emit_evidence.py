@@ -46,11 +46,15 @@ log = logging.getLogger("smedjan.emit_evidence")
 # L1 canary deploy T0 — hardcoded per F5 spec. When more canaries land this
 # moves into the ``smedjan.tasks`` row (derived from T001.scheduled_start_at).
 L1_CANARY_T0 = datetime.fromisoformat("2026-04-18T11:34:18+00:00")
+# L1b /compare/ canary deploy T0 — moment L1B_COMPARE_UNLOCK_REGISTRIES=npm,pypi
+# went live on the API (launchctl load after plist edit, T201).
+L1B_CANARY_T0 = datetime.fromisoformat("2026-04-20T12:09:21+00:00")
 
 OBS_DIR = Path(os.path.expanduser(
     os.environ.get("SMEDJAN_OBS_DIR", "~/smedjan/observations")
 ))
 OBS_JSONL = OBS_DIR / "L1-canary-observations.jsonl"
+OBS_JSONL_L1B = OBS_DIR / "L1b-canary-observations.jsonl"
 
 # Minimum entries required to prove the 12h cadence actually ran for 48h.
 MIN_OBSERVATIONS = 4
@@ -79,16 +83,20 @@ class SignalSpec:
 
 # ── Observation log helpers ──────────────────────────────────────────────
 
-def _load_observations() -> list[dict]:
-    """Read every line of ``L1-canary-observations.jsonl`` in order. Each line
+def _load_observations(jsonl_path: Path | None = None) -> list[dict]:
+    """Read every line of the canary observation JSONL in order. Each line
     is ``{"ts": "YYYYMMDDTHHMMSSZ", "obs": {...}}``.
     Bad lines are skipped with a warning — a malformed line must not poison a
     green signal evaluation.
+
+    Defaults to the L1 /safe/ canary log for backward compatibility; pass
+    ``jsonl_path`` to read an alternate log (e.g. L1b /compare/).
     """
-    if not OBS_JSONL.exists():
+    path = jsonl_path or OBS_JSONL
+    if not path.exists():
         return []
     rows: list[dict] = []
-    for ln in OBS_JSONL.read_text().splitlines():
+    for ln in path.read_text().splitlines():
         ln = ln.strip()
         if not ln:
             continue
@@ -112,6 +120,7 @@ def _evaluate_48h_green(
     *,
     signal_name: str,
     t0: datetime,
+    jsonl_path: Path | None = None,
 ) -> Verdict:
     """Shared green-gate logic for the 48h observation family.
 
@@ -120,8 +129,12 @@ def _evaluate_48h_green(
       2. Observation log has >= MIN_OBSERVATIONS entries *after* T0.
       3. Every post-T0 entry shows canary-cohort 5xx == 0 AND whole-site 5xx
          rate < WHOLE_5XX_RATE_MAX.
-      4. The most recent post-T0 entry has non-zero /safe/* activity on the
-         canary cohort (12h window) — proves pages are being hit.
+      4. The most recent post-T0 entry has non-zero canary-cohort activity
+         (12h window) — proves pages are being hit.
+
+    ``jsonl_path`` lets per-signal evaluators read from alternate observation
+    logs (L1 /safe/ reads ``L1-canary-observations.jsonl`` by default;
+    L1b /compare/ reads ``L1b-canary-observations.jsonl``).
     """
     now = datetime.now(timezone.utc)
     hours_since = (now - t0).total_seconds() / 3600.0
@@ -133,7 +146,7 @@ def _evaluate_48h_green(
             {},
         )
 
-    rows = _load_observations()
+    rows = _load_observations(jsonl_path=jsonl_path)
     post_t0 = [r for r in rows if _parse_ts(r["ts"]) >= t0]
     if len(post_t0) < MIN_OBSERVATIONS:
         return Verdict(
@@ -208,6 +221,14 @@ def _evaluate_l1_canary() -> Verdict:
     )
 
 
+def _evaluate_l1b_canary() -> Verdict:
+    return _evaluate_48h_green(
+        signal_name="l1b_canary_48h_green",
+        t0=L1B_CANARY_T0,
+        jsonl_path=OBS_JSONL_L1B,
+    )
+
+
 def _lookup_t001_scheduled_start() -> datetime | None:
     """Return T001.scheduled_start_at if T001 is done, else None.
 
@@ -252,6 +273,10 @@ SIGNAL_SPECS: dict[str, SignalSpec] = {
     "l1_wave2_observation_48h": SignalSpec(
         name="l1_wave2_observation_48h",
         evaluate=_evaluate_l1_wave2,
+    ),
+    "l1b_canary_48h_green": SignalSpec(
+        name="l1b_canary_48h_green",
+        evaluate=_evaluate_l1b_canary,
     ),
 }
 
