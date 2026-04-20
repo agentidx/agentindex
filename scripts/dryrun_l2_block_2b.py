@@ -2,19 +2,25 @@
 """
 dryrun_l2_block_2b.py — L2 Block 2b dry-run harness.
 
-Two implementations share the task number:
+Two harnesses live in this file, selected by `--mode`:
 
-* **T112** (shadow-mode dependency-edges stub) lives in
-  ``smedjan/renderers/block_2b.py`` and renders direct / transitive /
-  cycle features inside an HTML comment.
-* **T005** (king-section trust-score block) lives in
-  ``agentindex/smedjan/l2_block_2b.py`` and renders a prose
-  "Depended on by N — avg dep trust M/100 — dormant?" snippet gated by
-  ``L2_BLOCK_2B_REGISTRIES``.
+  --mode combined   (default, T112 + T005)
+      For the top-N (default 100) slugs by ai_demand_score that also
+      have at least one npm dependency edge, render BOTH the T112
+      shadow-mode stub (``smedjan/renderers/block_2b.py``) and the T005
+      king-section trust-score block
+      (``agentindex/smedjan/l2_block_2b.py``). Audits each output for
+      sacred GEO/SEO tokens and verifies the registry-allowlist gate
+      does not silently drop content.
 
-This harness exercises **both** so the T112 shadow stream keeps its
-regression tests and the T005 path has its 100-slug acceptance
-evidence.
+  --mode standalone (T301 / T112 L2_BLOCK_2B_MODE variant)
+      Builds a top-N (default 1000) population of slugs by
+      ai_demand_score that also have at least one npm dependency edge,
+      then renders a top-K (default 100) sample of that population
+      through ``render_block_2b_html`` in off / shadow / live and
+      audits each output for the four sacred GEO-critical tokens
+      (pplx-verdict, ai-summary, SpeakableSpecification, FAQPage).
+      Mirrors the T300 standalone harness for Block 2a.
 
 Sacred tokens that must NEVER appear in either rendered block (those
 belong to GEO/SEO-critical markup elsewhere on the page):
@@ -27,13 +33,17 @@ belong to GEO/SEO-critical markup elsewhere on the page):
 Usage (from repo root, so both ``smedjan.*`` and
 ``agentindex.smedjan.*`` imports resolve):
 
-    python3 scripts/dryrun_l2_block_2b.py            # default N=100
-    python3 scripts/dryrun_l2_block_2b.py --limit 25 # smaller sample
+    python3 scripts/dryrun_l2_block_2b.py                   # combined, N=100
+    python3 scripts/dryrun_l2_block_2b.py --limit 25        # combined, N=25
+    python3 scripts/dryrun_l2_block_2b.py --mode standalone # T301: 1K pop, 100 sample
+    python3 scripts/dryrun_l2_block_2b.py --mode standalone --population 1000 --limit 100
 
-The report is written to
-``~/smedjan/audit-reports/l2-block-2b-dryrun-<UTC timestamp>.json``
-when that directory exists, otherwise to ``/tmp/``. A short summary is
-echoed to stdout.
+Reports are written to:
+
+    combined   → ~/smedjan/audit-reports/l2-block-2b-dryrun-<UTC>.json
+    standalone → ~/smedjan/audit-reports/l2-block-2b-standalone/l2-block-2b-standalone-<UTC>.json
+
+A short summary is echoed to stdout in both cases.
 """
 from __future__ import annotations
 
@@ -111,6 +121,7 @@ def _pick_top_slugs(limit: int) -> list[str]:
 
 
 def _wrap(raw: str | None, mode: str) -> str:
+    """Mirror agent_safety_pages._l2_block_2b_html exactly."""
     if raw is None:
         return ""
     if mode == "off":
@@ -125,11 +136,10 @@ def _audit_sacred(s: str) -> list[str]:
     return [tok for tok in SACRED_TOKENS if tok in s]
 
 
-def main() -> int:
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--limit", type=int, default=100)
-    args = ap.parse_args()
-
+def run_combined(limit: int) -> int:
+    """T112 + T005 combined harness. Renders both the shadow-mode stub
+    and the king-section trust-score block for the same sample.
+    """
     # Exercise the T005 registry-gated path end-to-end by flipping the
     # env var in-process before importing the renderer wrapper. The
     # module-level allowlist in ``agent_safety_pages`` is rebuilt on
@@ -139,7 +149,7 @@ def main() -> int:
     from agentindex.smedjan.l2_block_2b import render_dependency_graph_html  # noqa: E402
     from agentindex.agent_safety_pages import _l2_block_2b_registry_html  # noqa: E402
 
-    slugs = _pick_top_slugs(args.limit)
+    slugs = _pick_top_slugs(limit)
     if not slugs:
         print("no candidate slugs found (no ai_demand × dependency_edges overlap)")
         return 1
@@ -248,6 +258,121 @@ def main() -> int:
     if n_crashes or sacred_hits or divergence_count:
         return 2
     return 0
+
+
+def run_standalone(population_size: int, sample_size: int, out_dir: Path) -> int:
+    """T301 / T112 standalone harness.
+
+    Builds a top-`population_size` enriched-slug population (ranked by
+    ai_demand_score, filtered to those with ≥1 npm dependency edge),
+    then renders the first `sample_size` slugs through block_2b in
+    off / shadow / live and audits each output for sacred tokens.
+    """
+    population = _pick_top_slugs(population_size)
+    if not population:
+        print("no candidate slugs found (no ai_demand × dependency_edges overlap)")
+        return 1
+
+    sample = population[:sample_size]
+
+    per_slug: list[dict] = []
+    n_none = 0
+    n_rendered = 0
+    sacred_hits: list[dict] = []
+
+    for slug in sample:
+        raw = render_block_2b_html(slug)
+        off_out = _wrap(raw, "off")
+        shadow_out = _wrap(raw, "shadow")
+        live_out = _wrap(raw, "live")
+
+        if raw is None:
+            n_none += 1
+        else:
+            n_rendered += 1
+
+        for mode_name, payload in (
+            ("off", off_out),
+            ("shadow", shadow_out),
+            ("live", live_out),
+        ):
+            hits = _audit_sacred(payload)
+            if hits:
+                sacred_hits.append({"slug": slug, "mode": mode_name, "tokens": hits})
+
+        per_slug.append({
+            "slug": slug,
+            "rendered": raw is not None,
+            "bytes_off": len(off_out),
+            "bytes_shadow": len(shadow_out),
+            "bytes_live": len(live_out),
+            "shadow_minus_live_bytes": len(shadow_out) - len(live_out),
+        })
+
+    report = {
+        "task":                  "T301",
+        "harness":               "standalone (L2_BLOCK_2B_MODE)",
+        "generated_at":          datetime.now(timezone.utc).isoformat(),
+        "population_target":     population_size,
+        "population_actual":     len(population),
+        "sample_size":           len(sample),
+        "rendered":              n_rendered,
+        "empty_or_no_data":      n_none,
+        "sacred_token_hits":     sacred_hits,
+        "sacred_tokens_checked": list(SACRED_TOKENS),
+        "per_slug":              per_slug,
+    }
+
+    out_dir.mkdir(parents=True, exist_ok=True)
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    out_path = out_dir / f"l2-block-2b-standalone-{stamp}.json"
+    out_path.write_text(json.dumps(report, indent=2))
+
+    print(f"task            : T301 L2 Block 2b standalone (L2_BLOCK_2B_MODE)")
+    print(f"population      : {len(population)} / {population_size} target")
+    print(f"sample          : {len(sample)} slugs")
+    print(f"rendered        : {n_rendered}")
+    print(f"empty / no-data : {n_none}")
+    print(f"sacred hits     : {len(sacred_hits)}")
+    print(f"report          : {out_path}")
+
+    if sacred_hits:
+        print("VERDICT: HOLD — sacred token leaked into block body")
+        return 2
+    print(f"VERDICT: GO — 0 sacred_token_hits across {len(sample)}-slug sample")
+    return 0
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument(
+        "--mode",
+        choices=("combined", "standalone"),
+        default="combined",
+        help="combined = T112+T005 paired harness (default); "
+             "standalone = T301 L2_BLOCK_2B_MODE off/shadow/live audit.",
+    )
+    ap.add_argument(
+        "--limit", type=int, default=100,
+        help="Sample size. Combined mode: number of slugs rendered. "
+             "Standalone mode: top-K of the --population pool to render.",
+    )
+    ap.add_argument(
+        "--population", type=int, default=1000,
+        help="Standalone mode only: size of the top-N enriched-slug "
+             "population from which --limit is sampled (default 1000).",
+    )
+    ap.add_argument(
+        "--out",
+        default=os.path.expanduser("~/smedjan/audit-reports/l2-block-2b-standalone"),
+        help="Standalone mode only: output directory (default "
+             "~/smedjan/audit-reports/l2-block-2b-standalone).",
+    )
+    args = ap.parse_args()
+
+    if args.mode == "standalone":
+        return run_standalone(args.population, args.limit, Path(args.out))
+    return run_combined(args.limit)
 
 
 if __name__ == "__main__":
