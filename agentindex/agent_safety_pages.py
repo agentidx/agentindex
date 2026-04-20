@@ -12,6 +12,7 @@ Usage in discovery.py:
 import json
 import logging
 import os
+import time
 from pathlib import Path
 from datetime import date, datetime
 
@@ -23,6 +24,41 @@ from agentindex.db.models import get_session
 from agentindex.nerq_design import NERQ_CSS, NERQ_NAV, NERQ_FOOTER, render_hreflang, render_nav, render_footer
 
 logger = logging.getLogger("nerq.safety_pages")
+
+# T302 — sameAs/Wikidata skeleton. Cache is populated by
+# `python3 -m smedjan.scripts.wikidata_lookup` against smedjan.wikidata_lookup
+# (Postgres on smedjan.nbg1 via Tailscale). Loaded lazily with a TTL so the
+# /safe/ render path stays cheap; failures fall back to "no sameAs" silently.
+_WIKIDATA_CACHE: dict[str, str] = {}
+_WIKIDATA_CACHE_TS: float = 0.0
+_WIKIDATA_TTL_SECONDS: int = 300
+
+
+def _load_wikidata_qids() -> dict[str, str]:
+    """Return {slug: wikidata_url} for cached hits. Refresh at most every TTL."""
+    global _WIKIDATA_CACHE, _WIKIDATA_CACHE_TS
+    now = time.time()
+    if _WIKIDATA_CACHE and (now - _WIKIDATA_CACHE_TS) < _WIKIDATA_TTL_SECONDS:
+        return _WIKIDATA_CACHE
+    try:
+        from smedjan.sources import smedjan_db_cursor  # local import — optional dep
+        with smedjan_db_cursor() as (_, cur):
+            cur.execute(
+                "SELECT slug, entity_url FROM smedjan.wikidata_lookup "
+                "WHERE is_miss = false AND entity_url IS NOT NULL"
+            )
+            _WIKIDATA_CACHE = {row[0]: row[1] for row in cur.fetchall()}
+        _WIKIDATA_CACHE_TS = now
+    except Exception as e:
+        logger.debug("wikidata cache load failed: %s", e)
+        _WIKIDATA_CACHE_TS = now  # backoff so we don't hammer a down DB
+    return _WIKIDATA_CACHE
+
+
+def _wikidata_same_as(slug: str) -> list[str]:
+    """Return a `sameAs` list for `slug` (single-entry or empty)."""
+    url = _load_wikidata_qids().get(slug)
+    return [url] if url else []
 
 TEMPLATE_DIR = Path(__file__).parent / "templates"
 SLUGS_PATH = Path(__file__).parent / "agent_safety_slugs.json"
@@ -6507,12 +6543,14 @@ Overall safety: {score_str}/100. Health & medical: {health_score}/100. Infrastru
     freshness_html = f'<p style="font-size:13px;color:#94a3b8;margin:24px 0 8px">Last updated: {_today} · Data sources: Global Peace Index, UNODC, WHO, World Bank, US State Dept</p>'
 
     # JSON-LD: Place
+    _same_as = _wikidata_same_as(slug)
     place_jsonld = json.dumps({
         "@context": "https://schema.org",
         "@type": "Place",
         "name": display_name,
         "description": f"{display_name} is a travel destination with a Nerq Safety Score of {score_str}/100 ({grade}).",
         "url": f"https://nerq.ai/safe/{slug}",
+        **({"sameAs": _same_as} if _same_as else {}),
         "aggregateRating": {
             "@type": "AggregateRating",
             "ratingValue": str(round(max(1.0, score / 20), 1)),
@@ -7008,12 +7046,14 @@ Accountability score: {accountability_score}/100 ({_rating_level(accountability_
     freshness_html = f'<p style="font-size:13px;color:#94a3b8;margin:24px 0 8px">Last updated: {_today} · Data sources: IRS Form 990, GuideStar, Charity Navigator, public filings</p>'
 
     # JSON-LD: NGO
+    _same_as = _wikidata_same_as(slug)
     ngo_jsonld = json.dumps({
         "@context": "https://schema.org",
         "@type": "NGO",
         "name": display_name,
         "description": f"{display_name} is a nonprofit organization with a Nerq Trust Score of {score_str}/100 ({grade}).",
         "url": f"https://nerq.ai/safe/{slug}",
+        **({"sameAs": _same_as} if _same_as else {}),
         "aggregateRating": {
             "@type": "AggregateRating",
             "ratingValue": str(round(max(1.0, score / 20), 1)),
@@ -7625,12 +7665,14 @@ def _render_ingredient_page(slug, agent_info, lang="en"):
     freshness_html = f'<p style="font-size:13px;color:#94a3b8;margin:24px 0 8px">Last updated: {_today} · Data sources: {_data_sources.replace(",", ", ")}</p>'
 
     # JSON-LD: Main entity
+    _same_as = _wikidata_same_as(slug)
     entity_jsonld = json.dumps({
         "@context": "https://schema.org",
         "@type": _schema_type,
         "name": display_name,
         "description": f"{display_name} safety score: {score_str}/100 ({grade}). {verdict_short}.",
         "url": f"https://nerq.ai/safe/{slug}",
+        **({"sameAs": _same_as} if _same_as else {}),
         "additionalProperty": [
             {"@type": "PropertyValue", "name": "Nerq Safety Score", "value": score_str},
             {"@type": "PropertyValue", "name": "Safety Verdict", "value": verdict_short},
@@ -9472,6 +9514,7 @@ def _render_agent_page(slug, agent_info, lang="en"):
             "name": display_name,
             "description": description[:200] if description else f"{display_name} — {_entity_word}",
             "url": f"https://nerq.ai/safe/{slug}",
+            **({"sameAs": _wikidata_same_as(slug)} if _wikidata_same_as(slug) else {}),
             "author": {"@type": "Organization", "name": author},
             "offers": {
                 "@type": "Offer",
