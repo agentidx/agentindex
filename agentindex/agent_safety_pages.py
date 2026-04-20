@@ -5020,6 +5020,7 @@ def _resolve_entity(slug):
                 "king_version": r.get("king_version", 0),
                 "dimensions": r.get("dimensions"),
                 "regulatory": r.get("regulatory"),
+                "enriched_at": r.get("enriched_at"),
             }
 
         # Two-phase helper: fetch full row by PK after lightweight ID lookup
@@ -8397,7 +8398,7 @@ def _render_agent_page(slug, agent_info, lang="en"):
         "name": f"{_t('h1_safe', lang, name=display_name)} — {_t('trust_score_breakdown', lang)} {score_str}/100",
         "description": f"{display_name} — {_entity_type_local} — Nerq Trust Score {score_str}/100 ({grade}).",
         "url": f"https://nerq.ai/safe/{slug}",
-        "dateModified": datetime.now().strftime("%Y-%m-%d"),
+        "dateModified": (agent.get("enriched_at").strftime("%Y-%m-%d") if agent.get("enriched_at") and hasattr(agent.get("enriched_at"), 'strftime') else datetime.now().strftime("%Y-%m-%d")),
         "publisher": {"@type": "Organization", "name": "Nerq", "url": "https://nerq.ai"},
         "speakable": {"@type": "SpeakableSpecification", "cssSelector": [".pplx-verdict", ".ai-summary", ".verdict"]},
     })
@@ -9388,7 +9389,7 @@ def _render_agent_page(slug, agent_info, lang="en"):
         "{{ t_breadcrumb_home }}": _t("breadcrumb_home", lang),
         "{{ t_breadcrumb_safety }}": _t("breadcrumb_safety", lang),
         "{{ t_last_analyzed }}": _t("last_analyzed", lang),
-        "{{ t_data_sourced }}": _t("data_sourced", lang, sources=_rp.get("data_sources", "multiple public sources"), date=datetime.now().strftime("%Y-%m-%d")),
+        "{{ t_data_sourced }}": _t("data_sourced", lang, sources=_rp.get("data_sources", "multiple public sources"), date=(agent.get("enriched_at").strftime("%Y-%m-%d") if agent.get("enriched_at") and hasattr(agent.get("enriched_at"), 'strftime') else datetime.now().strftime("%Y-%m-%d"))),
         "{{ t_machine_readable }}": _t("machine_readable", lang),
         "{{ t_trust_score_breakdown }}": _t("trust_score_breakdown", lang),
         "{{ t_key_findings }}": _t("key_findings", lang),
@@ -9428,7 +9429,7 @@ def _render_agent_page(slug, agent_info, lang="en"):
             + (f"{_t('dim_maintenance', lang)}: {activity_score:.0f}/100. " if 'maintenance' not in _hidden and activity_score is not None else "")
             + (f"{_t('dim_popularity', lang)}: {popularity_score:.0f}/100. " if popularity_score is not None else "")
         ),
-        "{{ last_updated }}": datetime.now().strftime("%Y-%m-%d"),
+        "{{ last_updated }}": (agent.get("enriched_at").strftime("%Y-%m-%d") if agent.get("enriched_at") and hasattr(agent.get("enriched_at"), 'strftime') else datetime.now().strftime("%Y-%m-%d")),
         "{{ grade_pill }}": pill_class,
         "{{ verified_badge }}": verified_badge,
         "{{ is_verified }}": "true" if is_verified else "false",
@@ -9479,7 +9480,7 @@ def _render_agent_page(slug, agent_info, lang="en"):
                 "availability": "https://schema.org/InStock",
             },
             "license": agent.get("license") or "Not specified",
-            "datePublished": (agent.get("first_seen") or datetime.now().strftime('%Y-%m-%d'))[:10] if agent.get("first_seen") else datetime.now().strftime('%Y-%m-%d'),
+            "datePublished": (agent.get("enriched_at").strftime('%Y-%m-%d') if agent.get("enriched_at") and hasattr(agent.get("enriched_at"), 'strftime') else (agent.get("first_seen") or datetime.now().strftime('%Y-%m-%d'))[:10]),
             "image": "https://nerq.ai/static/nerq-logo-512.png",
             "aggregateRating": {
                 "@type": "AggregateRating",
@@ -9491,7 +9492,7 @@ def _render_agent_page(slug, agent_info, lang="en"):
             "review": {
                 "@type": "Review",
                 "author": {"@type": "Organization", "name": "Nerq", "url": "https://nerq.ai"},
-                "datePublished": datetime.now().strftime('%Y-%m-%d'),
+                "datePublished": (agent.get("enriched_at").strftime('%Y-%m-%d') if agent.get("enriched_at") and hasattr(agent.get("enriched_at"), 'strftime') else datetime.now().strftime('%Y-%m-%d')),
                 "reviewRating": {
                     "@type": "Rating",
                     "ratingValue": str(round(max(1.0, float(score) / 20), 1)),
