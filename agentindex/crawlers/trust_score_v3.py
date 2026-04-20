@@ -403,6 +403,7 @@ def run(limit=50000):
     pg_cur = pg_conn.cursor()
 
     updated = 0
+    skipped = 0
     score_changes = []
     grade_changes = 0
 
@@ -415,7 +416,7 @@ def run(limit=50000):
                    last_source_update, language, license, category, capabilities,
                    is_verified, is_active, trust_score, trust_score_v2, trust_grade,
                    eu_risk_class
-            FROM entity_lookup
+            FROM agents
             WHERE id::text = ANY(%s)
         """, (batch_ids,))
 
@@ -438,18 +439,24 @@ def run(limit=50000):
 
             if abs(new_score - old_score) > 0.1:
                 grade = grade_from_score(new_score)
-                pg_cur.execute("""
-                    UPDATE agents SET
-                        trust_score_v2 = %s,
-                        trust_grade = %s,
-                        trust_components = %s,
-                        trust_calculated_at = NOW()
-                    WHERE id = %s::uuid
-                """, (new_score, grade, json.dumps(components), agent["id"]))
-                updated += 1
-                score_changes.append(new_score - old_score)
-                if grade != old_grade:
-                    grade_changes += 1
+                try:
+                    pg_cur.execute("""
+                        UPDATE agents SET
+                            trust_score_v2 = %s,
+                            trust_grade = %s,
+                            trust_components = %s,
+                            trust_calculated_at = NOW()
+                        WHERE id = %s::uuid
+                    """, (new_score, grade, json.dumps(components), agent["id"]))
+                    updated += 1
+                    score_changes.append(new_score - old_score)
+                    if grade != old_grade:
+                        grade_changes += 1
+                except Exception as e:
+                    pg_conn.rollback()
+                    skipped += 1
+                    if skipped <= 5:
+                        logger.warning(f"Skipped {agent['name']}: {e}")
 
         pg_conn.commit()
         if (i + 500) % 5000 == 0:
@@ -465,7 +472,7 @@ def run(limit=50000):
                        last_source_update, language, license, category, capabilities,
                        is_verified, is_active, trust_score, trust_score_v2, trust_grade,
                        eu_risk_class
-                FROM entity_lookup
+                FROM agents
                 WHERE name = ANY(%s) AND is_active = true
             """, (batch_names,))
 
@@ -491,18 +498,22 @@ def run(limit=50000):
 
                 if abs(new_score - old_score) > 0.1:
                     grade = grade_from_score(new_score)
-                    pg_cur.execute("""
-                        UPDATE agents SET
-                            trust_score_v2 = %s,
-                            trust_grade = %s,
-                            trust_components = %s,
-                            trust_calculated_at = NOW()
-                        WHERE id = %s::uuid
-                    """, (new_score, grade, json.dumps(components), agent["id"]))
-                    updated += 1
-                    score_changes.append(new_score - old_score)
-                    if grade != old_grade:
-                        grade_changes += 1
+                    try:
+                        pg_cur.execute("""
+                            UPDATE agents SET
+                                trust_score_v2 = %s,
+                                trust_grade = %s,
+                                trust_components = %s,
+                                trust_calculated_at = NOW()
+                            WHERE id = %s::uuid
+                        """, (new_score, grade, json.dumps(components), agent["id"]))
+                        updated += 1
+                        score_changes.append(new_score - old_score)
+                        if grade != old_grade:
+                            grade_changes += 1
+                    except Exception as e:
+                        pg_conn.rollback()
+                        skipped += 1
 
             pg_conn.commit()
 
@@ -516,10 +527,14 @@ def run(limit=50000):
     else:
         avg_change, increases, decreases = 0, 0, 0
 
+    if skipped:
+        logger.warning(f"Skipped {skipped} agents due to constraint violations")
+
     return {
         "enriched_by_id": len(enriched_ids),
         "enriched_by_name": len(external_names),
         "updated": updated,
+        "skipped": skipped,
         "avg_change": round(avg_change, 1),
         "increases": increases,
         "decreases": decreases,
