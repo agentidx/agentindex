@@ -26,7 +26,8 @@ except ImportError:
 
 from crypto_config import (
     COINGECKO_API_KEY, COINGECKO_BASE_URL,
-    CRAWL_BATCH_SIZE, CRAWL_DELAY_SECONDS, CRAWL_MAX_PAGES
+    CRAWL_BATCH_SIZE, CRAWL_DELAY_SECONDS, CRAWL_MAX_PAGES,
+    CRYPTO_DB_PATH,
 )
 from crypto_models import get_db, init_db
 
