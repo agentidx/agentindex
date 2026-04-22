@@ -106,6 +106,58 @@ means a human-triggered bot is crawling but the human isn't landing — a
 redirect, rate-limit, or 4xx on the cited URL. Escalate to the citation
 workstream the same week.
 
+### The three required headline rows, in one query
+
+Produces the exec-summary headlines mandated by the reporting contract
+below (global ratio, user_triggered conversion, training_share). The
+`N` bind variable is the audit window in days (7 for WoW, 30 for the
+standard weekly exec summary).
+
+```sql
+WITH win AS (
+    SELECT sum(crawls) AS crawls_window
+      FROM analytics_mirror.citation_ratio_daily
+     WHERE bot_purpose = 'all'
+       AND day >= current_date - :N
+),
+mediated AS (
+    SELECT sum(ai_mediated) AS mediated_window
+      FROM analytics_mirror.citation_ratio_daily
+     WHERE bot_purpose = 'all'
+       AND day >= current_date - :N
+),
+by_purpose AS (
+    SELECT bot_purpose, sum(crawls) AS crawls_window
+      FROM analytics_mirror.citation_ratio_daily
+     WHERE bot_purpose IN ('all','training','user_triggered','search_index')
+       AND day >= current_date - :N
+     GROUP BY bot_purpose
+)
+SELECT
+    'ratio_all'          AS headline,
+    (SELECT crawls_window FROM win)                                  AS numerator,
+    (SELECT mediated_window FROM mediated)                           AS denominator,
+    round((SELECT crawls_window FROM win)::numeric
+          / nullif((SELECT mediated_window FROM mediated), 0), 2)    AS value
+UNION ALL SELECT
+    'ratio_user_triggered',
+    bp.crawls_window,
+    (SELECT mediated_window FROM mediated),
+    round(bp.crawls_window::numeric
+          / nullif((SELECT mediated_window FROM mediated), 0), 2)
+  FROM by_purpose bp WHERE bp.bot_purpose = 'user_triggered'
+UNION ALL SELECT
+    'training_share',
+    bp.crawls_window,
+    (SELECT crawls_window FROM win),
+    round(bp.crawls_window::numeric
+          / nullif((SELECT crawls_window FROM win), 0), 4)
+  FROM by_purpose bp WHERE bp.bot_purpose = 'training';
+```
+
+Three rows out, one cursor round-trip. `value` is a ratio for the first
+two headlines and a share (0–1) for `training_share`.
+
 ---
 
 ## Apply / refresh
@@ -138,8 +190,8 @@ by snapshotting to a smedjan table if the 30-day limit bites.
 
 Smedjan weekly audit (`smedjan.audit_scheduler` → `citation`) must
 headline the crawl-to-cited ratio in the executive summary, **not** raw
-crawl volume. The scheduler's `citation.focus` string (updated in the
-same commit as this runbook) enforces the contract for the worker prompt.
+crawl volume. The scheduler's `citation.focus` string enforces the
+contract for the worker prompt.
 
 Buzz's weekly report (in `~/.openclaw/workspace/OPERATIONSPLAN.md` and
 the Discord digest) should quote the same numbers. Changes to Buzz's
@@ -149,11 +201,42 @@ instead of its current raw-volume query.
 
 ### What "headline" means in the executive summary
 
-The first row of the Exec-Summary table must be the crawl-to-cited ratio
-(all-purposes) for the audit window, alongside the prior audit's ratio
-and the delta. Raw 30-day AI-bot crawl volume may still appear, but
-below the ratio, not above it.
+The Exec-Summary table must carry at least these three headline rows,
+in order, each alongside the prior audit's value and the delta:
+
+1. **Crawl-to-cited ratio (all)** — `bot_purpose='all'` over the audit
+   window. The North Star KPI.
+2. **user_triggered conversion ratio** — `bot_purpose='user_triggered'`.
+   The real-time citation yield; expected ≈ 1.0 ± 0.1. This is the
+   signal the global ratio hides — user_triggered crawls track
+   ai_mediated visits nearly 1:1, while training traffic dilutes the
+   global headline by ~100×.
+3. **training_share** — training crawls ÷ all crawls over the window.
+   A dilution / volume proxy. Expect ≈ 94%; material shifts here mean
+   the composition of bot traffic changed, not the citation surface.
+
+`search_index` may be surfaced as a supporting row below the three
+required headlines. Raw 30-day AI-bot crawl volume may still appear,
+but **below** the ratios, not above them.
+
+### Prior-audit KPI baseline (the "last audit" column for 2026-04-29)
+
+From AUDIT-CITATION-20260422 (30-day window 2026-03-23 → 2026-04-22):
+
+| Headline | 2026-04-22 value |
+|---|---:|
+| Crawl-to-cited ratio (all) | **146 : 1** (5,349,252 ÷ 36,683) |
+| user_triggered conversion ratio | **1.02 : 1** (37,513 ÷ 36,683) |
+| training_share | **94.4%** (5,047,063 ÷ 5,349,252) |
+| search_index share (supporting) | 4.9% (264,628 ÷ 5,349,252) |
+| user_triggered share (supporting) | 0.7% (37,513 ÷ 5,349,252) |
+
+Next week's audit should populate the `Δ` column against these numbers.
+AUDIT-CITATION-20260422 Finding 10 established this split; future
+audits inherit it via the scheduler focus and this runbook.
 
 ---
 
-*Last updated: 2026-04-22 (FU-CITATION-20260422-01 landed view + runbook).*
+*Last updated: 2026-04-22 (FU-CITATION-20260422-10 prescribed the
+three-headline contract and recorded the bot_purpose baseline; the
+view itself was landed by FU-CITATION-20260422-01).*

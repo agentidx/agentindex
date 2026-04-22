@@ -74,10 +74,19 @@ AUDIT_SPECS: dict[str, dict] = {
             "pages/entities they quote, whether trust scores are carried "
             "across, and which high-value pages are under-cited. "
             "Headline the crawl-to-cited ratio (AI-bot crawls ÷ ai_mediated "
-            "visits), split by bot_purpose, in the executive summary — "
-            "NOT raw crawl volume. Source: analytics_mirror.citation_ratio_daily "
-            "(North Star KPI per FU-CITATION-20260422-01). Quote both the "
-            "global ratio (bot_purpose='all') and the user_triggered yield."
+            "visits) in the executive summary — NOT raw crawl volume. "
+            "Source: analytics_mirror.citation_ratio_daily (North Star KPI "
+            "per FU-CITATION-20260422-01; supports bot_purpose dimension "
+            "per FU-CITATION-20260422-10). The executive-summary table "
+            "MUST carry at least these three headline rows, in order: "
+            "(1) global ratio (bot_purpose='all') with WoW delta; "
+            "(2) user_triggered conversion ratio (bot_purpose="
+            "'user_triggered') — this is the real-time citation yield "
+            "signal, expected ≈ 1.0 ± 0.1; "
+            "(3) training_share = training crawls ÷ all crawls, as a "
+            "dilution / volume proxy. search_index may be quoted below "
+            "as a supporting row. Runbook: "
+            "docs/smedjan/runbooks/citation-ratio-kpi.md."
         ),
         "analytics_tables": [
             "analytics_mirror.citation_ratio_daily",
