@@ -72,12 +72,17 @@ AUDIT_SPECS: dict[str, dict] = {
         "focus": (
             "AI-citation surface — when external LLMs cite Nerq, which "
             "pages/entities they quote, whether trust scores are carried "
-            "across, and which high-value pages are under-cited."
+            "across, and which high-value pages are under-cited. "
+            "Headline the crawl-to-cited ratio (AI-bot crawls ÷ ai_mediated "
+            "visits), split by bot_purpose, in the executive summary — "
+            "NOT raw crawl volume. Source: analytics_mirror.citation_ratio_daily "
+            "(North Star KPI per FU-CITATION-20260422-01). Quote both the "
+            "global ratio (bot_purpose='all') and the user_triggered yield."
         ),
         "analytics_tables": [
-            "analytics_mirror.citation_events",
-            "analytics_mirror.ai_referrals",
-            "analytics_mirror.page_performance",
+            "analytics_mirror.citation_ratio_daily",
+            "analytics_mirror.requests",
+            "analytics_mirror.search_events",
         ],
         "nerq_ro_tables": [
             "public.agents",
