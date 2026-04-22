@@ -4,6 +4,9 @@ Comparison Generator (BUILD 15)
 Generates massive comparison pair lists for /compare/ pages.
 
 Strategy:
+- Priority queue (FU-CITATION-20260422-06): top-decile /compare/X-vs-Y
+  pairs by measured activation ratio, produced by
+  smedjan.measurement.compare_activation_refresh.
 - Top 30 tools per category → all intra-category pairs (435 per category)
 - Top 50 tools globally → all cross-category pairs (1,225)
 - Total: 5,000-15,000 high-value comparison URLs
@@ -27,6 +30,12 @@ logger = logging.getLogger("nerq.comparison_gen")
 
 DATA_DIR = Path(__file__).parent.parent.parent / "data"
 OUTPUT_FILE = DATA_DIR / "comparison_pairs.json"
+PRIORITY_QUEUE_FILE = DATA_DIR / "compare_priority_queue.json"
+
+# Score floor reserved for measured-activation pairs; guarantees they sort
+# above the stars-based priority used for intra/cross-category pairs
+# (star counts in entity_lookup are bounded well below 10^9).
+PRIORITY_ACTIVATED_BASE = 1_000_000_000
 
 
 def _to_slug(name: str) -> str:
@@ -36,9 +45,91 @@ def _to_slug(name: str) -> str:
     return s.strip("-")
 
 
+def _load_priority_queue() -> list[dict]:
+    """Load the smedjan-produced priority queue, or return [] if absent.
+
+    The queue is a JSON file written by
+    ``smedjan.measurement.compare_activation_refresh`` containing the
+    top-decile /compare/ pairs by measured activation. Absent file ⇒ fall
+    back to the legacy pure-permutation strategy.
+    """
+    if not PRIORITY_QUEUE_FILE.exists():
+        logger.info("priority queue not present at %s — skipping", PRIORITY_QUEUE_FILE)
+        return []
+    try:
+        payload = json.loads(PRIORITY_QUEUE_FILE.read_text())
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("priority queue unreadable (%s); skipping", exc)
+        return []
+    pairs = payload.get("pairs") or []
+    logger.info(
+        "priority queue: %d pairs (snapshot_at=%s)",
+        len(pairs), payload.get("snapshot_at"),
+    )
+    return pairs
+
+
+def _lookup_names_for_slugs(session, slugs: list[str]) -> dict[str, tuple[str, str | None]]:
+    """Map slug → (display_name, category) from entity_lookup. Slugs not
+    found return None and are filled in by the caller with the slug itself.
+    """
+    if not slugs:
+        return {}
+    rows = session.execute(
+        text(
+            """
+            SELECT slug, name, category
+              FROM entity_lookup
+             WHERE slug = ANY(:slugs) AND is_active = true
+            """
+        ),
+        {"slugs": slugs},
+    ).fetchall()
+    return {r[0]: (r[1], r[2]) for r in rows}
+
+
 def generate_pairs() -> list[dict]:
     """Generate all comparison pairs."""
+    priority_pairs_raw = _load_priority_queue()
     with get_db_session() as session:
+        # 0. Priority queue — measured activation, already in URL-slug form.
+        all_pairs: list[dict] = []
+        seen: set[str] = set()
+
+        if priority_pairs_raw:
+            slug_set: list[str] = []
+            for p in priority_pairs_raw:
+                if p.get("slug_a"):
+                    slug_set.append(p["slug_a"])
+                if p.get("slug_b"):
+                    slug_set.append(p["slug_b"])
+            name_map = _lookup_names_for_slugs(session, slug_set)
+
+            for p in priority_pairs_raw:
+                sa_raw = p.get("slug_a") or ""
+                sb_raw = p.get("slug_b") or ""
+                if not sa_raw or not sb_raw:
+                    continue
+                sa, sb = sorted([sa_raw, sb_raw])
+                key = f"{sa}-vs-{sb}"
+                if key in seen or sa == sb:
+                    continue
+                seen.add(key)
+                a_name, a_cat = name_map.get(sa, (sa, None))
+                b_name, b_cat = name_map.get(sb, (sb, None))
+                category = a_cat or b_cat or "priority-activated"
+                all_pairs.append({
+                    "slug": key,
+                    "a_name": a_name,
+                    "b_name": b_name,
+                    "category": category,
+                    "type": "priority-activated",
+                    "priority": PRIORITY_ACTIVATED_BASE - int(p.get("activation_rank") or 0),
+                    "activation_score": p.get("activation_score"),
+                    "ai_mediated_7d": p.get("ai_mediated_7d"),
+                    "bot_7d": p.get("bot_7d"),
+                })
+
         # Get all categories with at least 2 scored tools
         cats = session.execute(text("""
             SELECT LOWER(category) as cat, COUNT(*) as cnt
@@ -51,8 +142,6 @@ def generate_pairs() -> list[dict]:
             LIMIT 50
         """)).fetchall()
 
-        all_pairs = []
-        seen = set()
         category_tools = {}
 
         # 1. Intra-category pairs: top 30 tools per category
@@ -122,8 +211,10 @@ def main():
     pairs = generate_pairs()
     logger.info(f"Generated {len(pairs)} unique comparison pairs")
 
+    priority = sum(1 for p in pairs if p["type"] == "priority-activated")
     intra = sum(1 for p in pairs if p["type"] == "intra-category")
     cross = sum(1 for p in pairs if p["type"] == "cross-category")
+    logger.info(f"  Priority-activated: {priority}")
     logger.info(f"  Intra-category: {intra}")
     logger.info(f"  Cross-category: {cross}")
 
