@@ -69,7 +69,7 @@ PK_MAP = {
     "nerq_risk_signals":      ("token_id", "signal_date"),
     "crypto_ndd_alerts":      ("id",),
     "crypto_price_history":   ("token_id", "date"),
-    "external_trust_signals": ("id",),
+    "external_trust_signals": ("agent_name", "source", "signal_name"),
     "compatibility_matrix":   ("agent_a", "agent_b", "compatibility_type"),
     "chain_dex_volumes":      ("chain",),
     "crypto_pipeline_runs":   ("id",),
@@ -81,7 +81,9 @@ PK_MAP = {
 }
 
 # Tables with autoincrement id — use DO NOTHING on conflict
-_AUTOINCREMENT = {"crypto_ndd_alerts", "external_trust_signals",
+# external_trust_signals uses composite unique (agent_name, source, signal_name)
+# and wants UPDATE-on-conflict semantics, so it is NOT in this set.
+_AUTOINCREMENT = {"crypto_ndd_alerts",
                   "crypto_pipeline_runs", "crypto_ndd_daily", "crypto_rating_daily"}
 
 # Tables that are Tier A (only mirror these)
