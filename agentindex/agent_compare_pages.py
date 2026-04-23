@@ -11,6 +11,7 @@ Usage in discovery.py:
 
 import json
 import logging
+import os
 import time
 from pathlib import Path
 from datetime import date
@@ -26,6 +27,16 @@ logger = logging.getLogger("nerq.compare_pages")
 
 TEMPLATE_DIR = Path(__file__).parent / "templates"
 PAIRS_PATH = Path(__file__).parent / "comparison_pairs.json"
+
+# L1b compare-page canary: when L1B_COMPARE_UNLOCK_REGISTRIES is set (comma-
+# separated list or "*" / "all"), /compare/<a>-vs-<b> pages whose slug parts
+# resolve to software_registry rows in the allowlisted registries gain the
+# "Detailed Score Analysis" FIVE_DIMS table and a .pplx-verdict element.
+# Shadow-mode: additive only, leaves existing sections untouched.
+_L1B_COMPARE_UNLOCK_ALLOWLIST: frozenset = frozenset(
+    s.strip() for s in os.environ.get("L1B_COMPARE_UNLOCK_REGISTRIES", "").split(",") if s.strip()
+)
+_L1B_COMPARE_UNLOCK_ALL: bool = bool(_L1B_COMPARE_UNLOCK_ALLOWLIST & {"*", "all"})
 
 _pairs = []
 _pair_map = {}
@@ -121,6 +132,45 @@ def _lookup_agent(name):
             "suffix": f"%/{name}",
             "pattern": f"%{name}%",
         }).fetchone()
+        return dict(row._mapping) if row else None
+    finally:
+        session.close()
+
+
+_CANARY_SR_COLS = (
+    "name, slug, registry, trust_score, trust_grade, "
+    "security_score, maintenance_score, popularity_score, "
+    "quality_score, community_score"
+)
+
+
+def _fetch_canary_scores(slug_part: str):
+    """Look up a slug in software_registry restricted to the L1b canary
+    allowlist. Returns the enriched row dict (with all 5 King dims) or None.
+    Callers must guard on _L1B_COMPARE_UNLOCK_ALLOWLIST being non-empty.
+
+    Matches on either `slug` or `lower(name)` because the replica's
+    idx_sr_slug btree is currently missing entries for some common packages
+    (e.g. pandas), so a slug-only lookup is lossy. The OR-bitmap plan
+    still resolves via indexes (idx_sr_slug + idx_sr_name_lower).
+    """
+    if not slug_part:
+        return None
+    session = get_session()
+    try:
+        if _L1B_COMPARE_UNLOCK_ALL:
+            row = session.execute(text(
+                f"SELECT {_CANARY_SR_COLS} FROM software_registry "
+                "WHERE (slug = :slug OR lower(name) = :slug) "
+                "ORDER BY enriched_at DESC NULLS LAST LIMIT 1"
+            ), {"slug": slug_part}).fetchone()
+        else:
+            row = session.execute(text(
+                f"SELECT {_CANARY_SR_COLS} FROM software_registry "
+                "WHERE (slug = :slug OR lower(name) = :slug) "
+                "AND registry = ANY(:regs) "
+                "ORDER BY enriched_at DESC NULLS LAST LIMIT 1"
+            ), {"slug": slug_part, "regs": list(_L1B_COMPARE_UNLOCK_ALLOWLIST)}).fetchone()
         return dict(row._mapping) if row else None
     finally:
         session.close()
@@ -525,6 +575,77 @@ def _render_compare_page(slug, pair_info):
     verdict_short = f"{_esc(name_a if score_a >= score_b else name_b)} scores higher ({_fmt_score(max(score_a,score_b))} vs {_fmt_score(min(score_a,score_b))})" if abs(score_a - score_b) >= 1 else "Essentially tied"
     today_str = date.today().isoformat()
 
+    # L1b canary: "Detailed Score Analysis" FIVE_DIMS table + pplx-verdict.
+    # Only populates when L1B_COMPARE_UNLOCK_REGISTRIES is set AND both slug
+    # parts resolve to software_registry rows in the allowlisted registries.
+    pplx_verdict_html = ""
+    king_sections_html = ""
+    if _L1B_COMPARE_UNLOCK_ALLOWLIST and "-vs-" in slug:
+        sp_a, sp_b = slug.split("-vs-", 1)
+        sr_a = _fetch_canary_scores(sp_a)
+        sr_b = _fetch_canary_scores(sp_b)
+        if sr_a and sr_b:
+            # Dimension table — order mirrors agent_safety_pages.py:8380
+            _dims = [
+                ("Security", "security_score"),
+                ("Maintenance", "maintenance_score"),
+                ("Popularity", "popularity_score"),
+                ("Quality", "quality_score"),
+                ("Community", "community_score"),
+            ]
+            _name_ca = _esc(_short_name(sr_a["name"]))
+            _name_cb = _esc(_short_name(sr_b["name"]))
+            _rows = ""
+            for dim_name, col in _dims:
+                va = sr_a.get(col)
+                vb = sr_b.get(col)
+                def _cell(v):
+                    if v is None:
+                        return '<td style="text-align:right;color:#94a3b8">—</td>'
+                    vf = float(v)
+                    color = "#16a34a" if vf >= 70 else "#f59e0b" if vf >= 40 else "#dc2626"
+                    return f'<td style="text-align:right;color:{color};font-weight:600">{vf:.0f}/100</td>'
+                _rows += f"<tr><td>{dim_name}</td>{_cell(va)}{_cell(vb)}</tr>"
+            king_sections_html = (
+                '<div class="section" style="margin:20px 0">'
+                '<h2>Detailed Score Analysis</h2>'
+                '<table>'
+                '<thead><tr>'
+                '<th>Dimension</th>'
+                f'<th style="text-align:right">{_name_ca}</th>'
+                f'<th style="text-align:right">{_name_cb}</th>'
+                '</tr></thead>'
+                f'<tbody>{_rows}</tbody>'
+                '</table>'
+                '<p style="font-size:12px;color:#94a3b8;margin-top:6px">'
+                f'Five-dimension Nerq trust breakdown '
+                f'(registries: {_esc(sr_a["registry"])} / {_esc(sr_b["registry"])}). '
+                'Scored equally weighted across security, maintenance, popularity, quality, community.'
+                '</p>'
+                '</div>'
+            )
+            _tsa = float(sr_a.get("trust_score") or 0)
+            _tsb = float(sr_b.get("trust_score") or 0)
+            _ga = _esc(sr_a.get("trust_grade") or "")
+            _gb = _esc(sr_b.get("trust_grade") or "")
+            if abs(_tsa - _tsb) < 1.0:
+                _lead = "Nearly identical overall trust."
+            elif _tsa > _tsb:
+                _lead = f"{_name_ca} leads by {(_tsa - _tsb):.1f} points."
+            else:
+                _lead = f"{_name_cb} leads by {(_tsb - _tsa):.1f} points."
+            pplx_verdict_html = (
+                '<p class="pplx-verdict" style="font-size:1.05em;line-height:1.65;'
+                'margin:12px 0 16px;padding:14px 18px;background:#f0fdf4;'
+                'border-left:4px solid #16a34a;border-radius:4px">'
+                f'<strong>{_name_ca}</strong> — Nerq Trust Score '
+                f'<strong>{_tsa:.1f}/100{" (" + _ga + ")" if _ga else ""}</strong>. '
+                f'<strong>{_name_cb}</strong> — Nerq Trust Score '
+                f'<strong>{_tsb:.1f}/100{" (" + _gb + ")" if _gb else ""}</strong>. '
+                f'{_lead}'
+                '</p>'
+            )
+
     # Render template
     html = (TEMPLATE_DIR / "agent_compare_page.html").read_text()
     replacements = {
@@ -566,6 +687,8 @@ def _render_compare_page(slug, pair_info):
         "{{ nerq_css }}": NERQ_CSS,
         "{{ nerq_nav }}": NERQ_NAV,
         "{{ nerq_footer }}": NERQ_FOOTER,
+        "{{ pplx_verdict }}": pplx_verdict_html,
+        "{{ king_sections }}": king_sections_html,
     }
     for key, val in replacements.items():
         html = html.replace(key, str(val))
