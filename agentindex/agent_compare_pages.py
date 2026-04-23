@@ -149,28 +149,35 @@ def _fetch_canary_scores(slug_part: str):
     allowlist. Returns the enriched row dict (with all 5 King dims) or None.
     Callers must guard on _L1B_COMPARE_UNLOCK_ALLOWLIST being non-empty.
 
-    Matches on either `slug` or `lower(name)` because the replica's
-    idx_sr_slug btree is currently missing entries for some common packages
-    (e.g. pandas), so a slug-only lookup is lossy. The OR-bitmap plan
-    still resolves via indexes (idx_sr_slug + idx_sr_name_lower).
+    Matches on any of `slug`, `lower(name)`, or the dash/space-stripped
+    normalized name because the replica's idx_sr_slug and idx_sr_name_lower
+    btrees are both currently missing entries for some common packages
+    (e.g. pandas, strip-ansi, glob). idx_sr_name_normalized is more complete
+    and covers the remaining cases. The OR-bitmap plan uses all three
+    indexes.
     """
     if not slug_part:
         return None
+    # Normalized form matches idx_sr_name_normalized expression.
+    norm = slug_part.replace(" ", "").replace("-", "")
     session = get_session()
     try:
         if _L1B_COMPARE_UNLOCK_ALL:
             row = session.execute(text(
                 f"SELECT {_CANARY_SR_COLS} FROM software_registry "
-                "WHERE (slug = :slug OR lower(name) = :slug) "
+                "WHERE (slug = :slug OR lower(name) = :slug "
+                "OR lower(replace(replace(name, ' ', ''), '-', '')) = :norm) "
                 "ORDER BY enriched_at DESC NULLS LAST LIMIT 1"
-            ), {"slug": slug_part}).fetchone()
+            ), {"slug": slug_part, "norm": norm}).fetchone()
         else:
             row = session.execute(text(
                 f"SELECT {_CANARY_SR_COLS} FROM software_registry "
-                "WHERE (slug = :slug OR lower(name) = :slug) "
+                "WHERE (slug = :slug OR lower(name) = :slug "
+                "OR lower(replace(replace(name, ' ', ''), '-', '')) = :norm) "
                 "AND registry = ANY(:regs) "
                 "ORDER BY enriched_at DESC NULLS LAST LIMIT 1"
-            ), {"slug": slug_part, "regs": list(_L1B_COMPARE_UNLOCK_ALLOWLIST)}).fetchone()
+            ), {"slug": slug_part, "norm": norm,
+                "regs": list(_L1B_COMPARE_UNLOCK_ALLOWLIST)}).fetchone()
         return dict(row._mapping) if row else None
     finally:
         session.close()
