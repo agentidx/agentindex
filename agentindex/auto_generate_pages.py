@@ -107,7 +107,16 @@ def sync_token_slugs() -> int:
 
 
 def sync_agent_slugs() -> int:
-    """Check Postgres for agents with trust >= 50 not yet in agent_safety_slugs.json."""
+    """Check Postgres for agents with COALESCE(trust_score_v2, trust_score) >= 50
+    not yet in agent_safety_slugs.json.
+
+    Uses entity_lookup.slug directly (rather than deriving from name) so the
+    JSON keys match the canonical slug format that /safe/<slug> and the
+    sitemap emitter both expect. Filters on the v2-preferring coalesce because
+    trust_score (v1) is NULL on most top-trust_score_v2 rows. Allowlist keeps
+    agent/tool/mcp_server plus NULL agent_type so the top-v2 inventory of
+    github-source pages is no longer excluded.
+    """
     if not AGENT_SLUGS_PATH.exists():
         logger.warning("agent_safety_slugs.json not found")
         return 0
@@ -126,24 +135,22 @@ def sync_agent_slugs() -> int:
         cur = conn.cursor()
 
         cur.execute("""
-            SELECT name, source_url, category, source, trust_score, stars,
+            SELECT slug, name, source_url, category, source,
+                   COALESCE(trust_score_v2, trust_score) AS trust_display, stars,
                    activity_score, security_score, popularity_score, documentation_score,
                    is_verified
             FROM entity_lookup
             WHERE is_active = true
-              AND trust_score >= 50
-              AND agent_type IN ('agent', 'tool', 'mcp_server')
-            ORDER BY trust_score DESC
+              AND slug IS NOT NULL
+              AND COALESCE(trust_score_v2, trust_score) >= 50
+              AND (agent_type IN ('agent', 'tool', 'mcp_server') OR agent_type IS NULL)
+            ORDER BY COALESCE(trust_score_v2, trust_score) DESC
         """)
 
         added = 0
         for row in cur.fetchall():
-            name, source_url, category, source, trust_score, stars, \
+            slug, name, source_url, category, source, trust_display, stars, \
                 activity, security, popularity, documentation, is_verified = row
-
-            # Generate slug from name
-            slug = name.lower().replace("/", "").replace(" ", "-").replace(".", "-")
-            slug = "".join(c for c in slug if c.isalnum() or c == "-")
 
             if slug and slug not in existing:
                 entry = {
@@ -151,9 +158,9 @@ def sync_agent_slugs() -> int:
                     "name": name,
                     "category": category or "general",
                     "source": source or "github",
-                    "trust_score": round(trust_score, 1) if trust_score else 0,
-                    "trust_grade": grade_from_score(trust_score) if trust_score else "NR",
-                    "is_verified": bool(is_verified and trust_score and trust_score >= 70),
+                    "trust_score": round(trust_display, 1) if trust_display else 0,
+                    "trust_grade": grade_from_score(trust_display) if trust_display else "NR",
+                    "is_verified": bool(is_verified and trust_display and trust_display >= 70),
                     "stars": stars or 0,
                 }
                 slug_list.append(entry)
