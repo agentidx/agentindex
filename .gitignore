@@ -43,7 +43,9 @@ a2a_*.json
 
 # Generated/temp
 5s
+500ms
 .claude/
+.wrangler/
 
 # ─── Säkerhetshemligheter (ALDRIG committa) ───────────────────
 .env.*
