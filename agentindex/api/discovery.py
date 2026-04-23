@@ -1994,7 +1994,7 @@ async def track_conversion(event: str = '', source: str = '', target: str = '', 
     from agentindex.analytics import _detect_bot, DB_PATH
     ip = request.headers.get('cf-connecting-ip', request.headers.get('x-forwarded-for', request.client.host if request.client else ''))
     ua = request.headers.get('user-agent', '')
-    is_bot, _, _ = _detect_bot(ua, ip)
+    is_bot, _, _, _ = _detect_bot(ua, ip)
     if not is_bot and event:
         try:
             con = _sq3.connect(DB_PATH, timeout=2)
