@@ -86,7 +86,7 @@ check "T10: streaming replicas <1MB lag = ${t10:-0} (need 2)" "$([ "${t10:-0}" -
 echo "T11: API latency"
 t11_fail=0
 for i in $(seq 1 10); do
-    ms=$(curl -s -o /dev/null -w "%{time_total}" http://localhost:8000/v1/health 2>/dev/null)
+    ms=$(curl -s -o /dev/null -w "%{time_total}" http://127.0.0.1:8000/v1/health 2>/dev/null)
     ms_int=$(echo "$ms * 1000" | bc 2>/dev/null | cut -d. -f1)
     if [ "${ms_int:-9999}" -gt 500 ]; then
         t11_fail=$((t11_fail + 1))
@@ -96,9 +96,9 @@ check "T11: API requests >500ms = $t11_fail/10" "$([ "$t11_fail" -eq 0 ] && echo
 
 # T12: API functional test
 echo "T12: API functional"
-t12_home=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/)
-t12_safe=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/safe/nordvpn)
-t12_pf=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:8000/v1/preflight?target=express")
+t12_home=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8000/)
+t12_safe=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8000/safe/nordvpn)
+t12_pf=$(curl -s -o /dev/null -w "%{http_code}" "http://127.0.0.1:8000/v1/preflight?target=express")
 check "T12: endpoints (home:$t12_home safe:$t12_safe preflight:$t12_pf)" "$([ "$t12_home" = "200" ] && [ "$t12_safe" = "200" ] && [ "$t12_pf" = "200" ] && echo 0 || echo 1)"
 
 # Summary
