@@ -1655,7 +1655,7 @@ app.include_router(channel_router)
 from agentindex.api.security_check import router as security_check_router
 app.include_router(security_check_router)
 
-# User review pages (nerq.ai/review/{name}, POST /v1/agent/review)
+# User review pages (nerq.ai/review/{name}, POST /v1/review/user)
 from agentindex.review_pages import mount_review_pages
 mount_review_pages(app)
 

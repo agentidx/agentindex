@@ -1,7 +1,7 @@
 """
 Nerq User Review Pages
 =======================
-Review page at /review/{name} and POST /v1/agent/review endpoint.
+Review page at /review/{name} and POST /v1/review/user endpoint.
 Lets users submit star ratings and comments for AI agents.
 
 Usage in discovery.py:
@@ -358,7 +358,7 @@ async function submitReview(e) {{
   var reviewer_name = document.getElementById('reviewer_name').value.trim() || 'Anonymous';
 
   try {{
-    var resp = await fetch('/v1/agent/review', {{
+    var resp = await fetch('/v1/review/user', {{
       method: 'POST',
       headers: {{'Content-Type': 'application/json'}},
       body: JSON.stringify({{
@@ -391,7 +391,7 @@ async function submitReview(e) {{
 
 
 def mount_review_pages(app):
-    """Mount /review/{name} and POST /v1/agent/review."""
+    """Mount /review/{name} and POST /v1/review/user."""
     _ensure_reviews_table()
 
     @app.get("/review/{name:path}", response_class=HTMLResponse)
@@ -406,7 +406,7 @@ def mount_review_pages(app):
             logger.error(f"Error rendering review page for {name}: {e}")
             return HTMLResponse(status_code=500, content=f"<h1>Error</h1><p>{_esc(str(e))}</p>")
 
-    @app.post("/v1/agent/review")
+    @app.post("/v1/review/user")
     async def submit_review(request: Request):
         try:
             body = await request.json()
@@ -456,4 +456,4 @@ def mount_review_pages(app):
         finally:
             session.close()
 
-    logger.info("Mounted review pages: /review/{name}, POST /v1/agent/review")
+    logger.info("Mounted review pages: /review/{name}, POST /v1/review/user")
