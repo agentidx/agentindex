@@ -1729,6 +1729,18 @@ app.include_router(router_dimensions)
 from agentindex.api.rating import router as router_rating
 app.include_router(router_rating)
 
+# 301 redirects from localised + verb-prefix /<prefix>/<slug>.json variants
+# to canonical /dimensions/<slug>.json (FU-QUERY-20260427-07).
+# Localised prefixes get explicit GET routes; verb prefixes (rating,
+# prediction, signals, dependencies) keep their own handlers and only
+# emit a 301 when those handlers would otherwise 404.
+from agentindex.api.endpoints.dimension_redirects import (
+    router as router_dim_redirects,
+    attach_404_redirects as _attach_dim_404_redirects,
+)
+app.include_router(router_dim_redirects)
+_attach_dim_404_redirects(app)
+
 # /hacked/{slug} — breach-history renderer (FU-QUERY-20260418-03)
 # Eliminates the 100 % 404 rate AUDIT-QUERY-20260418 finding #3 observed
 # on 7,462 weekly hits. Reads breach_history + software_registry; always
