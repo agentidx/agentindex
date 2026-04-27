@@ -97,10 +97,10 @@ class ComplianceStatsResponse(BaseModel):
 # --- Database helper ---
 
 def get_db_session():
-    """Get database session from existing AgentIndex models."""
+    """Write session — endpoints here INSERT into checker_usage / compliance_assessments, and save_* swallow ReadOnlySqlTransaction silently."""
     try:
-        from agentindex.db.models import get_session
-        return get_session()
+        from agentindex.db.models import get_write_session
+        return get_write_session()
     except ImportError:
         logger.warning("AgentIndex models not available, running standalone")
         return None
