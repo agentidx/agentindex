@@ -117,9 +117,9 @@ def save_assessment(session, request, result, assessment_id):
                  annex_category, annex_subcategory, compliance_score, gaps, 
                  assessment_model, input_hash, status, created_at, updated_at,
                  expires_at, regulation_version)
-            VALUES 
-                (:id, :name, :desc, :risk, :conf, :annex_cat, :annex_sub, :score, 
-                 :gaps::jsonb, :model, :hash, 'completed', NOW(), NOW(),
+            VALUES
+                (:id, :name, :desc, :risk, :conf, :annex_cat, :annex_sub, :score,
+                 CAST(:gaps AS jsonb), :model, :hash, 'completed', NOW(), NOW(),
                  NOW() + interval '90 days', 'EU_AI_ACT_2024')
         """), {
             "id": assessment_id,
@@ -355,7 +355,7 @@ async def get_agent_compliance(agent_id: str):
             INSERT INTO compliance_assessments 
                 (id, agent_id, system_name, system_description, risk_class, risk_class_confidence,
                  annex_category, compliance_score, gaps, assessment_model, status)
-            VALUES (:id, :agent_id, :name, :desc, :risk, :conf, :annex, :score, :gaps::jsonb, :model, 'completed')
+            VALUES (:id, :agent_id, :name, :desc, :risk, :conf, :annex, :score, CAST(:gaps AS jsonb), :model, 'completed')
         """), {
             "id": aid, "agent_id": agent_id, "name": agent["name"],
             "desc": agent["description"], "risk": result["risk_class"],
