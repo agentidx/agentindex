@@ -6155,6 +6155,83 @@ def _queue_for_crawling(slug, bot="unknown"):
         pass  # Never fail page render for queue logging
 
 
+# ── FU-QUERY-20260427-02: write-through guarantee for /safe/<slug>/(privacy|security) ──
+# Every 200 served from /safe/<slug> or its privacy/security sibling logs the
+# (slug, sub_type) into smedjan.safe_served_slugs on the smedjan DB. A separate
+# sweep promotes seen slugs into agent_safety_slugs.json so future requests are
+# served from the in-process slug map and emitted in the sitemap.
+#
+# Hot-path constraints: smedjan DB is across Tailscale (~tens of ms RTT), and
+# /safe/<slug> is one of the highest-QPS routes. Two safeguards keep the
+# write-through cheap:
+#   1. In-process LRU dedupes (slug, sub_type) within _SWT_TTL_SEC, so popular
+#      slugs generate at most one DB write per process per day.
+#   2. Writes are dispatched on a small ThreadPoolExecutor — the request never
+#      blocks on the cross-Atlantic round trip, and a write storm capped at
+#      _SWT_MAX_WORKERS in-flight rather than spawning unbounded threads.
+# All failures swallow silently — this is a logging signal, not page-critical.
+import threading as _swt_threading
+from collections import OrderedDict as _swt_OrderedDict
+
+_SWT_SEEN: "_swt_OrderedDict[tuple, float]" = _swt_OrderedDict()
+_SWT_SEEN_MAX = 50_000
+_SWT_TTL_SEC = 86400  # 24h
+_SWT_LOCK = _swt_threading.Lock()
+_SWT_EXECUTOR = None
+_SWT_MAX_WORKERS = 2
+
+
+def _safe_write_through(slug, sub_type="base"):
+    """Record that /safe/<slug>[/sub_type] just served a 200.
+
+    Best-effort; failures are silent. Dedupes within process for 24h so a
+    popular slug generates one DB write per day per process, not one per hit.
+    """
+    if not slug:
+        return
+    slug = slug.lower()
+    key = (slug, sub_type)
+    now = time.time()
+    global _SWT_EXECUTOR
+    with _SWT_LOCK:
+        cached = _SWT_SEEN.get(key)
+        if cached is not None and (now - cached) < _SWT_TTL_SEC:
+            _SWT_SEEN.move_to_end(key)
+            return
+        _SWT_SEEN[key] = now
+        if len(_SWT_SEEN) > _SWT_SEEN_MAX:
+            _SWT_SEEN.popitem(last=False)
+        if _SWT_EXECUTOR is None:
+            from concurrent.futures import ThreadPoolExecutor
+            _SWT_EXECUTOR = ThreadPoolExecutor(
+                max_workers=_SWT_MAX_WORKERS,
+                thread_name_prefix="safe-wt",
+            )
+    try:
+        _SWT_EXECUTOR.submit(_safe_write_through_do, slug, sub_type)
+    except Exception:
+        pass
+
+
+def _safe_write_through_do(slug, sub_type):
+    """Worker — run on a background thread, never on the request thread."""
+    try:
+        from smedjan.sources import smedjan_db_cursor
+        with smedjan_db_cursor() as (_, cur):
+            cur.execute(
+                """
+                INSERT INTO smedjan.safe_served_slugs (slug, sub_type, source)
+                VALUES (%s, %s, 'render')
+                ON CONFLICT (slug, sub_type) DO UPDATE SET
+                    last_served = now(),
+                    serve_count = smedjan.safe_served_slugs.serve_count + 1
+                """,
+                (slug, sub_type),
+            )
+    except Exception as e:
+        logger.debug("safe_write_through(%s/%s) failed: %s", slug, sub_type, e)
+
+
 def _render_sub_page(slug, agent, sub_type):
     """Render /safe/{slug}/privacy or /safe/{slug}/security sub-page."""
     name = agent.get("name", slug)
@@ -9787,7 +9864,9 @@ def mount_agent_safety_pages(app):
         if repo in ("privacy", "security"):
             entity_slug = owner.lower()
             agent = _resolve_agent_info_with_fallback(entity_slug)
-            return HTMLResponse(_render_sub_page(entity_slug, agent, repo))
+            html = _render_sub_page(entity_slug, agent, repo)
+            _safe_write_through(entity_slug, repo)
+            return HTMLResponse(html)
 
         # Regular owner/repo handling
         candidates = [
@@ -9823,6 +9902,7 @@ def mount_agent_safety_pages(app):
                 return HTMLResponse(status_code=404, content="<h1>Agent not found</h1><p>No safety data available.</p>")
             if len(_page_cache) < _CACHE_MAX:
                 _page_cache[cache_key] = (html, now)
+            _safe_write_through(slug, "base")
             return HTMLResponse(content=html)
         except Exception as e:
             logger.error(f"Error rendering agent safety page {slug}: {e}")
@@ -9950,3 +10030,132 @@ def mount_agent_safety_pages(app):
         return Response(content=xml, media_type="application/xml")
 
     logger.info(f"Mounted agent safety pages: {len(_slug_map)} agents, /safe hub, /sitemap-safe.xml, /sitemap-safety.xml, /sitemap-fresh.xml")
+
+
+# ── FU-QUERY-20260427-02: smedjan.safe_served_slugs bootstrap + 404-drain ──
+# Operator runs this once after deploying the new write-through code:
+#     python -m agentindex.agent_safety_pages drain
+# Reads /safe/<slug>/(privacy|security) 404 paths from the past 7 days of
+# analytics_mirror.requests, inserts each (slug, sub_type) into
+# smedjan.safe_served_slugs marked with source='drain-FU-QUERY-20260427-02'
+# so the seen-set is bootstrapped instead of relying on per-request backfill.
+_SAFE_SERVED_SLUGS_DDL = """
+CREATE TABLE IF NOT EXISTS smedjan.safe_served_slugs (
+    slug         text        NOT NULL,
+    sub_type     text        NOT NULL,
+    source       text        NOT NULL DEFAULT 'render',
+    first_served timestamptz NOT NULL DEFAULT now(),
+    last_served  timestamptz NOT NULL DEFAULT now(),
+    serve_count  integer     NOT NULL DEFAULT 1,
+    PRIMARY KEY (slug, sub_type)
+);
+CREATE INDEX IF NOT EXISTS idx_safe_served_slugs_last_served
+    ON smedjan.safe_served_slugs (last_served DESC);
+CREATE INDEX IF NOT EXISTS idx_safe_served_slugs_source
+    ON smedjan.safe_served_slugs (source);
+"""
+
+
+def _ensure_safe_served_slugs_table():
+    """Idempotent DDL — safe to call from the drain CLI on every run."""
+    from smedjan.sources import smedjan_db_cursor
+    with smedjan_db_cursor() as (_, cur):
+        cur.execute(_SAFE_SERVED_SLUGS_DDL)
+
+
+def drain_known_404_paths(window_days: int = 7) -> dict:
+    """One-shot enqueue: read distinct /safe/<slug>/(privacy|security) 404 paths
+    from the analytics_mirror over `window_days`, insert each (slug, sub_type)
+    into smedjan.safe_served_slugs with source='drain-FU-QUERY-20260427-02'.
+
+    Cheaper than per-request backfill because every 404 path is enqueued once
+    in a single transaction instead of waiting for organic traffic to surface
+    each one. Returns a small evidence dict for the task receipt.
+    """
+    _ensure_safe_served_slugs_table()
+    from smedjan.sources import analytics_mirror_cursor, smedjan_db_cursor
+
+    with analytics_mirror_cursor() as (_, cur):
+        cur.execute(
+            """
+            SELECT path, count(*) AS hits
+            FROM analytics_mirror.requests
+            WHERE ts > now() - (%s || ' days')::interval
+              AND status = 404
+              AND path ~ '^/safe/[^/]+/(privacy|security)$'
+            GROUP BY path
+            """,
+            (window_days,),
+        )
+        rows = cur.fetchall()
+
+    pairs: list[tuple[str, str, int]] = []
+    skipped = 0
+    for path, hits in rows:
+        # path = /safe/<slug>/<sub>
+        parts = path.split("/")
+        if len(parts) != 4:
+            skipped += 1
+            continue
+        _, _safe, slug, sub = parts
+        if _safe != "safe" or sub not in ("privacy", "security"):
+            skipped += 1
+            continue
+        if not slug:
+            skipped += 1
+            continue
+        pairs.append((slug.lower(), sub, int(hits)))
+
+    drain_marker = "drain-FU-QUERY-20260427-02"
+    rows_before = 0
+    rows_after = 0
+    if pairs:
+        from psycopg2.extras import execute_values
+        with smedjan_db_cursor() as (_, cur):
+            cur.execute(
+                "SELECT count(*) FROM smedjan.safe_served_slugs WHERE source = %s",
+                (drain_marker,),
+            )
+            rows_before = int(cur.fetchone()[0])
+            execute_values(
+                cur,
+                """
+                INSERT INTO smedjan.safe_served_slugs
+                    (slug, sub_type, source, first_served, last_served, serve_count)
+                VALUES %s
+                ON CONFLICT (slug, sub_type) DO UPDATE SET
+                    last_served = EXCLUDED.last_served,
+                    serve_count = smedjan.safe_served_slugs.serve_count
+                                  + EXCLUDED.serve_count
+                """,
+                [(slug, sub, drain_marker) for (slug, sub, _hits) in pairs],
+                template="(%s, %s, %s, now(), now(), 1)",
+            )
+            cur.execute(
+                "SELECT count(*) FROM smedjan.safe_served_slugs WHERE source = %s",
+                (drain_marker,),
+            )
+            rows_after = int(cur.fetchone()[0])
+
+    return {
+        "window_days": window_days,
+        "rows_seen": len(rows),
+        "pairs_enqueued": len(pairs),
+        "drain_rows_before": rows_before,
+        "drain_rows_after": rows_after,
+        "drain_rows_added": rows_after - rows_before,
+        "malformed_skipped": skipped,
+    }
+
+
+if __name__ == "__main__":
+    import sys as _sys
+    if len(_sys.argv) >= 2 and _sys.argv[1] == "drain":
+        # Allow `python -m agentindex.agent_safety_pages drain [days]`.
+        days = int(_sys.argv[2]) if len(_sys.argv) >= 3 else 7
+        logging.basicConfig(level=logging.INFO)
+        result = drain_known_404_paths(window_days=days)
+        print(json.dumps(result, indent=2))
+        _sys.exit(0)
+    print("usage: python -m agentindex.agent_safety_pages drain [days]", file=_sys.stderr)
+    _sys.exit(2)
