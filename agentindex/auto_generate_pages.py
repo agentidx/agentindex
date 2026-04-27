@@ -36,6 +36,16 @@ MCP_SLUGS_PATH = SCRIPT_DIR / "mcp_server_slugs.json"
 # Databases
 RISK_DB = str(SCRIPT_DIR / "crypto" / "crypto_trust.db")
 
+# FU-QUERY-20260427-01 drift canary: detect when /compare/ daily pct404
+# deviates from its 7-day baseline by more than COMPARE_DRIFT_THRESHOLD_PP
+# (5pp). Runs as part of the existing daily auto-pages cycle so no new
+# LaunchAgent is required. Writes a single-line alert file when drifting,
+# clears the file when in-band. The hub job (or a Buzz cron) can poll the
+# alert file and route to Discord.
+ANALYTICS_DB = str(SCRIPT_DIR.parent / "logs" / "analytics.db")
+COMPARE_DRIFT_ALERT = "/tmp/compare-pct404-drift.alert"
+COMPARE_DRIFT_THRESHOLD_PP = 5.0
+
 try:
     from dotenv import load_dotenv
     load_dotenv(Path(__file__).resolve().parent.parent / ".env")
@@ -359,6 +369,109 @@ def clean_existing_slug_file(path: Path) -> int:
     return removed + repaired
 
 
+def check_compare_404_drift():
+    """FU-QUERY-20260427-01 canary: alert when /compare/ daily pct404 drifts
+    by more than COMPARE_DRIFT_THRESHOLD_PP from the prior 7-day baseline.
+
+    Reads ~/agentindex/logs/analytics.db (the Nerq-prod request log). Looks
+    only at /compare/<slug> requests (single-segment paths). Writes
+    COMPARE_DRIFT_ALERT when |today_pct404 - 7d_baseline_pct404| exceeds
+    the threshold; clears it otherwise. Best-effort: any failure is logged
+    and the function returns 0 so it never fails the auto-pages run.
+
+    Returns the alert state as 0 (in-band) / 1 (alerting) / -1 (skipped).
+    """
+    if not os.path.exists(ANALYTICS_DB):
+        logger.warning("Drift canary skipped: %s missing", ANALYTICS_DB)
+        return -1
+
+    sql = """
+    WITH compare_recent AS (
+        SELECT
+            date(ts) AS d,
+            CASE WHEN status = 404 THEN 1 ELSE 0 END AS is_404
+        FROM requests
+        WHERE ts >= datetime('now', '-8 days')
+          AND path GLOB '/compare/*'
+          AND path NOT LIKE '/compare/%/%'
+    )
+    SELECT
+        d,
+        COUNT(*) AS total,
+        SUM(is_404) AS nf
+    FROM compare_recent
+    GROUP BY d
+    ORDER BY d
+    """
+    try:
+        conn = sqlite3.connect(ANALYTICS_DB, timeout=10)
+        try:
+            conn.execute("PRAGMA query_only = 1")
+            rows = conn.execute(sql).fetchall()
+        finally:
+            conn.close()
+    except Exception as e:
+        logger.warning("Drift canary query failed: %s", e)
+        return -1
+
+    if not rows:
+        logger.info("Drift canary: no /compare/ rows in last 8 days, skipping")
+        return -1
+
+    # Last row is "today" (partial); preceding rows form the baseline.
+    today_d, today_total, today_nf = rows[-1]
+    baseline = rows[:-1]
+    if today_total < 50:
+        logger.info(
+            "Drift canary: today=%s sample too small (n=%d), skipping",
+            today_d, today_total,
+        )
+        return -1
+    today_pct = 100.0 * (today_nf or 0) / today_total
+
+    if not baseline:
+        logger.info("Drift canary: no baseline yet (need ≥1 prior day), skipping")
+        return -1
+    base_total = sum(r[1] for r in baseline)
+    base_nf = sum(r[2] or 0 for r in baseline)
+    if base_total < 100:
+        logger.info(
+            "Drift canary: baseline sample too small (n=%d), skipping", base_total,
+        )
+        return -1
+    base_pct = 100.0 * base_nf / base_total
+
+    drift_pp = today_pct - base_pct
+    abs_drift = abs(drift_pp)
+    logger.info(
+        "Drift canary: today(%s)=%.1f%% baseline(7d)=%.1f%% drift=%+.1fpp threshold=%.1fpp",
+        today_d, today_pct, base_pct, drift_pp, COMPARE_DRIFT_THRESHOLD_PP,
+    )
+
+    if abs_drift > COMPARE_DRIFT_THRESHOLD_PP:
+        msg = (
+            f"COMPARE_PCT404_DRIFT today={today_d} "
+            f"today_pct={today_pct:.1f} baseline_pct={base_pct:.1f} "
+            f"drift_pp={drift_pp:+.1f} threshold={COMPARE_DRIFT_THRESHOLD_PP:.1f} "
+            f"today_n={today_total} baseline_n={base_total}"
+        )
+        try:
+            with open(COMPARE_DRIFT_ALERT, "w") as f:
+                f.write(msg + "\n")
+        except Exception as e:
+            logger.warning("Drift canary: failed to write alert file: %s", e)
+        logger.warning("Drift canary ALERT: %s", msg)
+        return 1
+
+    # In-band: clear any stale alert file.
+    try:
+        if os.path.exists(COMPARE_DRIFT_ALERT):
+            os.remove(COMPARE_DRIFT_ALERT)
+    except Exception:
+        pass
+    return 0
+
+
 def main():
     t0 = time.time()
     now = datetime.now(timezone.utc)
@@ -390,6 +503,8 @@ def main():
             if p.exists():
                 p.touch()
 
+    drift_state = check_compare_404_drift()
+
     elapsed = time.time() - t0
     logger.info("-" * 60)
     logger.info("AUTO-GENERATE PAGES COMPLETE")
@@ -397,6 +512,8 @@ def main():
     logger.info("  New agent pages:   %d", new_agents)
     logger.info("  New MCP pages:     %d", new_mcp)
     logger.info("  Total new:         %d", total_new)
+    logger.info("  Compare drift:     %s",
+                {1: "ALERT", 0: "in-band", -1: "skipped"}.get(drift_state, "?"))
     logger.info("  Elapsed:           %.1fs", elapsed)
     logger.info("=" * 60)
 

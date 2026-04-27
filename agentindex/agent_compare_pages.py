@@ -34,6 +34,21 @@ _page_cache = {}
 _CACHE_TTL = 3600
 _CACHE_MAX = 500
 
+# FU-QUERY-20260427-01: known-bad slug parts that must never produce a real
+# /compare/<X>-vs-<Y> page. "coverage" was the literal sitemap-cartesian
+# culprit (312 distinct vs-coverage pairs, 100% 404 in audit window
+# 2026-04-21..27). The other entries are reserved-word style slugs that
+# /v1/* healthchecks and bot probes have hit. Match is exact, on either
+# side of the "-vs-" split.
+_COMPARE_DENYLIST_PARTS: frozenset = frozenset({
+    "coverage",
+    "test",
+    "tests",
+    "null",
+    "undefined",
+    "none",
+})
+
 # L1b /compare/ Kings Unlock canary allowlist. Fail-closed semantics (same
 # shape as the /safe/ L1 allowlist, commit 7b8363e):
 #   * env unset / empty      → NO unlock; /compare/ pages render as before.
@@ -51,15 +66,35 @@ _L1B_UNLOCK_ALLOWLIST: frozenset = frozenset(
 _L1B_UNLOCK_ALL: bool = bool(_L1B_UNLOCK_ALLOWLIST & {"*", "all"})
 
 
+def _slug_has_denylisted_part(slug):
+    """True if either side of "-vs-" is in _COMPARE_DENYLIST_PARTS."""
+    if "-vs-" not in slug:
+        return False
+    a, b = slug.split("-vs-", 1)
+    return a in _COMPARE_DENYLIST_PARTS or b in _COMPARE_DENYLIST_PARTS
+
+
 def _load_pairs():
     global _pairs, _pair_map
     if _pair_map:
         return
     try:
         with open(PAIRS_PATH) as f:
-            _pairs = json.load(f)
+            raw = json.load(f)
+        # FU-QUERY-20260427-01: scrub any slug whose either side is a
+        # denylisted reserved word (e.g. "<X>-vs-coverage"). Keeps the
+        # /sitemap-compare.xml output and /compare hub free of cartesian-
+        # bug pairs even if a future generator regression repopulates them.
+        _pairs = [p for p in raw if not _slug_has_denylisted_part(p.get("slug", ""))]
+        scrubbed = len(raw) - len(_pairs)
         _pair_map = {p["slug"]: p for p in _pairs}
-        logger.info(f"Loaded {len(_pair_map)} comparison pairs")
+        if scrubbed:
+            logger.warning(
+                "Loaded %d comparison pairs (scrubbed %d denylisted slugs)",
+                len(_pair_map), scrubbed,
+            )
+        else:
+            logger.info("Loaded %d comparison pairs", len(_pair_map))
     except Exception as e:
         logger.error(f"Failed to load comparison pairs: {e}")
 
@@ -215,12 +250,75 @@ def _lookup_enriched_dims(slug):
         session.close()
 
 
+def _render_lazy_stub(slug, agent_a_raw, agent_b_raw, reason="not_found"):
+    """FU-QUERY-20260427-01 lazy-render guarantee: return a 200 stub HTML for
+    any /compare/<a>-vs-<b> request whose entity lookup fails, instead of
+    returning None and letting the request fall to a 404 path. Marked
+    noindex so Google does not index unanalyzed pairs; class
+    "lazy-render-stub" lets the analytics pipeline differentiate stubs
+    from full renders. `reason` is logged but not exposed in HTML.
+    """
+    pretty_a = (agent_a_raw or "").replace("-", " ").replace("_", " ").strip().title() or "Unknown"
+    pretty_b = (agent_b_raw or "").replace("-", " ").replace("_", " ").strip().title() or "Unknown"
+    title = f"{pretty_a} vs {pretty_b} — Comparison Pending | Nerq"
+    if len(title) > 80:
+        title = f"{pretty_a} vs {pretty_b} — Pending | Nerq"
+    logger.info("compare lazy-render stub slug=%r reason=%s", slug, reason)
+    return (
+        "<!DOCTYPE html>\n"
+        '<html lang="en"><head>'
+        f"<title>{_esc(title)}</title>"
+        '<meta name="robots" content="noindex,follow">'
+        f'<meta name="description" content="{_esc(pretty_a)} vs {_esc(pretty_b)} '
+        'comparison is being analyzed. Browse other Nerq side-by-side trust comparisons.">'
+        '<link rel="canonical" href="https://nerq.ai/compare">'
+        f"<style>{NERQ_CSS}</style>"
+        "</head><body>"
+        f"{NERQ_NAV}"
+        '<main class="container lazy-render-stub" '
+        'style="max-width:760px;margin:40px auto;padding:0 20px">'
+        f"<h1>{_esc(pretty_a)} vs {_esc(pretty_b)}</h1>"
+        '<p style="font-size:1.05em;color:#475569;line-height:1.65">'
+        f"This comparison is being analyzed. Nerq computes side-by-side trust "
+        f"scores from independent signals (security, maintenance, documentation, "
+        f"community). Once both <strong>{_esc(pretty_a)}</strong> and "
+        f"<strong>{_esc(pretty_b)}</strong> finish enrichment, the full "
+        "comparison will appear here."
+        "</p>"
+        '<p style="margin-top:24px">'
+        '<a href="/compare" style="color:#2563eb">Browse all comparisons →</a>'
+        '&nbsp;·&nbsp;'
+        '<a href="/" style="color:#2563eb">Search Nerq →</a>'
+        "</p>"
+        "</main>"
+        f"{NERQ_FOOTER}"
+        "</body></html>"
+    )
+
+
 def _render_compare_page(slug, pair_info):
-    """Render a comparison page."""
+    """Render a comparison page.
+
+    FU-QUERY-20260427-01: if either side of the slug is on the denylist
+    (e.g. "<X>-vs-coverage", from the sitemap cartesian bug), or if either
+    entity lookup fails, return a 200 lazy-render stub instead of None.
+    The route handler in crypto_seo_pages.py treats a non-None return as
+    "render this and 200" — so this path closes off the 404 surface for
+    /compare/<a>-vs-<b> entirely.
+    """
+    if _slug_has_denylisted_part(slug):
+        a_raw, b_raw = slug.split("-vs-", 1)
+        return _render_lazy_stub(slug, a_raw, b_raw, reason="denylist")
+
     agent_a = _lookup_agent(pair_info["agent_a"])
     agent_b = _lookup_agent(pair_info["agent_b"])
     if not agent_a or not agent_b:
-        return None
+        return _render_lazy_stub(
+            slug,
+            pair_info.get("agent_a", ""),
+            pair_info.get("agent_b", ""),
+            reason="lookup_miss",
+        )
 
     # Extract data
     name_a = _short_name(agent_a["name"])
