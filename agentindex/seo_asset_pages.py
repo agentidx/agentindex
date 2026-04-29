@@ -481,10 +481,11 @@ def _render_dataset_page(query):
 
     canonical = f"{SITE}/dataset/{_to_slug(name)}"
 
+    _pplx_verdict = f"{_esc(short)} is a dataset by {_esc(author)} with Nerq Trust Score {score:.0f}/100 ({grade}). Verdict: {v.lower()}. {vd}"
     page = _page_head(title, meta_desc, canonical, "dataset", name, score, grade)
     page += f"""
 <script type="application/ld+json">
-{{"@context":"https://schema.org","@type":"Dataset","name":"{_esc(short)}","description":"{_esc(desc_text[:200])}","url":"{canonical}","license":"{_esc(license_str)}","creator":{{"@type":"Organization","name":"{_esc(author)}"}},"distribution":{{"@type":"DataDownload","encodingFormat":"application/json","contentUrl":"{_esc(source_url)}"}},"variableMeasured":[{{"@type":"PropertyValue","name":"Trust Score","value":"{score:.0f}","unitText":"points out of 100"}},{{"@type":"PropertyValue","name":"Downloads","value":"{downloads}"}}]}}
+{{"@context":"https://schema.org","@type":"Dataset","name":"{_esc(short)}","description":"{_esc(desc_text[:200])}","url":"{canonical}","license":"{_esc(license_str)}","creator":{{"@type":"Organization","name":"{_esc(author)}"}},"distribution":{{"@type":"DataDownload","encodingFormat":"application/json","contentUrl":"{_esc(source_url)}"}},"variableMeasured":[{{"@type":"PropertyValue","name":"Trust Score","value":"{score:.0f}","unitText":"points out of 100"}},{{"@type":"PropertyValue","name":"Downloads","value":"{downloads}"}}],"aggregateRating":{{"@type":"AggregateRating","ratingValue":"{score/20:.1f}","bestRating":"5","worstRating":"1","ratingCount":"{max(1, stars or downloads // 1000 or 1)}"}},"speakable":{{"@type":"SpeakableSpecification","cssSelector":[".pplx-verdict",".ai-summary"]}}}}
 </script>
 <script type="application/ld+json">
 {{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{{"@type":"ListItem","position":1,"name":"Nerq","item":"{SITE}"}},{{"@type":"ListItem","position":2,"name":"Datasets","item":"{SITE}/datasets"}},{{"@type":"ListItem","position":3,"name":"{_esc(short)}","item":"{canonical}"}}]}}
@@ -496,7 +497,8 @@ def _render_dataset_page(query):
 <nav style="font-size:12px;color:#6b7280;margin-bottom:16px"><a href="/" style="color:#0d9488">Nerq</a> &rsaquo; <a href="/datasets" style="color:#0d9488">Datasets</a> &rsaquo; {_esc(short)}</nav>
 
 <h1>{_esc(short)} — Dataset Trust & Quality Analysis {YEAR}</h1>
-<p style="font-size:15px;color:#374151;margin:8px 0 16px">{_esc(short)} is a dataset by {_esc(author)} with a Nerq Trust Score of <strong>{score:.0f}/100</strong> (Grade {grade}). Verdict: <strong style="color:{vc}">{v}</strong>. {_fmt_num(downloads)} downloads. License: {_esc(license_str)}. Last analyzed {MONTH_YEAR}.</p>
+<p class="pplx-verdict" style="font-size:1.05em;line-height:1.65;margin:12px 0 16px;padding:14px 18px;background:#f0fdfa;border-left:4px solid {vc};border-radius:4px">{_pplx_verdict}</p>
+<p class="ai-summary" style="font-size:15px;color:#374151;margin:8px 0 16px">{_esc(short)} is a dataset by {_esc(author)} with a Nerq Trust Score of <strong>{score:.0f}/100</strong> (Grade {grade}). Verdict: <strong style="color:{vc}">{v}</strong>. {_fmt_num(downloads)} downloads. License: {_esc(license_str)}. Last analyzed {MONTH_YEAR}.</p>
 
 <div class="score-grid">
 {_score_card("Trust Score", f"{score:.0f}", vc)}
