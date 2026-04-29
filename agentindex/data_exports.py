@@ -35,7 +35,12 @@ from agentindex.db.models import get_session
 
 logger = logging.getLogger("nerq.data-exports")
 
-SQLITE_DB = "/Users/anstudio/agentindex/data/crypto_trust.db"
+import os as _os
+_REPO_ROOT = _os.path.dirname(
+    _os.path.dirname(_os.path.abspath(__file__)).replace("/agentindex-factory/", "/agentindex/")
+)
+SQLITE_DB = _os.path.join(_REPO_ROOT, "data", "crypto_trust.db")
+_CRYPTO_DB = _os.path.join(_REPO_ROOT, "agentindex", "crypto", "crypto_trust.db")
 _data_cache = {}
 _CACHE_TTL = 3600  # 1 hour
 
@@ -238,7 +243,7 @@ GET https://nerq.ai/v1/preflight?target=langchain</code></pre>
         if cached:
             return JSONResponse(content=cached)
         try:
-            conn = sqlite3.connect("/Users/anstudio/agentindex/agentindex/crypto/crypto_trust.db", timeout=10)
+            conn = sqlite3.connect(_CRYPTO_DB, timeout=10)
             rows = conn.execute("""
                 SELECT agent_name, cve_id, severity, description, fetched_at
                 FROM agent_vulnerabilities
