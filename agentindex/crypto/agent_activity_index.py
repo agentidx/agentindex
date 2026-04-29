@@ -3,11 +3,15 @@ Sprint 7: Agent Activity Index
 Beräknar "X% av TVL kontrolleras av Y identifierade AI-agenter"
 per token, protokoll och chain.
 """
+import os
 import sqlite3, json, logging
 from datetime import datetime, timezone
 from collections import Counter
 
-DB_PATH = "/Users/anstudio/agentindex/agentindex/crypto/crypto_trust.db"
+DB_PATH = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)).replace("/agentindex-factory/", "/agentindex/"),
+    "crypto_trust.db",
+)
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger(__name__)

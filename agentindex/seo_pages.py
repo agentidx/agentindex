@@ -1297,8 +1297,12 @@ footer { margin-top: 3em; padding-top: 1em; border-top: 1px solid #e5e7eb; color
         now = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
         entries = ""
         try:
-            import sqlite3
-            conn = sqlite3.connect("/Users/anstudio/agentindex/agentindex/crypto/crypto_trust.db", timeout=10)
+            import os, sqlite3
+            _crypto_db = os.path.join(
+                os.path.dirname(os.path.abspath(__file__)).replace("/agentindex-factory/", "/agentindex/"),
+                "crypto", "crypto_trust.db",
+            )
+            conn = sqlite3.connect(_crypto_db, timeout=10)
             rows = conn.execute("""
                 SELECT agent_name, cve_id, severity, description, fetched_at
                 FROM agent_vulnerabilities

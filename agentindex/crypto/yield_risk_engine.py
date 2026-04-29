@@ -1,8 +1,12 @@
 """Sprint 9: Yield Risk Engine v1.1 — batch SQL, no N+1"""
+import os
 import sqlite3
 from typing import Optional
 
-DB_PATH = "/Users/anstudio/agentindex/agentindex/crypto/crypto_trust.db"
+DB_PATH = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)).replace("/agentindex-factory/", "/agentindex/"),
+    "crypto_trust.db",
+)
 
 def _apy_risk_score(apy):
     if apy<=0: return 5

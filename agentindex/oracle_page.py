@@ -5,13 +5,17 @@ Real-time dashboard showing how AI systems use the Nerq Trust Oracle
 to verify agent trustworthiness before recommending them.
 """
 
+import os
 import sqlite3
 import json
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from agentindex.nerq_design import nerq_head, NERQ_FOOTER, NERQ_CSS
 
-ANALYTICS_DB = "/Users/anstudio/agentindex/logs/analytics.db"
+_REPO_ROOT = os.path.dirname(
+    os.path.dirname(os.path.abspath(__file__)).replace("/agentindex-factory/", "/agentindex/")
+)
+ANALYTICS_DB = os.path.join(_REPO_ROOT, "logs", "analytics.db")
 
 
 def _query_oracle_stats() -> dict:

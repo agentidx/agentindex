@@ -7,11 +7,15 @@ WOW 3: Structural Collapse-exponering (structural_weakness = 3)
 WOW 5: Chain koncentrationsrisk med crash_prob-koppling
 TIER 2: Daglig agent_protocol_snapshot för framtida exodus-backtest
 """
+import os
 import sqlite3, json, logging
 from datetime import datetime, timezone, timedelta
 from collections import defaultdict
 
-DB_PATH = "/Users/anstudio/agentindex/agentindex/crypto/crypto_trust.db"
+DB_PATH = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)).replace("/agentindex-factory/", "/agentindex/"),
+    "crypto_trust.db",
+)
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger(__name__)
 

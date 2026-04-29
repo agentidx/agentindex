@@ -11,7 +11,10 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-DB_PATH = "/Users/anstudio/agentindex/agentindex/crypto/crypto_trust.db"
+DB_PATH = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)).replace("/agentindex-factory/", "/agentindex/"),
+    "crypto_trust.db",
+)
 ETHERSCAN_API_KEY = os.getenv("ETHERSCAN_API_KEY", "")
 ETHERSCAN_BASE = "https://api.etherscan.io/v2/api"
 

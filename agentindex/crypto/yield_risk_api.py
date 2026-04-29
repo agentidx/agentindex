@@ -18,9 +18,13 @@ from agentindex.crypto.yield_risk_engine import (
     get_yield_traps,
     get_yield_overview,
 )
+import os
 import sqlite3
 
-DB_PATH = "/Users/anstudio/agentindex/agentindex/crypto/crypto_trust.db"
+DB_PATH = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)).replace("/agentindex-factory/", "/agentindex/"),
+    "crypto_trust.db",
+)
 
 router_yield = APIRouter(prefix="/v1/yield", tags=["Yield Risk"])
 

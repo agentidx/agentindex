@@ -14,11 +14,15 @@ Output:
   - Projected yield om reward-emissionen slutar
 """
 
+import os
 import sqlite3
 from typing import List, Dict, Optional
 from datetime import datetime, timezone
 
-DB_PATH = "/Users/anstudio/agentindex/agentindex/crypto/crypto_trust.db"
+DB_PATH = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)).replace("/agentindex-factory/", "/agentindex/"),
+    "crypto_trust.db",
+)
 
 
 def _get_db():

@@ -4,11 +4,15 @@ GET /v1/agents/crypto/{agent_id}
 GET /v1/agents/in/{entity_type}/{entity_id}
 GET /v1/agents/new
 """
+import os
 import sqlite3, json
 from fastapi import APIRouter, HTTPException, Query
 from typing import Optional
 
-DB_PATH = "/Users/anstudio/agentindex/agentindex/crypto/crypto_trust.db"
+DB_PATH = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)).replace("/agentindex-factory/", "/agentindex/"),
+    "crypto_trust.db",
+)
 
 router_agents = APIRouter(prefix="/v1/agents", tags=["agents"])
 
@@ -177,9 +181,10 @@ def get_entity_graph(
 # ═══════════════════════════════════════════════════════════
 # SPRINT 7: Wallet Behavior + Agent Activity Index
 # ═══════════════════════════════════════════════════════════
-import os
-
-REPORT_DIR = "/Users/anstudio/agentindex/agentindex/crypto/reports"
+REPORT_DIR = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)).replace("/agentindex-factory/", "/agentindex/"),
+    "reports",
+)
 
 @router_agents.get("/activity/{entity_type}/{entity_id}")
 def get_agent_activity_index(entity_type: str, entity_id: str):

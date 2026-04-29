@@ -6,13 +6,17 @@ Criteria: >= 5 visits across >= 3 distinct days in last 14 days.
 """
 
 import hashlib
+import os
 import sqlite3
 import time
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response
 
-ANALYTICS_DB = "/Users/anstudio/agentindex/logs/analytics.db"
+_REPO_ROOT = os.path.dirname(
+    os.path.dirname(os.path.abspath(__file__)).replace("/agentindex-factory/", "/agentindex/")
+)
+ANALYTICS_DB = os.path.join(_REPO_ROOT, "logs", "analytics.db")
 
 # Pages to show banner on
 BANNER_PAGES = {"/crypto", "/briefing", "/vitality"}

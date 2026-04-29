@@ -13,11 +13,15 @@ Signaler:
 Alla signaler 0-100 score + human-readable insight text.
 """
 
+import os
 import sqlite3
 from typing import Optional
 from datetime import datetime, timedelta, timezone
 
-DB_PATH = "/Users/anstudio/agentindex/agentindex/crypto/crypto_trust.db"
+DB_PATH = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)).replace("/agentindex-factory/", "/agentindex/"),
+    "crypto_trust.db",
+)
 
 
 def _get_db():
