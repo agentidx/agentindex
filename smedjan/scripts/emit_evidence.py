@@ -296,6 +296,16 @@ def _maybe_clear_pause_flag(signal_name: str) -> None:
     cat = _SIGNAL_UNPAUSES_CATEGORY.get(signal_name)
     if not cat:
         return
+    # Hard-pin: F3 pause is operator-controlled and must NOT be auto-cleared
+    # by evidence-emission. Observed 2026-04-27/28: l1b_canary_48h_green
+    # signal silently dropped the F3 row, restarting runaway generation.
+    # Anders re-pins manually; auto-clear is only allowed for F1/F2.
+    if cat == "F3":
+        log.info(
+            "F3 pause is hard-pinned, refusing auto-clear via signal %s",
+            signal_name,
+        )
+        return
     # Primary: delete the shared DB row so Hetzner's fallback-generator
     # picks up the change within one tick.
     try:
