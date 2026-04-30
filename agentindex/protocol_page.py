@@ -16,7 +16,14 @@ from fastapi.responses import HTMLResponse
 logger = logging.getLogger("nerq.protocol_page")
 
 SITE = "https://nerq.ai"
-TODAY = date.today().isoformat()
+# Pin TODAY to file mtime — `date.today()` at module load broadcasts a
+# daily freshness lie at the JSON-LD layer (FAS 3 follow-on, 2026-04-30).
+try:
+    from pathlib import Path as _Path
+    from datetime import datetime as _dt
+    TODAY = _dt.utcfromtimestamp(_Path(__file__).stat().st_mtime).strftime("%Y-%m-%d")
+except Exception:
+    TODAY = "2026-04-01"
 
 # ── Dark-theme protocol styling (matches integration_pages) ──
 PROTOCOL_CSS = """

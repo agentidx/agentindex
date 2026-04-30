@@ -376,16 +376,28 @@ def _render_vs_page(a, b, j_a, j_b):
         else:
             stars_summary = f"Both have {a['stars']:,} stars."
 
-    schema = json.dumps({
+    # datePublished from real per-entity dates; never default to "today".
+    def _ent_iso(e):
+        for k in ("updated_at", "last_crawled", "enriched_at", "first_indexed", "first_seen"):
+            v = e.get(k) if e else None
+            if v and hasattr(v, "strftime"):
+                return v.strftime("%Y-%m-%d")
+            if v and isinstance(v, str) and len(v) >= 10:
+                return v[:10]
+        return None
+    _real_pub = max((d for d in (_ent_iso(a), _ent_iso(b)) if d), default=None)
+    _sch = {
         "@context": "https://schema.org",
         "@type": "Article",
         "headline": f"{name_a} vs {name_b} — MCP Server Comparison",
         "description": f"Data-driven comparison of {name_a} and {name_b}. {summary}",
         "url": f"{SITE_URL}/vs/{a['id']}/{b['id']}",
         "author": {"@type": "Organization", "name": "Nerq", "url": SITE_URL},
-        "datePublished": datetime.utcnow().strftime("%Y-%m-%d"),
         "publisher": {"@type": "Organization", "name": "Nerq", "url": SITE_URL},
-    })
+    }
+    if _real_pub:
+        _sch["datePublished"] = _real_pub
+    schema = json.dumps(_sch)
 
     return f"""<!DOCTYPE html>
 <html lang="en"><head>

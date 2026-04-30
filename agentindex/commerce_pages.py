@@ -11,13 +11,20 @@ Usage in discovery.py:
 """
 
 import logging
-from datetime import date
+from datetime import date, datetime
+from pathlib import Path as _Path
 from fastapi.responses import HTMLResponse
 
 logger = logging.getLogger("nerq.commerce_pages")
 
 SITE = "https://nerq.ai"
-TODAY = date.today().isoformat()
+# Module-load-time "today" was a moving freshness lie under HCU. Pin
+# dateModified to this file's mtime instead — it only moves when the
+# page code itself actually changes.
+try:
+    TODAY = datetime.utcfromtimestamp(_Path(__file__).stat().st_mtime).strftime("%Y-%m-%d")
+except Exception:
+    TODAY = "2026-04-01"
 
 # ── Dark-theme commerce styling (matches protocol/integration pages) ──
 COMMERCE_CSS = """

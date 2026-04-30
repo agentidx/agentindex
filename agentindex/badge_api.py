@@ -149,12 +149,18 @@ def _badge_html_page(name: str, score, grade, registry: str = "") -> HTMLRespons
     """HTML landing page for a badge — SEO + cross-pollination."""
     import html as h
     import json
-    from datetime import date
+    from datetime import date, datetime as _dt
+    from pathlib import Path as _Path
     dn = name.split("/")[-1].replace("-", " ").replace("_", " ").title()
     slug = name.lower().replace("/", "-").replace(" ", "-")
     score_str = f"{round(score, 1)}" if score is not None else "N/A"
     grade_str = h.escape(grade or "N/A")
-    today = date.today().isoformat()
+    # Honest dateModified: badge content changes when this module changes,
+    # not when the page is requested (FAS 3 follow-on).
+    try:
+        today = _dt.utcfromtimestamp(_Path(__file__).stat().st_mtime).strftime("%Y-%m-%d")
+    except Exception:
+        today = "2026-04-01"
 
     if score and score >= 70:
         color = "#22c55e"

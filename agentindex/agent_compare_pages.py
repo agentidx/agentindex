@@ -560,20 +560,34 @@ def _render_compare_page(slug, pair_info):
             f'<div class="related-grid">{cards}</div>'
         )
 
-    # Dataset JSON-LD
-    dataset_jsonld = json.dumps({
+    # Dataset JSON-LD — dateModified = MAX(updated_at) of the two entities,
+    # never `today()` (HCU spam signal under FAS 3).
+    def _entity_lm_iso(ent):
+        for k in ("updated_at", "last_crawled", "enriched_at", "first_indexed", "first_seen"):
+            v = ent.get(k) if ent else None
+            if v and hasattr(v, "strftime"):
+                return v.strftime("%Y-%m-%d")
+            if v and isinstance(v, str) and len(v) >= 10:
+                return v[:10]
+        return None
+    _lm_a = _entity_lm_iso(agent_a)
+    _lm_b = _entity_lm_iso(agent_b)
+    _real_lm = max(d for d in (_lm_a, _lm_b) if d) if (_lm_a or _lm_b) else None
+    _ds = {
         "@context": "https://schema.org", "@type": "Dataset",
         "name": f"{name_a} vs {name_b} Trust Comparison",
         "description": f"Independent trust and security comparison of {name_a} and {name_b}",
-        "dateModified": date.today().isoformat(),
         "creator": {"@type": "Organization", "name": "Nerq", "url": "https://nerq.ai"},
         "variableMeasured": [
             {"@type": "PropertyValue", "name": f"{name_a} Trust Score", "value": score_a},
             {"@type": "PropertyValue", "name": f"{name_b} Trust Score", "value": score_b},
             {"@type": "PropertyValue", "name": f"{name_a} Security Score", "value": sec_a},
             {"@type": "PropertyValue", "name": f"{name_b} Security Score", "value": sec_b},
-        ]
-    })
+        ],
+    }
+    if _real_lm:
+        _ds["dateModified"] = _real_lm
+    dataset_jsonld = json.dumps(_ds)
 
     # ── L1b /compare/ Kings Unlock (additions-only, fail-closed) ─────────
     # When both slugs have a software_registry row with all five dims

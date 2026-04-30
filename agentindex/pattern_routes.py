@@ -24,7 +24,14 @@ from agentindex.nerq_design import NERQ_CSS, NERQ_NAV, NERQ_FOOTER, render_hrefl
 logger = logging.getLogger("nerq.patterns")
 
 SITE = "https://nerq.ai"
-TODAY = date.today().isoformat()
+# Pin TODAY to file mtime — `date.today()` at module load was producing
+# a freshness lie at the JSON-LD layer (FAS 3 follow-on, 2026-04-30).
+try:
+    from pathlib import Path as _Path
+    from datetime import datetime as _dt
+    TODAY = _dt.utcfromtimestamp(_Path(__file__).stat().st_mtime).strftime("%Y-%m-%d")
+except Exception:
+    TODAY = "2026-04-01"
 YEAR = date.today().year
 MY = date.today().strftime("%B %Y")
 

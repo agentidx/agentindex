@@ -1219,20 +1219,18 @@ def mount_seo_programmatic(app):
             a = _find_agent(session, slug_a)
             b = _find_agent(session, slug_b)
             if not a or not b:
-                missing = slug_a if not a else slug_b
-                dn_a = slug_a.replace("-", " ").title()
-                dn_b = slug_b.replace("-", " ").title()
-                # Queue demand signal
+                # Queue demand signal silently, but emit hard 404 — soft-200
+                # with noindex was being treated as soft-404 spam under HCU.
                 try:
                     from agentindex.agent_safety_pages import _queue_for_crawling
                     if not a: _queue_for_crawling(slug_a, bot="compare-404")
                     if not b: _queue_for_crawling(slug_b, bot="compare-404")
                 except Exception:
                     pass
-                return HTMLResponse(_page(
-                    f"{dn_a} vs {dn_b} — Not Yet Analyzed | Nerq",
-                    f'{_breadcrumb(("/compare", "compare"), ("", f"{dn_a} vs {dn_b}"))}<h1>{html.escape(dn_a)} vs {html.escape(dn_b)} — Not Yet Analyzed</h1><meta name="robots" content="noindex"><p>Nerq has not yet completed a full trust comparison. This comparison has been queued for analysis.</p><p><a href="/compare">Browse existing comparisons</a> &middot; <a href="/">Search Nerq</a></p>',
-                ), status_code=200)
+                return HTMLResponse(
+                    "<h1>Not Found</h1><p>One or both entities are not in our index.</p>",
+                    status_code=404,
+                )
 
         na, nb = html.escape(a["name"]), html.escape(b["name"])
         sa, sb = a.get("trust_score_v2"), b.get("trust_score_v2")
