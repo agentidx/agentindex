@@ -163,7 +163,15 @@ def crawl(limit=5000):
 
     logger.info(f"Found {len(rows)} npm/PyPI agents to cross-reference")
 
-    conn = sqlite3.connect(str(SQLITE_DB))
+    # WAL mode + 30s busy timeout: long-running osv crawler races with
+    # other writers on crypto_trust.db. Without this it hits "database is
+    # locked" mid-crawl after ~1500 rows (osv-crawler 2026-04-29 incident).
+    conn = sqlite3.connect(str(SQLITE_DB), timeout=30.0)
+    try:
+        conn.execute("PRAGMA journal_mode=WAL")
+        conn.execute("PRAGMA busy_timeout=30000")
+    except Exception:
+        pass
     processed = 0
     with_vulns = 0
     total_vulns = 0

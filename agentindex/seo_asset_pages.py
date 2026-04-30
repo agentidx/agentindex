@@ -109,9 +109,22 @@ def _internal_links(name, category, agent_type):
 
 
 def _sitemap_xml(urls):
+    """Build a sitemap urlset.
+
+    Accepts either:
+      - (url, prio) tuples — emits no <lastmod> (honest: no DB source).
+      - (url, prio, lastmod) tuples — emits <lastmod> only when truthy.
+    Never emits a synthetic "today" date for URLs without a real source.
+    """
     entries = ""
-    for url, prio in urls:
-        entries += f"<url><loc>{html_mod.escape(url)}</loc><lastmod>{TODAY}</lastmod><changefreq>weekly</changefreq><priority>{prio}</priority></url>\n"
+    for item in urls:
+        if len(item) == 3:
+            url, prio, lastmod = item
+        else:
+            url, prio = item
+            lastmod = None
+        lm_xml = f"<lastmod>{lastmod}</lastmod>" if lastmod else ""
+        entries += f"<url><loc>{html_mod.escape(url)}</loc>{lm_xml}<changefreq>weekly</changefreq><priority>{prio}</priority></url>\n"
     return f'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n{entries}</urlset>'
 
 
@@ -126,7 +139,8 @@ def _find_asset(query, agent_type):
             SELECT id, name, trust_score_v2, trust_grade, stars, description,
                    category, language, author, source, source_url, license,
                    security_score, activity_score, documentation_score,
-                   popularity_score, eu_risk_class, downloads, agent_type, tags
+                   popularity_score, eu_risk_class, downloads, agent_type, tags,
+                   COALESCE(last_crawled, first_indexed) AS lm
             FROM agents
             WHERE (LOWER(name) = :q OR LOWER(name) LIKE :p) AND is_active = true
               AND agent_type = :atype
@@ -139,7 +153,8 @@ def _find_asset(query, agent_type):
                 SELECT id, name, trust_score_v2, trust_grade, stars, description,
                        category, language, author, source, source_url, license,
                        security_score, activity_score, documentation_score,
-                       popularity_score, eu_risk_class, downloads, agent_type, tags
+                       popularity_score, eu_risk_class, downloads, agent_type, tags,
+                       COALESCE(last_crawled, first_indexed) AS lm
                 FROM agents
                 WHERE LOWER(name) LIKE :p AND is_active = true AND agent_type = :atype
                 ORDER BY COALESCE(downloads, 0) DESC, COALESCE(stars, 0) DESC
@@ -149,7 +164,8 @@ def _find_asset(query, agent_type):
             return dict(zip(["id","name","trust_score","trust_grade","stars","description",
                            "category","language","author","source","source_url","license",
                            "security_score","activity_score","documentation_score",
-                           "popularity_score","eu_risk_class","downloads","agent_type","tags"], row))
+                           "popularity_score","eu_risk_class","downloads","agent_type","tags",
+                           "lm"], row))
     return None
 
 
@@ -172,6 +188,16 @@ def _find_similar(name, category, agent_type, limit=8):
 def _page_head(title, desc, canonical, asset_type, name, score, grade):
     """Generate full HTML head with all SEO + AI meta tags."""
     v, vc, _ = _verdict(score)
+    hreflang_html = ""
+    if canonical:
+        try:
+            from agentindex.nerq_design import render_hreflang as _rh
+            from urllib.parse import urlparse as _up
+            _path = _up(canonical).path or ""
+            if _path:
+                hreflang_html = _rh(_path)
+        except Exception:
+            hreflang_html = ""
     return f"""<!DOCTYPE html>
 <html lang="en"><head>
 <meta charset="UTF-8">
@@ -179,6 +205,7 @@ def _page_head(title, desc, canonical, asset_type, name, score, grade):
 <title>{_esc(title)}</title>
 <meta name="description" content="{_esc(desc)}">
 <link rel="canonical" href="{canonical}">
+{hreflang_html}
 <meta property="og:title" content="{_esc(title)}">
 <meta property="og:description" content="{_esc(desc)}">
 <meta property="og:url" content="{canonical}">
@@ -189,7 +216,6 @@ def _page_head(title, desc, canonical, asset_type, name, score, grade):
 <meta name="nerq:type" content="{asset_type}">
 <meta name="nerq:tools" content="{_esc(name)}">
 <meta name="nerq:verdict" content="{v}">
-<meta name="nerq:updated" content="{TODAY}">
 {NERQ_CSS}
 <style>
 .score-grid{{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:20px 0}}
@@ -668,13 +694,13 @@ def mount_asset_pages(app):
         except Exception:
             pass
         return HTMLResponse(content=f"""<!DOCTYPE html><html><head>
-<title>Not Yet Analyzed | Nerq</title>
+<title>Not Found | Nerq</title>
 <meta name="robots" content="noindex">
 <link rel="stylesheet" href="/static/nerq.css?v=13">
 </head><body>
-<h1>Not Yet Analyzed</h1>
-<p>This entity has been queued for analysis. <a href="/">Search Nerq</a></p>
-</body></html>""", status_code=200)
+<h1>Not Found</h1>
+<p>This entity is not in our index. <a href="/">Search Nerq</a></p>
+</body></html>""", status_code=404)
 
     @app.get("/space/{space_name}", response_class=HTMLResponse)
     async def space_page(space_name: str):
@@ -687,13 +713,13 @@ def mount_asset_pages(app):
         except Exception:
             pass
         return HTMLResponse(content=f"""<!DOCTYPE html><html><head>
-<title>Not Yet Analyzed | Nerq</title>
+<title>Not Found | Nerq</title>
 <meta name="robots" content="noindex">
 <link rel="stylesheet" href="/static/nerq.css?v=13">
 </head><body>
-<h1>Not Yet Analyzed</h1>
-<p>This entity has been queued for analysis. <a href="/">Search Nerq</a></p>
-</body></html>""", status_code=200)
+<h1>Not Found</h1>
+<p>This entity is not in our index. <a href="/">Search Nerq</a></p>
+</body></html>""", status_code=404)
 
     @app.get("/spaces", response_class=HTMLResponse)
     async def spaces_hub():
@@ -737,13 +763,13 @@ def mount_asset_pages(app):
         except Exception:
             pass
         return HTMLResponse(content=f"""<!DOCTYPE html><html><head>
-<title>Not Yet Analyzed | Nerq</title>
+<title>Not Found | Nerq</title>
 <meta name="robots" content="noindex">
 <link rel="stylesheet" href="/static/nerq.css?v=13">
 </head><body>
-<h1>Not Yet Analyzed</h1>
-<p>This entity has been queued for analysis. <a href="/">Search Nerq</a></p>
-</body></html>""", status_code=200)
+<h1>Not Found</h1>
+<p>This entity is not in our index. <a href="/">Search Nerq</a></p>
+</body></html>""", status_code=404)
 
     @app.get("/container/{container_name}", response_class=HTMLResponse)
     async def container_page(container_name: str):
@@ -756,13 +782,13 @@ def mount_asset_pages(app):
         except Exception:
             pass
         return HTMLResponse(content=f"""<!DOCTYPE html><html><head>
-<title>Not Yet Analyzed | Nerq</title>
+<title>Not Found | Nerq</title>
 <meta name="robots" content="noindex">
 <link rel="stylesheet" href="/static/nerq.css?v=13">
 </head><body>
-<h1>Not Yet Analyzed</h1>
-<p>This entity has been queued for analysis. <a href="/">Search Nerq</a></p>
-</body></html>""", status_code=200)
+<h1>Not Found</h1>
+<p>This entity is not in our index. <a href="/">Search Nerq</a></p>
+</body></html>""", status_code=404)
 
     @app.get("/containers", response_class=HTMLResponse)
     async def containers_hub():
@@ -806,13 +832,13 @@ def mount_asset_pages(app):
         except Exception:
             pass
         return HTMLResponse(content=f"""<!DOCTYPE html><html><head>
-<title>Not Yet Analyzed | Nerq</title>
+<title>Not Found | Nerq</title>
 <meta name="robots" content="noindex">
 <link rel="stylesheet" href="/static/nerq.css?v=13">
 </head><body>
-<h1>Not Yet Analyzed</h1>
-<p>This entity has been queued for analysis. <a href="/">Search Nerq</a></p>
-</body></html>""", status_code=200)
+<h1>Not Found</h1>
+<p>This entity is not in our index. <a href="/">Search Nerq</a></p>
+</body></html>""", status_code=404)
 
     @app.get("/dataset/{dataset_name}", response_class=HTMLResponse)
     async def dataset_page(dataset_name: str):
@@ -825,13 +851,13 @@ def mount_asset_pages(app):
         except Exception:
             pass
         return HTMLResponse(content=f"""<!DOCTYPE html><html><head>
-<title>Not Yet Analyzed | Nerq</title>
+<title>Not Found | Nerq</title>
 <meta name="robots" content="noindex">
 <link rel="stylesheet" href="/static/nerq.css?v=13">
 </head><body>
-<h1>Not Yet Analyzed</h1>
-<p>This entity has been queued for analysis. <a href="/">Search Nerq</a></p>
-</body></html>""", status_code=200)
+<h1>Not Found</h1>
+<p>This entity is not in our index. <a href="/">Search Nerq</a></p>
+</body></html>""", status_code=404)
 
     @app.get("/datasets", response_class=HTMLResponse)
     async def datasets_hub():
@@ -875,13 +901,13 @@ def mount_asset_pages(app):
         except Exception:
             pass
         return HTMLResponse(content=f"""<!DOCTYPE html><html><head>
-<title>Not Yet Analyzed | Nerq</title>
+<title>Not Found | Nerq</title>
 <meta name="robots" content="noindex">
 <link rel="stylesheet" href="/static/nerq.css?v=13">
 </head><body>
-<h1>Not Yet Analyzed</h1>
-<p>This entity has been queued for analysis. <a href="/">Search Nerq</a></p>
-</body></html>""", status_code=200)
+<h1>Not Found</h1>
+<p>This entity is not in our index. <a href="/">Search Nerq</a></p>
+</body></html>""", status_code=404)
 
     @app.get("/orgs", response_class=HTMLResponse)
     async def orgs_hub():
@@ -923,6 +949,10 @@ def mount_asset_pages(app):
 
     # ── SITEMAPS ────────────────────────────────
 
+    def _row_lm(updated_at, first_indexed):
+        real_dt = updated_at or first_indexed
+        return real_dt.strftime("%Y-%m-%d") if real_dt else None
+
     @app.get("/sitemap-spaces.xml", response_class=Response)
     @app.get("/sitemap-spaces-{chunk}.xml", response_class=Response)
     async def sitemap_spaces(chunk: int = 0):
@@ -933,12 +963,13 @@ def mount_asset_pages(app):
         offset = chunk * 50000
         with get_db_session() as session:
             rows = session.execute(text("""
-                SELECT name FROM entity_lookup WHERE is_active = true AND agent_type = 'space'
+                SELECT name, updated_at, first_indexed FROM entity_lookup
+                WHERE is_active = true AND agent_type = 'space'
                 AND description IS NOT NULL AND LENGTH(description) > 10
                 ORDER BY COALESCE(downloads, 0) DESC
                 OFFSET :off LIMIT 50000
             """), {"off": offset}).fetchall()
-        urls = [(f"{SITE}/space/{_to_slug(r[0])}", "0.5") for r in rows]
+        urls = [(f"{SITE}/space/{_to_slug(r[0])}", "0.5", _row_lm(r[1], r[2])) for r in rows]
         if chunk == 0:
             urls.insert(0, (f"{SITE}/spaces", "0.7"))
         xml = _sitemap_xml(urls)
@@ -952,11 +983,12 @@ def mount_asset_pages(app):
             return Response(cached, media_type="application/xml")
         with get_db_session() as session:
             rows = session.execute(text("""
-                SELECT name FROM entity_lookup WHERE is_active = true AND agent_type = 'container'
+                SELECT name, updated_at, first_indexed FROM entity_lookup
+                WHERE is_active = true AND agent_type = 'container'
                 AND description IS NOT NULL AND LENGTH(description) > 10
                 ORDER BY COALESCE(downloads, 0) DESC LIMIT 50000
             """)).fetchall()
-        urls = [(f"{SITE}/container/{_to_slug(r[0])}", "0.7") for r in rows]
+        urls = [(f"{SITE}/container/{_to_slug(r[0])}", "0.7", _row_lm(r[1], r[2])) for r in rows]
         urls.insert(0, (f"{SITE}/containers", "0.8"))
         xml = _sitemap_xml(urls)
         _set_cache("sitemap:containers", xml)
@@ -969,11 +1001,12 @@ def mount_asset_pages(app):
             return Response(cached, media_type="application/xml")
         with get_db_session() as session:
             rows = session.execute(text("""
-                SELECT name FROM entity_lookup WHERE is_active = true AND agent_type = 'dataset'
+                SELECT name, updated_at, first_indexed FROM entity_lookup
+                WHERE is_active = true AND agent_type = 'dataset'
                 AND description IS NOT NULL AND LENGTH(description) > 10
                 ORDER BY COALESCE(downloads, 0) DESC LIMIT 50000
             """)).fetchall()
-        urls = [(f"{SITE}/dataset/{_to_slug(r[0])}", "0.6") for r in rows]
+        urls = [(f"{SITE}/dataset/{_to_slug(r[0])}", "0.6", _row_lm(r[1], r[2])) for r in rows]
         urls.insert(0, (f"{SITE}/datasets", "0.7"))
         xml = _sitemap_xml(urls)
         _set_cache("sitemap:datasets", xml)
@@ -986,12 +1019,15 @@ def mount_asset_pages(app):
             return Response(cached, media_type="application/xml")
         with get_db_session() as session:
             rows = session.execute(text("""
-                SELECT SPLIT_PART(name, '/', 1) as org
+                SELECT SPLIT_PART(name, '/', 1) as org, MAX(COALESCE(updated_at, first_indexed)) as lm
                 FROM entity_lookup WHERE is_active = true AND name LIKE '%%/%%'
                 GROUP BY org HAVING COUNT(*) >= 3
                 ORDER BY COUNT(*) DESC LIMIT 50000
             """)).fetchall()
-        urls = [(f"{SITE}/org/{_to_slug(r[0])}", "0.6") for r in rows]
+        urls = []
+        for r in rows:
+            lm_str = r[1].strftime("%Y-%m-%d") if r[1] else None
+            urls.append((f"{SITE}/org/{_to_slug(r[0])}", "0.6", lm_str))
         urls.insert(0, (f"{SITE}/orgs", "0.7"))
         xml = _sitemap_xml(urls)
         _set_cache("sitemap:orgs", xml)

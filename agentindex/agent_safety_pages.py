@@ -6539,7 +6539,14 @@ Overall safety: {score_str}/100. Health & medical: {health_score}/100. Infrastru
 
     # Freshness
     _today = datetime.now().strftime("%B %d, %Y")
-    _today_iso = datetime.now().strftime("%Y-%m-%d")
+    # Stable data-pipeline epoch — country/charity/dataset fact tables update
+    # at most monthly. Using "today" here would broadcast a daily freshness
+    # lie that HCU treats as spam. SLUGS_PATH mtime moves only when the data
+    # set itself is regenerated.
+    try:
+        _today_iso = datetime.utcfromtimestamp(SLUGS_PATH.stat().st_mtime).strftime("%Y-%m-%d")
+    except Exception:
+        _today_iso = "2026-04-01"
     freshness_html = f'<p style="font-size:13px;color:#94a3b8;margin:24px 0 8px">Last updated: {_today} · Data sources: Global Peace Index, UNODC, WHO, World Bank, US State Dept</p>'
 
     # JSON-LD: Place
@@ -7042,7 +7049,14 @@ Accountability score: {accountability_score}/100 ({_rating_level(accountability_
 
     # Freshness
     _today = datetime.now().strftime("%B %d, %Y")
-    _today_iso = datetime.now().strftime("%Y-%m-%d")
+    # Stable data-pipeline epoch — country/charity/dataset fact tables update
+    # at most monthly. Using "today" here would broadcast a daily freshness
+    # lie that HCU treats as spam. SLUGS_PATH mtime moves only when the data
+    # set itself is regenerated.
+    try:
+        _today_iso = datetime.utcfromtimestamp(SLUGS_PATH.stat().st_mtime).strftime("%Y-%m-%d")
+    except Exception:
+        _today_iso = "2026-04-01"
     freshness_html = f'<p style="font-size:13px;color:#94a3b8;margin:24px 0 8px">Last updated: {_today} · Data sources: IRS Form 990, GuideStar, Charity Navigator, public filings</p>'
 
     # JSON-LD: NGO
@@ -7653,7 +7667,14 @@ def _render_ingredient_page(slug, agent_info, lang="en"):
 
     # Freshness
     _today = datetime.now().strftime("%B %d, %Y")
-    _today_iso = datetime.now().strftime("%Y-%m-%d")
+    # Stable data-pipeline epoch — country/charity/dataset fact tables update
+    # at most monthly. Using "today" here would broadcast a daily freshness
+    # lie that HCU treats as spam. SLUGS_PATH mtime moves only when the data
+    # set itself is regenerated.
+    try:
+        _today_iso = datetime.utcfromtimestamp(SLUGS_PATH.stat().st_mtime).strftime("%Y-%m-%d")
+    except Exception:
+        _today_iso = "2026-04-01"
     freshness_html = f'<p style="font-size:13px;color:#94a3b8;margin:24px 0 8px">Last updated: {_today} · Data sources: {_data_sources.replace(",", ", ")}</p>'
 
     # JSON-LD: Main entity
@@ -7886,6 +7907,92 @@ Data sourced from FDA, EFSA, NIH, and peer-reviewed research.
 </body></html>"""
 
 
+def _real_iso_date(*candidates):
+    """Return the first truthy datetime/string as YYYY-MM-DD, or None.
+
+    Used for Schema.org dateModified/datePublished — never falls back to "today",
+    which would broadcast a freshness lie under HCU.
+    """
+    for c in candidates:
+        if not c:
+            continue
+        if hasattr(c, "strftime"):
+            return c.strftime("%Y-%m-%d")
+        s = str(c)[:10]
+        if len(s) == 10 and s[4] == "-" and s[7] == "-":
+            return s
+    return None
+
+
+def _build_software_jsonld(*, schema_type, schema_extra, display_name, description,
+                           entity_word, slug, same_as, author, agent, agent_info,
+                           score, score_str, grade, rec_text,
+                           security_score, compliance_score, activity_score,
+                           doc_score, popularity_score):
+    """Assemble the SoftwareApplication-style JSON-LD with honest dates.
+
+    datePublished is only emitted when there's a real per-entity date
+    (enriched_at, first_seen, updated_at). No "today" defaults.
+    """
+    pub_iso = _real_iso_date(
+        agent.get("enriched_at"),
+        agent.get("first_seen"),
+        agent.get("updated_at"),
+        agent_info.get("updated_at"),
+    )
+    review_body = (
+        f"{display_name} is a {entity_word} with a Nerq Trust Score of "
+        f"{score_str}/100 ({grade}). "
+        f"{rec_text.capitalize() if float(score) >= 70 else 'Proceed with caution.' if float(score) >= 50 else 'Not recommended.'}"
+    )
+    review_rating = {
+        "@type": "Rating",
+        "ratingValue": str(round(max(1.0, float(score) / 20), 1)),
+        "bestRating": "5",
+        "worstRating": "1",
+    }
+    review = {
+        "@type": "Review",
+        "author": {"@type": "Organization", "name": "Nerq", "url": "https://nerq.ai"},
+        "reviewRating": review_rating,
+        "reviewBody": review_body,
+    }
+    if pub_iso:
+        review["datePublished"] = pub_iso
+    out = {
+        "@context": "https://schema.org",
+        "@type": schema_type,
+        **schema_extra,
+        "name": display_name,
+        "description": description[:200] if description else f"{display_name} — {entity_word}",
+        "url": f"https://nerq.ai/safe/{slug}",
+        "author": {"@type": "Organization", "name": author},
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD",
+            "availability": "https://schema.org/InStock",
+        },
+        "license": agent.get("license") or "Not specified",
+        "image": "https://nerq.ai/static/nerq-logo-512.png",
+        "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": str(round(max(1.0, float(score) / 20), 1)),
+            "bestRating": "5",
+            "worstRating": "1",
+            "ratingCount": str(max(1, len([s for s in [
+                security_score, compliance_score, activity_score, doc_score, popularity_score
+            ] if s is not None]))),
+        },
+        "review": review,
+    }
+    if same_as:
+        out["sameAs"] = same_as
+    if pub_iso:
+        out["datePublished"] = pub_iso
+    return out
+
+
 def _render_agent_page(slug, agent_info, lang="en"):
     """Render a full agent safety page. Pass lang for native i18n."""
     # Look up fresh data from DB
@@ -7908,9 +8015,10 @@ def _render_agent_page(slug, agent_info, lang="en"):
             if norm_name != name:
                 agent = _lookup_agent(norm_name)
     if not agent:
-        # NO ENTITY FOUND — show "Not yet analyzed" page, NOT a fake 0/100 rating
-        display_name = name.split("/")[-1].replace("-", " ").replace("_", " ").title()
-        return _render_not_analyzed_page(slug, display_name, lang=lang)
+        # NO ENTITY FOUND — return None so the route emits a hard 404.
+        # Soft-200 with noindex was being treated as soft-404 spam under HCU
+        # (FAS 4: stop emitting soft-success for missing entities).
+        return None
 
     # Route country/city pages to dedicated travel template (no software language)
     _resolved_source = agent.get("source") or agent.get("registry") or ""
@@ -8423,17 +8531,30 @@ def _render_agent_page(slug, agent_info, lang="en"):
         _faq_details += f'<details><summary>{fq}</summary><div class="faq-a">{fa}</div></details>\n'
     faq_section_html = f'<div class="section faq"><h2 class="section-title">{_t("faq", lang)}</h2>{_faq_details}</div>'
 
-    # JSON-LD: WebPage
-    webpage_jsonld = json.dumps({
+    # JSON-LD: WebPage — dateModified comes from real per-entity enriched_at /
+    # updated_at; never default to "now" (HCU spam signal).
+    _real_lm = (
+        agent.get("enriched_at")
+        or agent.get("updated_at")
+        or agent.get("first_seen")
+        or agent_info.get("updated_at")
+    )
+    _real_lm_iso = (
+        _real_lm.strftime("%Y-%m-%d") if _real_lm and hasattr(_real_lm, "strftime")
+        else (str(_real_lm)[:10] if _real_lm else None)
+    )
+    _wp = {
         "@context": "https://schema.org",
         "@type": "WebPage",
         "name": f"{_t('h1_safe', lang, name=display_name)} — {_t('trust_score_breakdown', lang)} {score_str}/100",
         "description": f"{display_name} — {_entity_type_local} — Nerq Trust Score {score_str}/100 ({grade}).",
         "url": f"https://nerq.ai/safe/{slug}",
-        "dateModified": (agent.get("enriched_at").strftime("%Y-%m-%d") if agent.get("enriched_at") and hasattr(agent.get("enriched_at"), 'strftime') else datetime.now().strftime("%Y-%m-%d")),
         "publisher": {"@type": "Organization", "name": "Nerq", "url": "https://nerq.ai"},
         "speakable": {"@type": "SpeakableSpecification", "cssSelector": [".pplx-verdict", ".ai-summary", ".verdict"]},
-    })
+    }
+    if _real_lm_iso:
+        _wp["dateModified"] = _real_lm_iso
+    webpage_jsonld = json.dumps(_wp)
 
     # JSON-LD: FAQPage (matches visible FAQ — GEO principle: prompt-aligned)
     faq_jsonld = json.dumps({
@@ -9498,43 +9619,27 @@ def _render_agent_page(slug, agent_info, lang="en"):
         "{{ webpage_jsonld }}": webpage_jsonld,
         "{{ faq_jsonld }}": faq_jsonld,
         "{{ breadcrumb_jsonld }}": breadcrumb_jsonld,
-        "{{ software_jsonld }}": json.dumps({
-            **{"@context": "https://schema.org", "@type": _rp["schema_type"]},
-            **_rp.get("schema_extra", {}),
-            "name": display_name,
-            "description": description[:200] if description else f"{display_name} — {_entity_word}",
-            "url": f"https://nerq.ai/safe/{slug}",
-            **({"sameAs": _wikidata_same_as(slug)} if _wikidata_same_as(slug) else {}),
-            "author": {"@type": "Organization", "name": author},
-            "offers": {
-                "@type": "Offer",
-                "price": "0",
-                "priceCurrency": "USD",
-                "availability": "https://schema.org/InStock",
-            },
-            "license": agent.get("license") or "Not specified",
-            "datePublished": (agent.get("enriched_at").strftime('%Y-%m-%d') if agent.get("enriched_at") and hasattr(agent.get("enriched_at"), 'strftime') else (agent.get("first_seen") or datetime.now().strftime('%Y-%m-%d'))[:10]),
-            "image": "https://nerq.ai/static/nerq-logo-512.png",
-            "aggregateRating": {
-                "@type": "AggregateRating",
-                "ratingValue": str(round(max(1.0, float(score) / 20), 1)),
-                "bestRating": "5",
-                "worstRating": "1",
-                "ratingCount": str(max(1, len([s for s in [security_score, compliance_score, activity_score, doc_score, popularity_score] if s is not None]))),
-            },
-            "review": {
-                "@type": "Review",
-                "author": {"@type": "Organization", "name": "Nerq", "url": "https://nerq.ai"},
-                "datePublished": (agent.get("enriched_at").strftime('%Y-%m-%d') if agent.get("enriched_at") and hasattr(agent.get("enriched_at"), 'strftime') else datetime.now().strftime('%Y-%m-%d')),
-                "reviewRating": {
-                    "@type": "Rating",
-                    "ratingValue": str(round(max(1.0, float(score) / 20), 1)),
-                    "bestRating": "5",
-                    "worstRating": "1",
-                },
-                "reviewBody": f"{display_name} is a {_entity_word} with a Nerq Trust Score of {score_str}/100 ({grade}). {_rec_text.capitalize() if float(score) >= 70 else 'Proceed with caution.' if float(score) >= 50 else 'Not recommended.'}",
-            },
-        }),
+        "{{ software_jsonld }}": json.dumps(_build_software_jsonld(
+            schema_type=_rp["schema_type"],
+            schema_extra=_rp.get("schema_extra", {}),
+            display_name=display_name,
+            description=description,
+            entity_word=_entity_word,
+            slug=slug,
+            same_as=_wikidata_same_as(slug),
+            author=author,
+            agent=agent,
+            agent_info=agent_info,
+            score=score,
+            score_str=score_str,
+            grade=grade,
+            rec_text=_rec_text,
+            security_score=security_score,
+            compliance_score=compliance_score,
+            activity_score=activity_score,
+            doc_score=doc_score,
+            popularity_score=popularity_score,
+        )),
         "{{ cve_text }}": f"{agent.get('cve_count') or 0} known vulnerabilities" if agent.get('cve_count') is not None else f"{_entity_word.capitalize()} analyzed across security, maintenance, and community signals",
         "{{ license_text }}": _esc(agent.get("license") or "Not specified"),
         "{{ reviews_section }}": reviews_section,
@@ -9681,15 +9786,17 @@ def _resolve_agent_info_with_fallback(slug):
     """
     resolved = _resolve_entity(slug)
     if resolved and resolved.get("trust_score"):
-        return resolved
-    agent_info = _slug_map.get(slug, {})
+        agent_info = resolved
+    else:
+        agent_info = _slug_map.get(slug, {})
     if not agent_info or not agent_info.get("name"):
         session = get_session()
         try:
             row = session.execute(text("""
                 SELECT name, COALESCE(trust_score_v2, trust_score) as trust_score,
                        trust_grade, category, stars, description,
-                       author, source_url, license, agent_type
+                       author, source_url, license, agent_type,
+                       COALESCE(updated_at, first_indexed) AS lm
                 FROM entity_lookup
                 WHERE (name_lower = :slug OR name_lower = :dehyphen) AND is_active = true
                 ORDER BY COALESCE(stars, 0) DESC LIMIT 1
@@ -9702,12 +9809,47 @@ def _resolve_agent_info_with_fallback(slug):
                     "description": row[5], "author": row[6],
                     "source_url": row[7], "license": row[8],
                     "agent_type": row[9],
+                    "updated_at": row[10],
                 }
         finally:
             session.close()
     if not agent_info or not agent_info.get("name"):
-        agent_info = {"name": slug.replace("-", " ")}
+        # Synthetic fallback: no real entity matched. Mark so callers can 404.
+        agent_info = {"name": slug.replace("-", " "), "_synthetic": True}
+    # Ensure agent_info carries `updated_at` for Last-Modified emission.
+    # _resolve_entity (the fast path) doesn't include updated_at in its
+    # dict; fill it in via a small indexed lookup if missing.
+    if not agent_info.get("updated_at") and agent_info.get("name"):
+        try:
+            session = get_session()
+            try:
+                _row = session.execute(text("""
+                    SELECT COALESCE(updated_at, first_indexed)
+                    FROM entity_lookup
+                    WHERE name_lower = :n AND is_active = true
+                    LIMIT 1
+                """), {"n": agent_info["name"].lower()}).fetchone()
+                if _row and _row[0]:
+                    agent_info["updated_at"] = _row[0]
+            finally:
+                session.close()
+        except Exception:
+            pass
     return agent_info
+
+
+def _http_lastmod(dt) -> str:
+    """Format a datetime as an RFC 7232 HTTP-date for the Last-Modified header.
+
+    Returns "" if the datetime is missing, so callers can do
+    ``headers["Last-Modified"] = _http_lastmod(dt)`` only when truthy.
+    """
+    if not dt:
+        return ""
+    try:
+        return dt.strftime("%a, %d %b %Y %H:%M:%S GMT")
+    except Exception:
+        return ""
 
 
 def mount_agent_safety_pages(app):
@@ -9755,14 +9897,23 @@ def mount_agent_safety_pages(app):
     async def agent_safety_page(slug: str):
         _load_slugs()
         agent_info = _resolve_agent_info_with_fallback(slug)
+        # Hard 404 for synthetic / no-real-entity slugs. Soft-200 with
+        # noindex still counts as a soft-404 signal to Google under HCU.
+        if agent_info.get("_synthetic"):
+            return HTMLResponse(
+                status_code=404,
+                content="<h1>Not Found</h1><p>No entity matches this slug.</p>",
+            )
 
         import time
         cache_key = slug
         now = time.time()
+        lastmod_hdr = _http_lastmod(agent_info.get("updated_at"))
+        headers = {"Last-Modified": lastmod_hdr} if lastmod_hdr else {}
         if cache_key in _page_cache:
             html, ts = _page_cache[cache_key]
             if now - ts < _CACHE_TTL:
-                return HTMLResponse(content=html)
+                return HTMLResponse(content=html, headers=headers)
 
         try:
             html = _render_agent_page(slug, agent_info)
@@ -9770,7 +9921,7 @@ def mount_agent_safety_pages(app):
                 return HTMLResponse(status_code=404, content="<h1>Agent not found</h1><p>No safety data available.</p>")
             if len(_page_cache) < _CACHE_MAX:
                 _page_cache[cache_key] = (html, now)
-            return HTMLResponse(content=html)
+            return HTMLResponse(content=html, headers=headers)
         except Exception as e:
             logger.error(f"Error rendering agent safety page {slug}: {e}")
             return HTMLResponse(status_code=500, content=f"<h1>Error</h1><p>{_esc(str(e))}</p>")
@@ -9779,17 +9930,24 @@ def mount_agent_safety_pages(app):
     async def is_agent_safe_alias(slug: str):
         """SEO alias: /is-langchain-safe serves same content as /safe/langchain."""
         _load_slugs()
-        agent_info = _slug_map.get(slug, {})
-        if not agent_info:
-            agent_info = {"name": slug.replace("-", " ")}
+        # Always go through the fallback resolver: it carries `updated_at`
+        # for the Last-Modified header. _slug_map alone has no freshness data.
+        agent_info = _resolve_agent_info_with_fallback(slug)
+        if agent_info.get("_synthetic"):
+            return HTMLResponse(
+                status_code=404,
+                content="<h1>Not Found</h1><p>No entity matches this slug.</p>",
+            )
 
         import time
         cache_key = f"is-{slug}-safe"
         now = time.time()
+        lastmod_hdr = _http_lastmod(agent_info.get("updated_at"))
+        headers = {"Last-Modified": lastmod_hdr} if lastmod_hdr else {}
         if cache_key in _page_cache:
             html, ts = _page_cache[cache_key]
             if now - ts < _CACHE_TTL:
-                return HTMLResponse(content=html)
+                return HTMLResponse(content=html, headers=headers)
 
         try:
             html = _render_agent_page(slug, agent_info)
@@ -9802,7 +9960,7 @@ def mount_agent_safety_pages(app):
             )
             if len(_page_cache) < _CACHE_MAX:
                 _page_cache[cache_key] = (html, now)
-            return HTMLResponse(content=html)
+            return HTMLResponse(content=html, headers=headers)
         except Exception as e:
             logger.error(f"Error rendering is-{slug}-safe: {e}")
             return HTMLResponse(status_code=500, content=f"<h1>Error</h1><p>{_esc(str(e))}</p>")
@@ -9819,7 +9977,16 @@ def mount_agent_safety_pages(app):
 
     async def _sitemap_safe_chunk(chunk: int):
         _load_slugs()
-        today = date.today().isoformat()
+        # Use slug-index file mtime as honest lastmod — that's when this
+        # set of URLs last actually changed (new slugs added/removed).
+        # Avoid `date.today()` which broadcasts a daily freshness lie.
+        try:
+            _mtime = datetime.utcfromtimestamp(SLUGS_PATH.stat().st_mtime)
+            _lastmod_str = _mtime.strftime("%Y-%m-%d")
+        except Exception:
+            _lastmod_str = None
+        _lm_xml = f"    <lastmod>{_lastmod_str}</lastmod>\n" if _lastmod_str else ""
+
         # Chunk 0 includes the /safe hub page, so take 49999 entries
         if chunk == 0:
             page = _slug_list[:49999]
@@ -9831,16 +9998,15 @@ def mount_agent_safety_pages(app):
         xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
         xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
         if chunk == 0:
-            xml += f'  <url>\n    <loc>https://nerq.ai/safe</loc>\n    <lastmod>{today}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>1.0</priority>\n  </url>\n'
+            xml += f'  <url>\n    <loc>https://nerq.ai/safe</loc>\n{_lm_xml}    <changefreq>weekly</changefreq>\n    <priority>1.0</priority>\n  </url>\n'
         for a in page:
-            xml += f'  <url>\n    <loc>https://nerq.ai/safe/{a["slug"]}</loc>\n    <lastmod>{today}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n  </url>\n'
+            xml += f'  <url>\n    <loc>https://nerq.ai/safe/{a["slug"]}</loc>\n{_lm_xml}    <changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n  </url>\n'
         xml += '</urlset>'
         return Response(content=xml, media_type="application/xml")
 
     @app.get("/sitemap-safety.xml", response_class=Response)
     async def sitemap_safety():
         """Sitemap for /is-X-safe pages, prioritized by search demand."""
-        today = date.today().isoformat()
         data_path = Path(__file__).parent.parent / "data" / "safety_demand_ranking.json"
         try:
             with open(data_path) as f:
@@ -9848,6 +10014,14 @@ def mount_agent_safety_pages(app):
         except Exception as e:
             logger.error(f"Failed to load safety_demand_ranking.json: {e}")
             return Response(content="<!-- ranking data unavailable -->", media_type="application/xml")
+
+        # Honest lastmod = ranking-file mtime; URL set changes when ranking updates.
+        try:
+            _mtime = datetime.utcfromtimestamp(data_path.stat().st_mtime)
+            _lastmod_str = _mtime.strftime("%Y-%m-%d")
+        except Exception:
+            _lastmod_str = None
+        _lm_xml = f"    <lastmod>{_lastmod_str}</lastmod>\n" if _lastmod_str else ""
 
         top_30_tools = {item["tool"] for item in ranking.get("top_30", [])}
         all_tools = ranking.get("all", [])[:5000]
@@ -9861,7 +10035,7 @@ def mount_agent_safety_pages(app):
             xml += (
                 f'  <url>\n'
                 f'    <loc>https://nerq.ai/is-{slug}-safe</loc>\n'
-                f'    <lastmod>{today}</lastmod>\n'
+                f'{_lm_xml}'
                 f'    <changefreq>daily</changefreq>\n'
                 f'    <priority>{priority}</priority>\n'
                 f'  </url>\n'
@@ -9889,9 +10063,12 @@ def mount_agent_safety_pages(app):
         xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
         for r in rows:
             _slug, _reg, _lm = r
-            _lastmod = str(_lm)[:10] if _lm else date.today().isoformat()
+            # Real per-row lastmod from enriched_at/created_at; if both NULL,
+            # omit lastmod entirely (never default to "today").
+            _lastmod = str(_lm)[:10] if _lm else None
+            _lm_xml = f"    <lastmod>{_lastmod}</lastmod>\n" if _lastmod else ""
             xml += (f'  <url>\n    <loc>https://nerq.ai/safe/{_esc(_slug)}</loc>\n'
-                    f'    <lastmod>{_lastmod}</lastmod>\n'
+                    f'{_lm_xml}'
                     f'    <changefreq>daily</changefreq>\n    <priority>0.9</priority>\n  </url>\n')
         xml += '</urlset>'
         return Response(content=xml, media_type="application/xml")

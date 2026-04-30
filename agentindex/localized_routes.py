@@ -12574,7 +12574,8 @@ def mount_localized_routes(app):
         session = get_session()
         try:
             rows = session.execute(text(f"""
-                SELECT slug FROM software_registry
+                SELECT slug, COALESCE(updated_at, created_at) AS lm
+                FROM software_registry
                 WHERE trust_score IS NOT NULL AND trust_score > 0
                   AND description IS NOT NULL AND description != ''
                   AND LENGTH(description) > 20 {_reg_filter}
@@ -12586,23 +12587,25 @@ def mount_localized_routes(app):
         if not rows:
             return Response('<?xml version="1.0"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"/>', media_type="application/xml")
 
-        now = date.today().isoformat()
         pat = URL_PATTERNS.get(lang, {}).get("is_safe", "is-{slug}-safe")
         xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
         xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n'
         for r in rows:
             slug = r[0]
+            real_dt = r[1]
+            lm_str = real_dt.strftime("%Y-%m-%d") if real_dt else None
+            lm_xml = f"<lastmod>{lm_str}</lastmod>" if lm_str else ""
             # URL 1: /{lang}/safe/{slug} (high priority — direct safety page)
             safe_url = f"{SITE}/{lang}/safe/{_esc(slug)}"
             en_safe = f"{SITE}/safe/{_esc(slug)}"
-            xml += (f'<url><loc>{safe_url}</loc><lastmod>{now}</lastmod><changefreq>weekly</changefreq><priority>0.8</priority>'
+            xml += (f'<url><loc>{safe_url}</loc>{lm_xml}<changefreq>weekly</changefreq><priority>0.8</priority>'
                     f'\n  <xhtml:link rel="alternate" hreflang="en" href="{en_safe}"/>'
                     f'\n  <xhtml:link rel="alternate" hreflang="{lang}" href="{safe_url}"/>'
                     f'</url>\n')
             # URL 2: /{lang}/{localized-slug} (localized pattern URL)
             loc_url = f"{SITE}/{lang}/{pat.format(slug=slug)}"
             en_url = f"{SITE}/is-{_esc(slug)}-safe"
-            xml += (f'<url><loc>{_esc(loc_url)}</loc><lastmod>{now}</lastmod><changefreq>weekly</changefreq><priority>0.6</priority>'
+            xml += (f'<url><loc>{_esc(loc_url)}</loc>{lm_xml}<changefreq>weekly</changefreq><priority>0.6</priority>'
                     f'\n  <xhtml:link rel="alternate" hreflang="en" href="{en_url}"/>'
                     f'\n  <xhtml:link rel="alternate" hreflang="{lang}" href="{_esc(loc_url)}"/>'
                     f'</url>\n')

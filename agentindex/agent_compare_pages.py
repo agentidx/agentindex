@@ -1059,10 +1059,16 @@ def _render_compare_page(slug, pair_info):
 
     # Render template
     html = (TEMPLATE_DIR / "agent_compare_page.html").read_text()
+    try:
+        from agentindex.nerq_design import render_hreflang as _rh
+        _hreflang_html = _rh(f"/compare/{slug}")
+    except Exception:
+        _hreflang_html = ""
     replacements = {
         "{{ title }}": _esc(title),
         "{{ meta_description }}": _esc(meta_desc),
         "{{ slug }}": _esc(slug),
+        "{{ hreflang_html }}": _hreflang_html,
         "{{ name_a }}": _esc(name_a),
         "{{ name_b }}": _esc(name_b),
         "{{ name_a_raw }}": _esc(full_a),

@@ -60,14 +60,19 @@ def get_npm_agents():
     """Get agents with npm packages from PostgreSQL."""
     conn = psycopg2.connect(DB_URL)
     cur = conn.cursor()
-    # Get agents with npm source — source_id IS the package name
+    # Get agents with npm source — source_id IS the package name.
+    # Schema-drift fix 2026-04-30:
+    #   - entity_lookup has no source_id column → query agents instead.
+    #   - DISTINCT ON requires a sort on (source_id, trust_score) over the
+    #     full agents table (~5M rows) and times out → drop it. NPM
+    #     source_id is already unique per package on this side.
     cur.execute("""
-        SELECT DISTINCT ON (source_id)
-            id::text, source_id, name, trust_score
-        FROM entity_lookup
-        WHERE source IN ('npm', 'npm_full')
-        AND source_id IS NOT NULL AND source_id != ''
-        ORDER BY source_id, trust_score DESC NULLS LAST
+        SELECT a.id::text, a.source_id, a.name, a.trust_score
+        FROM agents a
+        WHERE a.source IN ('npm', 'npm_full')
+          AND a.source_id IS NOT NULL AND a.source_id != ''
+          AND a.is_active = true
+        ORDER BY a.trust_score DESC NULLS LAST
         LIMIT %s
     """, (MAX_AGENTS,))
     rows = cur.fetchall()

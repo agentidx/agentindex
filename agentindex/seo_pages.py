@@ -399,17 +399,43 @@ def mount_seo_pages(app):
                 "AND agent_type IN ('agent', 'mcp_server', 'tool')"
             )).scalar() or 0)
             chunks = math.ceil(total / 50000)
-            now = datetime.utcnow().strftime("%Y-%m-%d")
+
+            # Real per-category MAX(updated_at) — never "today" as default.
+            # Single query: 9 rows back, mapped into agent_type → date string.
+            lastmod_rows = session.execute(text(
+                "SELECT agent_type, MAX(updated_at)::date AS lm "
+                "FROM entity_lookup WHERE is_active = true "
+                "AND updated_at IS NOT NULL "
+                "GROUP BY agent_type"
+            )).fetchall()
+            lm_by_type = {r[0]: r[1].strftime("%Y-%m-%d") for r in lastmod_rows if r[0] and r[1]}
+
+            # MAX over agent/tool/mcp_server combined (used by sitemap-agents-N)
+            agent_combined_lm = max(
+                (lm_by_type[t] for t in ("agent", "tool", "mcp_server") if t in lm_by_type),
+                default=None,
+            )
+            # MAX across all entity_lookup (used by sitemap-entities)
+            entity_lm = max(lm_by_type.values(), default=None)
+
+            def _lm(date_str):
+                """Wrap a date string in <lastmod>…</lastmod> or empty if unknown."""
+                return f"<lastmod>{date_str}</lastmod>" if date_str else ""
 
             xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
             xml += '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
 
-            # Static pages sitemap
-            xml += f'  <sitemap><loc>{SITE_URL}/sitemap-static.xml</loc><lastmod>{now}</lastmod></sitemap>\n'
-            xml += f'  <sitemap><loc>{SITE_URL}/sitemap-comparisons.xml</loc><lastmod>{now}</lastmod></sitemap>\n'
-            xml += f'  <sitemap><loc>{SITE_URL}/sitemap-vs.xml</loc><lastmod>{now}</lastmod></sitemap>\n'
-            # L4 machine-readable endpoint patterns (5 entries, one per family)
-            xml += f'  <sitemap><loc>{SITE_URL}/sitemap-endpoints.xml</loc><lastmod>{now}</lastmod></sitemap>\n'
+            # Static / programmatic-SEO sub-sitemaps: no per-row DB source for
+            # lastmod, so omit lastmod entirely (Google treats unknown lastmod
+            # as "must check" rather than as a freshness lie).
+            for path in (
+                "/sitemap-static.xml",
+                "/sitemap-comparisons.xml",
+                "/sitemap-vs.xml",
+                "/sitemap-endpoints.xml",
+            ):
+                xml += f'  <sitemap><loc>{SITE_URL}{path}</loc></sitemap>\n'
+
             # Safe pages: chunked at 50K each (576K+ slugs)
             try:
                 import agentindex.agent_safety_pages as _asp
@@ -417,64 +443,75 @@ def mount_seo_pages(app):
                 safe_total = len(_asp._slug_list)
             except Exception:
                 safe_total = 50000  # fallback
-            safe_chunks = max(1, -(-safe_total // 50000))  # ceil division
-            xml += f'  <sitemap><loc>{SITE_URL}/sitemap-safe.xml</loc><lastmod>{now}</lastmod></sitemap>\n'
+            safe_chunks = max(1, -(-safe_total // 50000))
+            xml += f'  <sitemap><loc>{SITE_URL}/sitemap-safe.xml</loc></sitemap>\n'
             for sc in range(1, safe_chunks):
-                xml += f'  <sitemap><loc>{SITE_URL}/sitemap-safe-{sc}.xml</loc><lastmod>{now}</lastmod></sitemap>\n'
+                xml += f'  <sitemap><loc>{SITE_URL}/sitemap-safe-{sc}.xml</loc></sitemap>\n'
 
-            xml += f'  <sitemap><loc>{SITE_URL}/sitemap-compare.xml</loc><lastmod>{now}</lastmod></sitemap>\n'
-            xml += f'  <sitemap><loc>{SITE_URL}/sitemap-mcp.xml</loc><lastmod>{now}</lastmod></sitemap>\n'
+            xml += f'  <sitemap><loc>{SITE_URL}/sitemap-compare.xml</loc></sitemap>\n'
+            mcp_lm = lm_by_type.get("mcp_server")
+            xml += f'  <sitemap><loc>{SITE_URL}/sitemap-mcp.xml</loc>{_lm(mcp_lm)}</sitemap>\n'
 
-            # Programmatic SEO sitemaps
-            xml += f'  <sitemap><loc>{SITE_URL}/sitemap-compare-pages.xml</loc><lastmod>{now}</lastmod></sitemap>\n'
-            xml += f'  <sitemap><loc>{SITE_URL}/sitemap-best.xml</loc><lastmod>{now}</lastmod></sitemap>\n'
-            xml += f'  <sitemap><loc>{SITE_URL}/sitemap-best-localized.xml</loc><lastmod>{now}</lastmod></sitemap>\n'
-            xml += f'  <sitemap><loc>{SITE_URL}/sitemap-alternatives.xml</loc><lastmod>{now}</lastmod></sitemap>\n'
-            xml += f'  <sitemap><loc>{SITE_URL}/sitemap-guides.xml</loc><lastmod>{now}</lastmod></sitemap>\n'
-            xml += f'  <sitemap><loc>{SITE_URL}/sitemap-trending.xml</loc><lastmod>{now}</lastmod></sitemap>\n'
-            # Model sitemaps (chunked at 50K each)
-            xml += f'  <sitemap><loc>{SITE_URL}/sitemap-models.xml</loc><lastmod>{now}</lastmod></sitemap>\n'
+            for path in (
+                "/sitemap-compare-pages.xml",
+                "/sitemap-best.xml",
+                "/sitemap-best-localized.xml",
+                "/sitemap-alternatives.xml",
+                "/sitemap-guides.xml",
+                "/sitemap-trending.xml",
+            ):
+                xml += f'  <sitemap><loc>{SITE_URL}{path}</loc></sitemap>\n'
+
+            # Model sitemaps — real lastmod from entity_lookup model rows
+            model_lm = lm_by_type.get("model")
+            xml += f'  <sitemap><loc>{SITE_URL}/sitemap-models.xml</loc>{_lm(model_lm)}</sitemap>\n'
             for mc in range(1, 8):
-                xml += f'  <sitemap><loc>{SITE_URL}/sitemap-models-{mc}.xml</loc><lastmod>{now}</lastmod></sitemap>\n'
+                xml += f'  <sitemap><loc>{SITE_URL}/sitemap-models-{mc}.xml</loc>{_lm(model_lm)}</sitemap>\n'
 
-            xml += f'  <sitemap><loc>{SITE_URL}/sitemap-blog.xml</loc><lastmod>{now}</lastmod></sitemap>\n'
-            xml += f'  <sitemap><loc>{SITE_URL}/sitemap-answers.xml</loc><lastmod>{now}</lastmod></sitemap>\n'
+            xml += f'  <sitemap><loc>{SITE_URL}/sitemap-blog.xml</loc></sitemap>\n'
+            xml += f'  <sitemap><loc>{SITE_URL}/sitemap-answers.xml</loc></sitemap>\n'
 
-            # Package sitemaps (chunked)
-            xml += f'  <sitemap><loc>{SITE_URL}/sitemap-packages.xml</loc><lastmod>{now}</lastmod></sitemap>\n'
+            # Package sitemaps (chunked) — real lastmod from package rows
+            pkg_lm = lm_by_type.get("package")
+            xml += f'  <sitemap><loc>{SITE_URL}/sitemap-packages.xml</loc>{_lm(pkg_lm)}</sitemap>\n'
             for pc in range(1, 4):
-                xml += f'  <sitemap><loc>{SITE_URL}/sitemap-packages-{pc}.xml</loc><lastmod>{now}</lastmod></sitemap>\n'
+                xml += f'  <sitemap><loc>{SITE_URL}/sitemap-packages-{pc}.xml</loc>{_lm(pkg_lm)}</sitemap>\n'
 
-            xml += f'  <sitemap><loc>{SITE_URL}/sitemap-safety.xml</loc><lastmod>{now}</lastmod></sitemap>\n'
-            xml += f'  <sitemap><loc>{SITE_URL}/sitemap-fresh.xml</loc><lastmod>{now}</lastmod></sitemap>\n'
+            xml += f'  <sitemap><loc>{SITE_URL}/sitemap-safety.xml</loc></sitemap>\n'
+            xml += f'  <sitemap><loc>{SITE_URL}/sitemap-fresh.xml</loc></sitemap>\n'
 
-            # Phase 2+3 asset sitemaps
-            xml += f'  <sitemap><loc>{SITE_URL}/sitemap-spaces.xml</loc><lastmod>{now}</lastmod></sitemap>\n'
-            xml += f'  <sitemap><loc>{SITE_URL}/sitemap-containers.xml</loc><lastmod>{now}</lastmod></sitemap>\n'
-            xml += f'  <sitemap><loc>{SITE_URL}/sitemap-datasets.xml</loc><lastmod>{now}</lastmod></sitemap>\n'
-            xml += f'  <sitemap><loc>{SITE_URL}/sitemap-orgs.xml</loc><lastmod>{now}</lastmod></sitemap>\n'
+            # Phase 2+3 asset sitemaps — real lastmod per agent_type
+            xml += f'  <sitemap><loc>{SITE_URL}/sitemap-spaces.xml</loc>{_lm(lm_by_type.get("space"))}</sitemap>\n'
+            xml += f'  <sitemap><loc>{SITE_URL}/sitemap-containers.xml</loc>{_lm(lm_by_type.get("container"))}</sitemap>\n'
+            xml += f'  <sitemap><loc>{SITE_URL}/sitemap-datasets.xml</loc>{_lm(lm_by_type.get("dataset"))}</sitemap>\n'
+            xml += f'  <sitemap><loc>{SITE_URL}/sitemap-orgs.xml</loc></sitemap>\n'
 
-            xml += f'  <sitemap><loc>{SITE_URL}/sitemap-ai-adoption.xml</loc><lastmod>{now}</lastmod></sitemap>\n'
-            xml += f'  <sitemap><loc>{SITE_URL}/sitemap-entities.xml</loc><lastmod>{now}</lastmod></sitemap>\n'
-            xml += f'  <sitemap><loc>{SITE_URL}/sitemap-what-is.xml</loc><lastmod>{now}</lastmod></sitemap>\n'
-            xml += f'  <sitemap><loc>{SITE_URL}/sitemap-stacks.xml</loc><lastmod>{now}</lastmod></sitemap>\n'
-            xml += f'  <sitemap><loc>{SITE_URL}/sitemap-reviews.xml</loc><lastmod>{now}</lastmod></sitemap>\n'
-            xml += f'  <sitemap><loc>{SITE_URL}/sitemap-migrate.xml</loc><lastmod>{now}</lastmod></sitemap>\n'
-            xml += f'  <sitemap><loc>{SITE_URL}/sitemap-issues.xml</loc><lastmod>{now}</lastmod></sitemap>\n'
-            xml += f'  <sitemap><loc>{SITE_URL}/sitemap-ai-interest.xml</loc><lastmod>{now}</lastmod></sitemap>\n'
-            xml += f'  <sitemap><loc>{SITE_URL}/sitemap-profiles.xml</loc><lastmod>{now}</lastmod></sitemap>\n'
-
-            xml += f'  <sitemap><loc>{SITE_URL}/sitemap-hubs.xml</loc><lastmod>{now}</lastmod></sitemap>\n'
-            xml += f'  <sitemap><loc>{SITE_URL}/sitemap-tier1.xml</loc><lastmod>{now}</lastmod></sitemap>\n'
-            xml += f'  <sitemap><loc>{SITE_URL}/sitemap-tier2.xml</loc><lastmod>{now}</lastmod></sitemap>\n'
+            for path in (
+                "/sitemap-ai-adoption.xml",
+            ):
+                xml += f'  <sitemap><loc>{SITE_URL}{path}</loc></sitemap>\n'
+            xml += f'  <sitemap><loc>{SITE_URL}/sitemap-entities.xml</loc>{_lm(entity_lm)}</sitemap>\n'
+            for path in (
+                "/sitemap-what-is.xml",
+                "/sitemap-stacks.xml",
+                "/sitemap-reviews.xml",
+                "/sitemap-migrate.xml",
+                "/sitemap-issues.xml",
+                "/sitemap-ai-interest.xml",
+                "/sitemap-profiles.xml",
+                "/sitemap-hubs.xml",
+                "/sitemap-tier1.xml",
+                "/sitemap-tier2.xml",
+            ):
+                xml += f'  <sitemap><loc>{SITE_URL}{path}</loc></sitemap>\n'
             for tc in range(15):
-                xml += f'  <sitemap><loc>{SITE_URL}/sitemap-tier3-{tc}.xml</loc><lastmod>{now}</lastmod></sitemap>\n'
+                xml += f'  <sitemap><loc>{SITE_URL}/sitemap-tier3-{tc}.xml</loc></sitemap>\n'
 
-            # Agent page sitemaps (chunked at 50K each — only agents/tools/mcp)
+            # Agent page sitemaps — real combined lastmod over agent/tool/mcp_server
             for i in range(chunks):
-                xml += f'  <sitemap><loc>{SITE_URL}/sitemap-agents-{i}.xml</loc><lastmod>{now}</lastmod></sitemap>\n'
+                xml += f'  <sitemap><loc>{SITE_URL}/sitemap-agents-{i}.xml</loc>{_lm(agent_combined_lm)}</sitemap>\n'
 
-            # Language-specific sitemaps (21 languages × chunked at 50K each)
+            # Language-specific sitemaps — real lastmod from software_registry
             try:
                 from agentindex.localized_routes import SUPPORTED_LANGS as _SL
                 _lang_total = session.execute(text(
@@ -484,12 +521,17 @@ def mount_seo_pages(app):
                     "AND LENGTH(description) > 20"
                 )).scalar() or 0
                 _lang_chunks = max(1, -(-_lang_total // 50000))
-                _SITEMAP_EXCLUDE = set()  # All languages now translated
+                _sw_lm_row = session.execute(text(
+                    "SELECT MAX(updated_at)::date FROM software_registry "
+                    "WHERE trust_score IS NOT NULL AND trust_score > 0"
+                )).scalar()
+                _sw_lm = _sw_lm_row.strftime("%Y-%m-%d") if _sw_lm_row else None
+                _SITEMAP_EXCLUDE = set()
                 for _lang in _SL:
                     if _lang in _SITEMAP_EXCLUDE:
                         continue
                     for _lc in range(_lang_chunks):
-                        xml += f'  <sitemap><loc>{SITE_URL}/sitemap-lang-{_lang}-{_lc}.xml</loc><lastmod>{now}</lastmod></sitemap>\n'
+                        xml += f'  <sitemap><loc>{SITE_URL}/sitemap-lang-{_lang}-{_lc}.xml</loc>{_lm(_sw_lm)}</sitemap>\n'
             except (ImportError, Exception):
                 pass
 
@@ -503,7 +545,9 @@ def mount_seo_pages(app):
     # ================================================================
     @app.get("/sitemap-static.xml", response_class=Response)
     def sitemap_static():
-        now = datetime.utcnow().strftime("%Y-%m-%d")
+        # Static page list — no per-URL DB source for updated_at, so omit
+        # <lastmod> entirely. Google: omitted lastmod = "must check" (honest)
+        # while a moving "today" is treated as a freshness lie under HCU.
         pages = [
             ("", "1.0", "daily"),
             ("/discover", "0.9", "daily"),
@@ -539,7 +583,7 @@ def mount_seo_pages(app):
         xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
         xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
         for path, prio, freq in pages:
-            xml += f'  <url><loc>{SITE_URL}{path}</loc><lastmod>{now}</lastmod><changefreq>{freq}</changefreq><priority>{prio}</priority></url>\n'
+            xml += f'  <url><loc>{SITE_URL}{path}</loc><changefreq>{freq}</changefreq><priority>{prio}</priority></url>\n'
         xml += '</urlset>'
         return Response(content=xml, media_type="application/xml")
 
@@ -552,8 +596,11 @@ def mount_seo_pages(app):
         try:
             offset = chunk * 50000
             # Only include actual agents, tools, and MCP servers (not models/datasets/spaces)
+            # Pull both updated_at and first_indexed; if updated_at missing, fall back to
+            # first_indexed (per user spec: never "today" as default).
             rows = session.execute(text(
-                "SELECT id, name, updated_at, trust_score_v2 FROM entity_lookup WHERE is_active = true "
+                "SELECT id, name, updated_at, first_indexed, trust_score_v2 "
+                "FROM entity_lookup WHERE is_active = true "
                 "AND agent_type IN ('agent', 'mcp_server', 'tool') "
                 "ORDER BY COALESCE(trust_score_v2, trust_score) DESC NULLS LAST, id "
                 "LIMIT 50000 OFFSET :offset"
@@ -561,18 +608,21 @@ def mount_seo_pages(app):
 
             xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
             xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
-            for agent_id, name, last_crawled, trust_score in rows:
-                lastmod = last_crawled.strftime("%Y-%m-%d") if last_crawled else datetime.utcnow().strftime("%Y-%m-%d")
+            for agent_id, name, updated_at, first_indexed, trust_score in rows:
+                real_dt = updated_at or first_indexed
+                lastmod_xml = (
+                    f"<lastmod>{real_dt.strftime('%Y-%m-%d')}</lastmod>"
+                    if real_dt else ""
+                )
                 prio = "0.8" if (trust_score and trust_score >= 70) else "0.6"
                 # Only /safe/{slug} — avoids duplicate with /agent/{uuid} and stays under 50K
                 if name:
                     slug = name.lower().replace("/", "").replace(" ", "-").replace("_", "-").strip("-")
-                    # XML-escape special characters in slugs
                     slug = slug.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
                     if slug:
-                        xml += f'  <url><loc>{SITE_URL}/safe/{slug}</loc><lastmod>{lastmod}</lastmod><changefreq>weekly</changefreq><priority>{prio}</priority></url>\n'
+                        xml += f'  <url><loc>{SITE_URL}/safe/{slug}</loc>{lastmod_xml}<changefreq>weekly</changefreq><priority>{prio}</priority></url>\n'
                         continue
-                xml += f'  <url><loc>{SITE_URL}/agent/{agent_id}</loc><lastmod>{lastmod}</lastmod><changefreq>weekly</changefreq><priority>{prio}</priority></url>\n'
+                xml += f'  <url><loc>{SITE_URL}/agent/{agent_id}</loc>{lastmod_xml}<changefreq>weekly</changefreq><priority>{prio}</priority></url>\n'
             xml += '</urlset>'
             return Response(content=xml, media_type="application/xml")
         finally:

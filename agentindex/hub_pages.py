@@ -338,7 +338,8 @@ def mount_hub_pages(app):
         session = get_session()
         try:
             rows = session.execute(text("""
-                SELECT slug, registry FROM software_registry
+                SELECT slug, registry, COALESCE(updated_at, created_at) AS lm
+                FROM software_registry
                 WHERE trust_score IS NOT NULL
                 ORDER BY COALESCE(downloads, 0) DESC LIMIT 1000
             """)).fetchall()
@@ -347,11 +348,12 @@ def mount_hub_pages(app):
 
         xml = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
         for r in rows:
-            slug, reg = r[0], r[1]
-            # Multiple URL patterns per entity
+            slug, reg, lm = r[0], r[1], r[2]
+            lm_str = lm.strftime("%Y-%m-%d") if lm else None
+            lm_xml = f"<lastmod>{lm_str}</lastmod>" if lm_str else ""
             for pattern in [f"/{reg}/{slug}", f"/is-{slug}-safe", f"/what-is/{slug}",
                           f"/review/{slug}", f"/is-{slug}-legit"]:
-                xml += f'<url><loc>{SITE}{pattern}</loc><lastmod>{TODAY}</lastmod><priority>1.0</priority></url>\n'
+                xml += f'<url><loc>{SITE}{pattern}</loc>{lm_xml}<priority>1.0</priority></url>\n'
         xml += '</urlset>'
         return Response(_sc(ck, xml), media_type="application/xml")
 
@@ -365,7 +367,8 @@ def mount_hub_pages(app):
         session = get_session()
         try:
             rows = session.execute(text("""
-                SELECT slug, registry FROM software_registry
+                SELECT slug, registry, COALESCE(updated_at, created_at) AS lm
+                FROM software_registry
                 WHERE trust_score IS NOT NULL
                 ORDER BY COALESCE(downloads, 0) DESC
                 OFFSET 1000 LIMIT 9000
@@ -375,9 +378,11 @@ def mount_hub_pages(app):
 
         xml = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
         for r in rows:
-            slug, reg = r[0], r[1]
-            xml += f'<url><loc>{SITE}/{reg}/{slug}</loc><lastmod>{TODAY}</lastmod><priority>0.8</priority></url>\n'
-            xml += f'<url><loc>{SITE}/is-{slug}-safe</loc><lastmod>{TODAY}</lastmod><priority>0.8</priority></url>\n'
+            slug, reg, lm = r[0], r[1], r[2]
+            lm_str = lm.strftime("%Y-%m-%d") if lm else None
+            lm_xml = f"<lastmod>{lm_str}</lastmod>" if lm_str else ""
+            xml += f'<url><loc>{SITE}/{reg}/{slug}</loc>{lm_xml}<priority>0.8</priority></url>\n'
+            xml += f'<url><loc>{SITE}/is-{slug}-safe</loc>{lm_xml}<priority>0.8</priority></url>\n'
         xml += '</urlset>'
         return Response(_sc(ck, xml), media_type="application/xml")
 
@@ -392,7 +397,8 @@ def mount_hub_pages(app):
         session = get_session()
         try:
             rows = session.execute(text("""
-                SELECT slug, registry FROM software_registry
+                SELECT slug, registry, COALESCE(updated_at, created_at) AS lm
+                FROM software_registry
                 WHERE trust_score IS NOT NULL
                 ORDER BY COALESCE(downloads, 0) DESC
                 OFFSET :off LIMIT 50000
@@ -406,16 +412,20 @@ def mount_hub_pages(app):
 
         xml = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
         for r in rows:
-            xml += f'<url><loc>{SITE}/{r[1]}/{r[0]}</loc><lastmod>{TODAY}</lastmod><priority>0.6</priority></url>\n'
+            lm = r[2]
+            lm_str = lm.strftime("%Y-%m-%d") if lm else None
+            lm_xml = f"<lastmod>{lm_str}</lastmod>" if lm_str else ""
+            xml += f'<url><loc>{SITE}/{r[1]}/{r[0]}</loc>{lm_xml}<priority>0.6</priority></url>\n'
         xml += '</urlset>'
         return Response(_sc(ck, xml), media_type="application/xml")
 
-    # Hub sitemap
+    # Hub sitemap — hubs are static derived pages, no DB-backed URL freshness.
+    # Omit lastmod (Google: omitted = "must check", honest).
     @app.get("/sitemap-hubs.xml", response_class=Response)
     async def sitemap_hubs():
         xml = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
         for hub_key in HUBS:
-            xml += f'<url><loc>{SITE}/{hub_key}</loc><lastmod>{TODAY}</lastmod><priority>0.9</priority></url>\n'
+            xml += f'<url><loc>{SITE}/{hub_key}</loc><priority>0.9</priority></url>\n'
         xml += '</urlset>'
         return Response(xml, media_type="application/xml")
 

@@ -546,9 +546,7 @@ MCP server: https://nerq.ai/mcp/sse
         """Dynamic master sitemap index. Google rules: max 50K URLs per
         sub-sitemap, no nested sitemap indexes."""
         import math as _math
-        from datetime import datetime as _dt
         host = (request.headers.get("host") or "").lower()
-        now = _dt.utcnow().strftime("%Y-%m-%d")
         if "nerq" in host:
             from agentindex.db.models import get_session
             from sqlalchemy.sql import text as _sa_text
@@ -568,64 +566,89 @@ MCP server: https://nerq.ai/mcp/sse
                     "AND trust_score_v2 IS NOT NULL"
                 )).scalar() or 0)
                 safe_chunks = max(1, _math.ceil(safe_total / 50000))
+
+                # Real per-source MAX(updated_at) — never "today" as default.
+                _agent_lm_row = session.execute(_sa_text(
+                    "SELECT MAX(updated_at)::date FROM entity_lookup "
+                    "WHERE is_active = true AND updated_at IS NOT NULL "
+                    "AND agent_type IN ('agent','mcp_server','tool')"
+                )).scalar()
+                agent_lm = _agent_lm_row.strftime("%Y-%m-%d") if _agent_lm_row else None
+                _mcp_lm_row = session.execute(_sa_text(
+                    "SELECT MAX(updated_at)::date FROM entity_lookup "
+                    "WHERE is_active = true AND updated_at IS NOT NULL "
+                    "AND agent_type = 'mcp_server'"
+                )).scalar()
+                mcp_lm = _mcp_lm_row.strftime("%Y-%m-%d") if _mcp_lm_row else None
+                _sw_lm_row = session.execute(_sa_text(
+                    "SELECT MAX(updated_at)::date FROM software_registry"
+                )).scalar()
+                sw_lm = _sw_lm_row.strftime("%Y-%m-%d") if _sw_lm_row else None
             finally:
                 session.close()
 
+            def _lm(date_str):
+                return f"<lastmod>{date_str}</lastmod>" if date_str else ""
+
+            # Software registry tier chunks
+            try:
+                from agentindex.db.models import get_session as _gs
+                _sess2 = _gs()
+                try:
+                    tier3_total = int(_sess2.execute(_sa_text(
+                        "SELECT COUNT(*) FROM software_registry"
+                    )).scalar() or 0)
+                finally:
+                    _sess2.close()
+                tier3_chunks = max(0, _math.ceil((tier3_total - 10000) / 50000))
+            except Exception:
+                tier3_chunks = 0
+
             xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
             xml += '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
-            xml += f'  <sitemap><loc>https://nerq.ai/sitemap-static.xml</loc><lastmod>{now}</lastmod></sitemap>\n'
-            xml += f'  <sitemap><loc>https://nerq.ai/sitemap-mcp.xml</loc><lastmod>{now}</lastmod></sitemap>\n'
-            xml += f'  <sitemap><loc>https://nerq.ai/sitemap-comparisons.xml</loc><lastmod>{now}</lastmod></sitemap>\n'
-            xml += f'  <sitemap><loc>https://nerq.ai/sitemap-vs.xml</loc><lastmod>{now}</lastmod></sitemap>\n'
-            xml += f'  <sitemap><loc>https://nerq.ai/sitemap-compare.xml</loc><lastmod>{now}</lastmod></sitemap>\n'
-            xml += f'  <sitemap><loc>https://nerq.ai/sitemap-safety.xml</loc><lastmod>{now}</lastmod></sitemap>\n'
+            # No DB source for static/promo sub-sitemaps → omit lastmod.
+            xml += '  <sitemap><loc>https://nerq.ai/sitemap-static.xml</loc></sitemap>\n'
+            xml += f'  <sitemap><loc>https://nerq.ai/sitemap-mcp.xml</loc>{_lm(mcp_lm)}</sitemap>\n'
+            xml += '  <sitemap><loc>https://nerq.ai/sitemap-comparisons.xml</loc></sitemap>\n'
+            xml += '  <sitemap><loc>https://nerq.ai/sitemap-vs.xml</loc></sitemap>\n'
+            xml += '  <sitemap><loc>https://nerq.ai/sitemap-compare.xml</loc></sitemap>\n'
+            xml += '  <sitemap><loc>https://nerq.ai/sitemap-safety.xml</loc></sitemap>\n'
             for i in range(safe_chunks):
                 suffix = f"-{i}" if safe_chunks > 1 else ""
-                xml += f'  <sitemap><loc>https://nerq.ai/sitemap-safe{suffix}.xml</loc><lastmod>{now}</lastmod></sitemap>\n'
+                xml += f'  <sitemap><loc>https://nerq.ai/sitemap-safe{suffix}.xml</loc>{_lm(agent_lm)}</sitemap>\n'
             for i in range(agent_chunks):
-                xml += f'  <sitemap><loc>https://nerq.ai/sitemap-agents-{i}.xml</loc><lastmod>{now}</lastmod></sitemap>\n'
+                xml += f'  <sitemap><loc>https://nerq.ai/sitemap-agents-{i}.xml</loc>{_lm(agent_lm)}</sitemap>\n'
             # Software registry sitemaps (enriched packages, apps, etc.)
-            xml += f'  <sitemap><loc>https://nerq.ai/sitemap-tier1.xml</loc><lastmod>{now}</lastmod></sitemap>\n'
-            xml += f'  <sitemap><loc>https://nerq.ai/sitemap-tier2.xml</loc><lastmod>{now}</lastmod></sitemap>\n'
-            # Tier 3 chunks (50K URLs each, covers all remaining entities)
-            try:
-                tier3_total = int(session.execute(_sa_text(
-                    "SELECT COUNT(*) FROM software_registry"
-                )).scalar() or 0)
-                tier3_chunks = max(0, _math.ceil((tier3_total - 10000) / 50000))  # tier1+tier2 cover first 10K
-                for i in range(tier3_chunks):
-                    xml += f'  <sitemap><loc>https://nerq.ai/sitemap-tier3-{i}.xml</loc><lastmod>{now}</lastmod></sitemap>\n'
-            except Exception:
-                pass
-            xml += f'  <sitemap><loc>https://nerq.ai/sitemap-hubs.xml</loc><lastmod>{now}</lastmod></sitemap>\n'
-            # Demand pages (what-is, reviews, guides, etc.)
-            xml += f'  <sitemap><loc>https://nerq.ai/sitemap-what-is.xml</loc><lastmod>{now}</lastmod></sitemap>\n'
-            xml += f'  <sitemap><loc>https://nerq.ai/sitemap-reviews.xml</loc><lastmod>{now}</lastmod></sitemap>\n'
-            xml += f'  <sitemap><loc>https://nerq.ai/sitemap-guides-curated.xml</loc><lastmod>{now}</lastmod></sitemap>\n'
-            xml += f'  <sitemap><loc>https://nerq.ai/sitemap-localized.xml</loc><lastmod>{now}</lastmod></sitemap>\n'
+            xml += f'  <sitemap><loc>https://nerq.ai/sitemap-tier1.xml</loc>{_lm(sw_lm)}</sitemap>\n'
+            xml += f'  <sitemap><loc>https://nerq.ai/sitemap-tier2.xml</loc>{_lm(sw_lm)}</sitemap>\n'
+            for i in range(tier3_chunks):
+                xml += f'  <sitemap><loc>https://nerq.ai/sitemap-tier3-{i}.xml</loc>{_lm(sw_lm)}</sitemap>\n'
+            xml += '  <sitemap><loc>https://nerq.ai/sitemap-hubs.xml</loc></sitemap>\n'
+            # Demand pages (what-is, reviews, guides, etc.) — no DB source.
+            xml += '  <sitemap><loc>https://nerq.ai/sitemap-what-is.xml</loc></sitemap>\n'
+            xml += '  <sitemap><loc>https://nerq.ai/sitemap-reviews.xml</loc></sitemap>\n'
+            xml += '  <sitemap><loc>https://nerq.ai/sitemap-guides-curated.xml</loc></sitemap>\n'
+            xml += '  <sitemap><loc>https://nerq.ai/sitemap-localized.xml</loc></sitemap>\n'
             xml += '</sitemapindex>'
         else:
-            xml = f"""<?xml version="1.0" encoding="UTF-8"?>
+            # ZARQ branch: omit lastmod (no per-row DB source mapped here).
+            # Sub-sitemap routes will carry real lastmod per URL.
+            xml = """<?xml version="1.0" encoding="UTF-8"?>
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <sitemap>
     <loc>https://zarq.ai/sitemap-pages.xml</loc>
-    <lastmod>{now}</lastmod>
   </sitemap>
   <sitemap>
     <loc>https://zarq.ai/sitemap-crypto.xml</loc>
-    <lastmod>{now}</lastmod>
   </sitemap>
   <sitemap>
     <loc>https://zarq.ai/sitemap-compare.xml</loc>
-    <lastmod>{now}</lastmod>
   </sitemap>
   <sitemap>
     <loc>https://zarq.ai/sitemap-tokens.xml</loc>
-    <lastmod>{now}</lastmod>
   </sitemap>
   <sitemap>
     <loc>https://zarq.ai/sitemap-zarq-content.xml</loc>
-    <lastmod>{now}</lastmod>
   </sitemap>
 </sitemapindex>"""
         return Response(content=xml, media_type="application/xml")

@@ -124,7 +124,17 @@ def fetch_github_stars(repo_url):
 
 def run(batch_size=10000, dry_run=False):
     state = _load_state()
-    conn = psycopg2.connect(DB_DSN, options="-c statement_timeout=30000 -c application_name=nerq_enricher")
+    # TCP keepalives: this run can take 30+ minutes; without keepalives,
+    # network middleboxes silently drop the SSL connection and the final
+    # report query fails with "SSL connection has been closed unexpectedly".
+    conn = psycopg2.connect(
+        DB_DSN,
+        options="-c statement_timeout=30000 -c application_name=nerq_enricher",
+        keepalives=1,
+        keepalives_idle=60,
+        keepalives_interval=10,
+        keepalives_count=6,
+    )
     conn.autocommit = True
     cur = conn.cursor()
 

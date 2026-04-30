@@ -105,6 +105,18 @@ def _page(title: str, body: str, desc: str = "", canonical: str = "",
     canon = f'<link rel="canonical" href="{canonical}">' if canonical else ""
     meta_desc = f'<meta name="description" content="{html.escape(desc)}">' if desc else ""
     ld = f'<script type="application/ld+json">{jsonld}</script>' if jsonld else ""
+    # Auto-emit hreflang from the canonical's path so /model, /package,
+    # /compare, etc. match /safe — fixes per-section hreflang inconsistency.
+    hreflang_html = ""
+    if canonical:
+        try:
+            from agentindex.nerq_design import render_hreflang as _rh
+            from urllib.parse import urlparse as _up
+            _path = _up(canonical).path or ""
+            if _path:
+                hreflang_html = _rh(_path)
+        except Exception:
+            hreflang_html = ""
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -114,6 +126,7 @@ def _page(title: str, body: str, desc: str = "", canonical: str = "",
 {meta_desc}
 <meta name="robots" content="{robots}">
 {canon}
+{hreflang_html}
 {ld}
 <style>{NERQ_CSS}</style>
 </head>
@@ -404,30 +417,35 @@ def mount_seo_dynamic(app):
         cache_key = f"model:{query}"
         cached = _cached(cache_key)
         if cached:
+            # Cached value is (html, lastmod_hdr) tuple after FAS 2;
+            # tolerate raw-html cache entries from older code paths too.
+            if isinstance(cached, tuple) and len(cached) == 2:
+                _html, _lm_hdr = cached
+                _h = {"Last-Modified": _lm_hdr} if _lm_hdr else {}
+                return HTMLResponse(_html, headers=_h)
             return HTMLResponse(cached)
 
         with get_db_session() as session:
             # language column needed, not in entity_lookup — use agents with guards
             session.execute(text("SET LOCAL work_mem = '2MB'; SET LOCAL statement_timeout = '5s'"))
-            # Try exact name match first
-            row = session.execute(text("""
+            _model_select = """
                 SELECT id, name, trust_score_v2, trust_grade, stars, description,
                        category, language, author, source, source_url, license,
                        security_score, activity_score, documentation_score,
-                       popularity_score, eu_risk_class, downloads, agent_type
+                       popularity_score, eu_risk_class, downloads, agent_type,
+                       COALESCE(last_crawled, first_indexed) AS lm
+            """
+            row = session.execute(text(f"""
+                {_model_select}
                 FROM agents
                 WHERE LOWER(name) = :q AND is_active = true
                 LIMIT 1
             """), {"q": query.lower()}).fetchone()
 
             if not row:
-                # Fuzzy match
                 pattern = query.replace("-", "%").replace("/", "%")
-                row = session.execute(text("""
-                    SELECT id, name, trust_score_v2, trust_grade, stars, description,
-                           category, language, author, source, source_url, license,
-                           security_score, activity_score, documentation_score,
-                           popularity_score, eu_risk_class, downloads, agent_type
+                row = session.execute(text(f"""
+                    {_model_select}
                     FROM agents
                     WHERE LOWER(name) LIKE :p AND is_active = true
                       AND (source = 'huggingface' OR category IN ('model', 'dataset')
@@ -437,13 +455,9 @@ def mount_seo_dynamic(app):
                 """), {"p": f"%{pattern}%"}).fetchone()
 
             if not row:
-                # Broadest match
                 pattern = query.replace("-", "%").replace("/", "%")
-                row = session.execute(text("""
-                    SELECT id, name, trust_score_v2, trust_grade, stars, description,
-                           category, language, author, source, source_url, license,
-                           security_score, activity_score, documentation_score,
-                           popularity_score, eu_risk_class, downloads, agent_type
+                row = session.execute(text(f"""
+                    {_model_select}
                     FROM agents
                     WHERE LOWER(name) LIKE :p AND is_active = true
                     ORDER BY COALESCE(stars, 0) DESC
@@ -460,7 +474,8 @@ def mount_seo_dynamic(app):
             cols = ["id", "name", "trust_score_v2", "trust_grade", "stars", "description",
                     "category", "language", "author", "source", "source_url", "license",
                     "security_score", "activity_score", "documentation_score",
-                    "popularity_score", "eu_risk_class", "downloads", "agent_type"]
+                    "popularity_score", "eu_risk_class", "downloads", "agent_type",
+                    "lm"]
             m = dict(zip(cols, row))
 
             # Get similar models
@@ -556,8 +571,12 @@ def mount_seo_dynamic(app):
         desc = f"{m['name']}: Trust Score {_score_fmt(ts)}, Grade {html.escape(tg or 'N/A')}. Performance benchmarks, safety assessment, and alternatives compared."
 
         result = _page(title, body, desc=desc, canonical=f"{SITE}/model/{_to_slug(m['name'])}", jsonld=jsonld)
-        _set_cache(cache_key, result)
-        return HTMLResponse(result)
+        # Build Last-Modified header from real per-row date.
+        _lm_dt = m.get("lm")
+        _lm_hdr = _lm_dt.strftime("%a, %d %b %Y %H:%M:%S GMT") if _lm_dt else ""
+        _set_cache(cache_key, (result, _lm_hdr))
+        _headers = {"Last-Modified": _lm_hdr} if _lm_hdr else {}
+        return HTMLResponse(result, headers=_headers)
 
     # ── Model hub ──────────────────────────────────────────
     @app.get("/model", response_class=HTMLResponse)
@@ -635,7 +654,7 @@ def mount_seo_dynamic(app):
         offset = chunk * 50000
         with get_db_session() as session:
             rows = session.execute(text("""
-                SELECT name FROM entity_lookup
+                SELECT name, updated_at, first_indexed FROM entity_lookup
                 WHERE is_active = true AND trust_score_v2 IS NOT NULL
                   AND (agent_type = 'model' OR (source LIKE '%%huggingface%%' AND agent_type IN ('model', 'space')))
                   AND description IS NOT NULL AND LENGTH(description) > 10
@@ -647,7 +666,12 @@ def mount_seo_dynamic(app):
             return Response('<?xml version="1.0"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>',
                           media_type="application/xml")
 
-        urls = [(f"{SITE}/model/{_to_slug(r[0])}", "0.6") for r in rows]
+        urls = []
+        for r in rows:
+            name, upd, first = r[0], r[1], r[2]
+            real_dt = upd or first
+            lastmod = real_dt.strftime("%Y-%m-%d") if real_dt else None
+            urls.append((f"{SITE}/model/{_to_slug(name)}", "0.6", lastmod))
         xml = _sitemap_xml(urls)
         _set_cache(cache_key, xml)
         return Response(xml, media_type="application/xml")
@@ -778,8 +802,21 @@ def _generate_blog_posts() -> list[dict]:
     return posts
 
 
-def _sitemap_xml(urls: list[tuple[str, str]]) -> str:
+def _sitemap_xml(urls) -> str:
+    """Build a sitemap urlset.
+
+    Accepts either:
+      - (url, prio) tuples — emits no <lastmod> (honest: no DB source).
+      - (url, prio, lastmod) tuples — emits <lastmod> only when truthy.
+    Never emits a synthetic "today" date for URLs without a real source.
+    """
     entries = ""
-    for url, prio in urls:
-        entries += f"<url><loc>{html.escape(url)}</loc><lastmod>{TODAY}</lastmod><priority>{prio}</priority></url>\n"
+    for item in urls:
+        if len(item) == 3:
+            url, prio, lastmod = item
+        else:
+            url, prio = item
+            lastmod = None
+        lm_xml = f"<lastmod>{lastmod}</lastmod>" if lastmod else ""
+        entries += f"<url><loc>{html.escape(url)}</loc>{lm_xml}<priority>{prio}</priority></url>\n"
     return f'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n{entries}</urlset>'

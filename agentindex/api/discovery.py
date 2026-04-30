@@ -273,32 +273,40 @@ class PageCacheMiddleware(BaseHTTPMiddleware):
         _cc = f"public, max-age=300, s-maxage={_smaxage}, stale-while-revalidate=86400"
         _cdn_cc = f"public, max-age={_smaxage}, stale-while-revalidate=86400"
 
+        # Cache schema (FAS 2): Redis hash with fields {body, lm}.
+        # Legacy: a raw `bytes` value is body-only with no Last-Modified.
         try:
-            cached = r.get(cache_key)
-            if cached:
-                # ETag: content-hash based. Applebot and other crawlers
-                # can send If-None-Match to skip re-download on cache hit.
-                _etag = f'"{hashlib.md5(cached).hexdigest()}"'
+            _redis_type = r.type(cache_key)
+            cached_body = None
+            cached_lm = None
+            if _redis_type == b"hash":
+                _h = r.hgetall(cache_key)
+                cached_body = _h.get(b"body")
+                _lm_raw = _h.get(b"lm") or b""
+                cached_lm = _lm_raw.decode("ascii", "ignore") if _lm_raw else None
+            elif _redis_type == b"string":
+                cached_body = r.get(cache_key)  # legacy bytes-only entry
+            if cached_body:
+                _etag = f'"{hashlib.md5(cached_body).hexdigest()}"'
                 _client_etag = request.headers.get("if-none-match", "")
+                _hit_headers = {
+                    "ETag": _etag,
+                    "Cache-Control": _cc,
+                    "CDN-Cache-Control": _cdn_cc,
+                }
+                if cached_lm:
+                    _hit_headers["Last-Modified"] = cached_lm
                 if _client_etag == _etag:
                     return StarletteResponse(
                         content=b"",
                         status_code=304,
-                        headers={
-                            "ETag": _etag,
-                            "Cache-Control": _cc,
-                            "CDN-Cache-Control": _cdn_cc,
-                        }
+                        headers=_hit_headers,
                     )
+                _hit_headers["X-Cache"] = "HIT"
                 return StarletteResponse(
-                    content=cached,
+                    content=cached_body,
                     media_type="text/html; charset=utf-8",
-                    headers={
-                        "X-Cache": "HIT",
-                        "ETag": _etag,
-                        "Cache-Control": _cc,
-                        "CDN-Cache-Control": _cdn_cc,
-                    }
+                    headers=_hit_headers,
                 )
         except Exception:
             return await call_next(request)
@@ -309,23 +317,33 @@ class PageCacheMiddleware(BaseHTTPMiddleware):
             body = b""
             async for chunk in response.body_iterator:
                 body += chunk
+            # Preserve the route's Last-Modified header through the cache layer.
+            _route_lm = response.headers.get("last-modified") or response.headers.get("Last-Modified") or ""
             try:
-                if len(body) < 200_000:  # Don't cache huge pages
-                    r.setex(cache_key, self._TTL, body)
+                if len(body) < 200_000:
+                    _mapping = {b"body": body}
+                    if _route_lm:
+                        _mapping[b"lm"] = _route_lm.encode("ascii", "ignore")
+                    # Replace any legacy string entry with a fresh hash.
+                    r.delete(cache_key)
+                    r.hset(cache_key, mapping=_mapping)
+                    r.expire(cache_key, self._TTL)
             except Exception:
                 pass
-            # ETag from content hash for MISS response
             _etag = f'"{hashlib.md5(body).hexdigest()}"'
+            _miss_headers = {
+                "X-Cache": "MISS",
+                "ETag": _etag,
+                "Cache-Control": _cc,
+                "CDN-Cache-Control": _cdn_cc,
+            }
+            if _route_lm:
+                _miss_headers["Last-Modified"] = _route_lm
             return StarletteResponse(
                 content=body,
                 status_code=200,
                 media_type=response.media_type or "text/html; charset=utf-8",
-                headers={
-                    "X-Cache": "MISS",
-                    "ETag": _etag,
-                    "Cache-Control": _cc,
-                    "CDN-Cache-Control": _cdn_cc,
-                }
+                headers=_miss_headers,
             )
 
         return response

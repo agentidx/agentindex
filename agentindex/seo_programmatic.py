@@ -1799,10 +1799,21 @@ This score is based on independent analysis of security practices, maintenance a
         return HTMLResponse(_page(title, body, desc=desc, canonical=f"{SITE}/guide/{tool_slug}", jsonld=jsonld))
 
     # ── 5. Sitemaps ─────────────────────────────────────────
-    def _sitemap_xml(urls: list[tuple[str, str]]) -> str:
+    def _sitemap_xml(urls) -> str:
+        """Build a sitemap urlset.
+
+        Accepts (url, prio) or (url, prio, lastmod) tuples. lastmod is only
+        emitted if truthy — never default to "today".
+        """
         entries = ""
-        for url, prio in urls:
-            entries += f"<url><loc>{html.escape(url)}</loc><lastmod>{TODAY}</lastmod><priority>{prio}</priority></url>\n"
+        for item in urls:
+            if len(item) == 3:
+                url, prio, lastmod = item
+            else:
+                url, prio = item
+                lastmod = None
+            lm_xml = f"<lastmod>{lastmod}</lastmod>" if lastmod else ""
+            entries += f"<url><loc>{html.escape(url)}</loc>{lm_xml}<priority>{prio}</priority></url>\n"
         return f'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n{entries}</urlset>'
 
     @app.get("/sitemap-compare-pages.xml", response_class=Response)
@@ -1867,22 +1878,19 @@ This score is based on independent analysis of security practices, maintenance a
 
     @app.get("/sitemap-best-localized.xml", response_class=Response)
     async def sitemap_best_localized():
-        from datetime import date
-        now = date.today().isoformat()
         slugs = _published_best_slugs()
         _per_chunk = 10000
         _total = len(slugs) * len(_BEST_LANGS)
         _chunks = max(1, -(-_total // _per_chunk))
+        # No per-row DB source for /lang/best/{slug} — omit lastmod.
         xml = '<?xml version="1.0" encoding="UTF-8"?>\n<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
         for c in range(_chunks):
-            xml += f'  <sitemap><loc>{SITE}/sitemap-best-lang-{c}.xml</loc><lastmod>{now}</lastmod></sitemap>\n'
+            xml += f'  <sitemap><loc>{SITE}/sitemap-best-lang-{c}.xml</loc></sitemap>\n'
         xml += '</sitemapindex>'
         return Response(xml, media_type="application/xml")
 
     @app.get("/sitemap-best-lang-{chunk}.xml", response_class=Response)
     async def sitemap_best_lang_chunk(chunk: int):
-        from datetime import date
-        now = date.today().isoformat()
         _per_chunk = 10000
         slugs = _published_best_slugs()
         all_urls = []
@@ -1895,7 +1903,7 @@ This score is based on independent analysis of security practices, maintenance a
             return Response('<?xml version="1.0"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"/>', media_type="application/xml")
         xml = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
         for url in batch:
-            xml += f'<url><loc>{url}</loc><lastmod>{now}</lastmod><priority>0.6</priority></url>\n'
+            xml += f'<url><loc>{url}</loc><priority>0.6</priority></url>\n'
         xml += '</urlset>'
         return Response(xml, media_type="application/xml")
 

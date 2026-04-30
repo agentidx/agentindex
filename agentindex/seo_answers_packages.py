@@ -91,10 +91,22 @@ def _page(title, body, desc="", canonical="", jsonld="", robots="index, follow")
     canon = f'<link rel="canonical" href="{canonical}">' if canonical else ""
     meta = f'<meta name="description" content="{html.escape(desc)}">' if desc else ""
     ld = f'<script type="application/ld+json">{jsonld}</script>' if jsonld else ""
+    hreflang_html = ""
+    if canonical:
+        try:
+            from agentindex.nerq_design import render_hreflang as _rh
+            from urllib.parse import urlparse as _up
+            _path = _up(canonical).path or ""
+            if _path:
+                hreflang_html = _rh(_path)
+        except Exception:
+            hreflang_html = ""
     return f"""<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{html.escape(title)}</title>{meta}
-<meta name="robots" content="{robots}">{canon}{ld}
+<meta name="robots" content="{robots}">{canon}
+{hreflang_html}
+{ld}
 <style>{NERQ_CSS}</style></head><body>{NERQ_NAV}
 <main class="container" style="padding-top:20px;padding-bottom:40px">{body}</main>
 {NERQ_FOOTER}</body></html>"""
@@ -220,6 +232,10 @@ def mount_answers_packages(app):
         cache_key = f"pkg:{query}"
         cached = _cached(cache_key)
         if cached:
+            if isinstance(cached, tuple) and len(cached) == 2:
+                _html, _lm = cached
+                _h = {"Last-Modified": _lm} if _lm else {}
+                return HTMLResponse(_html, headers=_h)
             return HTMLResponse(cached)
 
         with get_db_session() as session:
@@ -229,7 +245,8 @@ def mount_answers_packages(app):
                        el.description, el.category, a.language, el.author, el.source,
                        el.source_url, el.license, el.security_score, el.activity_score,
                        el.documentation_score, el.popularity_score, el.eu_risk_class,
-                       el.downloads, el.agent_type
+                       el.downloads, el.agent_type,
+                       COALESCE(el.updated_at, el.first_indexed) AS lm
                 FROM entity_lookup el
                 LEFT JOIN agents a ON a.id = el.id
                 WHERE (el.name_lower = :q OR el.name_lower LIKE :p) AND el.is_active = true
@@ -247,7 +264,8 @@ def mount_answers_packages(app):
             cols = ["id","name","trust_score_v2","trust_grade","stars","description",
                     "category","language","author","source","source_url","license",
                     "security_score","activity_score","documentation_score",
-                    "popularity_score","eu_risk_class","downloads","agent_type"]
+                    "popularity_score","eu_risk_class","downloads","agent_type",
+                    "lm"]
             pkg = dict(zip(cols, row))
 
             # Alternatives
@@ -348,8 +366,11 @@ curl -s "https://nerq.ai/v1/preflight?target={html.escape(pkg['name'])}" | jq '.
 {verdict}{cards}{details}{security}{ci_section}{alt_html}{faq}"""
 
         result = _page(title, body, desc=desc, canonical=f"{SITE}/package/{_to_slug(pkg['name'])}", jsonld=jsonld)
-        _set_cache(cache_key, result)
-        return HTMLResponse(result)
+        _lm_dt = pkg.get("lm")
+        _lm_hdr = _lm_dt.strftime("%a, %d %b %Y %H:%M:%S GMT") if _lm_dt else ""
+        _set_cache(cache_key, (result, _lm_hdr))
+        _h = {"Last-Modified": _lm_hdr} if _lm_hdr else {}
+        return HTMLResponse(result, headers=_h)
 
     # ── Package hub ────────────────────────────────────────
     @app.get("/package", response_class=HTMLResponse)
@@ -514,7 +535,7 @@ curl -s "https://nerq.ai/v1/preflight?target={html.escape(pkg['name'])}" | jq '.
         offset = chunk * 50000
         with get_db_session() as session:
             rows = session.execute(text("""
-                SELECT name FROM entity_lookup
+                SELECT name, updated_at, first_indexed FROM entity_lookup
                 WHERE is_active = true AND trust_score_v2 IS NOT NULL
                   AND (source LIKE '%%npm%%' OR source LIKE '%%pypi%%'
                        OR agent_type IN ('package', 'tool', 'library'))
@@ -527,21 +548,30 @@ curl -s "https://nerq.ai/v1/preflight?target={html.escape(pkg['name'])}" | jq '.
             return Response('<?xml version="1.0"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>',
                           media_type="application/xml")
 
-        urls = [(f"{SITE}/package/{_to_slug(r[0])}", "0.8") for r in rows]
+        urls = []
+        for r in rows:
+            real_dt = r[1] or r[2]
+            lm = real_dt.strftime("%Y-%m-%d") if real_dt else None
+            urls.append((f"{SITE}/package/{_to_slug(r[0])}", "0.8", lm))
         if chunk == 0:
             urls.insert(0, (f"{SITE}/packages", "0.8"))
-            # Add comparison pairs for top 500
-            pkg_names = [r[0] for r in rows[:500]]
+            # Add comparison pairs for top 500 — comparison page mtime is the
+            # MAX(updated_at) of the two underlying packages.
+            pkg_with_lm = [(r[0], r[1] or r[2]) for r in rows[:500]]
             seen_vs = set()
-            for i in range(min(500, len(pkg_names))):
-                for j in range(i + 1, min(500, len(pkg_names))):
+            for i in range(min(500, len(pkg_with_lm))):
+                for j in range(i + 1, min(500, len(pkg_with_lm))):
                     if len(seen_vs) >= 1000:
                         break
-                    sa, sb = sorted([_to_slug(pkg_names[i]), _to_slug(pkg_names[j])])
+                    name_i, dt_i = pkg_with_lm[i]
+                    name_j, dt_j = pkg_with_lm[j]
+                    sa, sb = sorted([_to_slug(name_i), _to_slug(name_j)])
                     key = f"{sa}-vs-{sb}"
                     if key not in seen_vs and sa != sb and len(sa) > 1 and len(sb) > 1:
                         seen_vs.add(key)
-                        urls.append((f"{SITE}/package/{key}", "0.7"))
+                        cmp_dt = max(d for d in (dt_i, dt_j) if d) if (dt_i or dt_j) else None
+                        cmp_lm = cmp_dt.strftime("%Y-%m-%d") if cmp_dt else None
+                        urls.append((f"{SITE}/package/{key}", "0.7", cmp_lm))
                 if len(seen_vs) >= 1000:
                     break
 
@@ -595,7 +625,18 @@ def _generate_dynamic_answer(slug: str) -> dict | None:
 
 
 def _sitemap_xml(urls):
+    """Build a sitemap urlset.
+
+    Accepts (url, prio) or (url, prio, lastmod) tuples. lastmod is only
+    emitted if truthy — never default to "today".
+    """
     entries = ""
-    for url, prio in urls:
-        entries += f"<url><loc>{html.escape(url)}</loc><lastmod>{TODAY}</lastmod><priority>{prio}</priority></url>\n"
+    for item in urls:
+        if len(item) == 3:
+            url, prio, lastmod = item
+        else:
+            url, prio = item
+            lastmod = None
+        lm_xml = f"<lastmod>{lastmod}</lastmod>" if lastmod else ""
+        entries += f"<url><loc>{html.escape(url)}</loc>{lm_xml}<priority>{prio}</priority></url>\n"
     return f'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n{entries}</urlset>'
