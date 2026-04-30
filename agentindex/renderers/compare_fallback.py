@@ -106,21 +106,13 @@ def _safety_path(slug: str) -> str:
 
 
 def _not_yet_analyzed(a: str, b: str) -> HTMLResponse:
-    dn_a = _html.escape(a.replace("-", " ").title())
-    dn_b = _html.escape(b.replace("-", " ").title())
-    body = (
-        "<!DOCTYPE html>\n<html lang=\"en\"><head>"
-        f"<title>{dn_a} vs {dn_b} — Not Yet Analyzed | Nerq</title>"
-        "<meta name=\"robots\" content=\"noindex\">"
-        "<link rel=\"stylesheet\" href=\"/static/nerq.css\">"
-        "</head><body>"
-        f"<h1>{dn_a} vs {dn_b} — Comparison Not Yet Available</h1>"
-        "<p>This comparison has been queued for analysis.</p>"
-        "<p><a href=\"/compare\">Browse comparisons</a> &middot; "
-        "<a href=\"/\">Search Nerq</a></p>"
-        "</body></html>"
+    # Hard 404 — soft-200-with-noindex was being treated as soft-404 spam
+    # under HCU. The previous "preserve crawl budget" rationale lost out
+    # to the algorithmic-action risk (FAS 4 / DEL A8, 2026-04-30).
+    return HTMLResponse(
+        "<h1>Not Found</h1><p>One or both entities are not in our index.</p>",
+        status_code=404,
     )
-    return HTMLResponse(content=body, status_code=200)
 
 
 def _queue_miss(slug_a: str, slug_b: str, reason: str) -> None:
