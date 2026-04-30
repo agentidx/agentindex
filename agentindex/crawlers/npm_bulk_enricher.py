@@ -193,9 +193,13 @@ def run(batch_size=10000, dry_run=False):
     for i in range(0, len(names), BULK_SIZE):
         chunk = names[i:i+BULK_SIZE]
         downloads = fetch_bulk_downloads(chunk)
-        for name, dl in downloads.items():
-            if dl > 0 and dl > dl_map.get(name, 0):
-                # Real download bump
+        # Walk the requested chunk, not just API responses — stale-cohort
+        # packages that npm's bulk endpoint omits (deleted/obscure pkgs)
+        # still need their updated_at bumped so the entity_lookup sync
+        # can pick them up.
+        for name in chunk:
+            dl = downloads.get(name, 0)
+            if dl and dl > dl_map.get(name, 0):
                 cur.execute(
                     "UPDATE software_registry SET downloads=%s, weekly_downloads=%s, "
                     "updated_at=NOW() WHERE id=%s",
@@ -204,11 +208,9 @@ def run(batch_size=10000, dry_run=False):
                 dl_map[name] = dl
                 updated_dl += 1
             elif cohort_map.get(name) == "stale":
-                # Stale-cohort row: refresh updated_at even if downloads
-                # didn't actually change. This is what restores the
-                # entity_lookup sync rate post-2026-04-30 — the trigger
-                # on agents/software_registry was firing only on real
-                # data deltas, which were vanishingly rare.
+                # Stale-cohort row, no real download delta from the API
+                # (or omitted from response): bump updated_at so the
+                # downstream entity_lookup sync sees a freshness signal.
                 cur.execute(
                     "UPDATE software_registry SET updated_at=NOW() WHERE id=%s",
                     (id_map[name],),
