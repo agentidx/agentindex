@@ -2629,28 +2629,20 @@ footer {{ border-top: 1px solid #1c1917; padding: 24px; text-align: center; font
                         return HTMLResponse(content=render_compare_page(a, b))
                 except Exception:
                     pass
-            # Return "not yet analyzed" instead of 404 to preserve crawl budget
+            # Queue demand silently, but return hard 404. Soft-200 with
+            # noindex was being treated as soft-404 spam under HCU.
             if "-vs-" in slug:
                 parts_nya = slug.split("-vs-", 1)
-                _dn_a = parts_nya[0].replace("-", " ").title()
-                _dn_b = parts_nya[1].replace("-", " ").title()
                 try:
                     from agentindex.agent_safety_pages import _queue_for_crawling
                     _queue_for_crawling(parts_nya[0], bot="compare-404")
                     _queue_for_crawling(parts_nya[1], bot="compare-404")
                 except Exception:
                     pass
-                return HTMLResponse(content=f"""<!DOCTYPE html>
-<html lang="en"><head>
-<title>{_dn_a} vs {_dn_b} — Not Yet Analyzed | Nerq</title>
-<meta name="robots" content="noindex">
-<link rel="stylesheet" href="/static/nerq.css">
-</head><body>
-<h1>{_dn_a} vs {_dn_b} — Comparison Not Yet Available</h1>
-<p>This comparison has been queued for analysis.</p>
-<p><a href="/compare">Browse comparisons</a> · <a href="/">Search Nerq</a></p>
-</body></html>""", status_code=200)
-            return HTMLResponse(status_code=404, content="<h1>Not found</h1>")
+            return HTMLResponse(
+                "<h1>Not Found</h1><p>One or both entities are not in our index.</p>",
+                status_code=404,
+            )
 
         if "-vs-" not in slug:
             return HTMLResponse(status_code=404, content="<h1>Not found</h1>")
