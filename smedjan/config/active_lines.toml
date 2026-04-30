@@ -1,0 +1,37 @@
+# Smedjan active fabrikslinjer (L-block session-groups)
+#
+# Decided 2026-04-30 after the spam-signal sprint that fixed:
+#   FAS 1-9 sitemap/JSON-LD/header lies, soft-404, broken crawlers,
+#   IndexNow pause, quality-gate, daily-merge LA.
+#
+# The principle going forward (DEL H of the wrap-up): run only 1-2
+# fabrikslinjer at a time. The remainder pause until either:
+#   - L7 measurement data shows their unlock would have ROI
+#   - the inputs they depend on (e.g. content-fix, IndexNow re-on)
+#     are ready
+#
+# The smedjan planner reads this file before inserting follow-up
+# tasks; tasks tagged with a session_group not in [active] are
+# skipped (logged but not enqueued).
+
+[meta]
+last_updated = "2026-04-30"
+decided_by = "Anders Nilsson + sprint analysis"
+review_date = "2026-05-14"  # +14d — measure sprint impact via L7
+
+[active]
+L6_quality_gate     = "always_on"
+L7_measurement      = "monitor sprint impact (HCU recovery, citation volume)"
+L8_infrastructure   = "maintenance only — keep the lights on"
+
+[paused]
+L1_kings_unlock     = "post-HCU verification required (1.69M unlock w/o ROI proof = risk)"
+L2_unrendered       = "wait for L7 data"
+L3_ai_demand        = "wait for L7 data"
+L4_data_moat        = "deployed; monitor via L7 only"
+L5_distribution     = "wait IndexNow reactivation after content-fix bedded in"
+
+# Flat list used by the planner for fast lookup — keep in sync with [active]
+# above. Anything not in active_session_groups is treated as paused.
+[planner]
+active_session_groups = ["L6", "L7", "L8"]
