@@ -8015,10 +8015,18 @@ def _render_agent_page(slug, agent_info, lang="en"):
             if norm_name != name:
                 agent = _lookup_agent(norm_name)
     if not agent:
-        # NO ENTITY FOUND — return None so the route emits a hard 404.
-        # Soft-200 with noindex was being treated as soft-404 spam under HCU
-        # (FAS 4: stop emitting soft-success for missing entities).
-        return None
+        # If the caller already resolved an entity (via _resolve_agent_info_with_fallback),
+        # trust that — don't 404 just because _resolve_entity timed out under bot load.
+        # This is the trulens case: 38 user_triggered citations, slug exists in
+        # _slug_map and entity_lookup, but the in-renderer re-resolve was racing
+        # with crawler-driven PG pressure and returning None.
+        if agent_info and agent_info.get("name") and not agent_info.get("_synthetic"):
+            agent = dict(agent_info)
+        else:
+            # NO ENTITY FOUND — return None so the route emits a hard 404.
+            # Soft-200 with noindex was being treated as soft-404 spam under HCU
+            # (FAS 4: stop emitting soft-success for missing entities).
+            return None
 
     # Route country/city pages to dedicated travel template (no software language)
     _resolved_source = agent.get("source") or agent.get("registry") or ""
