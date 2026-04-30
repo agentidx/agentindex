@@ -138,17 +138,43 @@ def run(batch_size=10000, dry_run=False):
     conn.autocommit = True
     cur = conn.cursor()
 
-    # Get packages: prioritize no downloads, then no stars
+    # Get packages to enrich. Mix two cohorts so the rate is sustained
+    # post-2026-04-30 fix (the original WHERE clause only picked
+    # never-enriched rows, which converged on a stuck set of dead packages
+    # and produced 0 updates per run):
+    #
+    #   1. ~30% never-enriched (downloads NULL or 0)
+    #   2. ~70% stale-but-enriched (updated_at < NOW() - 14 days)
+    #
+    # ORDER BY ensures deterministic-ish progress through the long tail
+    # without re-hitting the same rows every 30-min cycle.
+    _never_n = max(1, batch_size // 3)
+    _stale_n = batch_size - _never_n
     cur.execute("""
-        SELECT id, name, downloads, stars, repository_url
-        FROM software_registry
-        WHERE registry = 'npm'
-          AND (downloads IS NULL OR downloads <= 0)
-        ORDER BY name
-        LIMIT %s
-    """, (batch_size,))
+        (
+            SELECT id, name, downloads, stars, repository_url, 'never'::text AS cohort
+            FROM software_registry
+            WHERE registry = 'npm'
+              AND (downloads IS NULL OR downloads <= 0)
+            ORDER BY name
+            LIMIT %s
+        )
+        UNION ALL
+        (
+            SELECT id, name, downloads, stars, repository_url, 'stale'::text AS cohort
+            FROM software_registry
+            WHERE registry = 'npm'
+              AND downloads IS NOT NULL AND downloads > 0
+              AND (updated_at IS NULL OR updated_at < NOW() - INTERVAL '14 days')
+            ORDER BY updated_at NULLS FIRST, name
+            LIMIT %s
+        )
+    """, (_never_n, _stale_n))
     rows = cur.fetchall()
-    log.info(f"Processing {len(rows)} npm packages (batch={batch_size})")
+    log.info(
+        f"Processing {len(rows)} npm packages (batch={batch_size}, "
+        f"never-enriched cohort={_never_n}, stale-cohort={_stale_n})"
+    )
 
     if dry_run:
         log.info("DRY RUN")
@@ -160,22 +186,42 @@ def run(batch_size=10000, dry_run=False):
     dl_map = {r[1]: r[2] or 0 for r in rows}
     star_map = {r[1]: r[3] or 0 for r in rows}
     repo_map = {r[1]: r[4] for r in rows}
+    cohort_map = {r[1]: (r[5] if len(r) > 5 else "never") for r in rows}
 
     updated_dl = 0
+    refreshed_only = 0
     for i in range(0, len(names), BULK_SIZE):
         chunk = names[i:i+BULK_SIZE]
         downloads = fetch_bulk_downloads(chunk)
         for name, dl in downloads.items():
             if dl > 0 and dl > dl_map.get(name, 0):
-                cur.execute("UPDATE software_registry SET downloads=%s, weekly_downloads=%s WHERE id=%s",
-                           (dl, dl, id_map[name]))
+                # Real download bump
+                cur.execute(
+                    "UPDATE software_registry SET downloads=%s, weekly_downloads=%s, "
+                    "updated_at=NOW() WHERE id=%s",
+                    (dl, dl, id_map[name]),
+                )
                 dl_map[name] = dl
                 updated_dl += 1
+            elif cohort_map.get(name) == "stale":
+                # Stale-cohort row: refresh updated_at even if downloads
+                # didn't actually change. This is what restores the
+                # entity_lookup sync rate post-2026-04-30 — the trigger
+                # on agents/software_registry was firing only on real
+                # data deltas, which were vanishingly rare.
+                cur.execute(
+                    "UPDATE software_registry SET updated_at=NOW() WHERE id=%s",
+                    (id_map[name],),
+                )
+                refreshed_only += 1
         time.sleep(0.3)  # Light rate limit for bulk API
         if (i + BULK_SIZE) % 1000 < BULK_SIZE:
-            log.info(f"  Downloads: {i+len(chunk)}/{len(names)}, updated: {updated_dl}")
+            log.info(
+                f"  Downloads: {i+len(chunk)}/{len(names)}, "
+                f"updated: {updated_dl}, refreshed: {refreshed_only}"
+            )
 
-    log.info(f"Downloads phase complete: {updated_dl} updated")
+    log.info(f"Downloads phase complete: {updated_dl} updated, {refreshed_only} stale-refreshed")
 
     # Phase 2: GitHub stars for packages with repo URL but no stars
     need_stars = [(n, repo_map[n]) for n in names if star_map.get(n, 0) == 0 and repo_map.get(n)]
