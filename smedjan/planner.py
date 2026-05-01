@@ -43,7 +43,37 @@ from smedjan import factory_core, sources
 # templates are piled in over time without further code changes.
 SCALE_TEMPLATES_PATH = Path(__file__).parent / "config" / "scale_templates.json"
 
+# DEL H 2026-04-30: sequential-fabrikslinjer enforcement. The planner
+# only enqueues follow-ups whose session_group is listed in
+# [planner].active_session_groups in active_lines.toml. Anything else
+# is logged and skipped — single source of truth for "which lines are
+# running today".
+ACTIVE_LINES_PATH = Path(__file__).parent / "config" / "active_lines.toml"
+
 log = logging.getLogger("smedjan.planner")
+
+
+def _load_active_session_groups() -> set[str]:
+    """Read active_lines.toml and return the set of allowed session_groups.
+
+    Returns an empty set ⇒ enforcement is disabled (treat all tasks as
+    active). This is the safe default if the config file is missing or
+    malformed — better than blocking everything.
+    """
+    if not ACTIVE_LINES_PATH.exists():
+        return set()
+    try:
+        try:
+            import tomllib  # py311+
+        except ImportError:  # pragma: no cover
+            import tomli as tomllib  # type: ignore[import-not-found]
+        with ACTIVE_LINES_PATH.open("rb") as f:
+            data = tomllib.load(f)
+        groups = data.get("planner", {}).get("active_session_groups") or []
+        return {str(g) for g in groups if g}
+    except Exception as exc:  # pragma: no cover
+        log.warning("active_lines.toml unreadable (%s); enforcement disabled", exc)
+        return set()
 
 
 # ── ai_demand_scores priority bias ────────────────────────────────────────
@@ -184,9 +214,17 @@ def _existing_ids() -> set[str]:
 
 
 def generate_followup_tasks(dry_run: bool = False) -> int:
-    """Enqueue canonical followups for tasks that completed in the last 24h."""
+    """Enqueue canonical followups for tasks that completed in the last 24h.
+
+    Respects the active-fabrikslinjer config in active_lines.toml — tasks
+    whose session_group is not currently active are logged and skipped.
+    """
     inserted = 0
+    skipped_paused = 0
     existing = _existing_ids()
+    active_groups = _load_active_session_groups()
+    if active_groups:
+        log.info("active session_groups: %s", sorted(active_groups))
 
     with sources.smedjan_db_cursor(dict_cursor=True) as (_, cur):
         cur.execute(
@@ -209,6 +247,14 @@ def generate_followup_tasks(dry_run: bool = False) -> int:
             for tmpl in rule["followups"]:
                 new_id = f"{parent_id}{tmpl['id_suffix']}"
                 if new_id in existing:
+                    continue
+                tmpl_group = tmpl.get("session_group")
+                if active_groups and tmpl_group and tmpl_group not in active_groups:
+                    log.info(
+                        "paused-line skip: %s (session_group=%s, active=%s)",
+                        new_id, tmpl_group, sorted(active_groups),
+                    )
+                    skipped_paused += 1
                     continue
                 template_priority = tmpl.get("priority", 100)
                 combined_text = " ".join(
@@ -253,6 +299,8 @@ def generate_followup_tasks(dry_run: bool = False) -> int:
 
     if inserted and not dry_run:
         factory_core.resolve_ready_tasks()
+    if skipped_paused:
+        log.info("paused-line summary: skipped %d follow-ups", skipped_paused)
     return inserted
 
 
