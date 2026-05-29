@@ -21,6 +21,30 @@ Usage:
 
 import os
 
+
+# ── psycopg2 numpy adapters ──────────────────────────────────
+# Scripts compute stats with numpy and pass np.float64/np.int64 directly into
+# INSERT params. psycopg2 has no built-in adapter for numpy scalars and falls
+# back to str(x) → SQL gets literal "np.float64(...)", which Postgres parses as
+# a schema reference and fails with "schema 'np' does not exist". Registering
+# here means every importer of db_config gets adapters before opening a conn.
+def _register_numpy_adapters():
+    try:
+        import numpy as np
+        from psycopg2.extensions import AsIs, register_adapter
+    except Exception:
+        return
+    register_adapter(np.bool_, lambda x: AsIs('TRUE' if bool(x) else 'FALSE'))
+    for _t in (np.float16, np.float32, np.float64):
+        register_adapter(_t, lambda x: AsIs(repr(float(x))))
+    for _t in (np.int8, np.int16, np.int32, np.int64,
+               np.uint8, np.uint16, np.uint32, np.uint64):
+        register_adapter(_t, lambda x: AsIs(repr(int(x))))
+
+
+_register_numpy_adapters()
+
+
 # ── Configuration ──────────────────────────────────────────
 # PgBouncer on localhost:6432 routes to the right backend:
 #   agentindex_write → Nbg primary (TCP)

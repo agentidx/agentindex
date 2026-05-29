@@ -7,12 +7,21 @@ SQLite writes.
 
 Enable:  export ZARQ_DUAL_WRITE=1
 Disable: unset ZARQ_DUAL_WRITE  (or set to anything other than "1")
+
+Failures go to two places: the local file log AND zarq.dual_write_failures
+(best-effort — if PG itself is down, only the file log captures it). This
+exists so silent dual-write breakage stops being invisible.
 """
 
 import logging
 import os
 import re
 import threading
+
+# Importing db_config registers numpy → psycopg2 adapters globally (idempotent).
+# Without this, np.float64 values get str()-formatted into SQL as "np.float64(…)"
+# and Postgres rejects with 'schema "np" does not exist'.
+from agentindex import db_config  # noqa: F401
 
 _ENABLED = os.environ.get("ZARQ_DUAL_WRITE") == "1"
 
@@ -61,6 +70,33 @@ def _put_pg_conn(conn):
             _pool.putconn(conn)
         except Exception:
             pass
+
+
+def _record_failure(table, op, error_msg, pg_sql, row_count=None):
+    """Log to file AND best-effort INSERT into zarq.dual_write_failures.
+
+    The PG insert opens a fresh short-lived connection (not from the pool),
+    so it works even when the pool's connections are in an aborted state.
+    Silently swallows secondary failures — file log is the floor.
+    """
+    _log.error("%s %s%s | %s | %s",
+               op, table,
+               f" ({row_count} rows)" if row_count is not None else "",
+               error_msg, (pg_sql or "")[:200])
+    try:
+        import psycopg2
+        with psycopg2.connect(PG_DSN) as fconn:
+            with fconn.cursor() as fcur:
+                fcur.execute(
+                    "INSERT INTO zarq.dual_write_failures "
+                    "(table_name, op, row_count, error_msg, sql_excerpt) "
+                    "VALUES (%s, %s, %s, %s, %s)",
+                    (table, op, row_count, str(error_msg)[:2000],
+                     (pg_sql or "")[:300])
+                )
+    except Exception:
+        # PG genuinely unreachable; file log already has it.
+        pass
 
 
 # ── Table metadata ───────────────────────────────────────────
@@ -225,7 +261,7 @@ def dual_execute(sqlite_conn, sql, params=None):
         pg_conn.commit()
         cur.close()
     except Exception as e:
-        _log.error("EXECUTE %s | %s | %s", table, e, pg_sql[:200])
+        _record_failure(table, "EXECUTE", e, pg_sql)
         if pg_conn:
             try:
                 pg_conn.rollback()
@@ -263,8 +299,7 @@ def dual_executemany(sqlite_conn, sql, rows):
         pg_conn.commit()
         cur.close()
     except Exception as e:
-        _log.error("EXECUTEMANY %s (%d rows) | %s | %s",
-                   table, len(rows), e, pg_sql[:200])
+        _record_failure(table, "EXECUTEMANY", e, pg_sql, row_count=len(rows))
         if pg_conn:
             try:
                 pg_conn.rollback()
@@ -297,8 +332,7 @@ def dual_executemany_named(sqlite_conn, sql, rows):
         pg_conn.commit()
         cur.close()
     except Exception as e:
-        _log.error("EXECUTEMANY_NAMED %s (%d rows) | %s | %s",
-                   table, len(rows), e, pg_sql[:200])
+        _record_failure(table, "EXECUTEMANY_NAMED", e, pg_sql, row_count=len(rows))
         if pg_conn:
             try:
                 pg_conn.rollback()
@@ -330,7 +364,7 @@ def dual_delete(sqlite_conn, sql, params=None):
         pg_conn.commit()
         cur.close()
     except Exception as e:
-        _log.error("DELETE %s | %s | %s", table, e, pg_sql[:200])
+        _record_failure(table, "DELETE", e, pg_sql)
         if pg_conn:
             try:
                 pg_conn.rollback()

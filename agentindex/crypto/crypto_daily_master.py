@@ -225,7 +225,7 @@ def main():
             "Fetch Prices (exchanges + DeFiLlama)",
             "crypto_price_pipeline.py",
             args=["--backfill", "2"],
-            timeout_min=30,
+            timeout_min=60,
         )
     else:
         log("  SKIP: Price fetch")

@@ -36,6 +36,7 @@ import os
 import sys
 import json
 import time
+import asyncio
 import argparse
 import logging
 from datetime import datetime, timezone, timedelta
@@ -45,6 +46,12 @@ try:
     import requests
 except ImportError:
     print("pip install requests --break-system-packages")
+    sys.exit(1)
+
+try:
+    import aiohttp
+except ImportError:
+    print("pip install aiohttp --break-system-packages")
     sys.exit(1)
 
 # ─────────────────────────────────────────────────────────────
@@ -453,6 +460,189 @@ class DefiLlamaSource:
 
 
 # ─────────────────────────────────────────────────────────────
+# ASYNC FETCHERS (used by the parallel orchestrator)
+# ─────────────────────────────────────────────────────────────
+ASYNC_TIMEOUT = aiohttp.ClientTimeout(total=20)
+ASYNC_MAX_CONCURRENCY = 8  # asyncio.Semaphore size; DeFiLlama handles ~10 req/s comfortably
+
+
+async def _afetch_binance(session, exchange_pair, days):
+    end_ms = int(datetime.now(timezone.utc).timestamp() * 1000)
+    start_ms = int((datetime.now(timezone.utc) - timedelta(days=days)).timestamp() * 1000)
+    params = {
+        "symbol": exchange_pair, "interval": "1d",
+        "startTime": start_ms, "endTime": end_ms,
+        "limit": min(days + 1, 1000),
+    }
+    async with session.get(f"{BinanceSource.BASE}/klines",
+                           params=params, timeout=ASYNC_TIMEOUT) as r:
+        r.raise_for_status()
+        data = await r.json()
+    return [{
+        "date": datetime.fromtimestamp(c[0] / 1000, tz=timezone.utc).strftime("%Y-%m-%d"),
+        "open": float(c[1]), "high": float(c[2]),
+        "low": float(c[3]), "close": float(c[4]),
+        "volume": float(c[5]) * float(c[4]),
+    } for c in data]
+
+
+async def _afetch_coinbase(session, exchange_pair, days):
+    end = datetime.now(timezone.utc)
+    start = end - timedelta(days=days)
+    candles = []
+    chunk_start = start
+    while chunk_start < end:
+        chunk_end = min(chunk_start + timedelta(days=299), end)
+        async with session.get(
+            f"{CoinbaseSource.BASE}/products/{exchange_pair}/candles",
+            params={"start": chunk_start.isoformat(),
+                    "end": chunk_end.isoformat(),
+                    "granularity": 86400},
+            timeout=ASYNC_TIMEOUT,
+        ) as r:
+            r.raise_for_status()
+            data = await r.json()
+        for c in data:
+            candles.append({
+                "date": datetime.fromtimestamp(c[0], tz=timezone.utc).strftime("%Y-%m-%d"),
+                "open": float(c[3]), "high": float(c[2]),
+                "low": float(c[1]),  "close": float(c[4]),
+                "volume": float(c[5]) * float(c[4]),
+            })
+        chunk_start = chunk_end + timedelta(days=1)
+    return sorted(candles, key=lambda x: x["date"])
+
+
+async def _afetch_kraken(session, exchange_pair, days):
+    since = int((datetime.now(timezone.utc) - timedelta(days=days)).timestamp())
+    async with session.get(f"{KrakenSource.BASE}/OHLC",
+                           params={"pair": exchange_pair, "interval": 1440, "since": since},
+                           timeout=ASYNC_TIMEOUT) as r:
+        r.raise_for_status()
+        data = await r.json()
+    candles = []
+    for key, rows in data.get("result", {}).items():
+        if key == "last":
+            continue
+        for c in rows:
+            candles.append({
+                "date": datetime.fromtimestamp(c[0], tz=timezone.utc).strftime("%Y-%m-%d"),
+                "open": float(c[1]), "high": float(c[2]),
+                "low": float(c[3]),  "close": float(c[4]),
+                "volume": float(c[6]),
+            })
+    return sorted(candles, key=lambda x: x["date"])
+
+
+async def _afetch_okx(session, exchange_pair, days):
+    candles = []
+    after = ""
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).strftime("%Y-%m-%d")
+    for _ in range(max(1, days // 100 + 1)):
+        params = {"instId": exchange_pair, "bar": "1D", "limit": "100"}
+        if after:
+            params["after"] = after
+        async with session.get(f"{OKXSource.BASE}/market/candles",
+                               params=params, timeout=ASYNC_TIMEOUT) as r:
+            r.raise_for_status()
+            data = (await r.json()).get("data", [])
+        if not data:
+            break
+        for c in data:
+            ts = int(c[0]) / 1000
+            d = datetime.fromtimestamp(ts, tz=timezone.utc).strftime("%Y-%m-%d")
+            if d < cutoff:
+                continue
+            candles.append({
+                "date": d,
+                "open": float(c[1]), "high": float(c[2]),
+                "low": float(c[3]),  "close": float(c[4]),
+                "volume": float(c[5]) * float(c[4]),
+            })
+        after = data[-1][0]
+    return sorted(candles, key=lambda x: x["date"])
+
+
+async def _afetch_defillama(session, coingecko_id, days):
+    coin_key = f"coingecko:{coingecko_id}"
+    end = int(datetime.now(timezone.utc).timestamp())
+    start = int((datetime.now(timezone.utc) - timedelta(days=days)).timestamp())
+    async with session.get(f"{DefiLlamaSource.BASE}/chart/{coin_key}",
+                           params={"start": start, "span": days, "period": "1d"},
+                           timeout=ASYNC_TIMEOUT) as r:
+        r.raise_for_status()
+        data = await r.json()
+    candles = []
+    coins = data.get("coins", {})
+    if coin_key in coins:
+        for pt in coins[coin_key].get("prices", []):
+            d = datetime.fromtimestamp(pt["timestamp"], tz=timezone.utc).strftime("%Y-%m-%d")
+            price = pt["price"]
+            candles.append({
+                "date": d,
+                "open": price, "high": price, "low": price, "close": price,
+                "volume": 0,
+            })
+    return candles
+
+
+_ASYNC_FETCHERS = {
+    "binance":   _afetch_binance,
+    "coinbase":  _afetch_coinbase,
+    "kraken":    _afetch_kraken,
+    "okx":       _afetch_okx,
+    "defillama": _afetch_defillama,
+}
+_ASYNC_SOURCE_ORDER = ["binance", "coinbase", "okx", "kraken", "defillama"]
+
+
+async def _afetch_token(session, sem, token_id, coverage_entry, days):
+    """Try sources in order under the semaphore; return (token_id, candles, source, ex_pair).
+
+    Acceptance threshold is >= 1 candle. The legacy sync code required >= 5, which
+    made daily updates (days=2) structurally impossible — that was the latent bug
+    that kept crypto_price_history stale for everything except newly-discovered
+    tokens since the exchange-based pipeline launched.
+    """
+    async with sem:
+        for src in _ASYNC_SOURCE_ORDER:
+            if src not in coverage_entry:
+                continue
+            ex_pair = coverage_entry[src]
+            try:
+                candles = await _ASYNC_FETCHERS[src](session, ex_pair, days)
+            except Exception as e:
+                log.debug(f"{src} {ex_pair}: {e}")
+                candles = []
+            if candles:
+                return token_id, candles, src, ex_pair
+        return token_id, [], None, None
+
+
+async def _run_async_fetches(tokens_to_fetch, max_concurrency=ASYNC_MAX_CONCURRENCY):
+    """Fan out per-token fetches with bounded parallelism. Reports progress."""
+    sem = asyncio.Semaphore(max_concurrency)
+    connector = aiohttp.TCPConnector(limit=max_concurrency * 2, ttl_dns_cache=300)
+    async with aiohttp.ClientSession(connector=connector, timeout=ASYNC_TIMEOUT) as session:
+        tasks = [
+            asyncio.create_task(_afetch_token(session, sem, tid, sources, days))
+            for (tid, sources, days) in tokens_to_fetch
+        ]
+        results = []
+        completed = 0
+        t0 = time.time()
+        for fut in asyncio.as_completed(tasks):
+            results.append(await fut)
+            completed += 1
+            if completed % 200 == 0 or completed == len(tasks):
+                elapsed = time.time() - t0
+                rate = completed / elapsed if elapsed > 0 else 0
+                log.info(f"  async fetch: {completed}/{len(tasks)} "
+                         f"({elapsed:.0f}s, {rate:.1f} tok/s)")
+        return results
+
+
+# ─────────────────────────────────────────────────────────────
 # PIPELINE ORCHESTRATOR
 # ─────────────────────────────────────────────────────────────
 SOURCES = [BinanceSource, CoinbaseSource, KrakenSource, OKXSource]
@@ -601,22 +791,19 @@ def run_pipeline(days=2, exchange_filter=None, max_tokens=None):
 
     log.info(f"\nTokens to fetch: {len(tokens_to_fetch)} (of {len(coverage)} covered)")
 
-    # Fetch data
+    # ── Parallel fetch (async + Semaphore) ─────────────────────
+    # Network-bound work is fanned out with asyncio; DB writes stay sequential
+    # below so SQLite (single-writer) and the dual_write pool are untouched.
+    log.info(f"Starting async fetch with concurrency={ASYNC_MAX_CONCURRENCY}...")
+    fetched = asyncio.run(_run_async_fetches(tokens_to_fetch))
+
+    # ── Sequential write phase ─────────────────────────────────
     stats = defaultdict(int)
     errors = 0
-
-    for i, (token_id, sources, fetch_days) in enumerate(tokens_to_fetch):
-        if (i + 1) % 50 == 0:
-            elapsed = time.time() - t0
-            log.info(f"  Progress: {i+1}/{len(tokens_to_fetch)} ({elapsed:.0f}s)")
-
-        candles, source, ex_pair = fetch_token_data(token_id, sources, days=fetch_days)
-
+    for token_id, candles, source, ex_pair in fetched:
         if candles:
             saved = save_candles(crypto_conn, token_id, candles, source)
             stats[source] += 1
-
-            # Update pipeline status
             crypto_conn.execute("""
                 INSERT OR REPLACE INTO crypto_pipeline_status
                 (token_id, source, exchange_symbol, last_fetched, rows_total, status)
@@ -625,10 +812,6 @@ def run_pipeline(days=2, exchange_filter=None, max_tokens=None):
         else:
             errors += 1
             stats["failed"] += 1
-
-        # Rate limiting
-        rate = RATE_LIMITS.get(source, 0.5) if source else 0.2
-        time.sleep(rate)
 
     crypto_conn.commit()
     elapsed = time.time() - t0
