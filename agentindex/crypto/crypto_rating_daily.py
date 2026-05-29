@@ -57,11 +57,35 @@ STABLECOINS = {
 }
 
 # CoinGecko API config
-COINGECKO_BASE = "https://api.coingecko.com/api/v3"
-COINGECKO_PRO_BASE = "https://pro-api.coingecko.com/api/v3"
-API_KEY = os.environ.get("COINGECKO_API_KEY", "")  # Set via environment
-USE_PRO = bool(API_KEY)
-RATE_LIMIT_SECONDS = 1.5 if not USE_PRO else 0.5
+# Three tiers: anonymous public (no key), Demo (free key, x-cg-demo-api-key
+# header against api.coingecko.com), Pro (paid key, x-cg-pro-api-key against
+# pro-api.coingecko.com). The previous code assumed *any* key meant Pro and
+# always hit pro-api, which returns HTTP 400 for Demo keys with the message
+# "If you are using Demo API key, please change your root URL from
+# pro-api.coingecko.com to api.coingecko.com". Set COINGECKO_TIER=pro to
+# opt into the paid endpoint; default is demo (free).
+COINGECKO_BASE_PUBLIC = "https://api.coingecko.com/api/v3"
+COINGECKO_BASE_PRO    = "https://pro-api.coingecko.com/api/v3"
+API_KEY      = os.environ.get("COINGECKO_API_KEY", "")
+_TIER        = os.environ.get("COINGECKO_TIER", "demo").lower()
+USE_PRO      = (_TIER == "pro") and bool(API_KEY)
+
+if USE_PRO:
+    COINGECKO_BASE      = COINGECKO_BASE_PRO
+    API_HEADER_NAME     = "x-cg-pro-api-key"
+    RATE_LIMIT_SECONDS  = 0.5         # Pro: ~500 req/min headroom
+elif API_KEY:
+    COINGECKO_BASE      = COINGECKO_BASE_PUBLIC
+    API_HEADER_NAME     = "x-cg-demo-api-key"
+    RATE_LIMIT_SECONDS  = 2.2         # Demo: 30 req/min hard cap, +10% buffer
+else:
+    COINGECKO_BASE      = COINGECKO_BASE_PUBLIC
+    API_HEADER_NAME     = None
+    RATE_LIMIT_SECONDS  = 6.0         # Anonymous public: ~10 req/min safe
+
+
+def _coingecko_headers():
+    return {API_HEADER_NAME: API_KEY} if API_HEADER_NAME else {}
 
 
 # ─────────────────────────────────────────────────────────────
@@ -129,15 +153,14 @@ def fetch_top_tokens(n=200):
         print("  ERROR: requests not installed. Run: pip install requests")
         sys.exit(1)
 
-    base = COINGECKO_PRO_BASE if USE_PRO else COINGECKO_BASE
-    headers = {"x-cg-pro-api-key": API_KEY} if USE_PRO else {}
+    headers = _coingecko_headers()
 
     all_tokens = []
     per_page = 250
     pages = math.ceil(n / per_page)
 
     for page in range(1, pages + 1):
-        url = f"{base}/coins/markets"
+        url = f"{COINGECKO_BASE}/coins/markets"
         params = {
             "vs_currency": "usd",
             "order": "market_cap_desc",
@@ -168,10 +191,9 @@ def fetch_token_history(token_id, days=90):
     except ImportError:
         return None
 
-    base = COINGECKO_PRO_BASE if USE_PRO else COINGECKO_BASE
-    headers = {"x-cg-pro-api-key": API_KEY} if USE_PRO else {}
+    headers = _coingecko_headers()
 
-    url = f"{base}/coins/{token_id}/market_chart"
+    url = f"{COINGECKO_BASE}/coins/{token_id}/market_chart"
     params = {"vs_currency": "usd", "days": days, "interval": "daily"}
 
     try:
@@ -817,7 +839,13 @@ def main():
     print(f"  {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print("=" * 80)
     print(f"  Database: {DB_PATH}")
-    print(f"  API: {'CoinGecko Pro' if USE_PRO else 'CoinGecko Free (rate limited)'}")
+    if USE_PRO:
+        _tier_label = "CoinGecko Pro (paid)"
+    elif API_KEY:
+        _tier_label = "CoinGecko Demo (free key, 30 req/min)"
+    else:
+        _tier_label = "CoinGecko Public (anonymous, ~10 req/min)"
+    print(f"  API: {_tier_label}")
 
     conn = connect()
     ensure_tables(conn)

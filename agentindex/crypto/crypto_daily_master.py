@@ -231,12 +231,16 @@ def main():
         log("  SKIP: Price fetch")
 
     # STEP 3: Credit ratings
+    # Run live against the CoinGecko API (Demo tier by default). The previous
+    # --cached flag made this step a structural no-op when no fresh API data
+    # already sat in the DB — it would log "No ratings found" and still exit
+    # success, hiding the staleness in crypto_rating_daily. Drop the flag so
+    # the rating engine actually computes ratings each run.
     if run_rating:
         steps["3_credit_rating"] = run_step(
             "Credit Rating (daily)",
             "crypto_rating_daily.py",
-            args=["--cached"],
-            timeout_min=10,
+            timeout_min=15,
         )
     else:
         log("  SKIP: Credit rating")
