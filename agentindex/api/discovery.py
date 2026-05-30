@@ -1557,6 +1557,17 @@ try:
 except Exception as e:
     print(f"Sprint 3.2 endpoints not loaded: {e}")
 
+# Legacy v1 crypto router (phase 4 R2). Mounted here for the 14-day usage
+# audit window — DeprecationLoggerMiddleware logs every /crypto/* call into
+# zarq.endpoint_usage_audit so we can decide whether to keep, merge, or
+# delete this router after the data is in. See docs/status/
+# zarq_root_cause_plan_20260530.md F.1 and Anders' answer.
+try:
+    from agentindex.crypto.crypto_api import router as crypto_legacy_router
+    app.include_router(crypto_legacy_router)
+except Exception as e:
+    print(f"Legacy crypto_api router not loaded: {e}")
+
 from agentindex.crypto.zarq_risk_pages import mount_risk_pages
 mount_risk_pages(app)
 
