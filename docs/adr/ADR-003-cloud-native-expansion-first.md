@@ -1,9 +1,17 @@
 # ADR-003: Cloud-Native Expansion-First Architecture with Freshness SLA
 
-**Status:** Accepted
+> **⚠️ SUPERSEDED 2026-05-30 by [ADR-003a](ADR-003a-current-db-topology.md).**
+> The architecture described below is the *intended* end state. The
+> implementation that ran 2026-04-09 → 2026-05-30 diverged from this design
+> (Patroni dead on both nodes, replication slots inactive, 2-node etcd
+> quorum lost, Hel's PG off since 2026-04-12). ADR-003a documents the
+> actual current state and the open issues that block returning to this
+> intent. Do not treat anything below as live state — read ADR-003a first.
+
+**Status:** Superseded by ADR-003a (intended end state preserved as reference)
 **Date:** 2026-04-09
 **Supersedes:** ADR-002 (expansion-first strategy with three-tier DR) — superseded in its DR tier ordering and infrastructure placement. The expansion-first principle from ADR-002 is preserved and strengthened.
-**Related:** ADR-001 (v2 platform migration — remains deferred)
+**Related:** ADR-001 (v2 platform migration — remains deferred); ADR-003a (current state).
 **Authors:** Anders Nilsson + Claude
 
 ## Context

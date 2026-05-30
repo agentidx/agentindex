@@ -40,6 +40,8 @@ When things happen in the system that neither you nor Anders did, it is probably
 - Autoheal: `~/agentindex/system_autoheal.py` (invocation path unclear -- may be called by Buzz, not cron)
 - Redis: `/opt/homebrew/bin/redis-cli` **(full path required)**
 - Postgres: `/opt/homebrew/Cellar/postgresql@16/16.11_1/bin/psql -U anstudio -d agentindex`
+- **DB topology (current state):** `docs/adr/ADR-003a-current-db-topology.md` — Nbg de-facto primary without Patroni, Hel PG off, Mac Studio local replica stale. ADR-003 describes the intended HA design but is not implemented. PgBouncer at `/opt/homebrew/etc/pgbouncer.ini` routes `agentindex_write` → Nbg (`100.119.193.70`) per the 2026-05-30 repoint; `agentindex_read` → local socket.
+- Infra healthcheck: `scripts/infra_healthcheck.py` + `com.nerq.infra-healthcheck` LaunchAgent (every 5 min). Surfaces dead PG hosts to `zarq.infrastructure_alerts`.
 - Cloudflare Tunnel ID: `a17d8bfb-9596-4700-848a-df481dc171a4` **(ghost -- scheduled for deletion)**
 
 ---
