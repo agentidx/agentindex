@@ -1,0 +1,8 @@
+# Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-zarq_websocket_webhooks_L571_GET_v1_webhooks_dlq]
+# Target: production
+# Category: HTTP_4XX_unexpected
+# GET /v1/webhooks/dlq
+# status=404 elapsed=49.8ms pool=
+# detail: unexpected 404 — route exists in code
+
+--- response excerpt ---

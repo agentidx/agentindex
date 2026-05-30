@@ -1,0 +1,8 @@
+# Test: tests/zarq_surface/test_mcp_tools.py::test_mcp_tool[production-agent_benchmark]
+# Target: production
+# Category: HTTP_4XX_unexpected
+# POST /mcp:agent_benchmark
+# status=404 elapsed=52.9ms pool=
+# detail: mcp endpoint returned 404
+
+--- response excerpt ---

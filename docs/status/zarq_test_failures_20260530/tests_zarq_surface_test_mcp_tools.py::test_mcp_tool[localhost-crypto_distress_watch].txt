@@ -1,0 +1,9 @@
+# Test: tests/zarq_surface/test_mcp_tools.py::test_mcp_tool[localhost-crypto_distress_watch]
+# Target: localhost
+# Category: HTTP_4XX_unexpected
+# POST /mcp:crypto_distress_watch
+# status=406 elapsed=3.9ms pool=
+# detail: mcp status 406
+
+--- response excerpt ---
+{"jsonrpc":"2.0","id":"server-error","error":{"code":-32600,"message":"Not Acceptable: Client must accept application/json"}}

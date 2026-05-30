@@ -1,0 +1,8 @@
+# Test: tests/zarq_surface/test_cloudflared_routes.py::test_cloudflared_parity[mcp_health]
+# Target: diff
+# Category: CLOUDFLARED_GAP
+# GET http://localhost:8001/health
+# status=404 elapsed=250.0ms pool=
+# detail: local OK but prod failed; local=200 (4ms) prod=404 (250ms)
+
+--- response excerpt ---

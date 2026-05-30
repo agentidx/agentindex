@@ -1,0 +1,8 @@
+# Test: tests/zarq_surface/test_mcp_tools.py::test_mcp_tool[production-crypto_rating]
+# Target: production
+# Category: HTTP_4XX_unexpected
+# POST /mcp:crypto_rating
+# status=404 elapsed=191.7ms pool=
+# detail: mcp endpoint returned 404
+
+--- response excerpt ---

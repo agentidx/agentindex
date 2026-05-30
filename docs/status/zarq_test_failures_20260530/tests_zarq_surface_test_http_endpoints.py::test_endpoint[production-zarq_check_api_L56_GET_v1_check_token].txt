@@ -1,0 +1,8 @@
+# Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-zarq_check_api_L56_GET_v1_check_token]
+# Target: production
+# Category: HTTP_4XX_unexpected
+# GET /v1/check/{token}
+# status=404 elapsed=52.0ms pool=
+# detail: unexpected 404 — route exists in code
+
+--- response excerpt ---

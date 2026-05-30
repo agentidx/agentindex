@@ -1,0 +1,8 @@
+# Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-zarq_check_api_L185_GET_v1_vitality_token]
+# Target: production
+# Category: HTTP_4XX_unexpected
+# GET /v1/vitality/{token}
+# status=404 elapsed=138.4ms pool=
+# detail: unexpected 404 — route exists in code
+
+--- response excerpt ---

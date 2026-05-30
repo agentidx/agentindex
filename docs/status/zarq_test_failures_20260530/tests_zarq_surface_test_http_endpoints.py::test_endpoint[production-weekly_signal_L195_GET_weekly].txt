@@ -1,0 +1,8 @@
+# Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-weekly_signal_L195_GET_weekly]
+# Target: production
+# Category: TIMEOUT
+# GET /weekly
+# status=None elapsed=8001.6ms pool=
+# detail: client timeout after 8002ms
+
+--- response excerpt ---

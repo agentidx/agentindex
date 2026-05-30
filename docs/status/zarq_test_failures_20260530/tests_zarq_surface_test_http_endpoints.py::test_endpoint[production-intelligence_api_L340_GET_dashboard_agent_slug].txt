@@ -1,0 +1,9 @@
+# Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-intelligence_api_L340_GET_dashboard_agent_slug]
+# Target: production
+# Category: HTTP_4XX_unexpected
+# GET /dashboard/{agent_slug}
+# status=404 elapsed=112.1ms pool=
+# detail: unexpected 404 — route exists in code
+
+--- response excerpt ---
+Not found

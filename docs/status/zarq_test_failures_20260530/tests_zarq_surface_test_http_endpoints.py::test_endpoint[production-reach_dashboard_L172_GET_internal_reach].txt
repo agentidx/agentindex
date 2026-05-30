@@ -1,0 +1,9 @@
+# Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-reach_dashboard_L172_GET_internal_reach]
+# Target: production
+# Category: HTTP_4XX_unexpected
+# GET /internal/reach
+# status=403 elapsed=102.8ms pool=
+# detail: auth-required: status 403
+
+--- response excerpt ---
+{"error":"unauthorized","hint":"add ?key=..."}

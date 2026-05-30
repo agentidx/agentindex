@@ -1,0 +1,9 @@
+# Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[localhost-discovery_L2379_GET_zarq2026indexnow.txt]
+# Target: localhost
+# Category: EMPTY_RESPONSE
+# GET /zarq2026indexnow.txt
+# status=200 elapsed=6.3ms pool=
+# detail: HTML body suspiciously small (16 bytes)
+
+--- response excerpt ---
+zarq2026indexnow

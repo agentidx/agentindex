@@ -1,0 +1,9 @@
+# Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[localhost-reach_dashboard_L187_GET_internal_reach.json]
+# Target: localhost
+# Category: HTTP_4XX_unexpected
+# GET /internal/reach.json
+# status=403 elapsed=5.8ms pool=
+# detail: auth-required: status 403
+
+--- response excerpt ---
+{"error":"unauthorized"}

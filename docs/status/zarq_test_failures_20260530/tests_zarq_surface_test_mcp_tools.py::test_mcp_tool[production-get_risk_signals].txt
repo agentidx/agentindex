@@ -1,0 +1,8 @@
+# Test: tests/zarq_surface/test_mcp_tools.py::test_mcp_tool[production-get_risk_signals]
+# Target: production
+# Category: HTTP_4XX_unexpected
+# POST /mcp:get_risk_signals
+# status=404 elapsed=137.3ms pool=
+# detail: mcp endpoint returned 404
+
+--- response excerpt ---

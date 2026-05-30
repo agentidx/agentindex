@@ -1,0 +1,9 @@
+# Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-zarq_dashboard_L837_GET_zarq_dashboard_data]
+# Target: production
+# Category: HTTP_4XX_unexpected
+# GET /zarq/dashboard/data
+# status=401 elapsed=58.1ms pool=
+# detail: auth-required: status 401
+
+--- response excerpt ---
+{"error":"Unauthorized"}

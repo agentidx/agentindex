@@ -1,0 +1,8 @@
+# Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-reach_dashboard_L253_GET_internal_yield]
+# Target: production
+# Category: TIMEOUT
+# GET /internal/yield
+# status=None elapsed=8001.9ms pool=
+# detail: client timeout after 8002ms
+
+--- response excerpt ---

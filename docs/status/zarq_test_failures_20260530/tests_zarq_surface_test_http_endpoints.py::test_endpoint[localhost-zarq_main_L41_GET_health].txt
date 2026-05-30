@@ -1,0 +1,9 @@
+# Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[localhost-zarq_main_L41_GET_health]
+# Target: localhost
+# Category: EMPTY_RESPONSE
+# GET /health
+# status=200 elapsed=4.8ms pool=
+# detail: HTML body suspiciously small (97 bytes)
+
+--- response excerpt ---
+{"status":"ok","timestamp":"2026-05-30T06:45:39.462142","agents":5039755,"active_agents":5039755}

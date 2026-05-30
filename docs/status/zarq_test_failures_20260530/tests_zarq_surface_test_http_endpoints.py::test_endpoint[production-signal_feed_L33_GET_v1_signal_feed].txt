@@ -1,0 +1,8 @@
+# Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-signal_feed_L33_GET_v1_signal_feed]
+# Target: production
+# Category: HTTP_4XX_unexpected
+# GET /v1/signal/feed
+# status=404 elapsed=168.5ms pool=
+# detail: unexpected 404 — route exists in code
+
+--- response excerpt ---

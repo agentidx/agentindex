@@ -1,0 +1,8 @@
+# Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-zarq_websocket_webhooks_L481_GET_v1_webhooks]
+# Target: production
+# Category: HTTP_4XX_unexpected
+# GET /v1/webhooks
+# status=404 elapsed=131.7ms pool=
+# detail: unexpected 404 — route exists in code
+
+--- response excerpt ---

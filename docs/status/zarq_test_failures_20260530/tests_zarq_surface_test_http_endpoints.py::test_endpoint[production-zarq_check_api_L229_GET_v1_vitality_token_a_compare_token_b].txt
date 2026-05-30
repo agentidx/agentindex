@@ -1,0 +1,8 @@
+# Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-zarq_check_api_L229_GET_v1_vitality_token_a_compare_token_b]
+# Target: production
+# Category: HTTP_4XX_unexpected
+# GET /v1/vitality/{token_a}/compare/{token_b}
+# status=404 elapsed=52.4ms pool=
+# detail: unexpected 404 — route exists in code
+
+--- response excerpt ---

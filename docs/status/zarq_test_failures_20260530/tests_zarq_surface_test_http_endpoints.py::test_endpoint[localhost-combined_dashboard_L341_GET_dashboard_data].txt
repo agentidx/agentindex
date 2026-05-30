@@ -1,0 +1,8 @@
+# Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[localhost-combined_dashboard_L341_GET_dashboard_data]
+# Target: localhost
+# Category: TIMEOUT
+# GET /dashboard/data
+# status=None elapsed=8001.9ms pool=
+# detail: client timeout after 8002ms
+
+--- response excerpt ---

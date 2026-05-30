@@ -1,0 +1,9 @@
+# Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[localhost-zarq_content_pages_L1174_GET_learn_slug]
+# Target: localhost
+# Category: HTTP_4XX_unexpected
+# GET /learn/{slug}
+# status=404 elapsed=6.2ms pool=
+# detail: unexpected 404 — route exists in code
+
+--- response excerpt ---
+<h1>Article not found</h1>

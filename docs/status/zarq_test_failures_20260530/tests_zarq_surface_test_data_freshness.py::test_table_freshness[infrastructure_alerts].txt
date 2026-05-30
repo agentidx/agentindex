@@ -1,0 +1,8 @@
+# Test: tests/zarq_surface/test_data_freshness.py::test_table_freshness[infrastructure_alerts]
+# Target: pg-nbg
+# Category: EMPTY_RESPONSE
+# SELECT zarq.infrastructure_alerts
+# status=None elapsed=126.9ms pool=agentindex_write (direct to Nbg)
+# detail: zarq.infrastructure_alerts is empty (MAX(last_seen_at) NULL)
+
+--- response excerpt ---

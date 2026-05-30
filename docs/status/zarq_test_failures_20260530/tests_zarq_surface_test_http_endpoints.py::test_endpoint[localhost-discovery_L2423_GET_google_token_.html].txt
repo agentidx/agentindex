@@ -1,0 +1,9 @@
+# Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[localhost-discovery_L2423_GET_google_token_.html]
+# Target: localhost
+# Category: EMPTY_RESPONSE
+# GET /google{token}.html
+# status=200 elapsed=7.2ms pool=
+# detail: HTML body suspiciously small (44 bytes)
+
+--- response excerpt ---
+google-site-verification: googlebitcoin.html

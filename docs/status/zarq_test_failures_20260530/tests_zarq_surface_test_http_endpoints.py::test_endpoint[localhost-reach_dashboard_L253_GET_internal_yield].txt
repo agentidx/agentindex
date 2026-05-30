@@ -1,0 +1,9 @@
+# Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[localhost-reach_dashboard_L253_GET_internal_yield]
+# Target: localhost
+# Category: HTTP_4XX_unexpected
+# GET /internal/yield
+# status=403 elapsed=6.4ms pool=
+# detail: auth-required: status 403
+
+--- response excerpt ---
+{"error":"unauthorized"}

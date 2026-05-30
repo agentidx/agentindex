@@ -1,0 +1,8 @@
+# Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[localhost-citation_dashboard_L445_GET_citation-dashboard]
+# Target: localhost
+# Category: TIMEOUT
+# GET /citation-dashboard
+# status=None elapsed=8001.5ms pool=
+# detail: client timeout after 8002ms
+
+--- response excerpt ---

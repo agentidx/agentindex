@@ -1,0 +1,9 @@
+# Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[localhost-weekly_signal_L195_GET_weekly]
+# Target: localhost
+# Category: HTTP_5XX
+# GET /weekly
+# status=500 elapsed=7513.1ms pool=
+# detail: status 500
+
+--- response excerpt ---
+Internal Server Error

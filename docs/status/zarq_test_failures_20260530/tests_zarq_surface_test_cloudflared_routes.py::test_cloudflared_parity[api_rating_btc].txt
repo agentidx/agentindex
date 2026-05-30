@@ -1,0 +1,21 @@
+# Test: tests/zarq_surface/test_cloudflared_routes.py::test_cloudflared_parity[api_rating_btc]
+# Target: localhost
+# Category: HTTP_4XX_unexpected
+# GET http://localhost:8000/rating/bitcoin
+# status=404 elapsed=7.3ms pool=
+# detail: local does not return expected 200; local=404 (7ms) prod=404 (357ms)
+
+--- response excerpt ---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Page Not Found — Nerq</title>
+<meta name="description" content="The page you&#x27;re looking for doesn&#x27;t exist.">
+<link rel="canonical" href="https://nerq.ai/">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0f172a;line-height:1.6;font-size:15px;background:#fff}
+a{color:#2563eb;text-decoration:none}a:hover{color:#1d4ed8;text-decoration:underline}
+code,pre{font-fa

@@ -1,0 +1,8 @@
+# Test: tests/zarq_surface/test_mcp_tools.py::test_mcp_tool[production-get_trust_score]
+# Target: production
+# Category: HTTP_4XX_unexpected
+# POST /mcp:get_trust_score
+# status=404 elapsed=54.9ms pool=
+# detail: mcp endpoint returned 404
+
+--- response excerpt ---

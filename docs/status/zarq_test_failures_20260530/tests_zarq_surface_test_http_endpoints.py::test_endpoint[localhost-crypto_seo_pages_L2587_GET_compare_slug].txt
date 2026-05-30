@@ -1,0 +1,9 @@
+# Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[localhost-crypto_seo_pages_L2587_GET_compare_slug]
+# Target: localhost
+# Category: HTTP_4XX_unexpected
+# GET /compare/{slug}
+# status=404 elapsed=4.4ms pool=
+# detail: unexpected 404 — route exists in code
+
+--- response excerpt ---
+<h1>Not Found</h1><p>One or both entities are not in our index.</p>

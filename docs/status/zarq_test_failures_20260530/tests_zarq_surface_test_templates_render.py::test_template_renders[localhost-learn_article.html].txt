@@ -1,0 +1,9 @@
+# Test: tests/zarq_surface/test_templates_render.py::test_template_renders[localhost-learn_article.html]
+# Target: localhost
+# Category: HTTP_4XX_unexpected
+# GET /learn/what-is-zarq
+# status=404 elapsed=747.4ms pool=
+# detail: template route 404 — template exists, route may be missing or path wrong: /learn/what-is-zarq
+
+--- response excerpt ---
+<h1>Article not found</h1>
