@@ -588,6 +588,17 @@ app.add_middleware(ReturningVisitorBanner)
 app.add_middleware(OldDomainRedirect)
 app.add_middleware(ZarqRouter)
 app.add_middleware(AnalyticsMiddleware)
+
+# Deprecation-usage audit for routes flagged in phase-3 root-cause plan.
+# 14-day usage data informs the include-vs-delete decision for crypto_api.py,
+# experiments_api.py, and the /action/* admin endpoints. See
+# docs/status/zarq_root_cause_plan_20260530.md F.1-F.3 + Anders' answers.
+from agentindex.api.middleware.deprecation_logger import DeprecationLoggerMiddleware
+app.add_middleware(
+    DeprecationLoggerMiddleware,
+    prefixes=("/crypto/", "/experiments/", "/action/"),
+)
+
 setup_api_protection(app)
 
 # CORS: use a simple after-response hook to avoid BaseHTTPMiddleware body conflicts
