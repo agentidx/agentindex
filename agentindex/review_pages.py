@@ -43,35 +43,6 @@ def _esc_json(s):
     return str(s).replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n").replace("\r", "")
 
 
-def _ensure_reviews_table():
-    """Create user_reviews table if it doesn't exist. Uses write path (primary)."""
-    from agentindex.db.models import get_write_session
-    session = get_write_session()
-    try:
-        session.execute(text("""
-            CREATE TABLE IF NOT EXISTS user_reviews (
-                id SERIAL PRIMARY KEY,
-                agent_name TEXT NOT NULL,
-                rating INTEGER NOT NULL CHECK(rating BETWEEN 1 AND 5),
-                comment TEXT,
-                reviewer_name TEXT DEFAULT 'Anonymous',
-                ip_hash TEXT,
-                created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-                is_editorial BOOLEAN DEFAULT FALSE
-            )
-        """))
-        session.execute(text("""
-            CREATE INDEX IF NOT EXISTS idx_user_reviews_agent ON user_reviews(agent_name)
-        """))
-        session.commit()
-        logger.info("user_reviews table ensured")
-    except Exception as e:
-        session.rollback()
-        logger.error(f"Failed to create user_reviews table: {e}")
-    finally:
-        session.close()
-
-
 def _hash_ip(ip: str) -> str:
     return hashlib.sha256(f"nerq-review-salt-{ip}".encode()).hexdigest()[:16]
 
@@ -391,8 +362,14 @@ async function submitReview(e) {{
 
 
 def mount_review_pages(app):
-    """Mount /review/{name} and POST /v1/review/user."""
-    _ensure_reviews_table()
+    """Mount /review/{name} and POST /v1/review/user.
+
+    The user_reviews table is provisioned by
+    migrations/public/20260530-01-user-reviews-table.sql, not by this
+    module — moved out of the boot path because the per-worker CREATE
+    TABLE call was the amplifier in the 2026-05-30 R-SW saturation
+    incident. See docs/status/r7_state_check_20260530_1735.md.
+    """
 
     @app.get("/review/{name:path}", response_class=HTMLResponse)
     async def review_page(name: str):
