@@ -106,8 +106,18 @@ def classify_response(resp: httpx.Response, body: str, elapsed_ms: float) -> tup
         except json.JSONDecodeError as e:
             return cf.FailureCategory.PARSE_ERROR, f"JSON decode failed: {e}"
 
-    # Empty body on HTML path (zero-byte or under 200 bytes is suspicious)
-    if body and len(body.strip()) < 200 and "html" in resp.headers.get("content-type", ""):
+    # Empty body on HTML path (zero-byte or under 200 bytes is suspicious),
+    # but skip the check for known-tiny endpoints: health probes, SEO
+    # verification markers, sitemap robots-style files.
+    path = getattr(resp.request, "url", None)
+    path_str = str(path.path) if path else ""
+    KNOWN_TINY = ("/health", "indexnow.txt", "google", "robots.txt")
+    if (
+        body
+        and len(body.strip()) < 200
+        and "html" in resp.headers.get("content-type", "")
+        and not any(t in path_str for t in KNOWN_TINY)
+    ):
         return cf.FailureCategory.EMPTY_RESPONSE, f"HTML body suspiciously small ({len(body)} bytes)"
 
     return None
@@ -154,11 +164,22 @@ def _build_param_args():
 _PARAMS, _SYNTHETIC = _build_param_args()
 
 
+# Paths we explicitly do NOT test (auth-gated or otherwise out of scope).
+# Returns 403 by design — not a failure of the ZARQ public surface.
+_OUT_OF_SCOPE_PREFIXES = (
+    "/internal/",       # API-key gated admin endpoints
+    "/admin/",          # admin-only paths
+)
+
+
 @pytest.mark.parametrize("route", _PARAMS)
 def test_endpoint(route, target, http_client, base_url, api_base_url, request):
     """One smoke test per (route, target)."""
     test_id = request.node.nodeid
     concrete = substitute_path_params(route["path"], _SYNTHETIC)
+    if any(concrete.startswith(p) for p in _OUT_OF_SCOPE_PREFIXES):
+        cf.record_skip(test_id, target, f"out-of-scope prefix: {concrete.split('/', 2)[1]}")
+        pytest.skip(f"out-of-scope (auth-gated): {concrete}")
     # Prefer api.zarq.ai for /api/* and /v1/* on production; landing pages on zarq.ai.
     # Locally there's only :8000 either way.
     if target == "production" and (concrete.startswith("/api/") or concrete.startswith("/v1/")):

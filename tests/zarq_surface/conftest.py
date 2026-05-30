@@ -139,12 +139,22 @@ def mcp_base_url(target: str) -> str:
 
 @pytest.fixture(scope="session")
 def http_client() -> Iterator[httpx.Client]:
-    """A reusable httpx.Client. follow_redirects=True so we exercise the real
-    landing-page flow (zarq.ai/ may redirect to /crypto)."""
+    """A reusable httpx.Client.
+
+    follow_redirects=True exercises the real landing-page flow (zarq.ai/
+    redirects to /crypto). max_redirects=3 caps the chain — without this
+    the 2026-05-30 run saw /kya redirect-loop to 13.7s under "PASS",
+    well past the 8s ceiling. The Accept header includes text/event-stream
+    so MCP requests on :8001 don't get bounced with 406.
+    """
     with httpx.Client(
         timeout=REQUEST_TIMEOUT_S,
         follow_redirects=True,
-        headers={"User-Agent": "zarq-surface-tests/1.0 (suite=tests/zarq_surface)"},
+        max_redirects=3,
+        headers={
+            "User-Agent": "zarq-surface-tests/1.0 (suite=tests/zarq_surface)",
+            "Accept": "application/json, text/event-stream, text/html;q=0.9, */*;q=0.1",
+        },
         verify=True,
     ) as client:
         yield client

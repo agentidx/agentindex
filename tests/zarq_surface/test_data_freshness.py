@@ -30,27 +30,30 @@ def _build_freshness_cases(thresholds: dict) -> list[tuple[str, str, int]]:
 
 
 def _all_cases():
-    # We can't easily depend on the fixture here, so duplicate the threshold
-    # keys statically; the fixture is the source of truth for thresholds at
-    # runtime. If this list drifts, conftest.freshness_thresholds wins.
+    # Tuple: (table, timestamp_col, max_hours, empty_ok)
+    # empty_ok=True means MAX-IS-NULL is treated as a PASS — appropriate for
+    # alert tables where "nothing open" is a healthy state.
+    # If this list drifts from conftest.freshness_thresholds, the fixture wins
+    # at the runtime threshold-lookup level; this list controls the parametrize.
     return [
-        ("crypto_ndd_daily",      "run_date::timestamp",       36),
-        ("crypto_ndd_alerts",     "alert_date::timestamp",     36),
-        ("nerq_risk_signals",     "signal_date::timestamp",    36),
-        ("crypto_price_history",  "date::timestamp",           36),
-        ("crypto_rating_daily",   "run_date::timestamp",       36),
-        ("crypto_pipeline_runs",  "started_at::timestamp",     36),
-        ("external_trust_signals", "fetched_at",               72),
-        ("infrastructure_alerts",  "last_seen_at",             24),
+        ("crypto_ndd_daily",       "run_date::timestamp",   36, False),
+        ("crypto_ndd_alerts",      "alert_date::timestamp", 36, False),
+        ("nerq_risk_signals",      "signal_date::timestamp", 36, False),
+        ("crypto_price_history",   "date::timestamp",       36, False),
+        ("crypto_rating_daily",    "run_date::timestamp",   36, False),
+        ("crypto_pipeline_runs",   "started_at::timestamp", 36, False),
+        ("external_trust_signals", "fetched_at",            72, False),
+        ("infrastructure_alerts",  "last_seen_at",          24, True),   # empty = no open alerts = healthy
+        ("dual_write_failures",    "occurred_at",           24, True),   # empty = no PG sync errors = healthy
     ]
 
 
 @pytest.mark.parametrize(
-    "table,timestamp_col,max_hours",
+    "table,timestamp_col,max_hours,empty_ok",
     _all_cases(),
     ids=[c[0] for c in _all_cases()],
 )
-def test_table_freshness(table, timestamp_col, max_hours, pg_conn, request):
+def test_table_freshness(table, timestamp_col, max_hours, empty_ok, pg_conn, request):
     """SELECT MAX(<col>) FROM zarq.<table>; assert age < max_hours."""
     test_id = request.node.nodeid
     cur = pg_conn.cursor()
@@ -73,6 +76,12 @@ def test_table_freshness(table, timestamp_col, max_hours, pg_conn, request):
     cur.close()
 
     if not row or row[0] is None:
+        if empty_ok:
+            # Empty is the *healthy* state for this table — no open alerts /
+            # no recent failures. Record as pass with a marker.
+            cf.record_pass(test_id, "pg-nbg", elapsed_ms,
+                           path=f"zarq.{table} (empty=healthy)")
+            return
         cf.record_failure(cf.FailureRecord(
             test_id=test_id, target="pg-nbg", category=cf.FailureCategory.EMPTY_RESPONSE,
             detail=f"zarq.{table} is empty (MAX({timestamp_col}) NULL)",
