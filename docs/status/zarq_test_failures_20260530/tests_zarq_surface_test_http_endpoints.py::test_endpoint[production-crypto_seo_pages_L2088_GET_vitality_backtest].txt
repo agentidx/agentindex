@@ -1,0 +1,8 @@
+# Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-crypto_seo_pages_L2088_GET_vitality_backtest]
+# Target: production
+# Category: TIMEOUT
+# GET /vitality/backtest
+# status=None elapsed=8002.4ms pool=
+# detail: client timeout after 8002ms
+
+--- response excerpt ---

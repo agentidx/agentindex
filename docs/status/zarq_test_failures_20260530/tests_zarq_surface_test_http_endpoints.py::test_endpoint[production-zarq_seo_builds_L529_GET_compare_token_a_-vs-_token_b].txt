@@ -1,0 +1,8 @@
+# Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-zarq_seo_builds_L529_GET_compare_token_a_-vs-_token_b]
+# Target: production
+# Category: TIMEOUT
+# GET /compare/{token_a}-vs-{token_b}
+# status=None elapsed=8026.6ms pool=
+# detail: client timeout after 8027ms
+
+--- response excerpt ---

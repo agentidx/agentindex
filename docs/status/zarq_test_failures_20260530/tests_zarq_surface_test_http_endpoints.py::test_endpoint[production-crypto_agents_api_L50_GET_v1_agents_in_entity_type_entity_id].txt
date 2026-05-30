@@ -1,8 +1,9 @@
 # Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-crypto_agents_api_L50_GET_v1_agents_in_entity_type_entity_id]
 # Target: production
-# Category: HTTP_4XX_unexpected
+# Category: EMPTY_RESPONSE
 # GET /v1/agents/in/{entity_type}/{entity_id}
-# status=404 elapsed=142.1ms pool=
-# detail: unexpected 404 — route exists in code
+# status=400 elapsed=40.7ms pool=
+# detail: HTML body suspiciously small (40 bytes)
 
 --- response excerpt ---
+entity_type must be: chain, source, type

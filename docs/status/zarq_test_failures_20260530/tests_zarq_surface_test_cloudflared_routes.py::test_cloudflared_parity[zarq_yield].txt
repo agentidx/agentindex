@@ -1,8 +1,9 @@
 # Test: tests/zarq_surface/test_cloudflared_routes.py::test_cloudflared_parity[zarq_yield]
-# Target: localhost
-# Category: NETWORK_ERROR
+# Target: diff
+# Category: CLOUDFLARED_GAP
 # GET http://localhost:8000/yield
-# status=None elapsed=8003.8ms pool=
-# detail: local does not return expected 200; local=TIMEOUT (8004ms) prod=502 (139ms)
+# status=502 elapsed=2329.2ms pool=
+# detail: local OK but prod failed; local=200 (40ms) prod=502 (2329ms)
 
 --- response excerpt ---
+{"type":"https://developers.cloudflare.com/support/troubleshooting/http-status-codes/cloudflare-5xx-errors/error-502/","title":"Error 502: Bad gateway","status":502,"detail":"The origin web server returned an invalid or incomplete response to Cloudflare. This typically indicates the origin is overloaded or misconfigured.","instance":"a03ea01d6b6aa618","error_code":502,"error_name":"origin_bad_gateway","error_category":"origin","ray_id":"a03ea01d6b6aa618","timestamp":"2026-05-30T15:03:27Z","zone":"zarq.ai","cloudflare_error":true,"retryable":true,"retry_after":60,"owner_action_required":true,"w

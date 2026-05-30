@@ -1,0 +1,8 @@
+# Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-crypto_seo_pages_L1367_GET_crypto_token_token_id_outlook]
+# Target: production
+# Category: TIMEOUT
+# GET /crypto/token/{token_id}/outlook
+# status=None elapsed=8025.6ms pool=
+# detail: client timeout after 8026ms
+
+--- response excerpt ---

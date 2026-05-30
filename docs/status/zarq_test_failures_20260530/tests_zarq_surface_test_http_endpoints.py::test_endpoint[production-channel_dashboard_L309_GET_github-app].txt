@@ -1,0 +1,8 @@
+# Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-channel_dashboard_L309_GET_github-app]
+# Target: production
+# Category: TIMEOUT
+# GET /github-app
+# status=None elapsed=8021.8ms pool=
+# detail: client timeout after 8022ms
+
+--- response excerpt ---

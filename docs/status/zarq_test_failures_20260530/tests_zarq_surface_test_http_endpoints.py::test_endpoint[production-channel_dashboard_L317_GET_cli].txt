@@ -1,0 +1,8 @@
+# Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-channel_dashboard_L317_GET_cli]
+# Target: production
+# Category: TIMEOUT
+# GET /cli
+# status=None elapsed=8031.0ms pool=
+# detail: client timeout after 8031ms
+
+--- response excerpt ---

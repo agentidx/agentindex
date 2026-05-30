@@ -2,7 +2,7 @@
 # Target: localhost
 # Category: TIMEOUT
 # GET /crypto
-# status=None elapsed=8002.3ms pool=
+# status=None elapsed=8004.7ms pool=
 # detail: template render timed out
 
 --- response excerpt ---

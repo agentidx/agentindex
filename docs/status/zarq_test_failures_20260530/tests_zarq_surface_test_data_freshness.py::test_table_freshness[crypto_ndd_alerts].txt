@@ -1,0 +1,9 @@
+# Test: tests/zarq_surface/test_data_freshness.py::test_table_freshness[crypto_ndd_alerts]
+# Target: pg-nbg
+# Category: DB_TABLE_MISSING
+# SELECT zarq.crypto_ndd_alerts
+# status=None elapsed=56796.0ms pool=agentindex_write (direct to Nbg)
+# detail: query failed: QueryCanceled: canceling statement due to statement timeout
+
+
+--- response excerpt ---

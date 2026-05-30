@@ -1,0 +1,8 @@
+# Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-zarq_seo_builds_L728_GET_best_category]
+# Target: production
+# Category: TIMEOUT
+# GET /best/{category}
+# status=None elapsed=8025.6ms pool=
+# detail: client timeout after 8026ms
+
+--- response excerpt ---

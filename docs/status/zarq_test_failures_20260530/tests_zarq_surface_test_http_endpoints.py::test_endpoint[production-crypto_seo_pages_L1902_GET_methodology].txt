@@ -1,0 +1,8 @@
+# Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-crypto_seo_pages_L1902_GET_methodology]
+# Target: production
+# Category: TIMEOUT
+# GET /methodology
+# status=None elapsed=8022.5ms pool=
+# detail: client timeout after 8023ms
+
+--- response excerpt ---

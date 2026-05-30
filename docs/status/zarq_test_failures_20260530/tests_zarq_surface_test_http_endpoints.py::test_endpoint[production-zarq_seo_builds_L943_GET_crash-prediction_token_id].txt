@@ -1,0 +1,8 @@
+# Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-zarq_seo_builds_L943_GET_crash-prediction_token_id]
+# Target: production
+# Category: TIMEOUT
+# GET /crash-prediction/{token_id}
+# status=None elapsed=8023.6ms pool=
+# detail: client timeout after 8024ms
+
+--- response excerpt ---

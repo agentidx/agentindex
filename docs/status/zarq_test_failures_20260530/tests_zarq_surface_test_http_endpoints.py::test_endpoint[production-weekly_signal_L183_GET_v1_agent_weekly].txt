@@ -1,8 +1,8 @@
 # Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-weekly_signal_L183_GET_v1_agent_weekly]
 # Target: production
-# Category: HTTP_4XX_unexpected
+# Category: TIMEOUT
 # GET /v1/agent/weekly
-# status=404 elapsed=116.0ms pool=
-# detail: unexpected 404 — route exists in code
+# status=None elapsed=8004.2ms pool=
+# detail: client timeout after 8004ms
 
 --- response excerpt ---

@@ -1,0 +1,8 @@
+# Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-zarq_seo_builds_L400_GET_is-_token_id_-a-scam]
+# Target: production
+# Category: TIMEOUT
+# GET /is-{token_id}-a-scam
+# status=None elapsed=8042.4ms pool=
+# detail: client timeout after 8042ms
+
+--- response excerpt ---

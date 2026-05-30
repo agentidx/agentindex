@@ -1,0 +1,8 @@
+# Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-crypto_seo_pages_L1601_GET_track-record]
+# Target: production
+# Category: TIMEOUT
+# GET /track-record
+# status=None elapsed=8002.8ms pool=
+# detail: client timeout after 8003ms
+
+--- response excerpt ---

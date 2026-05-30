@@ -1,0 +1,8 @@
+# Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-zarq_rss_feed_L27_GET_zarq_feed.xml]
+# Target: production
+# Category: TIMEOUT
+# GET /zarq/feed.xml
+# status=None elapsed=8023.4ms pool=
+# detail: client timeout after 8023ms
+
+--- response excerpt ---

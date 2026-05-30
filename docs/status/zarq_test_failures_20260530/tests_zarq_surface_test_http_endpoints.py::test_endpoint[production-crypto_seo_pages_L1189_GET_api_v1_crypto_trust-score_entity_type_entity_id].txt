@@ -1,8 +1,8 @@
 # Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-crypto_seo_pages_L1189_GET_api_v1_crypto_trust-score_entity_type_entity_id]
 # Target: production
-# Category: HTTP_4XX_unexpected
+# Category: TIMEOUT
 # GET /api/v1/crypto/trust-score/{entity_type}/{entity_id}
-# status=404 elapsed=173.3ms pool=
-# detail: unexpected 404 — route exists in code
+# status=None elapsed=8024.9ms pool=
+# detail: client timeout after 8025ms
 
 --- response excerpt ---

@@ -1,0 +1,8 @@
+# Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-crypto_seo_pages_L1139_GET_best_crypto-exchanges]
+# Target: production
+# Category: TIMEOUT
+# GET /best/crypto-exchanges
+# status=None elapsed=8020.2ms pool=
+# detail: client timeout after 8020ms
+
+--- response excerpt ---

@@ -1,53 +1,8 @@
 # Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-crypto_seo_pages_L1112_GET_crypto_defi_protocol_id]
 # Target: production
-# Category: HTTP_4XX_unexpected
+# Category: TIMEOUT
 # GET /crypto/defi/{protocol_id}
-# status=404 elapsed=88.2ms pool=
-# detail: unexpected 404 — route exists in code
+# status=None elapsed=8029.6ms pool=
+# detail: client timeout after 8030ms
 
 --- response excerpt ---
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Not Found — ZARQ</title>
-<meta name="description" content="">
-<link rel="canonical" href="https://zarq.ai/">
-<meta property="og:title" content="Not Found — ZARQ">
-<meta property="og:description" content="">
-<meta property="og:url" content="https://zarq.ai/">
-<meta property="og:type" content="website">
-<meta name="robots" content="index, follow">
-
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<style>
-:root {
-  --white: #fafaf9;
-  --black: #0a0a0a;
-  --gray-100: #f5f5f4;
-  --gray-200: #e7e5e4;
-  --gray-400: #a8a29e;
-  --gray-500: #78716c;
-  --gray-600: #57534e;
-  --gray-700: #44403c;
-  --gray-800: #292524;
-  --gray-900: #1c1917;
-  --warm: #c2956b;
-  --warm-light: rgba(194, 149, 107, 0.08);
-  --green: #16a34a;
-  --red: #dc2626;
-  --serif: 'DM Serif Display', Georgia, serif;
-  --mono: 'JetBrains Mono', monospace;
-  --sans: 'DM Sans', sans-serif;
-  --wide: 1120px;
-  --measure: 680px;
-}
-* { margin: 0; padding: 0; box-sizing: border-box; }
-::selection { background: var(--warm); color: var(--black); }
-.site-disclaimer {
-  max-width: var(--wide); margin: 0 auto; padding: 24px 40px 40px;
-  font-family: var(--mono); font-size: 10px; line-height: 1.7;
-  color: var(--gray-500); letter-spacing: 0.02em;
-}
-.site-disclaimer p { mar

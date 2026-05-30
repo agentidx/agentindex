@@ -1,0 +1,8 @@
+# Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-zarq_machine_discovery_L481_GET_apis.json]
+# Target: production
+# Category: TIMEOUT
+# GET /apis.json
+# status=None elapsed=8002.3ms pool=
+# detail: client timeout after 8002ms
+
+--- response excerpt ---

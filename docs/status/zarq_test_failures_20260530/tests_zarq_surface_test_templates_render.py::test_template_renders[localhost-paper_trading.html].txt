@@ -2,7 +2,7 @@
 # Target: localhost
 # Category: HTTP_4XX_unexpected
 # GET /crypto/paper-trading
-# status=404 elapsed=5.1ms pool=
+# status=404 elapsed=14.8ms pool=
 # detail: template route 404 — template exists, route may be missing or path wrong: /crypto/paper-trading
 
 --- response excerpt ---

@@ -1,9 +1,8 @@
 # Test: tests/zarq_surface/test_data_freshness.py::test_table_freshness[crypto_rating_daily]
 # Target: pg-nbg
-# Category: DB_TABLE_MISSING
+# Category: STALE_DATA
 # SELECT zarq.crypto_rating_daily
-# status=None elapsed=36901.1ms pool=agentindex_write (direct to Nbg)
-# detail: query failed: QueryCanceled: canceling statement due to statement timeout
-
+# status=None elapsed=9360.3ms pool=agentindex_write (direct to Nbg)
+# detail: zarq.crypto_rating_daily latest=2026-05-29T00:00:00+00:00 age=39.1h > threshold 36h
 
 --- response excerpt ---

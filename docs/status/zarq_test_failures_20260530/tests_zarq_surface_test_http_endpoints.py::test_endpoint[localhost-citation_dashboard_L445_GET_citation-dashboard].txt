@@ -2,7 +2,7 @@
 # Target: localhost
 # Category: TIMEOUT
 # GET /citation-dashboard
-# status=None elapsed=8003.0ms pool=
-# detail: client timeout after 8003ms
+# status=None elapsed=8002.0ms pool=
+# detail: client timeout after 8002ms
 
 --- response excerpt ---

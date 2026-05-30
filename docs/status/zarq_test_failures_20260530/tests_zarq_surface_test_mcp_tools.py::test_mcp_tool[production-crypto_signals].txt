@@ -1,8 +1,8 @@
 # Test: tests/zarq_surface/test_mcp_tools.py::test_mcp_tool[production-crypto_signals]
 # Target: production
-# Category: HTTP_4XX_unexpected
+# Category: TIMEOUT
 # POST /mcp:crypto_signals
-# status=404 elapsed=70.3ms pool=
-# detail: mcp endpoint returned 404
+# status=None elapsed=8026.4ms pool=
+# detail: MCP timeout after 8026ms
 
 --- response excerpt ---

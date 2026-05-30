@@ -1,8 +1,8 @@
 # Test: tests/zarq_surface/test_cloudflared_routes.py::test_cloudflared_parity[zarq_tokens]
-# Target: localhost
-# Category: NETWORK_ERROR
+# Target: diff
+# Category: CLOUDFLARED_GAP
 # GET http://localhost:8000/tokens
-# status=None elapsed=8003.4ms pool=
-# detail: local does not return expected 200; local=TIMEOUT (8003ms) prod=200 (534ms)
+# status=None elapsed=8111.6ms pool=
+# detail: local OK but prod failed; local=200 (8101ms) prod=TIMEOUT (8112ms)
 
 --- response excerpt ---

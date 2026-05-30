@@ -1,0 +1,8 @@
+# Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-mica_mapping_L470_GET_compliance_mica]
+# Target: production
+# Category: TIMEOUT
+# GET /compliance/mica
+# status=None elapsed=8024.3ms pool=
+# detail: client timeout after 8024ms
+
+--- response excerpt ---

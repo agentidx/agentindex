@@ -1,0 +1,8 @@
+# Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-crypto_seo_pages_L1556_GET_data_crypto-trust-scores.jsonl.gz]
+# Target: production
+# Category: TIMEOUT
+# GET /data/crypto-trust-scores.jsonl.gz
+# status=None elapsed=8022.9ms pool=
+# detail: client timeout after 8023ms
+
+--- response excerpt ---

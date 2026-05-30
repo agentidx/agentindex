@@ -2,7 +2,7 @@
 # Target: production
 # Category: HTTP_4XX_unexpected
 # GET /action/reject
-# status=404 elapsed=323.5ms pool=
+# status=404 elapsed=33.1ms pool=
 # detail: unexpected 404 — route exists in code
 
 --- response excerpt ---

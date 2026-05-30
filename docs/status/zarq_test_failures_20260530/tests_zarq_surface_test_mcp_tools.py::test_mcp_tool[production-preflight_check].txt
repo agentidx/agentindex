@@ -1,8 +1,8 @@
 # Test: tests/zarq_surface/test_mcp_tools.py::test_mcp_tool[production-preflight_check]
 # Target: production
-# Category: HTTP_4XX_unexpected
+# Category: TIMEOUT
 # POST /mcp:preflight_check
-# status=404 elapsed=120.6ms pool=
-# detail: mcp endpoint returned 404
+# status=None elapsed=8024.5ms pool=
+# detail: MCP timeout after 8024ms
 
 --- response excerpt ---

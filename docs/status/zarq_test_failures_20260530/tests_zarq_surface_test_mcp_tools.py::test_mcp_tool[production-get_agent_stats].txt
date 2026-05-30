@@ -1,8 +1,8 @@
 # Test: tests/zarq_surface/test_mcp_tools.py::test_mcp_tool[production-get_agent_stats]
 # Target: production
-# Category: HTTP_4XX_unexpected
+# Category: TIMEOUT
 # POST /mcp:get_agent_stats
-# status=404 elapsed=61.7ms pool=
-# detail: mcp endpoint returned 404
+# status=None elapsed=8004.3ms pool=
+# detail: MCP timeout after 8004ms
 
 --- response excerpt ---

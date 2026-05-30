@@ -1,9 +1,8 @@
 # Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[localhost-weekly_signal_L183_GET_v1_agent_weekly]
 # Target: localhost
-# Category: PARSE_ERROR
+# Category: TIMEOUT
 # GET /v1/agent/weekly
-# status=200 elapsed=7991.1ms pool=
-# detail: JSON decode failed: Unterminated string starting at: line 1 column 3993 (char 3992)
+# status=None elapsed=8002.8ms pool=
+# detail: client timeout after 8003ms
 
 --- response excerpt ---
-{"week_of":"2026-05-30","new_indexed_count":0,"new_agents_count":0,"new_tools_count":0,"new_mcp_count":0,"active_this_week":0,"ecosystem":{"total_agents":170799,"total_tools":58459,"total_mcp":29942,"total_classified":259200,"avg_trust_score":49.7},"top_agents":[{"name":"cyanheads/git-mcp-server","trust_score":89.0,"grade":"A","type":"agent","stars":185,"source_url":"https://github.com/cyanheads/git-mcp-server","category":"infrastructure"},{"name":"auth0/auth0-mcp-server","trust_score":85.3,"grade":"A","type":"mcp_server","stars":93,"source_url":"https://github.com/auth0/auth0-mcp-server","category":"infrastructure"},{"name":"arabold/docs-mcp-server","trust_score":83.9,"grade":"A","type":"agent","stars":1061,"source_url":"https://github.com/arabold/docs-mcp-server","category":"infrastructure"},{"name":"gcloud-mcp","trust_score":81.2,"grade":"A","type":"mcp_server","stars":653,"source_url":"https://github.com/googleapis/gcloud-mcp","category":"infrastructure"},{"name":"mcp-sequentialthinking-tools","trust_score":81.2,"grade":"A","type":"mcp_server","stars":563,"source_url":"https://github.com/spences10/mcp-sequentialthinking-tools","category":"productivity"},{"name":"mcp","trust_score":81.0,"grade":"A","type":"mcp_server","stars":175,"source_url":"https://github.com/magicuidesign/mcp","category":null},{"name":"mcp","trust_score":80.8,"grade":"A","type":"agent","stars":1350,"source_url":"https://github.com/MicrosoftDocs/mcp","category":"infrastructure"},{"name":"strava-mcp","tr

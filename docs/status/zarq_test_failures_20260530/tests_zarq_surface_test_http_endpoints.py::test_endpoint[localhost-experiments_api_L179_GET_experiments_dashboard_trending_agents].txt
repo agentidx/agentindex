@@ -2,7 +2,7 @@
 # Target: localhost
 # Category: EMPTY_RESPONSE
 # GET /experiments/dashboard/trending/agents
-# status=200 elapsed=4.9ms pool=
+# status=200 elapsed=8.5ms pool=
 # detail: HTML body suspiciously small (13 bytes)
 
 --- response excerpt ---

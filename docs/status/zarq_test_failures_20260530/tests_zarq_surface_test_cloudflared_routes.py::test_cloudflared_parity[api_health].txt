@@ -1,0 +1,8 @@
+# Test: tests/zarq_surface/test_cloudflared_routes.py::test_cloudflared_parity[api_health]
+# Target: localhost
+# Category: NETWORK_ERROR
+# GET http://localhost:8000/health
+# status=None elapsed=8003.3ms pool=
+# detail: local does not return expected 200; local=TIMEOUT (8003ms) prod=200 (53ms)
+
+--- response excerpt ---

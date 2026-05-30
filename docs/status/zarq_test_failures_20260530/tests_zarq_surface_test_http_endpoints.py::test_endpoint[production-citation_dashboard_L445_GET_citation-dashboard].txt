@@ -1,0 +1,8 @@
+# Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-citation_dashboard_L445_GET_citation-dashboard]
+# Target: production
+# Category: TIMEOUT
+# GET /citation-dashboard
+# status=None elapsed=8003.7ms pool=
+# detail: client timeout after 8004ms
+
+--- response excerpt ---

@@ -2,7 +2,7 @@
 # Target: production
 # Category: HTTP_4XX_unexpected
 # GET /zarq/dashboard/data
-# status=401 elapsed=4430.3ms pool=
+# status=401 elapsed=37.2ms pool=
 # detail: auth-required: status 401
 
 --- response excerpt ---

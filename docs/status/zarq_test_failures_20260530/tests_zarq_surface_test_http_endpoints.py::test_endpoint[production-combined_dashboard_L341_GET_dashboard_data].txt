@@ -2,7 +2,7 @@
 # Target: production
 # Category: TIMEOUT
 # GET /dashboard/data
-# status=None elapsed=8002.9ms pool=
-# detail: client timeout after 8003ms
+# status=None elapsed=8003.6ms pool=
+# detail: client timeout after 8004ms
 
 --- response excerpt ---
