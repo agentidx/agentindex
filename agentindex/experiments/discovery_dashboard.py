@@ -57,13 +57,18 @@ class DiscoveryDashboard:
     def __init__(self, db_path: str = "discovery_analytics.db"):
         self.db_path = db_path
         self.init_database()
+        # Initial-state shape must match what each getter returns; otherwise
+        # consumers (e.g. generate_insights) hit AttributeError when the cache
+        # is still cold and a list leaks through where a dict is expected.
+        # `_get_response_times` returns `{"percentiles": ..., "avg": ...,
+        # "count": ...}` even on empty input — mirror that here.
         self.cache = {
             "trending_queries": [],
             "trending_agents": [],
             "category_stats": {},
             "protocol_stats": {},
             "hourly_activity": [],
-            "response_times": [],
+            "response_times": {"percentiles": {}, "avg": 0, "count": 0},
             "last_updated": None
         }
         self.cache_ttl = timedelta(minutes=5)
