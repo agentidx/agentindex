@@ -8,6 +8,12 @@ on the Mac Studio are in `~/Library/LaunchAgents/`, not here.
 Treat the files in this directory as **the canonical version**. If you
 edit a live plist on the Mac Studio, copy it back here and commit.
 
+> **Ops discipline (post-ADR-003a):** any LaunchAgent, PgBouncer config
+> change, or other infra edit that lives outside git is a future incident
+> waiting to happen. The 5 maj 2026 PgBouncer Hel-promote was a direct
+> ops edit; it caused 25 days of silent write-pool failure. New infra
+> artifacts go into git first, get applied second.
+
 ## Files
 
 ### com.nerq.api.plist
@@ -44,6 +50,25 @@ Configuration:
 History:
 - 2026-04-08: Created after the 70-second analytics_dashboard query
   caused worker exhaustion. See findings #18.
+
+### com.nerq.infra-healthcheck.plist
+
+Runs `scripts/infra_healthcheck.py` every 5 minutes (300s). The script
+parses the active `pgbouncer.ini`, TCP-probes each `[databases]` host:port,
+and opens / bumps / resolves rows in `zarq.infrastructure_alerts` so a
+dead Postgres host surfaces in minutes instead of weeks.
+
+Configuration:
+- `StartInterval`: 300 seconds (5 minutes)
+- `RunAtLoad`: true
+- `PGBOUNCER_INI`: `/opt/homebrew/etc/pgbouncer.ini`
+- `INFRA_ALERT_DSN`: writes alerts to `zarq.infrastructure_alerts` on Nbg
+- Logs to `~/agentindex/logs/infra_healthcheck.log`
+
+History:
+- 2026-05-30: Created after the 25-day silent failure where PgBouncer's
+  `agentindex_write` pool routed to Hel's :5432 (closed) without any alarm.
+  Root cause documented in `docs/adr/ADR-003a-current-db-topology.md`.
 
 ## Installation
 

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.nerq.infra-healthcheck</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/anstudio/agentindex/venv/bin/python</string>
+        <string>/Users/anstudio/agentindex/scripts/infra_healthcheck.py</string>
+    </array>
+
+    <key>StartInterval</key>
+    <integer>300</integer>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>WorkingDirectory</key>
+    <string>/Users/anstudio/agentindex</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PYTHONPATH</key>
+        <string>/Users/anstudio/agentindex</string>
+        <key>PGBOUNCER_INI</key>
+        <string>/opt/homebrew/etc/pgbouncer.ini</string>
+        <key>INFRA_ALERT_DSN</key>
+        <string>host=100.119.193.70 port=5432 dbname=agentindex user=anstudio</string>
+    </dict>
+
+    <key>StandardOutPath</key>
+    <string>/Users/anstudio/agentindex/logs/infra_healthcheck.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/anstudio/agentindex/logs/infra_healthcheck_err.log</string>
+</dict>
+</plist>
