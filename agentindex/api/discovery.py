@@ -1568,6 +1568,18 @@ try:
 except Exception as e:
     print(f"Legacy crypto_api router not loaded: {e}")
 
+# Experimental endpoints (phase 4 R3). agentindex.experiments.experiments_api
+# defines its own FastAPI app — routes are already path-prefixed with
+# /experiments/*. We include the underlying APIRouter so the routes attach
+# without re-prefixing. CORS middleware on that sub-app is dropped (outer
+# app has its own CORS chain). Per Anders' F.2 answer: 14-day usage audit
+# before any include-vs-delete decision.
+try:
+    from agentindex.experiments import experiments_api as _experiments_api
+    app.include_router(_experiments_api.app.router)
+except Exception as e:
+    print(f"experiments_api router not loaded: {e}")
+
 from agentindex.crypto.zarq_risk_pages import mount_risk_pages
 mount_risk_pages(app)
 
