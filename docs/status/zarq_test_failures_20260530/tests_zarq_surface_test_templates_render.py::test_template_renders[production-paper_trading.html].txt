@@ -2,7 +2,7 @@
 # Target: production
 # Category: HTTP_4XX_unexpected
 # GET /crypto/paper-trading
-# status=404 elapsed=100.6ms pool=
+# status=404 elapsed=66.5ms pool=
 # detail: template route 404 — template exists, route may be missing or path wrong: /crypto/paper-trading
 
 --- response excerpt ---

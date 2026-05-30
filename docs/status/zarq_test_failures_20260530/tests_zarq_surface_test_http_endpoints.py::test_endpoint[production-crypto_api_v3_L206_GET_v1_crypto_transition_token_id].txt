@@ -2,7 +2,7 @@
 # Target: production
 # Category: HTTP_4XX_unexpected
 # GET /v1/crypto/transition/{token_id}
-# status=404 elapsed=55.4ms pool=
+# status=404 elapsed=135.2ms pool=
 # detail: unexpected 404 — route exists in code
 
 --- response excerpt ---

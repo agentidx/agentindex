@@ -1,18 +1,18 @@
 {
   "exit_status": 1,
-  "n_failures": 165,
-  "n_passes": 287,
+  "n_failures": 159,
+  "n_passes": 293,
   "n_skips": 12,
   "failures": [
     {
       "test_id": "tests/zarq_surface/test_cloudflared_routes.py::test_cloudflared_parity[mcp_health]",
       "target": "diff",
       "category": "CLOUDFLARED_GAP",
-      "detail": "local OK but prod failed; local=200 (5ms) prod=404 (164ms)",
+      "detail": "local OK but prod failed; local=200 (3ms) prod=404 (231ms)",
       "method": "GET",
       "path": "http://localhost:8001/health",
       "status_code": 404,
-      "elapsed_ms": 163.50293159484863,
+      "elapsed_ms": 230.87406158447266,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
@@ -26,11 +26,11 @@
       "test_id": "tests/zarq_surface/test_cloudflared_routes.py::test_cloudflared_parity[api_rating_btc]",
       "target": "localhost",
       "category": "HTTP_4XX_unexpected",
-      "detail": "local does not return expected 200; local=404 (2710ms) prod=404 (238ms)",
+      "detail": "local does not return expected 200; local=404 (6ms) prod=404 (157ms)",
       "method": "GET",
       "path": "http://localhost:8000/rating/bitcoin",
       "status_code": 404,
-      "elapsed_ms": 2710.031747817993,
+      "elapsed_ms": 6.19196891784668,
       "body_excerpt": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Page Not Found \u2014 Nerq</title>\n<meta name=\"description\" content=\"The page you&#x27;re looking for doesn&#x27;t exist.\">\n<link rel=\"canonical\" href=\"https://nerq.ai/\">\n<style>\n*{margin:0;padding:0;box-sizing:border-box}\nbody{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0f172a;line-height:1.6;font-size:15px;background:#fff}\na{color:#2563eb;text-decoration:none}a:hover{color:#1d4ed8;text-decoration:underline}\ncode,pre{font-fa",
       "pg_pool": "",
       "extra": {}
@@ -43,7 +43,7 @@
       "method": "GET",
       "path": "/dashboard/{agent_slug}",
       "status_code": 404,
-      "elapsed_ms": 6.710052490234375,
+      "elapsed_ms": 6.058931350708008,
       "body_excerpt": "Not found",
       "pg_pool": "",
       "extra": {
@@ -60,7 +60,7 @@
       "method": "GET",
       "path": "/learn/{slug}",
       "status_code": 404,
-      "elapsed_ms": 4.842042922973633,
+      "elapsed_ms": 6.035089492797852,
       "body_excerpt": "<h1>Article not found</h1>",
       "pg_pool": "",
       "extra": {
@@ -70,66 +70,15 @@
       }
     },
     {
-      "test_id": "tests/zarq_surface/test_http_endpoints.py::test_endpoint[localhost-crypto_api_L62_GET_crypto_rating_token_id]",
-      "target": "localhost",
-      "category": "HTTP_4XX_unexpected",
-      "detail": "unexpected 404 \u2014 route exists in code",
-      "method": "GET",
-      "path": "/crypto/rating/{token_id}",
-      "status_code": 404,
-      "elapsed_ms": 5.957126617431641,
-      "body_excerpt": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Page Not Found \u2014 Nerq</title>\n<meta name=\"description\" content=\"The page you&#x27;re looking for doesn&#x27;t exist.\">\n<link rel=\"canonical\" href=\"https://nerq.ai/\">\n<style>\n*{margin:0;padding:0;box-sizing:border-box}\nbody{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0f172a;line-height:1.6;font-size:15px;background:#fff}\na{color:#2563eb;text-decoration:none}a:hover{color:#1d4ed8;text-decoration:underline}\ncode,pre{font-family:ui-monospace,'SF Mono','Cascadia Mono',monospace}\ncode{background:#f1f5f9;padding:1px 5px;font-size:.9em;border-radius:3px}\npre{background:#f1f5f9;padding:16px;overflow-x:auto;font-size:13px;line-height:1.5;border:1px solid #e2e8f0;border-radius:6px}\nh1,h2,h3,h4{font-weight:700;line-height:1.3}\nh1{font-size:1.5rem;margin-bottom:8px}\nh2{font-size:1.15rem;margin:24px 0 8px;padding-top:16px;border-top:1px solid #f1f5f9}\nh3{font-size:1rem;margin:16px 0 6px}\ntable{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0}\nth{text-align:left;padding:8px 10px;border-bottom:2px solid #e2e8f0;color:#64748b;font-weight:600;font-size:13px}\ntd{padding:8px 10px;border-bottom:1px solid #f1f5f9}\ntr:nth-child(even){background:#fafbfc}\n.container{max-width:780px;margin:0 auto;padding:0 20px}\n.nav{border-bottom:1px solid #e2e8f0;padding:10px 0;position:sticky;top:0;background:#fff;z-index:100}",
-      "pg_pool": "",
-      "extra": {
-        "url": "http://localhost:8000/crypto/rating/bitcoin",
-        "source_file": "/Users/anstudio/agentindex/agentindex/crypto/crypto_api.py",
-        "source_line": 62
-      }
-    },
-    {
-      "test_id": "tests/zarq_surface/test_http_endpoints.py::test_endpoint[localhost-crypto_api_L114_GET_crypto_ndd_token_id]",
-      "target": "localhost",
-      "category": "HTTP_4XX_unexpected",
-      "detail": "unexpected 404 \u2014 route exists in code",
-      "method": "GET",
-      "path": "/crypto/ndd/{token_id}",
-      "status_code": 404,
-      "elapsed_ms": 5.333185195922852,
-      "body_excerpt": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Page Not Found \u2014 Nerq</title>\n<meta name=\"description\" content=\"The page you&#x27;re looking for doesn&#x27;t exist.\">\n<link rel=\"canonical\" href=\"https://nerq.ai/\">\n<style>\n*{margin:0;padding:0;box-sizing:border-box}\nbody{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0f172a;line-height:1.6;font-size:15px;background:#fff}\na{color:#2563eb;text-decoration:none}a:hover{color:#1d4ed8;text-decoration:underline}\ncode,pre{font-family:ui-monospace,'SF Mono','Cascadia Mono',monospace}\ncode{background:#f1f5f9;padding:1px 5px;font-size:.9em;border-radius:3px}\npre{background:#f1f5f9;padding:16px;overflow-x:auto;font-size:13px;line-height:1.5;border:1px solid #e2e8f0;border-radius:6px}\nh1,h2,h3,h4{font-weight:700;line-height:1.3}\nh1{font-size:1.5rem;margin-bottom:8px}\nh2{font-size:1.15rem;margin:24px 0 8px;padding-top:16px;border-top:1px solid #f1f5f9}\nh3{font-size:1rem;margin:16px 0 6px}\ntable{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0}\nth{text-align:left;padding:8px 10px;border-bottom:2px solid #e2e8f0;color:#64748b;font-weight:600;font-size:13px}\ntd{padding:8px 10px;border-bottom:1px solid #f1f5f9}\ntr:nth-child(even){background:#fafbfc}\n.container{max-width:780px;margin:0 auto;padding:0 20px}\n.nav{border-bottom:1px solid #e2e8f0;padding:10px 0;position:sticky;top:0;background:#fff;z-index:100}",
-      "pg_pool": "",
-      "extra": {
-        "url": "http://localhost:8000/crypto/ndd/bitcoin",
-        "source_file": "/Users/anstudio/agentindex/agentindex/crypto/crypto_api.py",
-        "source_line": 114
-      }
-    },
-    {
-      "test_id": "tests/zarq_surface/test_http_endpoints.py::test_endpoint[localhost-crypto_api_L172_GET_crypto_ratings]",
-      "target": "localhost",
-      "category": "HTTP_4XX_unexpected",
-      "detail": "unexpected 404 \u2014 route exists in code",
-      "method": "GET",
-      "path": "/crypto/ratings",
-      "status_code": 404,
-      "elapsed_ms": 6.6890716552734375,
-      "body_excerpt": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Page Not Found \u2014 Nerq</title>\n<meta name=\"description\" content=\"The page you&#x27;re looking for doesn&#x27;t exist.\">\n<link rel=\"canonical\" href=\"https://nerq.ai/\">\n<style>\n*{margin:0;padding:0;box-sizing:border-box}\nbody{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0f172a;line-height:1.6;font-size:15px;background:#fff}\na{color:#2563eb;text-decoration:none}a:hover{color:#1d4ed8;text-decoration:underline}\ncode,pre{font-family:ui-monospace,'SF Mono','Cascadia Mono',monospace}\ncode{background:#f1f5f9;padding:1px 5px;font-size:.9em;border-radius:3px}\npre{background:#f1f5f9;padding:16px;overflow-x:auto;font-size:13px;line-height:1.5;border:1px solid #e2e8f0;border-radius:6px}\nh1,h2,h3,h4{font-weight:700;line-height:1.3}\nh1{font-size:1.5rem;margin-bottom:8px}\nh2{font-size:1.15rem;margin:24px 0 8px;padding-top:16px;border-top:1px solid #f1f5f9}\nh3{font-size:1rem;margin:16px 0 6px}\ntable{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0}\nth{text-align:left;padding:8px 10px;border-bottom:2px solid #e2e8f0;color:#64748b;font-weight:600;font-size:13px}\ntd{padding:8px 10px;border-bottom:1px solid #f1f5f9}\ntr:nth-child(even){background:#fafbfc}\n.container{max-width:780px;margin:0 auto;padding:0 20px}\n.nav{border-bottom:1px solid #e2e8f0;padding:10px 0;position:sticky;top:0;background:#fff;z-index:100}",
-      "pg_pool": "",
-      "extra": {
-        "url": "http://localhost:8000/crypto/ratings",
-        "source_file": "/Users/anstudio/agentindex/agentindex/crypto/crypto_api.py",
-        "source_line": 172
-      }
-    },
-    {
       "test_id": "tests/zarq_surface/test_http_endpoints.py::test_endpoint[localhost-crypto_api_L248_GET_crypto_compare_token1_token2]",
       "target": "localhost",
-      "category": "HTTP_4XX_unexpected",
-      "detail": "unexpected 404 \u2014 route exists in code",
+      "category": "HTTP_5XX",
+      "detail": "status 500",
       "method": "GET",
       "path": "/crypto/compare/{token1}/{token2}",
-      "status_code": 404,
-      "elapsed_ms": 6.6738128662109375,
-      "body_excerpt": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Page Not Found \u2014 Nerq</title>\n<meta name=\"description\" content=\"The page you&#x27;re looking for doesn&#x27;t exist.\">\n<link rel=\"canonical\" href=\"https://nerq.ai/\">\n<style>\n*{margin:0;padding:0;box-sizing:border-box}\nbody{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0f172a;line-height:1.6;font-size:15px;background:#fff}\na{color:#2563eb;text-decoration:none}a:hover{color:#1d4ed8;text-decoration:underline}\ncode,pre{font-family:ui-monospace,'SF Mono','Cascadia Mono',monospace}\ncode{background:#f1f5f9;padding:1px 5px;font-size:.9em;border-radius:3px}\npre{background:#f1f5f9;padding:16px;overflow-x:auto;font-size:13px;line-height:1.5;border:1px solid #e2e8f0;border-radius:6px}\nh1,h2,h3,h4{font-weight:700;line-height:1.3}\nh1{font-size:1.5rem;margin-bottom:8px}\nh2{font-size:1.15rem;margin:24px 0 8px;padding-top:16px;border-top:1px solid #f1f5f9}\nh3{font-size:1rem;margin:16px 0 6px}\ntable{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0}\nth{text-align:left;padding:8px 10px;border-bottom:2px solid #e2e8f0;color:#64748b;font-weight:600;font-size:13px}\ntd{padding:8px 10px;border-bottom:1px solid #f1f5f9}\ntr:nth-child(even){background:#fafbfc}\n.container{max-width:780px;margin:0 auto;padding:0 20px}\n.nav{border-bottom:1px solid #e2e8f0;padding:10px 0;position:sticky;top:0;background:#fff;z-index:100}",
+      "status_code": 500,
+      "elapsed_ms": 13.403892517089844,
+      "body_excerpt": "Internal Server Error",
       "pg_pool": "",
       "extra": {
         "url": "http://localhost:8000/crypto/compare/bitcoin/ethereum",
@@ -140,52 +89,18 @@
     {
       "test_id": "tests/zarq_surface/test_http_endpoints.py::test_endpoint[localhost-crypto_api_L348_GET_crypto_distress-watch]",
       "target": "localhost",
-      "category": "HTTP_4XX_unexpected",
-      "detail": "unexpected 404 \u2014 route exists in code",
+      "category": "HTTP_5XX",
+      "detail": "status 500",
       "method": "GET",
       "path": "/crypto/distress-watch",
-      "status_code": 404,
-      "elapsed_ms": 4.802227020263672,
-      "body_excerpt": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Page Not Found \u2014 Nerq</title>\n<meta name=\"description\" content=\"The page you&#x27;re looking for doesn&#x27;t exist.\">\n<link rel=\"canonical\" href=\"https://nerq.ai/\">\n<style>\n*{margin:0;padding:0;box-sizing:border-box}\nbody{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0f172a;line-height:1.6;font-size:15px;background:#fff}\na{color:#2563eb;text-decoration:none}a:hover{color:#1d4ed8;text-decoration:underline}\ncode,pre{font-family:ui-monospace,'SF Mono','Cascadia Mono',monospace}\ncode{background:#f1f5f9;padding:1px 5px;font-size:.9em;border-radius:3px}\npre{background:#f1f5f9;padding:16px;overflow-x:auto;font-size:13px;line-height:1.5;border:1px solid #e2e8f0;border-radius:6px}\nh1,h2,h3,h4{font-weight:700;line-height:1.3}\nh1{font-size:1.5rem;margin-bottom:8px}\nh2{font-size:1.15rem;margin:24px 0 8px;padding-top:16px;border-top:1px solid #f1f5f9}\nh3{font-size:1rem;margin:16px 0 6px}\ntable{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0}\nth{text-align:left;padding:8px 10px;border-bottom:2px solid #e2e8f0;color:#64748b;font-weight:600;font-size:13px}\ntd{padding:8px 10px;border-bottom:1px solid #f1f5f9}\ntr:nth-child(even){background:#fafbfc}\n.container{max-width:780px;margin:0 auto;padding:0 20px}\n.nav{border-bottom:1px solid #e2e8f0;padding:10px 0;position:sticky;top:0;background:#fff;z-index:100}",
+      "status_code": 500,
+      "elapsed_ms": 12.089014053344727,
+      "body_excerpt": "Internal Server Error",
       "pg_pool": "",
       "extra": {
         "url": "http://localhost:8000/crypto/distress-watch",
         "source_file": "/Users/anstudio/agentindex/agentindex/crypto/crypto_api.py",
         "source_line": 348
-      }
-    },
-    {
-      "test_id": "tests/zarq_surface/test_http_endpoints.py::test_endpoint[localhost-crypto_api_L400_GET_crypto_portfolio_pairs]",
-      "target": "localhost",
-      "category": "HTTP_4XX_unexpected",
-      "detail": "unexpected 404 \u2014 route exists in code",
-      "method": "GET",
-      "path": "/crypto/portfolio/pairs",
-      "status_code": 404,
-      "elapsed_ms": 4.942178726196289,
-      "body_excerpt": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Page Not Found \u2014 Nerq</title>\n<meta name=\"description\" content=\"The page you&#x27;re looking for doesn&#x27;t exist.\">\n<link rel=\"canonical\" href=\"https://nerq.ai/\">\n<style>\n*{margin:0;padding:0;box-sizing:border-box}\nbody{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0f172a;line-height:1.6;font-size:15px;background:#fff}\na{color:#2563eb;text-decoration:none}a:hover{color:#1d4ed8;text-decoration:underline}\ncode,pre{font-family:ui-monospace,'SF Mono','Cascadia Mono',monospace}\ncode{background:#f1f5f9;padding:1px 5px;font-size:.9em;border-radius:3px}\npre{background:#f1f5f9;padding:16px;overflow-x:auto;font-size:13px;line-height:1.5;border:1px solid #e2e8f0;border-radius:6px}\nh1,h2,h3,h4{font-weight:700;line-height:1.3}\nh1{font-size:1.5rem;margin-bottom:8px}\nh2{font-size:1.15rem;margin:24px 0 8px;padding-top:16px;border-top:1px solid #f1f5f9}\nh3{font-size:1rem;margin:16px 0 6px}\ntable{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0}\nth{text-align:left;padding:8px 10px;border-bottom:2px solid #e2e8f0;color:#64748b;font-weight:600;font-size:13px}\ntd{padding:8px 10px;border-bottom:1px solid #f1f5f9}\ntr:nth-child(even){background:#fafbfc}\n.container{max-width:780px;margin:0 auto;padding:0 20px}\n.nav{border-bottom:1px solid #e2e8f0;padding:10px 0;position:sticky;top:0;background:#fff;z-index:100}",
-      "pg_pool": "",
-      "extra": {
-        "url": "http://localhost:8000/crypto/portfolio/pairs",
-        "source_file": "/Users/anstudio/agentindex/agentindex/crypto/crypto_api.py",
-        "source_line": 400
-      }
-    },
-    {
-      "test_id": "tests/zarq_surface/test_http_endpoints.py::test_endpoint[localhost-crypto_api_L461_GET_crypto_portfolio_adaptive]",
-      "target": "localhost",
-      "category": "HTTP_4XX_unexpected",
-      "detail": "unexpected 404 \u2014 route exists in code",
-      "method": "GET",
-      "path": "/crypto/portfolio/adaptive",
-      "status_code": 404,
-      "elapsed_ms": 9.397029876708984,
-      "body_excerpt": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Page Not Found \u2014 Nerq</title>\n<meta name=\"description\" content=\"The page you&#x27;re looking for doesn&#x27;t exist.\">\n<link rel=\"canonical\" href=\"https://nerq.ai/\">\n<style>\n*{margin:0;padding:0;box-sizing:border-box}\nbody{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0f172a;line-height:1.6;font-size:15px;background:#fff}\na{color:#2563eb;text-decoration:none}a:hover{color:#1d4ed8;text-decoration:underline}\ncode,pre{font-family:ui-monospace,'SF Mono','Cascadia Mono',monospace}\ncode{background:#f1f5f9;padding:1px 5px;font-size:.9em;border-radius:3px}\npre{background:#f1f5f9;padding:16px;overflow-x:auto;font-size:13px;line-height:1.5;border:1px solid #e2e8f0;border-radius:6px}\nh1,h2,h3,h4{font-weight:700;line-height:1.3}\nh1{font-size:1.5rem;margin-bottom:8px}\nh2{font-size:1.15rem;margin:24px 0 8px;padding-top:16px;border-top:1px solid #f1f5f9}\nh3{font-size:1rem;margin:16px 0 6px}\ntable{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0}\nth{text-align:left;padding:8px 10px;border-bottom:2px solid #e2e8f0;color:#64748b;font-weight:600;font-size:13px}\ntd{padding:8px 10px;border-bottom:1px solid #f1f5f9}\ntr:nth-child(even){background:#fafbfc}\n.container{max-width:780px;margin:0 auto;padding:0 20px}\n.nav{border-bottom:1px solid #e2e8f0;padding:10px 0;position:sticky;top:0;background:#fff;z-index:100}",
-      "pg_pool": "",
-      "extra": {
-        "url": "http://localhost:8000/crypto/portfolio/adaptive",
-        "source_file": "/Users/anstudio/agentindex/agentindex/crypto/crypto_api.py",
-        "source_line": 461
       }
     },
     {
@@ -196,7 +111,7 @@
       "method": "GET",
       "path": "/crypto/defi/{protocol_id}",
       "status_code": 404,
-      "elapsed_ms": 6.482839584350586,
+      "elapsed_ms": 8.390188217163086,
       "body_excerpt": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Not Found \u2014 ZARQ</title>\n<meta name=\"description\" content=\"\">\n<link rel=\"canonical\" href=\"https://zarq.ai/\">\n<meta property=\"og:title\" content=\"Not Found \u2014 ZARQ\">\n<meta property=\"og:description\" content=\"\">\n<meta property=\"og:url\" content=\"https://zarq.ai/\">\n<meta property=\"og:type\" content=\"website\">\n<meta name=\"robots\" content=\"index, follow\">\n\n<link href=\"https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap\" rel=\"stylesheet\">\n<style>\n:root {\n  --white: #fafaf9;\n  --black: #0a0a0a;\n  --gray-100: #f5f5f4;\n  --gray-200: #e7e5e4;\n  --gray-400: #a8a29e;\n  --gray-500: #78716c;\n  --gray-600: #57534e;\n  --gray-700: #44403c;\n  --gray-800: #292524;\n  --gray-900: #1c1917;\n  --warm: #c2956b;\n  --warm-light: rgba(194, 149, 107, 0.08);\n  --green: #16a34a;\n  --red: #dc2626;\n  --serif: 'DM Serif Display', Georgia, serif;\n  --mono: 'JetBrains Mono', monospace;\n  --sans: 'DM Sans', sans-serif;\n  --wide: 1120px;\n  --measure: 680px;\n}\n* { margin: 0; padding: 0; box-sizing: border-box; }\n::selection { background: var(--warm); color: var(--black); }\n.site-disclaimer {\n  max-width: var(--wide); margin: 0 auto; padding: 24px 40px 40px;\n  font-family: var(--mono); font-size: 10px; line-height: 1.7;\n  color: var(--gray-500); letter-spacing: 0.02em;\n}\n.site-disclaimer p { mar",
       "pg_pool": "",
       "extra": {
@@ -213,7 +128,7 @@
       "method": "GET",
       "path": "/recovery",
       "status_code": 404,
-      "elapsed_ms": 6.906270980834961,
+      "elapsed_ms": 14.261007308959961,
       "body_excerpt": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Page Not Found \u2014 Nerq</title>\n<meta name=\"description\" content=\"The page you&#x27;re looking for doesn&#x27;t exist.\">\n<link rel=\"canonical\" href=\"https://nerq.ai/\">\n<style>\n*{margin:0;padding:0;box-sizing:border-box}\nbody{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0f172a;line-height:1.6;font-size:15px;background:#fff}\na{color:#2563eb;text-decoration:none}a:hover{color:#1d4ed8;text-decoration:underline}\ncode,pre{font-family:ui-monospace,'SF Mono','Cascadia Mono',monospace}\ncode{background:#f1f5f9;padding:1px 5px;font-size:.9em;border-radius:3px}\npre{background:#f1f5f9;padding:16px;overflow-x:auto;font-size:13px;line-height:1.5;border:1px solid #e2e8f0;border-radius:6px}\nh1,h2,h3,h4{font-weight:700;line-height:1.3}\nh1{font-size:1.5rem;margin-bottom:8px}\nh2{font-size:1.15rem;margin:24px 0 8px;padding-top:16px;border-top:1px solid #f1f5f9}\nh3{font-size:1rem;margin:16px 0 6px}\ntable{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0}\nth{text-align:left;padding:8px 10px;border-bottom:2px solid #e2e8f0;color:#64748b;font-weight:600;font-size:13px}\ntd{padding:8px 10px;border-bottom:1px solid #f1f5f9}\ntr:nth-child(even){background:#fafbfc}\n.container{max-width:780px;margin:0 auto;padding:0 20px}\n.nav{border-bottom:1px solid #e2e8f0;padding:10px 0;position:sticky;top:0;background:#fff;z-index:100}",
       "pg_pool": "",
       "extra": {
@@ -230,7 +145,7 @@
       "method": "GET",
       "path": "/compare/{slug}",
       "status_code": 404,
-      "elapsed_ms": 4.940986633300781,
+      "elapsed_ms": 5.352973937988281,
       "body_excerpt": "<h1>Not Found</h1><p>One or both entities are not in our index.</p>",
       "pg_pool": "",
       "extra": {
@@ -247,7 +162,7 @@
       "method": "GET",
       "path": "/zarq/dashboard/data",
       "status_code": 401,
-      "elapsed_ms": 6.360769271850586,
+      "elapsed_ms": 7.653236389160156,
       "body_excerpt": "{\"error\":\"Unauthorized\"}",
       "pg_pool": "",
       "extra": {
@@ -264,7 +179,7 @@
       "method": "GET",
       "path": "/zarq/dashboard",
       "status_code": 401,
-      "elapsed_ms": 5.732059478759766,
+      "elapsed_ms": 6.320953369140625,
       "body_excerpt": "<h1>401 Unauthorized</h1><p>Pass Bearer token or ?token=...</p>",
       "pg_pool": "",
       "extra": {
@@ -281,7 +196,7 @@
       "method": "GET",
       "path": "/feed/cve-alerts.xml",
       "status_code": 404,
-      "elapsed_ms": 5.123138427734375,
+      "elapsed_ms": 12.438058853149414,
       "body_excerpt": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Page Not Found \u2014 Nerq</title>\n<meta name=\"description\" content=\"The page you&#x27;re looking for doesn&#x27;t exist.\">\n<link rel=\"canonical\" href=\"https://nerq.ai/\">\n<style>\n*{margin:0;padding:0;box-sizing:border-box}\nbody{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0f172a;line-height:1.6;font-size:15px;background:#fff}\na{color:#2563eb;text-decoration:none}a:hover{color:#1d4ed8;text-decoration:underline}\ncode,pre{font-family:ui-monospace,'SF Mono','Cascadia Mono',monospace}\ncode{background:#f1f5f9;padding:1px 5px;font-size:.9em;border-radius:3px}\npre{background:#f1f5f9;padding:16px;overflow-x:auto;font-size:13px;line-height:1.5;border:1px solid #e2e8f0;border-radius:6px}\nh1,h2,h3,h4{font-weight:700;line-height:1.3}\nh1{font-size:1.5rem;margin-bottom:8px}\nh2{font-size:1.15rem;margin:24px 0 8px;padding-top:16px;border-top:1px solid #f1f5f9}\nh3{font-size:1rem;margin:16px 0 6px}\ntable{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0}\nth{text-align:left;padding:8px 10px;border-bottom:2px solid #e2e8f0;color:#64748b;font-weight:600;font-size:13px}\ntd{padding:8px 10px;border-bottom:1px solid #f1f5f9}\ntr:nth-child(even){background:#fafbfc}\n.container{max-width:780px;margin:0 auto;padding:0 20px}\n.nav{border-bottom:1px solid #e2e8f0;padding:10px 0;position:sticky;top:0;background:#fff;z-index:100}",
       "pg_pool": "",
       "extra": {
@@ -291,49 +206,15 @@
       }
     },
     {
-      "test_id": "tests/zarq_surface/test_http_endpoints.py::test_endpoint[localhost-experiments_api_L135_GET_experiments_dashboard]",
-      "target": "localhost",
-      "category": "HTTP_4XX_unexpected",
-      "detail": "unexpected 404 \u2014 route exists in code",
-      "method": "GET",
-      "path": "/experiments/dashboard",
-      "status_code": 404,
-      "elapsed_ms": 14.050006866455078,
-      "body_excerpt": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Page Not Found \u2014 Nerq</title>\n<meta name=\"description\" content=\"The page you&#x27;re looking for doesn&#x27;t exist.\">\n<link rel=\"canonical\" href=\"https://nerq.ai/\">\n<style>\n*{margin:0;padding:0;box-sizing:border-box}\nbody{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0f172a;line-height:1.6;font-size:15px;background:#fff}\na{color:#2563eb;text-decoration:none}a:hover{color:#1d4ed8;text-decoration:underline}\ncode,pre{font-family:ui-monospace,'SF Mono','Cascadia Mono',monospace}\ncode{background:#f1f5f9;padding:1px 5px;font-size:.9em;border-radius:3px}\npre{background:#f1f5f9;padding:16px;overflow-x:auto;font-size:13px;line-height:1.5;border:1px solid #e2e8f0;border-radius:6px}\nh1,h2,h3,h4{font-weight:700;line-height:1.3}\nh1{font-size:1.5rem;margin-bottom:8px}\nh2{font-size:1.15rem;margin:24px 0 8px;padding-top:16px;border-top:1px solid #f1f5f9}\nh3{font-size:1rem;margin:16px 0 6px}\ntable{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0}\nth{text-align:left;padding:8px 10px;border-bottom:2px solid #e2e8f0;color:#64748b;font-weight:600;font-size:13px}\ntd{padding:8px 10px;border-bottom:1px solid #f1f5f9}\ntr:nth-child(even){background:#fafbfc}\n.container{max-width:780px;margin:0 auto;padding:0 20px}\n.nav{border-bottom:1px solid #e2e8f0;padding:10px 0;position:sticky;top:0;background:#fff;z-index:100}",
-      "pg_pool": "",
-      "extra": {
-        "url": "http://localhost:8000/experiments/dashboard",
-        "source_file": "/Users/anstudio/agentindex/agentindex/experiments/experiments_api.py",
-        "source_line": 135
-      }
-    },
-    {
-      "test_id": "tests/zarq_surface/test_http_endpoints.py::test_endpoint[localhost-experiments_api_L169_GET_experiments_dashboard_data]",
-      "target": "localhost",
-      "category": "HTTP_4XX_unexpected",
-      "detail": "unexpected 404 \u2014 route exists in code",
-      "method": "GET",
-      "path": "/experiments/dashboard/data",
-      "status_code": 404,
-      "elapsed_ms": 6.448030471801758,
-      "body_excerpt": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Page Not Found \u2014 Nerq</title>\n<meta name=\"description\" content=\"The page you&#x27;re looking for doesn&#x27;t exist.\">\n<link rel=\"canonical\" href=\"https://nerq.ai/\">\n<style>\n*{margin:0;padding:0;box-sizing:border-box}\nbody{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0f172a;line-height:1.6;font-size:15px;background:#fff}\na{color:#2563eb;text-decoration:none}a:hover{color:#1d4ed8;text-decoration:underline}\ncode,pre{font-family:ui-monospace,'SF Mono','Cascadia Mono',monospace}\ncode{background:#f1f5f9;padding:1px 5px;font-size:.9em;border-radius:3px}\npre{background:#f1f5f9;padding:16px;overflow-x:auto;font-size:13px;line-height:1.5;border:1px solid #e2e8f0;border-radius:6px}\nh1,h2,h3,h4{font-weight:700;line-height:1.3}\nh1{font-size:1.5rem;margin-bottom:8px}\nh2{font-size:1.15rem;margin:24px 0 8px;padding-top:16px;border-top:1px solid #f1f5f9}\nh3{font-size:1rem;margin:16px 0 6px}\ntable{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0}\nth{text-align:left;padding:8px 10px;border-bottom:2px solid #e2e8f0;color:#64748b;font-weight:600;font-size:13px}\ntd{padding:8px 10px;border-bottom:1px solid #f1f5f9}\ntr:nth-child(even){background:#fafbfc}\n.container{max-width:780px;margin:0 auto;padding:0 20px}\n.nav{border-bottom:1px solid #e2e8f0;padding:10px 0;position:sticky;top:0;background:#fff;z-index:100}",
-      "pg_pool": "",
-      "extra": {
-        "url": "http://localhost:8000/experiments/dashboard/data",
-        "source_file": "/Users/anstudio/agentindex/agentindex/experiments/experiments_api.py",
-        "source_line": 169
-      }
-    },
-    {
       "test_id": "tests/zarq_surface/test_http_endpoints.py::test_endpoint[localhost-experiments_api_L174_GET_experiments_dashboard_trending_queries]",
       "target": "localhost",
-      "category": "HTTP_4XX_unexpected",
-      "detail": "unexpected 404 \u2014 route exists in code",
+      "category": "EMPTY_RESPONSE",
+      "detail": "HTML body suspiciously small (14 bytes)",
       "method": "GET",
       "path": "/experiments/dashboard/trending/queries",
-      "status_code": 404,
-      "elapsed_ms": 5.311250686645508,
-      "body_excerpt": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Page Not Found \u2014 Nerq</title>\n<meta name=\"description\" content=\"The page you&#x27;re looking for doesn&#x27;t exist.\">\n<link rel=\"canonical\" href=\"https://nerq.ai/\">\n<style>\n*{margin:0;padding:0;box-sizing:border-box}\nbody{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0f172a;line-height:1.6;font-size:15px;background:#fff}\na{color:#2563eb;text-decoration:none}a:hover{color:#1d4ed8;text-decoration:underline}\ncode,pre{font-family:ui-monospace,'SF Mono','Cascadia Mono',monospace}\ncode{background:#f1f5f9;padding:1px 5px;font-size:.9em;border-radius:3px}\npre{background:#f1f5f9;padding:16px;overflow-x:auto;font-size:13px;line-height:1.5;border:1px solid #e2e8f0;border-radius:6px}\nh1,h2,h3,h4{font-weight:700;line-height:1.3}\nh1{font-size:1.5rem;margin-bottom:8px}\nh2{font-size:1.15rem;margin:24px 0 8px;padding-top:16px;border-top:1px solid #f1f5f9}\nh3{font-size:1rem;margin:16px 0 6px}\ntable{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0}\nth{text-align:left;padding:8px 10px;border-bottom:2px solid #e2e8f0;color:#64748b;font-weight:600;font-size:13px}\ntd{padding:8px 10px;border-bottom:1px solid #f1f5f9}\ntr:nth-child(even){background:#fafbfc}\n.container{max-width:780px;margin:0 auto;padding:0 20px}\n.nav{border-bottom:1px solid #e2e8f0;padding:10px 0;position:sticky;top:0;background:#fff;z-index:100}",
+      "status_code": 200,
+      "elapsed_ms": 5.781888961791992,
+      "body_excerpt": "{\"queries\":[]}",
       "pg_pool": "",
       "extra": {
         "url": "http://localhost:8000/experiments/dashboard/trending/queries",
@@ -344,13 +225,13 @@
     {
       "test_id": "tests/zarq_surface/test_http_endpoints.py::test_endpoint[localhost-experiments_api_L179_GET_experiments_dashboard_trending_agents]",
       "target": "localhost",
-      "category": "HTTP_4XX_unexpected",
-      "detail": "unexpected 404 \u2014 route exists in code",
+      "category": "EMPTY_RESPONSE",
+      "detail": "HTML body suspiciously small (13 bytes)",
       "method": "GET",
       "path": "/experiments/dashboard/trending/agents",
-      "status_code": 404,
-      "elapsed_ms": 5.033016204833984,
-      "body_excerpt": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Page Not Found \u2014 Nerq</title>\n<meta name=\"description\" content=\"The page you&#x27;re looking for doesn&#x27;t exist.\">\n<link rel=\"canonical\" href=\"https://nerq.ai/\">\n<style>\n*{margin:0;padding:0;box-sizing:border-box}\nbody{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0f172a;line-height:1.6;font-size:15px;background:#fff}\na{color:#2563eb;text-decoration:none}a:hover{color:#1d4ed8;text-decoration:underline}\ncode,pre{font-family:ui-monospace,'SF Mono','Cascadia Mono',monospace}\ncode{background:#f1f5f9;padding:1px 5px;font-size:.9em;border-radius:3px}\npre{background:#f1f5f9;padding:16px;overflow-x:auto;font-size:13px;line-height:1.5;border:1px solid #e2e8f0;border-radius:6px}\nh1,h2,h3,h4{font-weight:700;line-height:1.3}\nh1{font-size:1.5rem;margin-bottom:8px}\nh2{font-size:1.15rem;margin:24px 0 8px;padding-top:16px;border-top:1px solid #f1f5f9}\nh3{font-size:1rem;margin:16px 0 6px}\ntable{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0}\nth{text-align:left;padding:8px 10px;border-bottom:2px solid #e2e8f0;color:#64748b;font-weight:600;font-size:13px}\ntd{padding:8px 10px;border-bottom:1px solid #f1f5f9}\ntr:nth-child(even){background:#fafbfc}\n.container{max-width:780px;margin:0 auto;padding:0 20px}\n.nav{border-bottom:1px solid #e2e8f0;padding:10px 0;position:sticky;top:0;background:#fff;z-index:100}",
+      "status_code": 200,
+      "elapsed_ms": 4.934787750244141,
+      "body_excerpt": "{\"agents\":[]}",
       "pg_pool": "",
       "extra": {
         "url": "http://localhost:8000/experiments/dashboard/trending/agents",
@@ -361,13 +242,13 @@
     {
       "test_id": "tests/zarq_surface/test_http_endpoints.py::test_endpoint[localhost-experiments_api_L185_GET_experiments_dashboard_insights]",
       "target": "localhost",
-      "category": "HTTP_4XX_unexpected",
-      "detail": "unexpected 404 \u2014 route exists in code",
+      "category": "HTTP_5XX",
+      "detail": "status 500",
       "method": "GET",
       "path": "/experiments/dashboard/insights",
-      "status_code": 404,
-      "elapsed_ms": 5.918979644775391,
-      "body_excerpt": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Page Not Found \u2014 Nerq</title>\n<meta name=\"description\" content=\"The page you&#x27;re looking for doesn&#x27;t exist.\">\n<link rel=\"canonical\" href=\"https://nerq.ai/\">\n<style>\n*{margin:0;padding:0;box-sizing:border-box}\nbody{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0f172a;line-height:1.6;font-size:15px;background:#fff}\na{color:#2563eb;text-decoration:none}a:hover{color:#1d4ed8;text-decoration:underline}\ncode,pre{font-family:ui-monospace,'SF Mono','Cascadia Mono',monospace}\ncode{background:#f1f5f9;padding:1px 5px;font-size:.9em;border-radius:3px}\npre{background:#f1f5f9;padding:16px;overflow-x:auto;font-size:13px;line-height:1.5;border:1px solid #e2e8f0;border-radius:6px}\nh1,h2,h3,h4{font-weight:700;line-height:1.3}\nh1{font-size:1.5rem;margin-bottom:8px}\nh2{font-size:1.15rem;margin:24px 0 8px;padding-top:16px;border-top:1px solid #f1f5f9}\nh3{font-size:1rem;margin:16px 0 6px}\ntable{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0}\nth{text-align:left;padding:8px 10px;border-bottom:2px solid #e2e8f0;color:#64748b;font-weight:600;font-size:13px}\ntd{padding:8px 10px;border-bottom:1px solid #f1f5f9}\ntr:nth-child(even){background:#fafbfc}\n.container{max-width:780px;margin:0 auto;padding:0 20px}\n.nav{border-bottom:1px solid #e2e8f0;padding:10px 0;position:sticky;top:0;background:#fff;z-index:100}",
+      "status_code": 500,
+      "elapsed_ms": 10.531902313232422,
+      "body_excerpt": "Internal Server Error",
       "pg_pool": "",
       "extra": {
         "url": "http://localhost:8000/experiments/dashboard/insights",
@@ -383,7 +264,7 @@
       "method": "GET",
       "path": "/action/approve",
       "status_code": 404,
-      "elapsed_ms": 6.249904632568359,
+      "elapsed_ms": 11.928081512451172,
       "body_excerpt": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Page Not Found \u2014 Nerq</title>\n<meta name=\"description\" content=\"The page you&#x27;re looking for doesn&#x27;t exist.\">\n<link rel=\"canonical\" href=\"https://nerq.ai/\">\n<style>\n*{margin:0;padding:0;box-sizing:border-box}\nbody{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0f172a;line-height:1.6;font-size:15px;background:#fff}\na{color:#2563eb;text-decoration:none}a:hover{color:#1d4ed8;text-decoration:underline}\ncode,pre{font-family:ui-monospace,'SF Mono','Cascadia Mono',monospace}\ncode{background:#f1f5f9;padding:1px 5px;font-size:.9em;border-radius:3px}\npre{background:#f1f5f9;padding:16px;overflow-x:auto;font-size:13px;line-height:1.5;border:1px solid #e2e8f0;border-radius:6px}\nh1,h2,h3,h4{font-weight:700;line-height:1.3}\nh1{font-size:1.5rem;margin-bottom:8px}\nh2{font-size:1.15rem;margin:24px 0 8px;padding-top:16px;border-top:1px solid #f1f5f9}\nh3{font-size:1rem;margin:16px 0 6px}\ntable{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0}\nth{text-align:left;padding:8px 10px;border-bottom:2px solid #e2e8f0;color:#64748b;font-weight:600;font-size:13px}\ntd{padding:8px 10px;border-bottom:1px solid #f1f5f9}\ntr:nth-child(even){background:#fafbfc}\n.container{max-width:780px;margin:0 auto;padding:0 20px}\n.nav{border-bottom:1px solid #e2e8f0;padding:10px 0;position:sticky;top:0;background:#fff;z-index:100}",
       "pg_pool": "",
       "extra": {
@@ -400,7 +281,7 @@
       "method": "GET",
       "path": "/action/reject",
       "status_code": 404,
-      "elapsed_ms": 6.597042083740234,
+      "elapsed_ms": 6.751060485839844,
       "body_excerpt": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Page Not Found \u2014 Nerq</title>\n<meta name=\"description\" content=\"The page you&#x27;re looking for doesn&#x27;t exist.\">\n<link rel=\"canonical\" href=\"https://nerq.ai/\">\n<style>\n*{margin:0;padding:0;box-sizing:border-box}\nbody{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0f172a;line-height:1.6;font-size:15px;background:#fff}\na{color:#2563eb;text-decoration:none}a:hover{color:#1d4ed8;text-decoration:underline}\ncode,pre{font-family:ui-monospace,'SF Mono','Cascadia Mono',monospace}\ncode{background:#f1f5f9;padding:1px 5px;font-size:.9em;border-radius:3px}\npre{background:#f1f5f9;padding:16px;overflow-x:auto;font-size:13px;line-height:1.5;border:1px solid #e2e8f0;border-radius:6px}\nh1,h2,h3,h4{font-weight:700;line-height:1.3}\nh1{font-size:1.5rem;margin-bottom:8px}\nh2{font-size:1.15rem;margin:24px 0 8px;padding-top:16px;border-top:1px solid #f1f5f9}\nh3{font-size:1rem;margin:16px 0 6px}\ntable{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0}\nth{text-align:left;padding:8px 10px;border-bottom:2px solid #e2e8f0;color:#64748b;font-weight:600;font-size:13px}\ntd{padding:8px 10px;border-bottom:1px solid #f1f5f9}\ntr:nth-child(even){background:#fafbfc}\n.container{max-width:780px;margin:0 auto;padding:0 20px}\n.nav{border-bottom:1px solid #e2e8f0;padding:10px 0;position:sticky;top:0;background:#fff;z-index:100}",
       "pg_pool": "",
       "extra": {
@@ -417,30 +298,13 @@
       "method": "GET",
       "path": "/action/dismiss",
       "status_code": 404,
-      "elapsed_ms": 916.2330627441406,
+      "elapsed_ms": 6.654024124145508,
       "body_excerpt": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Page Not Found \u2014 Nerq</title>\n<meta name=\"description\" content=\"The page you&#x27;re looking for doesn&#x27;t exist.\">\n<link rel=\"canonical\" href=\"https://nerq.ai/\">\n<style>\n*{margin:0;padding:0;box-sizing:border-box}\nbody{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0f172a;line-height:1.6;font-size:15px;background:#fff}\na{color:#2563eb;text-decoration:none}a:hover{color:#1d4ed8;text-decoration:underline}\ncode,pre{font-family:ui-monospace,'SF Mono','Cascadia Mono',monospace}\ncode{background:#f1f5f9;padding:1px 5px;font-size:.9em;border-radius:3px}\npre{background:#f1f5f9;padding:16px;overflow-x:auto;font-size:13px;line-height:1.5;border:1px solid #e2e8f0;border-radius:6px}\nh1,h2,h3,h4{font-weight:700;line-height:1.3}\nh1{font-size:1.5rem;margin-bottom:8px}\nh2{font-size:1.15rem;margin:24px 0 8px;padding-top:16px;border-top:1px solid #f1f5f9}\nh3{font-size:1rem;margin:16px 0 6px}\ntable{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0}\nth{text-align:left;padding:8px 10px;border-bottom:2px solid #e2e8f0;color:#64748b;font-weight:600;font-size:13px}\ntd{padding:8px 10px;border-bottom:1px solid #f1f5f9}\ntr:nth-child(even){background:#fafbfc}\n.container{max-width:780px;margin:0 auto;padding:0 20px}\n.nav{border-bottom:1px solid #e2e8f0;padding:10px 0;position:sticky;top:0;background:#fff;z-index:100}",
       "pg_pool": "",
       "extra": {
         "url": "http://localhost:8000/action/dismiss",
         "source_file": "/Users/anstudio/agentindex/agentindex/dashboard.py",
         "source_line": 26
-      }
-    },
-    {
-      "test_id": "tests/zarq_surface/test_http_endpoints.py::test_endpoint[localhost-citation_dashboard_L445_GET_citation-dashboard]",
-      "target": "localhost",
-      "category": "TIMEOUT",
-      "detail": "client timeout after 8001ms",
-      "method": "GET",
-      "path": "/citation-dashboard",
-      "status_code": null,
-      "elapsed_ms": 8000.765085220337,
-      "body_excerpt": "",
-      "pg_pool": "",
-      "extra": {
-        "url": "http://localhost:8000/citation-dashboard",
-        "source_file": "/Users/anstudio/agentindex/agentindex/citation_dashboard.py",
-        "source_line": 445
       }
     },
     {
@@ -451,7 +315,7 @@
       "method": "GET",
       "path": "/v1/intelligence/agent/{agent_name}/dashboard",
       "status_code": 404,
-      "elapsed_ms": 76.3700008392334,
+      "elapsed_ms": 146.3031768798828,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
@@ -468,13 +332,30 @@
       "method": "GET",
       "path": "/dashboard/{agent_slug}",
       "status_code": 404,
-      "elapsed_ms": 62.72006034851074,
+      "elapsed_ms": 69.84806060791016,
       "body_excerpt": "Not found",
       "pg_pool": "",
       "extra": {
         "url": "https://zarq.ai/dashboard/autogpt",
         "source_file": "/Users/anstudio/agentindex/agentindex/intelligence_api.py",
         "source_line": 340
+      }
+    },
+    {
+      "test_id": "tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-zarq_content_pages_L1159_GET_learn]",
+      "target": "production",
+      "category": "TIMEOUT",
+      "detail": "client timeout after 8004ms",
+      "method": "GET",
+      "path": "/learn",
+      "status_code": null,
+      "elapsed_ms": 8003.931045532227,
+      "body_excerpt": "",
+      "pg_pool": "",
+      "extra": {
+        "url": "https://zarq.ai/learn",
+        "source_file": "/Users/anstudio/agentindex/agentindex/crypto/zarq_content_pages.py",
+        "source_line": 1159
       }
     },
     {
@@ -485,8 +366,8 @@
       "method": "GET",
       "path": "/learn/{slug}",
       "status_code": 404,
-      "elapsed_ms": 64.28074836730957,
-      "body_excerpt": "<h1>Article not found</h1><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML=\"window.__CF$cv$params={r:'a03cad59f87838b7',t:'MTc4MDEzMjk3NQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);\";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>",
+      "elapsed_ms": 254.00519371032715,
+      "body_excerpt": "<h1>Article not found</h1><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML=\"window.__CF$cv$params={r:'a03ce768fc13c725',t:'MTc4MDEzNTM1Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);\";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>",
       "pg_pool": "",
       "extra": {
         "url": "https://zarq.ai/learn/bitcoin",
@@ -502,7 +383,7 @@
       "method": "GET",
       "path": "/crypto/rating/{token_id}",
       "status_code": 404,
-      "elapsed_ms": 59.06414985656738,
+      "elapsed_ms": 103.84011268615723,
       "body_excerpt": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Page Not Found \u2014 Nerq</title>\n<meta name=\"description\" content=\"The page you&#x27;re looking for doesn&#x27;t exist.\">\n<link rel=\"canonical\" href=\"https://nerq.ai/\">\n<style>\n*{margin:0;padding:0;box-sizing:border-box}\nbody{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0f172a;line-height:1.6;font-size:15px;background:#fff}\na{color:#2563eb;text-decoration:none}a:hover{color:#1d4ed8;text-decoration:underline}\ncode,pre{font-family:ui-monospace,'SF Mono','Cascadia Mono',monospace}\ncode{background:#f1f5f9;padding:1px 5px;font-size:.9em;border-radius:3px}\npre{background:#f1f5f9;padding:16px;overflow-x:auto;font-size:13px;line-height:1.5;border:1px solid #e2e8f0;border-radius:6px}\nh1,h2,h3,h4{font-weight:700;line-height:1.3}\nh1{font-size:1.5rem;margin-bottom:8px}\nh2{font-size:1.15rem;margin:24px 0 8px;padding-top:16px;border-top:1px solid #f1f5f9}\nh3{font-size:1rem;margin:16px 0 6px}\ntable{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0}\nth{text-align:left;padding:8px 10px;border-bottom:2px solid #e2e8f0;color:#64748b;font-weight:600;font-size:13px}\ntd{padding:8px 10px;border-bottom:1px solid #f1f5f9}\ntr:nth-child(even){background:#fafbfc}\n.container{max-width:780px;margin:0 auto;padding:0 20px}\n.nav{border-bottom:1px solid #e2e8f0;padding:10px 0;position:sticky;top:0;background:#fff;z-index:100}",
       "pg_pool": "",
       "extra": {
@@ -519,7 +400,7 @@
       "method": "GET",
       "path": "/crypto/ndd/{token_id}",
       "status_code": 404,
-      "elapsed_ms": 144.4408893585205,
+      "elapsed_ms": 72.14212417602539,
       "body_excerpt": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Page Not Found \u2014 Nerq</title>\n<meta name=\"description\" content=\"The page you&#x27;re looking for doesn&#x27;t exist.\">\n<link rel=\"canonical\" href=\"https://nerq.ai/\">\n<style>\n*{margin:0;padding:0;box-sizing:border-box}\nbody{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0f172a;line-height:1.6;font-size:15px;background:#fff}\na{color:#2563eb;text-decoration:none}a:hover{color:#1d4ed8;text-decoration:underline}\ncode,pre{font-family:ui-monospace,'SF Mono','Cascadia Mono',monospace}\ncode{background:#f1f5f9;padding:1px 5px;font-size:.9em;border-radius:3px}\npre{background:#f1f5f9;padding:16px;overflow-x:auto;font-size:13px;line-height:1.5;border:1px solid #e2e8f0;border-radius:6px}\nh1,h2,h3,h4{font-weight:700;line-height:1.3}\nh1{font-size:1.5rem;margin-bottom:8px}\nh2{font-size:1.15rem;margin:24px 0 8px;padding-top:16px;border-top:1px solid #f1f5f9}\nh3{font-size:1rem;margin:16px 0 6px}\ntable{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0}\nth{text-align:left;padding:8px 10px;border-bottom:2px solid #e2e8f0;color:#64748b;font-weight:600;font-size:13px}\ntd{padding:8px 10px;border-bottom:1px solid #f1f5f9}\ntr:nth-child(even){background:#fafbfc}\n.container{max-width:780px;margin:0 auto;padding:0 20px}\n.nav{border-bottom:1px solid #e2e8f0;padding:10px 0;position:sticky;top:0;background:#fff;z-index:100}",
       "pg_pool": "",
       "extra": {
@@ -536,7 +417,7 @@
       "method": "GET",
       "path": "/crypto/ratings",
       "status_code": 404,
-      "elapsed_ms": 138.17477226257324,
+      "elapsed_ms": 487.9770278930664,
       "body_excerpt": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Page Not Found \u2014 Nerq</title>\n<meta name=\"description\" content=\"The page you&#x27;re looking for doesn&#x27;t exist.\">\n<link rel=\"canonical\" href=\"https://nerq.ai/\">\n<style>\n*{margin:0;padding:0;box-sizing:border-box}\nbody{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0f172a;line-height:1.6;font-size:15px;background:#fff}\na{color:#2563eb;text-decoration:none}a:hover{color:#1d4ed8;text-decoration:underline}\ncode,pre{font-family:ui-monospace,'SF Mono','Cascadia Mono',monospace}\ncode{background:#f1f5f9;padding:1px 5px;font-size:.9em;border-radius:3px}\npre{background:#f1f5f9;padding:16px;overflow-x:auto;font-size:13px;line-height:1.5;border:1px solid #e2e8f0;border-radius:6px}\nh1,h2,h3,h4{font-weight:700;line-height:1.3}\nh1{font-size:1.5rem;margin-bottom:8px}\nh2{font-size:1.15rem;margin:24px 0 8px;padding-top:16px;border-top:1px solid #f1f5f9}\nh3{font-size:1rem;margin:16px 0 6px}\ntable{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0}\nth{text-align:left;padding:8px 10px;border-bottom:2px solid #e2e8f0;color:#64748b;font-weight:600;font-size:13px}\ntd{padding:8px 10px;border-bottom:1px solid #f1f5f9}\ntr:nth-child(even){background:#fafbfc}\n.container{max-width:780px;margin:0 auto;padding:0 20px}\n.nav{border-bottom:1px solid #e2e8f0;padding:10px 0;position:sticky;top:0;background:#fff;z-index:100}",
       "pg_pool": "",
       "extra": {
@@ -553,7 +434,7 @@
       "method": "GET",
       "path": "/crypto/compare/{token1}/{token2}",
       "status_code": 404,
-      "elapsed_ms": 66.66803359985352,
+      "elapsed_ms": 78.02009582519531,
       "body_excerpt": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Page Not Found \u2014 Nerq</title>\n<meta name=\"description\" content=\"The page you&#x27;re looking for doesn&#x27;t exist.\">\n<link rel=\"canonical\" href=\"https://nerq.ai/\">\n<style>\n*{margin:0;padding:0;box-sizing:border-box}\nbody{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0f172a;line-height:1.6;font-size:15px;background:#fff}\na{color:#2563eb;text-decoration:none}a:hover{color:#1d4ed8;text-decoration:underline}\ncode,pre{font-family:ui-monospace,'SF Mono','Cascadia Mono',monospace}\ncode{background:#f1f5f9;padding:1px 5px;font-size:.9em;border-radius:3px}\npre{background:#f1f5f9;padding:16px;overflow-x:auto;font-size:13px;line-height:1.5;border:1px solid #e2e8f0;border-radius:6px}\nh1,h2,h3,h4{font-weight:700;line-height:1.3}\nh1{font-size:1.5rem;margin-bottom:8px}\nh2{font-size:1.15rem;margin:24px 0 8px;padding-top:16px;border-top:1px solid #f1f5f9}\nh3{font-size:1rem;margin:16px 0 6px}\ntable{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0}\nth{text-align:left;padding:8px 10px;border-bottom:2px solid #e2e8f0;color:#64748b;font-weight:600;font-size:13px}\ntd{padding:8px 10px;border-bottom:1px solid #f1f5f9}\ntr:nth-child(even){background:#fafbfc}\n.container{max-width:780px;margin:0 auto;padding:0 20px}\n.nav{border-bottom:1px solid #e2e8f0;padding:10px 0;position:sticky;top:0;background:#fff;z-index:100}",
       "pg_pool": "",
       "extra": {
@@ -570,7 +451,7 @@
       "method": "GET",
       "path": "/crypto/distress-watch",
       "status_code": 404,
-      "elapsed_ms": 66.8039321899414,
+      "elapsed_ms": 94.67887878417969,
       "body_excerpt": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Page Not Found \u2014 Nerq</title>\n<meta name=\"description\" content=\"The page you&#x27;re looking for doesn&#x27;t exist.\">\n<link rel=\"canonical\" href=\"https://nerq.ai/\">\n<style>\n*{margin:0;padding:0;box-sizing:border-box}\nbody{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0f172a;line-height:1.6;font-size:15px;background:#fff}\na{color:#2563eb;text-decoration:none}a:hover{color:#1d4ed8;text-decoration:underline}\ncode,pre{font-family:ui-monospace,'SF Mono','Cascadia Mono',monospace}\ncode{background:#f1f5f9;padding:1px 5px;font-size:.9em;border-radius:3px}\npre{background:#f1f5f9;padding:16px;overflow-x:auto;font-size:13px;line-height:1.5;border:1px solid #e2e8f0;border-radius:6px}\nh1,h2,h3,h4{font-weight:700;line-height:1.3}\nh1{font-size:1.5rem;margin-bottom:8px}\nh2{font-size:1.15rem;margin:24px 0 8px;padding-top:16px;border-top:1px solid #f1f5f9}\nh3{font-size:1rem;margin:16px 0 6px}\ntable{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0}\nth{text-align:left;padding:8px 10px;border-bottom:2px solid #e2e8f0;color:#64748b;font-weight:600;font-size:13px}\ntd{padding:8px 10px;border-bottom:1px solid #f1f5f9}\ntr:nth-child(even){background:#fafbfc}\n.container{max-width:780px;margin:0 auto;padding:0 20px}\n.nav{border-bottom:1px solid #e2e8f0;padding:10px 0;position:sticky;top:0;background:#fff;z-index:100}",
       "pg_pool": "",
       "extra": {
@@ -587,7 +468,7 @@
       "method": "GET",
       "path": "/crypto/portfolio/pairs",
       "status_code": 404,
-      "elapsed_ms": 67.94500350952148,
+      "elapsed_ms": 75.17290115356445,
       "body_excerpt": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Page Not Found \u2014 Nerq</title>\n<meta name=\"description\" content=\"The page you&#x27;re looking for doesn&#x27;t exist.\">\n<link rel=\"canonical\" href=\"https://nerq.ai/\">\n<style>\n*{margin:0;padding:0;box-sizing:border-box}\nbody{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0f172a;line-height:1.6;font-size:15px;background:#fff}\na{color:#2563eb;text-decoration:none}a:hover{color:#1d4ed8;text-decoration:underline}\ncode,pre{font-family:ui-monospace,'SF Mono','Cascadia Mono',monospace}\ncode{background:#f1f5f9;padding:1px 5px;font-size:.9em;border-radius:3px}\npre{background:#f1f5f9;padding:16px;overflow-x:auto;font-size:13px;line-height:1.5;border:1px solid #e2e8f0;border-radius:6px}\nh1,h2,h3,h4{font-weight:700;line-height:1.3}\nh1{font-size:1.5rem;margin-bottom:8px}\nh2{font-size:1.15rem;margin:24px 0 8px;padding-top:16px;border-top:1px solid #f1f5f9}\nh3{font-size:1rem;margin:16px 0 6px}\ntable{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0}\nth{text-align:left;padding:8px 10px;border-bottom:2px solid #e2e8f0;color:#64748b;font-weight:600;font-size:13px}\ntd{padding:8px 10px;border-bottom:1px solid #f1f5f9}\ntr:nth-child(even){background:#fafbfc}\n.container{max-width:780px;margin:0 auto;padding:0 20px}\n.nav{border-bottom:1px solid #e2e8f0;padding:10px 0;position:sticky;top:0;background:#fff;z-index:100}",
       "pg_pool": "",
       "extra": {
@@ -604,7 +485,7 @@
       "method": "GET",
       "path": "/crypto/portfolio/adaptive",
       "status_code": 404,
-      "elapsed_ms": 99.94792938232422,
+      "elapsed_ms": 117.19179153442383,
       "body_excerpt": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Page Not Found \u2014 Nerq</title>\n<meta name=\"description\" content=\"The page you&#x27;re looking for doesn&#x27;t exist.\">\n<link rel=\"canonical\" href=\"https://nerq.ai/\">\n<style>\n*{margin:0;padding:0;box-sizing:border-box}\nbody{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0f172a;line-height:1.6;font-size:15px;background:#fff}\na{color:#2563eb;text-decoration:none}a:hover{color:#1d4ed8;text-decoration:underline}\ncode,pre{font-family:ui-monospace,'SF Mono','Cascadia Mono',monospace}\ncode{background:#f1f5f9;padding:1px 5px;font-size:.9em;border-radius:3px}\npre{background:#f1f5f9;padding:16px;overflow-x:auto;font-size:13px;line-height:1.5;border:1px solid #e2e8f0;border-radius:6px}\nh1,h2,h3,h4{font-weight:700;line-height:1.3}\nh1{font-size:1.5rem;margin-bottom:8px}\nh2{font-size:1.15rem;margin:24px 0 8px;padding-top:16px;border-top:1px solid #f1f5f9}\nh3{font-size:1rem;margin:16px 0 6px}\ntable{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0}\nth{text-align:left;padding:8px 10px;border-bottom:2px solid #e2e8f0;color:#64748b;font-weight:600;font-size:13px}\ntd{padding:8px 10px;border-bottom:1px solid #f1f5f9}\ntr:nth-child(even){background:#fafbfc}\n.container{max-width:780px;margin:0 auto;padding:0 20px}\n.nav{border-bottom:1px solid #e2e8f0;padding:10px 0;position:sticky;top:0;background:#fff;z-index:100}",
       "pg_pool": "",
       "extra": {
@@ -621,7 +502,7 @@
       "method": "GET",
       "path": "/v1/yield/risk/{protocol}/{pool}",
       "status_code": 404,
-      "elapsed_ms": 159.0900421142578,
+      "elapsed_ms": 178.6649227142334,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
@@ -638,7 +519,7 @@
       "method": "GET",
       "path": "/v1/yield/traps",
       "status_code": 404,
-      "elapsed_ms": 56.723833084106445,
+      "elapsed_ms": 51.29885673522949,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
@@ -655,7 +536,7 @@
       "method": "GET",
       "path": "/v1/yield/overview",
       "status_code": 404,
-      "elapsed_ms": 99.32899475097656,
+      "elapsed_ms": 134.17863845825195,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
@@ -672,7 +553,7 @@
       "method": "GET",
       "path": "/v1/yield/protocol/{protocol}",
       "status_code": 404,
-      "elapsed_ms": 57.621002197265625,
+      "elapsed_ms": 53.01475524902344,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
@@ -689,7 +570,7 @@
       "method": "GET",
       "path": "/v1/yield/pool/{pool_id}",
       "status_code": 404,
-      "elapsed_ms": 130.41114807128906,
+      "elapsed_ms": 54.03494834899902,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
@@ -706,7 +587,7 @@
       "method": "GET",
       "path": "/v1/yield/insights",
       "status_code": 404,
-      "elapsed_ms": 54.54587936401367,
+      "elapsed_ms": 49.28898811340332,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
@@ -723,7 +604,7 @@
       "method": "GET",
       "path": "/v1/agents/crypto/{agent_id}",
       "status_code": 404,
-      "elapsed_ms": 54.05902862548828,
+      "elapsed_ms": 51.30481719970703,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
@@ -740,7 +621,7 @@
       "method": "GET",
       "path": "/v1/agents/in/{entity_type}/{entity_id}",
       "status_code": 404,
-      "elapsed_ms": 53.519248962402344,
+      "elapsed_ms": 142.1217918395996,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
@@ -757,7 +638,7 @@
       "method": "GET",
       "path": "/v1/agents/new",
       "status_code": 404,
-      "elapsed_ms": 338.85693550109863,
+      "elapsed_ms": 51.80072784423828,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
@@ -774,7 +655,7 @@
       "method": "GET",
       "path": "/v1/agents/relations/{agent_id}",
       "status_code": 404,
-      "elapsed_ms": 2945.371150970459,
+      "elapsed_ms": 138.03887367248535,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
@@ -791,7 +672,7 @@
       "method": "GET",
       "path": "/v1/agents/graph/{entity_type}/{entity_id}",
       "status_code": 404,
-      "elapsed_ms": 53.5888671875,
+      "elapsed_ms": 53.74264717102051,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
@@ -808,7 +689,7 @@
       "method": "GET",
       "path": "/v1/agents/activity/{entity_type}/{entity_id}",
       "status_code": 404,
-      "elapsed_ms": 128.27086448669434,
+      "elapsed_ms": 47.894954681396484,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
@@ -825,7 +706,7 @@
       "method": "GET",
       "path": "/v1/agents/activity-overview",
       "status_code": 404,
-      "elapsed_ms": 55.090904235839844,
+      "elapsed_ms": 52.50287055969238,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
@@ -842,7 +723,7 @@
       "method": "GET",
       "path": "/v1/agents/wallet/{address}",
       "status_code": 404,
-      "elapsed_ms": 56.62274360656738,
+      "elapsed_ms": 48.65622520446777,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
@@ -859,7 +740,7 @@
       "method": "GET",
       "path": "/v1/agents/ai-identified",
       "status_code": 404,
-      "elapsed_ms": 55.79400062561035,
+      "elapsed_ms": 114.17984962463379,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
@@ -876,7 +757,7 @@
       "method": "GET",
       "path": "/v1/agents/report/latest",
       "status_code": 404,
-      "elapsed_ms": 133.56614112854004,
+      "elapsed_ms": 54.158926010131836,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
@@ -893,7 +774,7 @@
       "method": "GET",
       "path": "/v1/agents/risk-exposure",
       "status_code": 404,
-      "elapsed_ms": 59.59916114807129,
+      "elapsed_ms": 135.23030281066895,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
@@ -910,7 +791,7 @@
       "method": "GET",
       "path": "/v1/agents/structural-collapse",
       "status_code": 404,
-      "elapsed_ms": 125.83613395690918,
+      "elapsed_ms": 56.929826736450195,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
@@ -927,7 +808,7 @@
       "method": "GET",
       "path": "/v1/agents/chain-concentration-risk",
       "status_code": 404,
-      "elapsed_ms": 53.84707450866699,
+      "elapsed_ms": 49.74794387817383,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
@@ -944,7 +825,7 @@
       "method": "GET",
       "path": "/v1/agents/exodus-snapshot",
       "status_code": 404,
-      "elapsed_ms": 53.00092697143555,
+      "elapsed_ms": 48.08306694030762,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
@@ -961,7 +842,7 @@
       "method": "GET",
       "path": "/v1/demo/save-simulator",
       "status_code": 404,
-      "elapsed_ms": 56.27632141113281,
+      "elapsed_ms": 49.78799819946289,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
@@ -978,7 +859,7 @@
       "method": "GET",
       "path": "/crypto/defi/{protocol_id}",
       "status_code": 404,
-      "elapsed_ms": 63.23695182800293,
+      "elapsed_ms": 88.17100524902344,
       "body_excerpt": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Not Found \u2014 ZARQ</title>\n<meta name=\"description\" content=\"\">\n<link rel=\"canonical\" href=\"https://zarq.ai/\">\n<meta property=\"og:title\" content=\"Not Found \u2014 ZARQ\">\n<meta property=\"og:description\" content=\"\">\n<meta property=\"og:url\" content=\"https://zarq.ai/\">\n<meta property=\"og:type\" content=\"website\">\n<meta name=\"robots\" content=\"index, follow\">\n\n<link href=\"https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap\" rel=\"stylesheet\">\n<style>\n:root {\n  --white: #fafaf9;\n  --black: #0a0a0a;\n  --gray-100: #f5f5f4;\n  --gray-200: #e7e5e4;\n  --gray-400: #a8a29e;\n  --gray-500: #78716c;\n  --gray-600: #57534e;\n  --gray-700: #44403c;\n  --gray-800: #292524;\n  --gray-900: #1c1917;\n  --warm: #c2956b;\n  --warm-light: rgba(194, 149, 107, 0.08);\n  --green: #16a34a;\n  --red: #dc2626;\n  --serif: 'DM Serif Display', Georgia, serif;\n  --mono: 'JetBrains Mono', monospace;\n  --sans: 'DM Sans', sans-serif;\n  --wide: 1120px;\n  --measure: 680px;\n}\n* { margin: 0; padding: 0; box-sizing: border-box; }\n::selection { background: var(--warm); color: var(--black); }\n.site-disclaimer {\n  max-width: var(--wide); margin: 0 auto; padding: 24px 40px 40px;\n  font-family: var(--mono); font-size: 10px; line-height: 1.7;\n  color: var(--gray-500); letter-spacing: 0.02em;\n}\n.site-disclaimer p { mar",
       "pg_pool": "",
       "extra": {
@@ -995,7 +876,7 @@
       "method": "GET",
       "path": "/api/v1/crypto/trust-score/{entity_type}/{entity_id}",
       "status_code": 404,
-      "elapsed_ms": 239.81404304504395,
+      "elapsed_ms": 173.30217361450195,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
@@ -1012,7 +893,7 @@
       "method": "GET",
       "path": "/data/crypto-trust-summary.json",
       "status_code": 404,
-      "elapsed_ms": 52.36101150512695,
+      "elapsed_ms": 4884.468078613281,
       "body_excerpt": "{\"error\":\"Export not yet generated\"}",
       "pg_pool": "",
       "extra": {
@@ -1029,7 +910,7 @@
       "method": "GET",
       "path": "/recovery",
       "status_code": 404,
-      "elapsed_ms": 123.71087074279785,
+      "elapsed_ms": 115.42510986328125,
       "body_excerpt": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Page Not Found \u2014 Nerq</title>\n<meta name=\"description\" content=\"The page you&#x27;re looking for doesn&#x27;t exist.\">\n<link rel=\"canonical\" href=\"https://nerq.ai/\">\n<style>\n*{margin:0;padding:0;box-sizing:border-box}\nbody{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0f172a;line-height:1.6;font-size:15px;background:#fff}\na{color:#2563eb;text-decoration:none}a:hover{color:#1d4ed8;text-decoration:underline}\ncode,pre{font-family:ui-monospace,'SF Mono','Cascadia Mono',monospace}\ncode{background:#f1f5f9;padding:1px 5px;font-size:.9em;border-radius:3px}\npre{background:#f1f5f9;padding:16px;overflow-x:auto;font-size:13px;line-height:1.5;border:1px solid #e2e8f0;border-radius:6px}\nh1,h2,h3,h4{font-weight:700;line-height:1.3}\nh1{font-size:1.5rem;margin-bottom:8px}\nh2{font-size:1.15rem;margin:24px 0 8px;padding-top:16px;border-top:1px solid #f1f5f9}\nh3{font-size:1rem;margin:16px 0 6px}\ntable{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0}\nth{text-align:left;padding:8px 10px;border-bottom:2px solid #e2e8f0;color:#64748b;font-weight:600;font-size:13px}\ntd{padding:8px 10px;border-bottom:1px solid #f1f5f9}\ntr:nth-child(even){background:#fafbfc}\n.container{max-width:780px;margin:0 auto;padding:0 20px}\n.nav{border-bottom:1px solid #e2e8f0;padding:10px 0;position:sticky;top:0;background:#fff;z-index:100}",
       "pg_pool": "",
       "extra": {
@@ -1046,8 +927,8 @@
       "method": "GET",
       "path": "/compare/{slug}",
       "status_code": 404,
-      "elapsed_ms": 123.05116653442383,
-      "body_excerpt": "<h1>Not found</h1><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML=\"window.__CF$cv$params={r:'a03cadfd0c3538b7',t:'MTc4MDEzMzAwMQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);\";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>",
+      "elapsed_ms": 67.96574592590332,
+      "body_excerpt": "<h1>Not found</h1><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML=\"window.__CF$cv$params={r:'a03ce832d8bfc725',t:'MTc4MDEzNTM4Ng=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);\";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>",
       "pg_pool": "",
       "extra": {
         "url": "https://zarq.ai/compare/bitcoin",
@@ -1063,7 +944,7 @@
       "method": "GET",
       "path": "/v1/webhooks",
       "status_code": 404,
-      "elapsed_ms": 121.57320976257324,
+      "elapsed_ms": 87.58687973022461,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
@@ -1080,7 +961,7 @@
       "method": "GET",
       "path": "/v1/webhooks/dlq",
       "status_code": 404,
-      "elapsed_ms": 55.65810203552246,
+      "elapsed_ms": 53.8640022277832,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
@@ -1097,7 +978,7 @@
       "method": "GET",
       "path": "/v1/stream/status",
       "status_code": 404,
-      "elapsed_ms": 52.36411094665527,
+      "elapsed_ms": 238.31605911254883,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
@@ -1114,7 +995,7 @@
       "method": "GET",
       "path": "/v1/crypto/rating/{token_id}",
       "status_code": 404,
-      "elapsed_ms": 98.10876846313477,
+      "elapsed_ms": 53.5430908203125,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
@@ -1131,7 +1012,7 @@
       "method": "GET",
       "path": "/v1/crypto/ndd/{token_id}",
       "status_code": 404,
-      "elapsed_ms": 53.90310287475586,
+      "elapsed_ms": 54.724693298339844,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
@@ -1148,7 +1029,7 @@
       "method": "GET",
       "path": "/v1/crypto/ratings",
       "status_code": 404,
-      "elapsed_ms": 53.56597900390625,
+      "elapsed_ms": 52.77276039123535,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
@@ -1165,7 +1046,7 @@
       "method": "GET",
       "path": "/v1/crypto/signals",
       "status_code": 404,
-      "elapsed_ms": 53.48086357116699,
+      "elapsed_ms": 54.49700355529785,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
@@ -1182,7 +1063,7 @@
       "method": "GET",
       "path": "/v1/crypto/signals/history",
       "status_code": 404,
-      "elapsed_ms": 145.57409286499023,
+      "elapsed_ms": 154.8299789428711,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
@@ -1199,7 +1080,7 @@
       "method": "GET",
       "path": "/v1/crypto/compare/{token1}/{token2}",
       "status_code": 404,
-      "elapsed_ms": 54.70085144042969,
+      "elapsed_ms": 143.0668830871582,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
@@ -1216,7 +1097,7 @@
       "method": "GET",
       "path": "/v1/crypto/distress-watch",
       "status_code": 404,
-      "elapsed_ms": 142.1806812286377,
+      "elapsed_ms": 50.63509941101074,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
@@ -1233,7 +1114,7 @@
       "method": "GET",
       "path": "/v1/crypto/risk-level/{token_id}",
       "status_code": 404,
-      "elapsed_ms": 50.549983978271484,
+      "elapsed_ms": 56.30373954772949,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
@@ -1250,7 +1131,7 @@
       "method": "GET",
       "path": "/v1/crypto/risk-levels",
       "status_code": 404,
-      "elapsed_ms": 52.136898040771484,
+      "elapsed_ms": 49.66402053833008,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
@@ -1267,7 +1148,7 @@
       "method": "GET",
       "path": "/v1/crypto/portfolio/pairs",
       "status_code": 404,
-      "elapsed_ms": 52.09612846374512,
+      "elapsed_ms": 53.939104080200195,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
@@ -1284,7 +1165,7 @@
       "method": "GET",
       "path": "/v1/crypto/portfolio/adaptive",
       "status_code": 404,
-      "elapsed_ms": 52.170753479003906,
+      "elapsed_ms": 137.92681694030762,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
@@ -1301,7 +1182,7 @@
       "method": "GET",
       "path": "/v1/crypto/paper-trading/signals",
       "status_code": 404,
-      "elapsed_ms": 143.07689666748047,
+      "elapsed_ms": 56.02097511291504,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
@@ -1318,7 +1199,7 @@
       "method": "GET",
       "path": "/v1/crypto/paper-trading/regime",
       "status_code": 404,
-      "elapsed_ms": 143.00274848937988,
+      "elapsed_ms": 132.8260898590088,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
@@ -1335,7 +1216,7 @@
       "method": "GET",
       "path": "/v1/crypto/alerts",
       "status_code": 404,
-      "elapsed_ms": 52.439212799072266,
+      "elapsed_ms": 51.09286308288574,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
@@ -1352,7 +1233,7 @@
       "method": "GET",
       "path": "/v1/crypto/paper-trading/audit",
       "status_code": 404,
-      "elapsed_ms": 51.18083953857422,
+      "elapsed_ms": 50.8732795715332,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
@@ -1369,7 +1250,7 @@
       "method": "GET",
       "path": "/v1/crypto/contagion/scores/all",
       "status_code": 404,
-      "elapsed_ms": 52.008867263793945,
+      "elapsed_ms": 51.41401290893555,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
@@ -1386,7 +1267,7 @@
       "method": "GET",
       "path": "/v1/crypto/contagion/scenarios",
       "status_code": 404,
-      "elapsed_ms": 52.052974700927734,
+      "elapsed_ms": 119.21191215515137,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
@@ -1403,7 +1284,7 @@
       "method": "GET",
       "path": "/v1/crypto/contagion/network",
       "status_code": 404,
-      "elapsed_ms": 137.88414001464844,
+      "elapsed_ms": 49.85189437866211,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
@@ -1420,7 +1301,7 @@
       "method": "GET",
       "path": "/v1/crypto/contagion/case-studies",
       "status_code": 404,
-      "elapsed_ms": 53.3299446105957,
+      "elapsed_ms": 149.05190467834473,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
@@ -1437,7 +1318,7 @@
       "method": "GET",
       "path": "/v1/crypto/contagion/{token_id}",
       "status_code": 404,
-      "elapsed_ms": 140.43712615966797,
+      "elapsed_ms": 52.34789848327637,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
@@ -1454,7 +1335,7 @@
       "method": "GET",
       "path": "/v1/crypto/stresstest/scenarios",
       "status_code": 404,
-      "elapsed_ms": 52.31904983520508,
+      "elapsed_ms": 62.272071838378906,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
@@ -1471,7 +1352,7 @@
       "method": "GET",
       "path": "/v1/crypto/stresstest/portfolios",
       "status_code": 404,
-      "elapsed_ms": 53.53999137878418,
+      "elapsed_ms": 55.846214294433594,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
@@ -1488,7 +1369,7 @@
       "method": "GET",
       "path": "/v1/crypto/transition/{token_id}",
       "status_code": 404,
-      "elapsed_ms": 55.448055267333984,
+      "elapsed_ms": 135.24317741394043,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
@@ -1505,7 +1386,7 @@
       "method": "GET",
       "path": "/v1/crypto/exit-score/{token_id}",
       "status_code": 404,
-      "elapsed_ms": 97.90205955505371,
+      "elapsed_ms": 50.122976303100586,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
@@ -1522,7 +1403,7 @@
       "method": "GET",
       "path": "/v1/crypto/crash-thresholds/{token_id}",
       "status_code": 404,
-      "elapsed_ms": 55.4659366607666,
+      "elapsed_ms": 139.509916305542,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
@@ -1539,7 +1420,7 @@
       "method": "GET",
       "path": "/v1/crypto/cascade/simulate",
       "status_code": 404,
-      "elapsed_ms": 130.58209419250488,
+      "elapsed_ms": 55.73391914367676,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
@@ -1556,7 +1437,7 @@
       "method": "GET",
       "path": "/v1/crypto/cascade/graph",
       "status_code": 404,
-      "elapsed_ms": 56.16116523742676,
+      "elapsed_ms": 51.78380012512207,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
@@ -1573,7 +1454,7 @@
       "method": "GET",
       "path": "/v1/crypto/cascade/hotspots",
       "status_code": 404,
-      "elapsed_ms": 52.78801918029785,
+      "elapsed_ms": 50.05908012390137,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
@@ -1590,7 +1471,7 @@
       "method": "GET",
       "path": "/v1/crypto/cascade/stats",
       "status_code": 404,
-      "elapsed_ms": 54.57711219787598,
+      "elapsed_ms": 49.58009719848633,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
@@ -1607,7 +1488,7 @@
       "method": "GET",
       "path": "/v1/crypto/portfolio/crash-shield/webhooks",
       "status_code": 404,
-      "elapsed_ms": 139.55187797546387,
+      "elapsed_ms": 112.1511459350586,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
@@ -1624,30 +1505,13 @@
       "method": "GET",
       "path": "/v1/crypto/portfolio/crash-shield/prevented",
       "status_code": 404,
-      "elapsed_ms": 54.69393730163574,
+      "elapsed_ms": 51.56826972961426,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
         "url": "https://api.zarq.ai/v1/crypto/portfolio/crash-shield/prevented",
         "source_file": "/Users/anstudio/agentindex/agentindex/crypto/crypto_api_v3.py",
         "source_line": 349
-      }
-    },
-    {
-      "test_id": "tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-zarq_cascade_page_L8_GET_cascade-risk]",
-      "target": "production",
-      "category": "TIMEOUT",
-      "detail": "client timeout after 8002ms",
-      "method": "GET",
-      "path": "/cascade-risk",
-      "status_code": null,
-      "elapsed_ms": 8002.396106719971,
-      "body_excerpt": "",
-      "pg_pool": "",
-      "extra": {
-        "url": "https://zarq.ai/cascade-risk",
-        "source_file": "/Users/anstudio/agentindex/agentindex/crypto/zarq_cascade_page.py",
-        "source_line": 8
       }
     },
     {
@@ -1658,7 +1522,7 @@
       "method": "GET",
       "path": "/v1/check/",
       "status_code": 404,
-      "elapsed_ms": 1008.030891418457,
+      "elapsed_ms": 174.73721504211426,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
@@ -1675,7 +1539,7 @@
       "method": "GET",
       "path": "/v1/check",
       "status_code": 404,
-      "elapsed_ms": 61.43832206726074,
+      "elapsed_ms": 53.38287353515625,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
@@ -1692,7 +1556,7 @@
       "method": "GET",
       "path": "/v1/check/{token}",
       "status_code": 404,
-      "elapsed_ms": 141.33906364440918,
+      "elapsed_ms": 133.5921287536621,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
@@ -1709,7 +1573,7 @@
       "method": "GET",
       "path": "/v1/vitality/{token}",
       "status_code": 404,
-      "elapsed_ms": 53.94291877746582,
+      "elapsed_ms": 52.73294448852539,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
@@ -1726,7 +1590,7 @@
       "method": "GET",
       "path": "/v1/vitality/{token_a}/compare/{token_b}",
       "status_code": 404,
-      "elapsed_ms": 55.650949478149414,
+      "elapsed_ms": 56.71095848083496,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
@@ -1743,7 +1607,7 @@
       "method": "GET",
       "path": "/zarq/dashboard/data",
       "status_code": 401,
-      "elapsed_ms": 253.3550262451172,
+      "elapsed_ms": 4430.2778244018555,
       "body_excerpt": "{\"error\":\"Unauthorized\"}",
       "pg_pool": "",
       "extra": {
@@ -1760,8 +1624,8 @@
       "method": "GET",
       "path": "/zarq/dashboard",
       "status_code": 401,
-      "elapsed_ms": 145.0638771057129,
-      "body_excerpt": "<h1>401 Unauthorized</h1><p>Pass Bearer token or ?token=...</p><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML=\"window.__CF$cv$params={r:'a03cae74ecc19924',t:'MTc4MDEzMzAyMA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);\";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>",
+      "elapsed_ms": 62.73531913757324,
+      "body_excerpt": "<h1>401 Unauthorized</h1><p>Pass Bearer token or ?token=...</p><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML=\"window.__CF$cv$params={r:'a03ce99fef08c725',t:'MTc4MDEzNTQ0NA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);\";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>",
       "pg_pool": "",
       "extra": {
         "url": "https://zarq.ai/zarq/dashboard",
@@ -1777,13 +1641,30 @@
       "method": "GET",
       "path": "/feed/cve-alerts.xml",
       "status_code": 404,
-      "elapsed_ms": 131.12878799438477,
+      "elapsed_ms": 2176.6600608825684,
       "body_excerpt": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Page Not Found \u2014 Nerq</title>\n<meta name=\"description\" content=\"The page you&#x27;re looking for doesn&#x27;t exist.\">\n<link rel=\"canonical\" href=\"https://nerq.ai/\">\n<style>\n*{margin:0;padding:0;box-sizing:border-box}\nbody{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0f172a;line-height:1.6;font-size:15px;background:#fff}\na{color:#2563eb;text-decoration:none}a:hover{color:#1d4ed8;text-decoration:underline}\ncode,pre{font-family:ui-monospace,'SF Mono','Cascadia Mono',monospace}\ncode{background:#f1f5f9;padding:1px 5px;font-size:.9em;border-radius:3px}\npre{background:#f1f5f9;padding:16px;overflow-x:auto;font-size:13px;line-height:1.5;border:1px solid #e2e8f0;border-radius:6px}\nh1,h2,h3,h4{font-weight:700;line-height:1.3}\nh1{font-size:1.5rem;margin-bottom:8px}\nh2{font-size:1.15rem;margin:24px 0 8px;padding-top:16px;border-top:1px solid #f1f5f9}\nh3{font-size:1rem;margin:16px 0 6px}\ntable{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0}\nth{text-align:left;padding:8px 10px;border-bottom:2px solid #e2e8f0;color:#64748b;font-weight:600;font-size:13px}\ntd{padding:8px 10px;border-bottom:1px solid #f1f5f9}\ntr:nth-child(even){background:#fafbfc}\n.container{max-width:780px;margin:0 auto;padding:0 20px}\n.nav{border-bottom:1px solid #e2e8f0;padding:10px 0;position:sticky;top:0;background:#fff;z-index:100}",
       "pg_pool": "",
       "extra": {
         "url": "https://zarq.ai/feed/cve-alerts.xml",
         "source_file": "/Users/anstudio/agentindex/agentindex/seo_pages.py",
         "source_line": 1345
+      }
+    },
+    {
+      "test_id": "tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-combined_dashboard_L341_GET_dashboard_data]",
+      "target": "production",
+      "category": "TIMEOUT",
+      "detail": "client timeout after 8003ms",
+      "method": "GET",
+      "path": "/dashboard/data",
+      "status_code": null,
+      "elapsed_ms": 8002.943992614746,
+      "body_excerpt": "",
+      "pg_pool": "",
+      "extra": {
+        "url": "https://zarq.ai/dashboard/data",
+        "source_file": "/Users/anstudio/agentindex/agentindex/combined_dashboard.py",
+        "source_line": 341
       }
     },
     {
@@ -1794,7 +1675,7 @@
       "method": "GET",
       "path": "/experiments/dashboard",
       "status_code": 404,
-      "elapsed_ms": 67.29578971862793,
+      "elapsed_ms": 74.25308227539062,
       "body_excerpt": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Page Not Found \u2014 Nerq</title>\n<meta name=\"description\" content=\"The page you&#x27;re looking for doesn&#x27;t exist.\">\n<link rel=\"canonical\" href=\"https://nerq.ai/\">\n<style>\n*{margin:0;padding:0;box-sizing:border-box}\nbody{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0f172a;line-height:1.6;font-size:15px;background:#fff}\na{color:#2563eb;text-decoration:none}a:hover{color:#1d4ed8;text-decoration:underline}\ncode,pre{font-family:ui-monospace,'SF Mono','Cascadia Mono',monospace}\ncode{background:#f1f5f9;padding:1px 5px;font-size:.9em;border-radius:3px}\npre{background:#f1f5f9;padding:16px;overflow-x:auto;font-size:13px;line-height:1.5;border:1px solid #e2e8f0;border-radius:6px}\nh1,h2,h3,h4{font-weight:700;line-height:1.3}\nh1{font-size:1.5rem;margin-bottom:8px}\nh2{font-size:1.15rem;margin:24px 0 8px;padding-top:16px;border-top:1px solid #f1f5f9}\nh3{font-size:1rem;margin:16px 0 6px}\ntable{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0}\nth{text-align:left;padding:8px 10px;border-bottom:2px solid #e2e8f0;color:#64748b;font-weight:600;font-size:13px}\ntd{padding:8px 10px;border-bottom:1px solid #f1f5f9}\ntr:nth-child(even){background:#fafbfc}\n.container{max-width:780px;margin:0 auto;padding:0 20px}\n.nav{border-bottom:1px solid #e2e8f0;padding:10px 0;position:sticky;top:0;background:#fff;z-index:100}",
       "pg_pool": "",
       "extra": {
@@ -1811,7 +1692,7 @@
       "method": "GET",
       "path": "/experiments/dashboard/data",
       "status_code": 404,
-      "elapsed_ms": 70.73593139648438,
+      "elapsed_ms": 70.7237720489502,
       "body_excerpt": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Page Not Found \u2014 Nerq</title>\n<meta name=\"description\" content=\"The page you&#x27;re looking for doesn&#x27;t exist.\">\n<link rel=\"canonical\" href=\"https://nerq.ai/\">\n<style>\n*{margin:0;padding:0;box-sizing:border-box}\nbody{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0f172a;line-height:1.6;font-size:15px;background:#fff}\na{color:#2563eb;text-decoration:none}a:hover{color:#1d4ed8;text-decoration:underline}\ncode,pre{font-family:ui-monospace,'SF Mono','Cascadia Mono',monospace}\ncode{background:#f1f5f9;padding:1px 5px;font-size:.9em;border-radius:3px}\npre{background:#f1f5f9;padding:16px;overflow-x:auto;font-size:13px;line-height:1.5;border:1px solid #e2e8f0;border-radius:6px}\nh1,h2,h3,h4{font-weight:700;line-height:1.3}\nh1{font-size:1.5rem;margin-bottom:8px}\nh2{font-size:1.15rem;margin:24px 0 8px;padding-top:16px;border-top:1px solid #f1f5f9}\nh3{font-size:1rem;margin:16px 0 6px}\ntable{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0}\nth{text-align:left;padding:8px 10px;border-bottom:2px solid #e2e8f0;color:#64748b;font-weight:600;font-size:13px}\ntd{padding:8px 10px;border-bottom:1px solid #f1f5f9}\ntr:nth-child(even){background:#fafbfc}\n.container{max-width:780px;margin:0 auto;padding:0 20px}\n.nav{border-bottom:1px solid #e2e8f0;padding:10px 0;position:sticky;top:0;background:#fff;z-index:100}",
       "pg_pool": "",
       "extra": {
@@ -1828,7 +1709,7 @@
       "method": "GET",
       "path": "/experiments/dashboard/trending/queries",
       "status_code": 404,
-      "elapsed_ms": 70.39117813110352,
+      "elapsed_ms": 73.54474067687988,
       "body_excerpt": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Page Not Found \u2014 Nerq</title>\n<meta name=\"description\" content=\"The page you&#x27;re looking for doesn&#x27;t exist.\">\n<link rel=\"canonical\" href=\"https://nerq.ai/\">\n<style>\n*{margin:0;padding:0;box-sizing:border-box}\nbody{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0f172a;line-height:1.6;font-size:15px;background:#fff}\na{color:#2563eb;text-decoration:none}a:hover{color:#1d4ed8;text-decoration:underline}\ncode,pre{font-family:ui-monospace,'SF Mono','Cascadia Mono',monospace}\ncode{background:#f1f5f9;padding:1px 5px;font-size:.9em;border-radius:3px}\npre{background:#f1f5f9;padding:16px;overflow-x:auto;font-size:13px;line-height:1.5;border:1px solid #e2e8f0;border-radius:6px}\nh1,h2,h3,h4{font-weight:700;line-height:1.3}\nh1{font-size:1.5rem;margin-bottom:8px}\nh2{font-size:1.15rem;margin:24px 0 8px;padding-top:16px;border-top:1px solid #f1f5f9}\nh3{font-size:1rem;margin:16px 0 6px}\ntable{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0}\nth{text-align:left;padding:8px 10px;border-bottom:2px solid #e2e8f0;color:#64748b;font-weight:600;font-size:13px}\ntd{padding:8px 10px;border-bottom:1px solid #f1f5f9}\ntr:nth-child(even){background:#fafbfc}\n.container{max-width:780px;margin:0 auto;padding:0 20px}\n.nav{border-bottom:1px solid #e2e8f0;padding:10px 0;position:sticky;top:0;background:#fff;z-index:100}",
       "pg_pool": "",
       "extra": {
@@ -1845,7 +1726,7 @@
       "method": "GET",
       "path": "/experiments/dashboard/trending/agents",
       "status_code": 404,
-      "elapsed_ms": 98.29401969909668,
+      "elapsed_ms": 101.92203521728516,
       "body_excerpt": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Page Not Found \u2014 Nerq</title>\n<meta name=\"description\" content=\"The page you&#x27;re looking for doesn&#x27;t exist.\">\n<link rel=\"canonical\" href=\"https://nerq.ai/\">\n<style>\n*{margin:0;padding:0;box-sizing:border-box}\nbody{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0f172a;line-height:1.6;font-size:15px;background:#fff}\na{color:#2563eb;text-decoration:none}a:hover{color:#1d4ed8;text-decoration:underline}\ncode,pre{font-family:ui-monospace,'SF Mono','Cascadia Mono',monospace}\ncode{background:#f1f5f9;padding:1px 5px;font-size:.9em;border-radius:3px}\npre{background:#f1f5f9;padding:16px;overflow-x:auto;font-size:13px;line-height:1.5;border:1px solid #e2e8f0;border-radius:6px}\nh1,h2,h3,h4{font-weight:700;line-height:1.3}\nh1{font-size:1.5rem;margin-bottom:8px}\nh2{font-size:1.15rem;margin:24px 0 8px;padding-top:16px;border-top:1px solid #f1f5f9}\nh3{font-size:1rem;margin:16px 0 6px}\ntable{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0}\nth{text-align:left;padding:8px 10px;border-bottom:2px solid #e2e8f0;color:#64748b;font-weight:600;font-size:13px}\ntd{padding:8px 10px;border-bottom:1px solid #f1f5f9}\ntr:nth-child(even){background:#fafbfc}\n.container{max-width:780px;margin:0 auto;padding:0 20px}\n.nav{border-bottom:1px solid #e2e8f0;padding:10px 0;position:sticky;top:0;background:#fff;z-index:100}",
       "pg_pool": "",
       "extra": {
@@ -1862,30 +1743,13 @@
       "method": "GET",
       "path": "/experiments/dashboard/insights",
       "status_code": 404,
-      "elapsed_ms": 68.39299201965332,
+      "elapsed_ms": 70.86634635925293,
       "body_excerpt": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Page Not Found \u2014 Nerq</title>\n<meta name=\"description\" content=\"The page you&#x27;re looking for doesn&#x27;t exist.\">\n<link rel=\"canonical\" href=\"https://nerq.ai/\">\n<style>\n*{margin:0;padding:0;box-sizing:border-box}\nbody{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0f172a;line-height:1.6;font-size:15px;background:#fff}\na{color:#2563eb;text-decoration:none}a:hover{color:#1d4ed8;text-decoration:underline}\ncode,pre{font-family:ui-monospace,'SF Mono','Cascadia Mono',monospace}\ncode{background:#f1f5f9;padding:1px 5px;font-size:.9em;border-radius:3px}\npre{background:#f1f5f9;padding:16px;overflow-x:auto;font-size:13px;line-height:1.5;border:1px solid #e2e8f0;border-radius:6px}\nh1,h2,h3,h4{font-weight:700;line-height:1.3}\nh1{font-size:1.5rem;margin-bottom:8px}\nh2{font-size:1.15rem;margin:24px 0 8px;padding-top:16px;border-top:1px solid #f1f5f9}\nh3{font-size:1rem;margin:16px 0 6px}\ntable{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0}\nth{text-align:left;padding:8px 10px;border-bottom:2px solid #e2e8f0;color:#64748b;font-weight:600;font-size:13px}\ntd{padding:8px 10px;border-bottom:1px solid #f1f5f9}\ntr:nth-child(even){background:#fafbfc}\n.container{max-width:780px;margin:0 auto;padding:0 20px}\n.nav{border-bottom:1px solid #e2e8f0;padding:10px 0;position:sticky;top:0;background:#fff;z-index:100}",
       "pg_pool": "",
       "extra": {
         "url": "https://zarq.ai/experiments/dashboard/insights",
         "source_file": "/Users/anstudio/agentindex/agentindex/experiments/experiments_api.py",
         "source_line": 185
-      }
-    },
-    {
-      "test_id": "tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-channel_dashboard_L313_GET_extension]",
-      "target": "production",
-      "category": "TIMEOUT",
-      "detail": "client timeout after 8002ms",
-      "method": "GET",
-      "path": "/extension",
-      "status_code": null,
-      "elapsed_ms": 8001.604080200195,
-      "body_excerpt": "",
-      "pg_pool": "",
-      "extra": {
-        "url": "https://zarq.ai/extension",
-        "source_file": "/Users/anstudio/agentindex/agentindex/channel_dashboard.py",
-        "source_line": 313
       }
     },
     {
@@ -1896,7 +1760,7 @@
       "method": "GET",
       "path": "/action/approve",
       "status_code": 404,
-      "elapsed_ms": 68.71199607849121,
+      "elapsed_ms": 5157.416820526123,
       "body_excerpt": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Page Not Found \u2014 Nerq</title>\n<meta name=\"description\" content=\"The page you&#x27;re looking for doesn&#x27;t exist.\">\n<link rel=\"canonical\" href=\"https://nerq.ai/\">\n<style>\n*{margin:0;padding:0;box-sizing:border-box}\nbody{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0f172a;line-height:1.6;font-size:15px;background:#fff}\na{color:#2563eb;text-decoration:none}a:hover{color:#1d4ed8;text-decoration:underline}\ncode,pre{font-family:ui-monospace,'SF Mono','Cascadia Mono',monospace}\ncode{background:#f1f5f9;padding:1px 5px;font-size:.9em;border-radius:3px}\npre{background:#f1f5f9;padding:16px;overflow-x:auto;font-size:13px;line-height:1.5;border:1px solid #e2e8f0;border-radius:6px}\nh1,h2,h3,h4{font-weight:700;line-height:1.3}\nh1{font-size:1.5rem;margin-bottom:8px}\nh2{font-size:1.15rem;margin:24px 0 8px;padding-top:16px;border-top:1px solid #f1f5f9}\nh3{font-size:1rem;margin:16px 0 6px}\ntable{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0}\nth{text-align:left;padding:8px 10px;border-bottom:2px solid #e2e8f0;color:#64748b;font-weight:600;font-size:13px}\ntd{padding:8px 10px;border-bottom:1px solid #f1f5f9}\ntr:nth-child(even){background:#fafbfc}\n.container{max-width:780px;margin:0 auto;padding:0 20px}\n.nav{border-bottom:1px solid #e2e8f0;padding:10px 0;position:sticky;top:0;background:#fff;z-index:100}",
       "pg_pool": "",
       "extra": {
@@ -1913,7 +1777,7 @@
       "method": "GET",
       "path": "/action/reject",
       "status_code": 404,
-      "elapsed_ms": 114.3028736114502,
+      "elapsed_ms": 323.46081733703613,
       "body_excerpt": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Page Not Found \u2014 Nerq</title>\n<meta name=\"description\" content=\"The page you&#x27;re looking for doesn&#x27;t exist.\">\n<link rel=\"canonical\" href=\"https://nerq.ai/\">\n<style>\n*{margin:0;padding:0;box-sizing:border-box}\nbody{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0f172a;line-height:1.6;font-size:15px;background:#fff}\na{color:#2563eb;text-decoration:none}a:hover{color:#1d4ed8;text-decoration:underline}\ncode,pre{font-family:ui-monospace,'SF Mono','Cascadia Mono',monospace}\ncode{background:#f1f5f9;padding:1px 5px;font-size:.9em;border-radius:3px}\npre{background:#f1f5f9;padding:16px;overflow-x:auto;font-size:13px;line-height:1.5;border:1px solid #e2e8f0;border-radius:6px}\nh1,h2,h3,h4{font-weight:700;line-height:1.3}\nh1{font-size:1.5rem;margin-bottom:8px}\nh2{font-size:1.15rem;margin:24px 0 8px;padding-top:16px;border-top:1px solid #f1f5f9}\nh3{font-size:1rem;margin:16px 0 6px}\ntable{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0}\nth{text-align:left;padding:8px 10px;border-bottom:2px solid #e2e8f0;color:#64748b;font-weight:600;font-size:13px}\ntd{padding:8px 10px;border-bottom:1px solid #f1f5f9}\ntr:nth-child(even){background:#fafbfc}\n.container{max-width:780px;margin:0 auto;padding:0 20px}\n.nav{border-bottom:1px solid #e2e8f0;padding:10px 0;position:sticky;top:0;background:#fff;z-index:100}",
       "pg_pool": "",
       "extra": {
@@ -1930,7 +1794,7 @@
       "method": "GET",
       "path": "/action/dismiss",
       "status_code": 404,
-      "elapsed_ms": 74.20492172241211,
+      "elapsed_ms": 76.62224769592285,
       "body_excerpt": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Page Not Found \u2014 Nerq</title>\n<meta name=\"description\" content=\"The page you&#x27;re looking for doesn&#x27;t exist.\">\n<link rel=\"canonical\" href=\"https://nerq.ai/\">\n<style>\n*{margin:0;padding:0;box-sizing:border-box}\nbody{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0f172a;line-height:1.6;font-size:15px;background:#fff}\na{color:#2563eb;text-decoration:none}a:hover{color:#1d4ed8;text-decoration:underline}\ncode,pre{font-family:ui-monospace,'SF Mono','Cascadia Mono',monospace}\ncode{background:#f1f5f9;padding:1px 5px;font-size:.9em;border-radius:3px}\npre{background:#f1f5f9;padding:16px;overflow-x:auto;font-size:13px;line-height:1.5;border:1px solid #e2e8f0;border-radius:6px}\nh1,h2,h3,h4{font-weight:700;line-height:1.3}\nh1{font-size:1.5rem;margin-bottom:8px}\nh2{font-size:1.15rem;margin:24px 0 8px;padding-top:16px;border-top:1px solid #f1f5f9}\nh3{font-size:1rem;margin:16px 0 6px}\ntable{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0}\nth{text-align:left;padding:8px 10px;border-bottom:2px solid #e2e8f0;color:#64748b;font-weight:600;font-size:13px}\ntd{padding:8px 10px;border-bottom:1px solid #f1f5f9}\ntr:nth-child(even){background:#fafbfc}\n.container{max-width:780px;margin:0 auto;padding:0 20px}\n.nav{border-bottom:1px solid #e2e8f0;padding:10px 0;position:sticky;top:0;background:#fff;z-index:100}",
       "pg_pool": "",
       "extra": {
@@ -1947,7 +1811,7 @@
       "method": "GET",
       "path": "/v1/signal/feed",
       "status_code": 404,
-      "elapsed_ms": 246.97303771972656,
+      "elapsed_ms": 160.10499000549316,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
@@ -1964,7 +1828,7 @@
       "method": "GET",
       "path": "/v1/signal/feed/history",
       "status_code": 404,
-      "elapsed_ms": 62.30974197387695,
+      "elapsed_ms": 56.57505989074707,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
@@ -1981,7 +1845,7 @@
       "method": "GET",
       "path": "/v1/signal/subscribe",
       "status_code": 404,
-      "elapsed_ms": 120.0721263885498,
+      "elapsed_ms": 149.23524856567383,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
@@ -1991,71 +1855,71 @@
       }
     },
     {
-      "test_id": "tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-discovery_L1495_GET_v1_crypto_rating_test]",
+      "test_id": "tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-discovery_L1506_GET_v1_crypto_rating_test]",
       "target": "production",
       "category": "HTTP_4XX_unexpected",
       "detail": "unexpected 404 \u2014 route exists in code",
       "method": "GET",
       "path": "/v1/crypto/rating/test",
       "status_code": 404,
-      "elapsed_ms": 149.57499504089355,
+      "elapsed_ms": 55.78804016113281,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
         "url": "https://api.zarq.ai/v1/crypto/rating/test",
         "source_file": "/Users/anstudio/agentindex/agentindex/api/discovery.py",
-        "source_line": 1495
+        "source_line": 1506
       }
     },
     {
-      "test_id": "tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-discovery_L1510_GET_v1_crypto_ndd_test]",
+      "test_id": "tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-discovery_L1521_GET_v1_crypto_ndd_test]",
       "target": "production",
       "category": "HTTP_4XX_unexpected",
       "detail": "unexpected 404 \u2014 route exists in code",
       "method": "GET",
       "path": "/v1/crypto/ndd/test",
       "status_code": 404,
-      "elapsed_ms": 57.95717239379883,
+      "elapsed_ms": 56.182861328125,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
         "url": "https://api.zarq.ai/v1/crypto/ndd/test",
         "source_file": "/Users/anstudio/agentindex/agentindex/api/discovery.py",
-        "source_line": 1510
+        "source_line": 1521
       }
     },
     {
-      "test_id": "tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-discovery_L1524_GET_v1_crypto_safety_test]",
+      "test_id": "tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-discovery_L1535_GET_v1_crypto_safety_test]",
       "target": "production",
       "category": "HTTP_4XX_unexpected",
       "detail": "unexpected 404 \u2014 route exists in code",
       "method": "GET",
       "path": "/v1/crypto/safety/test",
       "status_code": 404,
-      "elapsed_ms": 57.26885795593262,
+      "elapsed_ms": 105.78489303588867,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
         "url": "https://api.zarq.ai/v1/crypto/safety/test",
         "source_file": "/Users/anstudio/agentindex/agentindex/api/discovery.py",
-        "source_line": 1524
+        "source_line": 1535
       }
     },
     {
-      "test_id": "tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-discovery_L2147_GET_v1_track]",
+      "test_id": "tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-discovery_L2181_GET_v1_track]",
       "target": "production",
       "category": "HTTP_4XX_unexpected",
       "detail": "unexpected 404 \u2014 route exists in code",
       "method": "GET",
       "path": "/v1/track",
       "status_code": 404,
-      "elapsed_ms": 52.06012725830078,
+      "elapsed_ms": 55.77993392944336,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
         "url": "https://api.zarq.ai/v1/track",
         "source_file": "/Users/anstudio/agentindex/agentindex/api/discovery.py",
-        "source_line": 2147
+        "source_line": 2181
       }
     },
     {
@@ -2066,7 +1930,7 @@
       "method": "GET",
       "path": "/v1/agent/weekly",
       "status_code": 404,
-      "elapsed_ms": 54.480791091918945,
+      "elapsed_ms": 116.03403091430664,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
@@ -2079,11 +1943,11 @@
       "test_id": "tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-weekly_signal_L195_GET_weekly]",
       "target": "production",
       "category": "TIMEOUT",
-      "detail": "client timeout after 8003ms",
+      "detail": "client timeout after 8004ms",
       "method": "GET",
       "path": "/weekly",
       "status_code": null,
-      "elapsed_ms": 8002.720832824707,
+      "elapsed_ms": 8003.6680698394775,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {
@@ -2093,40 +1957,66 @@
       }
     },
     {
-      "test_id": "tests/zarq_surface/test_mcp_tools.py::test_mcp_tool[localhost-crypto_signals]",
+      "test_id": "tests/zarq_surface/test_mcp_tools.py::test_mcp_tool[localhost-crypto_compare]",
       "target": "localhost",
       "category": "NETWORK_ERROR",
-      "detail": "ReadError: [Errno 54] Connection reset by peer",
+      "detail": "RemoteProtocolError: Server disconnected without sending a response.",
       "method": "POST",
-      "path": "/mcp:crypto_signals",
+      "path": "/mcp:crypto_compare",
       "status_code": null,
-      "elapsed_ms": 2.4878978729248047,
+      "elapsed_ms": 0.3879070281982422,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {}
     },
     {
-      "test_id": "tests/zarq_surface/test_mcp_tools.py::test_mcp_tool[localhost-get_signal_feed]",
+      "test_id": "tests/zarq_surface/test_mcp_tools.py::test_mcp_tool[localhost-crypto_ratings_bulk]",
       "target": "localhost",
       "category": "NETWORK_ERROR",
       "detail": "ReadError: [Errno 54] Connection reset by peer",
       "method": "POST",
-      "path": "/mcp:get_signal_feed",
+      "path": "/mcp:crypto_ratings_bulk",
       "status_code": null,
-      "elapsed_ms": 3.2579898834228516,
+      "elapsed_ms": 0.9541511535644531,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {}
     },
     {
-      "test_id": "tests/zarq_surface/test_mcp_tools.py::test_mcp_tool[localhost-get_agent_stats]",
+      "test_id": "tests/zarq_surface/test_mcp_tools.py::test_mcp_tool[localhost-get_trust_score]",
       "target": "localhost",
-      "category": "TIMEOUT",
-      "detail": "MCP timeout after 8004ms",
+      "category": "NETWORK_ERROR",
+      "detail": "ReadError: [Errno 54] Connection reset by peer",
       "method": "POST",
-      "path": "/mcp:get_agent_stats",
+      "path": "/mcp:get_trust_score",
       "status_code": null,
-      "elapsed_ms": 8004.461765289307,
+      "elapsed_ms": 0.4057884216308594,
+      "body_excerpt": "",
+      "pg_pool": "",
+      "extra": {}
+    },
+    {
+      "test_id": "tests/zarq_surface/test_mcp_tools.py::test_mcp_tool[localhost-find_best_agent]",
+      "target": "localhost",
+      "category": "NETWORK_ERROR",
+      "detail": "ReadError: [Errno 54] Connection reset by peer",
+      "method": "POST",
+      "path": "/mcp:find_best_agent",
+      "status_code": null,
+      "elapsed_ms": 0.7638931274414062,
+      "body_excerpt": "",
+      "pg_pool": "",
+      "extra": {}
+    },
+    {
+      "test_id": "tests/zarq_surface/test_mcp_tools.py::test_mcp_tool[localhost-best_in_category]",
+      "target": "localhost",
+      "category": "NETWORK_ERROR",
+      "detail": "ReadError: [Errno 54] Connection reset by peer",
+      "method": "POST",
+      "path": "/mcp:best_in_category",
+      "status_code": null,
+      "elapsed_ms": 0.5581378936767578,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {}
@@ -2139,7 +2029,7 @@
       "method": "POST",
       "path": "/mcp:crypto_rating",
       "status_code": 404,
-      "elapsed_ms": 338.6108875274658,
+      "elapsed_ms": 205.71398735046387,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {}
@@ -2152,7 +2042,7 @@
       "method": "POST",
       "path": "/mcp:crypto_dtd",
       "status_code": 404,
-      "elapsed_ms": 50.49300193786621,
+      "elapsed_ms": 110.84580421447754,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {}
@@ -2165,7 +2055,7 @@
       "method": "POST",
       "path": "/mcp:crypto_signals",
       "status_code": 404,
-      "elapsed_ms": 136.44695281982422,
+      "elapsed_ms": 70.30701637268066,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {}
@@ -2178,7 +2068,7 @@
       "method": "POST",
       "path": "/mcp:crypto_compare",
       "status_code": 404,
-      "elapsed_ms": 54.42309379577637,
+      "elapsed_ms": 119.30704116821289,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {}
@@ -2191,7 +2081,7 @@
       "method": "POST",
       "path": "/mcp:crypto_distress_watch",
       "status_code": 404,
-      "elapsed_ms": 56.561946868896484,
+      "elapsed_ms": 96.19998931884766,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {}
@@ -2204,7 +2094,7 @@
       "method": "POST",
       "path": "/mcp:crypto_alerts",
       "status_code": 404,
-      "elapsed_ms": 60.51993370056152,
+      "elapsed_ms": 65.77682495117188,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {}
@@ -2217,7 +2107,7 @@
       "method": "POST",
       "path": "/mcp:crypto_ratings_bulk",
       "status_code": 404,
-      "elapsed_ms": 709.6080780029297,
+      "elapsed_ms": 57.77931213378906,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {}
@@ -2230,7 +2120,7 @@
       "method": "POST",
       "path": "/mcp:check_token_risk",
       "status_code": 404,
-      "elapsed_ms": 151.46279335021973,
+      "elapsed_ms": 146.96002006530762,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {}
@@ -2243,7 +2133,7 @@
       "method": "POST",
       "path": "/mcp:get_risk_signals",
       "status_code": 404,
-      "elapsed_ms": 57.27815628051758,
+      "elapsed_ms": 142.0271396636963,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {}
@@ -2256,7 +2146,7 @@
       "method": "POST",
       "path": "/mcp:get_trust_score",
       "status_code": 404,
-      "elapsed_ms": 50.192832946777344,
+      "elapsed_ms": 86.32516860961914,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {}
@@ -2269,7 +2159,7 @@
       "method": "POST",
       "path": "/mcp:kya_check_agent",
       "status_code": 404,
-      "elapsed_ms": 51.79333686828613,
+      "elapsed_ms": 82.8700065612793,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {}
@@ -2282,7 +2172,7 @@
       "method": "POST",
       "path": "/mcp:get_signal_feed",
       "status_code": 404,
-      "elapsed_ms": 96.63009643554688,
+      "elapsed_ms": 150.20322799682617,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {}
@@ -2295,7 +2185,7 @@
       "method": "POST",
       "path": "/mcp:vitality_check",
       "status_code": 404,
-      "elapsed_ms": 51.57899856567383,
+      "elapsed_ms": 59.51690673828125,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {}
@@ -2308,7 +2198,7 @@
       "method": "POST",
       "path": "/mcp:vitality_compare",
       "status_code": 404,
-      "elapsed_ms": 133.0239772796631,
+      "elapsed_ms": 131.50596618652344,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {}
@@ -2321,7 +2211,7 @@
       "method": "POST",
       "path": "/mcp:find_best_agent",
       "status_code": 404,
-      "elapsed_ms": 52.587032318115234,
+      "elapsed_ms": 68.62401962280273,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {}
@@ -2334,7 +2224,7 @@
       "method": "POST",
       "path": "/mcp:agent_benchmark",
       "status_code": 404,
-      "elapsed_ms": 55.53102493286133,
+      "elapsed_ms": 62.46614456176758,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {}
@@ -2347,7 +2237,7 @@
       "method": "POST",
       "path": "/mcp:get_agent_stats",
       "status_code": 404,
-      "elapsed_ms": 53.978919982910156,
+      "elapsed_ms": 61.65790557861328,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {}
@@ -2360,7 +2250,7 @@
       "method": "POST",
       "path": "/mcp:preflight_check",
       "status_code": 404,
-      "elapsed_ms": 139.45579528808594,
+      "elapsed_ms": 120.62788009643555,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {}
@@ -2373,7 +2263,7 @@
       "method": "POST",
       "path": "/mcp:best_in_category",
       "status_code": 404,
-      "elapsed_ms": 50.47106742858887,
+      "elapsed_ms": 611.663818359375,
       "body_excerpt": "",
       "pg_pool": "",
       "extra": {}
@@ -2386,7 +2276,7 @@
       "method": "GET",
       "path": "/crypto/methodology",
       "status_code": 404,
-      "elapsed_ms": 941.7459964752197,
+      "elapsed_ms": 5.80596923828125,
       "body_excerpt": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Page Not Found \u2014 Nerq</title>\n<meta name=\"description\" content=\"The page you&#x27;re looking for doesn&#x27;t exist.\">\n<link rel=\"canonical\" href=\"https://nerq.ai/\">\n<style>\n*{margin:0;padding:0;box-sizing:border-box}\nbody{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0f172a;line-height:1.6;font-size:15px;background:#fff}\na{color:#2563eb;text-decoration:none}a:hover{color:#1d4ed8;text-decoration:underline}\ncode,pre{font-family:ui-monospace,'SF Mono','Cascadia Mono',monospace}\ncode{background:#f1f5f9;padding:1px 5px;font-size:.9em;border-radius:3px}\npre{background:#f1f5f9;padding:16px;overflow-x:auto;font-size:13px;line-height:1.5;border:1px solid #e2e8f0;border-radius:6px}\nh1,h2,h3,h4{font-weight:700;line-height:1.3}\nh1{font-size:1.5rem;margin-bottom:8px}\nh2{font-size:1.15rem;margin:24px 0 8px;padding-top:16px;border-top:1px solid #f1f5f9}\nh3{font-size:1rem;margin:16px 0 6px}\ntable{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0}\nth{text-align:left;padding:8px 10px;border-bottom:2px solid #e2e8f0;color:#64748b;font-weight:600;font-size:13px}\ntd{padding:8px 10px;border-bottom:1px solid #f1f5f9}\ntr:nth-child(even){background:#fafbfc}\n.container{max-width:780px;margin:0 auto;padding:0 20px}\n.nav{border-bottom:1px solid #e2e8f0;padding:10px 0;position:sticky;top:0;background:#fff;z-index:100}",
       "pg_pool": "",
       "extra": {
@@ -2402,7 +2292,7 @@
       "method": "GET",
       "path": "/crypto/whitepaper",
       "status_code": 404,
-      "elapsed_ms": 22.462129592895508,
+      "elapsed_ms": 4.094839096069336,
       "body_excerpt": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Page Not Found \u2014 Nerq</title>\n<meta name=\"description\" content=\"The page you&#x27;re looking for doesn&#x27;t exist.\">\n<link rel=\"canonical\" href=\"https://nerq.ai/\">\n<style>\n*{margin:0;padding:0;box-sizing:border-box}\nbody{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0f172a;line-height:1.6;font-size:15px;background:#fff}\na{color:#2563eb;text-decoration:none}a:hover{color:#1d4ed8;text-decoration:underline}\ncode,pre{font-family:ui-monospace,'SF Mono','Cascadia Mono',monospace}\ncode{background:#f1f5f9;padding:1px 5px;font-size:.9em;border-radius:3px}\npre{background:#f1f5f9;padding:16px;overflow-x:auto;font-size:13px;line-height:1.5;border:1px solid #e2e8f0;border-radius:6px}\nh1,h2,h3,h4{font-weight:700;line-height:1.3}\nh1{font-size:1.5rem;margin-bottom:8px}\nh2{font-size:1.15rem;margin:24px 0 8px;padding-top:16px;border-top:1px solid #f1f5f9}\nh3{font-size:1rem;margin:16px 0 6px}\ntable{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0}\nth{text-align:left;padding:8px 10px;border-bottom:2px solid #e2e8f0;color:#64748b;font-weight:600;font-size:13px}\ntd{padding:8px 10px;border-bottom:1px solid #f1f5f9}\ntr:nth-child(even){background:#fafbfc}\n.container{max-width:780px;margin:0 auto;padding:0 20px}\n.nav{border-bottom:1px solid #e2e8f0;padding:10px 0;position:sticky;top:0;background:#fff;z-index:100}",
       "pg_pool": "",
       "extra": {
@@ -2418,7 +2308,7 @@
       "method": "GET",
       "path": "/crypto/early-warning",
       "status_code": 404,
-      "elapsed_ms": 8.228302001953125,
+      "elapsed_ms": 5.424976348876953,
       "body_excerpt": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Page Not Found \u2014 Nerq</title>\n<meta name=\"description\" content=\"The page you&#x27;re looking for doesn&#x27;t exist.\">\n<link rel=\"canonical\" href=\"https://nerq.ai/\">\n<style>\n*{margin:0;padding:0;box-sizing:border-box}\nbody{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0f172a;line-height:1.6;font-size:15px;background:#fff}\na{color:#2563eb;text-decoration:none}a:hover{color:#1d4ed8;text-decoration:underline}\ncode,pre{font-family:ui-monospace,'SF Mono','Cascadia Mono',monospace}\ncode{background:#f1f5f9;padding:1px 5px;font-size:.9em;border-radius:3px}\npre{background:#f1f5f9;padding:16px;overflow-x:auto;font-size:13px;line-height:1.5;border:1px solid #e2e8f0;border-radius:6px}\nh1,h2,h3,h4{font-weight:700;line-height:1.3}\nh1{font-size:1.5rem;margin-bottom:8px}\nh2{font-size:1.15rem;margin:24px 0 8px;padding-top:16px;border-top:1px solid #f1f5f9}\nh3{font-size:1rem;margin:16px 0 6px}\ntable{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0}\nth{text-align:left;padding:8px 10px;border-bottom:2px solid #e2e8f0;color:#64748b;font-weight:600;font-size:13px}\ntd{padding:8px 10px;border-bottom:1px solid #f1f5f9}\ntr:nth-child(even){background:#fafbfc}\n.container{max-width:780px;margin:0 auto;padding:0 20px}\n.nav{border-bottom:1px solid #e2e8f0;padding:10px 0;position:sticky;top:0;background:#fff;z-index:100}",
       "pg_pool": "",
       "extra": {
@@ -2434,7 +2324,7 @@
       "method": "GET",
       "path": "/crypto/track-record",
       "status_code": 404,
-      "elapsed_ms": 7.148027420043945,
+      "elapsed_ms": 4.890680313110352,
       "body_excerpt": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Page Not Found \u2014 Nerq</title>\n<meta name=\"description\" content=\"The page you&#x27;re looking for doesn&#x27;t exist.\">\n<link rel=\"canonical\" href=\"https://nerq.ai/\">\n<style>\n*{margin:0;padding:0;box-sizing:border-box}\nbody{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0f172a;line-height:1.6;font-size:15px;background:#fff}\na{color:#2563eb;text-decoration:none}a:hover{color:#1d4ed8;text-decoration:underline}\ncode,pre{font-family:ui-monospace,'SF Mono','Cascadia Mono',monospace}\ncode{background:#f1f5f9;padding:1px 5px;font-size:.9em;border-radius:3px}\npre{background:#f1f5f9;padding:16px;overflow-x:auto;font-size:13px;line-height:1.5;border:1px solid #e2e8f0;border-radius:6px}\nh1,h2,h3,h4{font-weight:700;line-height:1.3}\nh1{font-size:1.5rem;margin-bottom:8px}\nh2{font-size:1.15rem;margin:24px 0 8px;padding-top:16px;border-top:1px solid #f1f5f9}\nh3{font-size:1rem;margin:16px 0 6px}\ntable{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0}\nth{text-align:left;padding:8px 10px;border-bottom:2px solid #e2e8f0;color:#64748b;font-weight:600;font-size:13px}\ntd{padding:8px 10px;border-bottom:1px solid #f1f5f9}\ntr:nth-child(even){background:#fafbfc}\n.container{max-width:780px;margin:0 auto;padding:0 20px}\n.nav{border-bottom:1px solid #e2e8f0;padding:10px 0;position:sticky;top:0;background:#fff;z-index:100}",
       "pg_pool": "",
       "extra": {
@@ -2450,7 +2340,7 @@
       "method": "GET",
       "path": "/crypto/vitality-backtest",
       "status_code": 404,
-      "elapsed_ms": 5.15294075012207,
+      "elapsed_ms": 5.473136901855469,
       "body_excerpt": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Page Not Found \u2014 Nerq</title>\n<meta name=\"description\" content=\"The page you&#x27;re looking for doesn&#x27;t exist.\">\n<link rel=\"canonical\" href=\"https://nerq.ai/\">\n<style>\n*{margin:0;padding:0;box-sizing:border-box}\nbody{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0f172a;line-height:1.6;font-size:15px;background:#fff}\na{color:#2563eb;text-decoration:none}a:hover{color:#1d4ed8;text-decoration:underline}\ncode,pre{font-family:ui-monospace,'SF Mono','Cascadia Mono',monospace}\ncode{background:#f1f5f9;padding:1px 5px;font-size:.9em;border-radius:3px}\npre{background:#f1f5f9;padding:16px;overflow-x:auto;font-size:13px;line-height:1.5;border:1px solid #e2e8f0;border-radius:6px}\nh1,h2,h3,h4{font-weight:700;line-height:1.3}\nh1{font-size:1.5rem;margin-bottom:8px}\nh2{font-size:1.15rem;margin:24px 0 8px;padding-top:16px;border-top:1px solid #f1f5f9}\nh3{font-size:1rem;margin:16px 0 6px}\ntable{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0}\nth{text-align:left;padding:8px 10px;border-bottom:2px solid #e2e8f0;color:#64748b;font-weight:600;font-size:13px}\ntd{padding:8px 10px;border-bottom:1px solid #f1f5f9}\ntr:nth-child(even){background:#fafbfc}\n.container{max-width:780px;margin:0 auto;padding:0 20px}\n.nav{border-bottom:1px solid #e2e8f0;padding:10px 0;position:sticky;top:0;background:#fff;z-index:100}",
       "pg_pool": "",
       "extra": {
@@ -2466,7 +2356,7 @@
       "method": "GET",
       "path": "/crypto/vitality-methodology",
       "status_code": 404,
-      "elapsed_ms": 5.343198776245117,
+      "elapsed_ms": 13.937234878540039,
       "body_excerpt": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Page Not Found \u2014 Nerq</title>\n<meta name=\"description\" content=\"The page you&#x27;re looking for doesn&#x27;t exist.\">\n<link rel=\"canonical\" href=\"https://nerq.ai/\">\n<style>\n*{margin:0;padding:0;box-sizing:border-box}\nbody{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0f172a;line-height:1.6;font-size:15px;background:#fff}\na{color:#2563eb;text-decoration:none}a:hover{color:#1d4ed8;text-decoration:underline}\ncode,pre{font-family:ui-monospace,'SF Mono','Cascadia Mono',monospace}\ncode{background:#f1f5f9;padding:1px 5px;font-size:.9em;border-radius:3px}\npre{background:#f1f5f9;padding:16px;overflow-x:auto;font-size:13px;line-height:1.5;border:1px solid #e2e8f0;border-radius:6px}\nh1,h2,h3,h4{font-weight:700;line-height:1.3}\nh1{font-size:1.5rem;margin-bottom:8px}\nh2{font-size:1.15rem;margin:24px 0 8px;padding-top:16px;border-top:1px solid #f1f5f9}\nh3{font-size:1rem;margin:16px 0 6px}\ntable{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0}\nth{text-align:left;padding:8px 10px;border-bottom:2px solid #e2e8f0;color:#64748b;font-weight:600;font-size:13px}\ntd{padding:8px 10px;border-bottom:1px solid #f1f5f9}\ntr:nth-child(even){background:#fafbfc}\n.container{max-width:780px;margin:0 auto;padding:0 20px}\n.nav{border-bottom:1px solid #e2e8f0;padding:10px 0;position:sticky;top:0;background:#fff;z-index:100}",
       "pg_pool": "",
       "extra": {
@@ -2482,7 +2372,7 @@
       "method": "GET",
       "path": "/crypto/agent-intelligence",
       "status_code": 404,
-      "elapsed_ms": 4.38380241394043,
+      "elapsed_ms": 4.804849624633789,
       "body_excerpt": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Page Not Found \u2014 Nerq</title>\n<meta name=\"description\" content=\"The page you&#x27;re looking for doesn&#x27;t exist.\">\n<link rel=\"canonical\" href=\"https://nerq.ai/\">\n<style>\n*{margin:0;padding:0;box-sizing:border-box}\nbody{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0f172a;line-height:1.6;font-size:15px;background:#fff}\na{color:#2563eb;text-decoration:none}a:hover{color:#1d4ed8;text-decoration:underline}\ncode,pre{font-family:ui-monospace,'SF Mono','Cascadia Mono',monospace}\ncode{background:#f1f5f9;padding:1px 5px;font-size:.9em;border-radius:3px}\npre{background:#f1f5f9;padding:16px;overflow-x:auto;font-size:13px;line-height:1.5;border:1px solid #e2e8f0;border-radius:6px}\nh1,h2,h3,h4{font-weight:700;line-height:1.3}\nh1{font-size:1.5rem;margin-bottom:8px}\nh2{font-size:1.15rem;margin:24px 0 8px;padding-top:16px;border-top:1px solid #f1f5f9}\nh3{font-size:1rem;margin:16px 0 6px}\ntable{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0}\nth{text-align:left;padding:8px 10px;border-bottom:2px solid #e2e8f0;color:#64748b;font-weight:600;font-size:13px}\ntd{padding:8px 10px;border-bottom:1px solid #f1f5f9}\ntr:nth-child(even){background:#fafbfc}\n.container{max-width:780px;margin:0 auto;padding:0 20px}\n.nav{border-bottom:1px solid #e2e8f0;padding:10px 0;position:sticky;top:0;background:#fff;z-index:100}",
       "pg_pool": "",
       "extra": {
@@ -2498,7 +2388,7 @@
       "method": "GET",
       "path": "/crypto/recovery",
       "status_code": 404,
-      "elapsed_ms": 6.754875183105469,
+      "elapsed_ms": 4.987955093383789,
       "body_excerpt": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Page Not Found \u2014 Nerq</title>\n<meta name=\"description\" content=\"The page you&#x27;re looking for doesn&#x27;t exist.\">\n<link rel=\"canonical\" href=\"https://nerq.ai/\">\n<style>\n*{margin:0;padding:0;box-sizing:border-box}\nbody{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0f172a;line-height:1.6;font-size:15px;background:#fff}\na{color:#2563eb;text-decoration:none}a:hover{color:#1d4ed8;text-decoration:underline}\ncode,pre{font-family:ui-monospace,'SF Mono','Cascadia Mono',monospace}\ncode{background:#f1f5f9;padding:1px 5px;font-size:.9em;border-radius:3px}\npre{background:#f1f5f9;padding:16px;overflow-x:auto;font-size:13px;line-height:1.5;border:1px solid #e2e8f0;border-radius:6px}\nh1,h2,h3,h4{font-weight:700;line-height:1.3}\nh1{font-size:1.5rem;margin-bottom:8px}\nh2{font-size:1.15rem;margin:24px 0 8px;padding-top:16px;border-top:1px solid #f1f5f9}\nh3{font-size:1rem;margin:16px 0 6px}\ntable{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0}\nth{text-align:left;padding:8px 10px;border-bottom:2px solid #e2e8f0;color:#64748b;font-weight:600;font-size:13px}\ntd{padding:8px 10px;border-bottom:1px solid #f1f5f9}\ntr:nth-child(even){background:#fafbfc}\n.container{max-width:780px;margin:0 auto;padding:0 20px}\n.nav{border-bottom:1px solid #e2e8f0;padding:10px 0;position:sticky;top:0;background:#fff;z-index:100}",
       "pg_pool": "",
       "extra": {
@@ -2514,7 +2404,7 @@
       "method": "GET",
       "path": "/crypto/paper-trading",
       "status_code": 404,
-      "elapsed_ms": 5.069971084594727,
+      "elapsed_ms": 5.111932754516602,
       "body_excerpt": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Page Not Found \u2014 Nerq</title>\n<meta name=\"description\" content=\"The page you&#x27;re looking for doesn&#x27;t exist.\">\n<link rel=\"canonical\" href=\"https://nerq.ai/\">\n<style>\n*{margin:0;padding:0;box-sizing:border-box}\nbody{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0f172a;line-height:1.6;font-size:15px;background:#fff}\na{color:#2563eb;text-decoration:none}a:hover{color:#1d4ed8;text-decoration:underline}\ncode,pre{font-family:ui-monospace,'SF Mono','Cascadia Mono',monospace}\ncode{background:#f1f5f9;padding:1px 5px;font-size:.9em;border-radius:3px}\npre{background:#f1f5f9;padding:16px;overflow-x:auto;font-size:13px;line-height:1.5;border:1px solid #e2e8f0;border-radius:6px}\nh1,h2,h3,h4{font-weight:700;line-height:1.3}\nh1{font-size:1.5rem;margin-bottom:8px}\nh2{font-size:1.15rem;margin:24px 0 8px;padding-top:16px;border-top:1px solid #f1f5f9}\nh3{font-size:1rem;margin:16px 0 6px}\ntable{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0}\nth{text-align:left;padding:8px 10px;border-bottom:2px solid #e2e8f0;color:#64748b;font-weight:600;font-size:13px}\ntd{padding:8px 10px;border-bottom:1px solid #f1f5f9}\ntr:nth-child(even){background:#fafbfc}\n.container{max-width:780px;margin:0 auto;padding:0 20px}\n.nav{border-bottom:1px solid #e2e8f0;padding:10px 0;position:sticky;top:0;background:#fff;z-index:100}",
       "pg_pool": "",
       "extra": {
@@ -2530,7 +2420,7 @@
       "method": "GET",
       "path": "/learn/what-is-zarq",
       "status_code": 404,
-      "elapsed_ms": 7.806301116943359,
+      "elapsed_ms": 5.10096549987793,
       "body_excerpt": "<h1>Article not found</h1>",
       "pg_pool": "",
       "extra": {
@@ -2546,7 +2436,7 @@
       "method": "GET",
       "path": "/crypto/methodology",
       "status_code": 404,
-      "elapsed_ms": 80.14678955078125,
+      "elapsed_ms": 190.05274772644043,
       "body_excerpt": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Page Not Found \u2014 Nerq</title>\n<meta name=\"description\" content=\"The page you&#x27;re looking for doesn&#x27;t exist.\">\n<link rel=\"canonical\" href=\"https://nerq.ai/\">\n<style>\n*{margin:0;padding:0;box-sizing:border-box}\nbody{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0f172a;line-height:1.6;font-size:15px;background:#fff}\na{color:#2563eb;text-decoration:none}a:hover{color:#1d4ed8;text-decoration:underline}\ncode,pre{font-family:ui-monospace,'SF Mono','Cascadia Mono',monospace}\ncode{background:#f1f5f9;padding:1px 5px;font-size:.9em;border-radius:3px}\npre{background:#f1f5f9;padding:16px;overflow-x:auto;font-size:13px;line-height:1.5;border:1px solid #e2e8f0;border-radius:6px}\nh1,h2,h3,h4{font-weight:700;line-height:1.3}\nh1{font-size:1.5rem;margin-bottom:8px}\nh2{font-size:1.15rem;margin:24px 0 8px;padding-top:16px;border-top:1px solid #f1f5f9}\nh3{font-size:1rem;margin:16px 0 6px}\ntable{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0}\nth{text-align:left;padding:8px 10px;border-bottom:2px solid #e2e8f0;color:#64748b;font-weight:600;font-size:13px}\ntd{padding:8px 10px;border-bottom:1px solid #f1f5f9}\ntr:nth-child(even){background:#fafbfc}\n.container{max-width:780px;margin:0 auto;padding:0 20px}\n.nav{border-bottom:1px solid #e2e8f0;padding:10px 0;position:sticky;top:0;background:#fff;z-index:100}",
       "pg_pool": "",
       "extra": {
@@ -2562,7 +2452,7 @@
       "method": "GET",
       "path": "/crypto/whitepaper",
       "status_code": 404,
-      "elapsed_ms": 492.62070655822754,
+      "elapsed_ms": 4101.207733154297,
       "body_excerpt": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Page Not Found \u2014 Nerq</title>\n<meta name=\"description\" content=\"The page you&#x27;re looking for doesn&#x27;t exist.\">\n<link rel=\"canonical\" href=\"https://nerq.ai/\">\n<style>\n*{margin:0;padding:0;box-sizing:border-box}\nbody{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0f172a;line-height:1.6;font-size:15px;background:#fff}\na{color:#2563eb;text-decoration:none}a:hover{color:#1d4ed8;text-decoration:underline}\ncode,pre{font-family:ui-monospace,'SF Mono','Cascadia Mono',monospace}\ncode{background:#f1f5f9;padding:1px 5px;font-size:.9em;border-radius:3px}\npre{background:#f1f5f9;padding:16px;overflow-x:auto;font-size:13px;line-height:1.5;border:1px solid #e2e8f0;border-radius:6px}\nh1,h2,h3,h4{font-weight:700;line-height:1.3}\nh1{font-size:1.5rem;margin-bottom:8px}\nh2{font-size:1.15rem;margin:24px 0 8px;padding-top:16px;border-top:1px solid #f1f5f9}\nh3{font-size:1rem;margin:16px 0 6px}\ntable{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0}\nth{text-align:left;padding:8px 10px;border-bottom:2px solid #e2e8f0;color:#64748b;font-weight:600;font-size:13px}\ntd{padding:8px 10px;border-bottom:1px solid #f1f5f9}\ntr:nth-child(even){background:#fafbfc}\n.container{max-width:780px;margin:0 auto;padding:0 20px}\n.nav{border-bottom:1px solid #e2e8f0;padding:10px 0;position:sticky;top:0;background:#fff;z-index:100}",
       "pg_pool": "",
       "extra": {
@@ -2578,7 +2468,7 @@
       "method": "GET",
       "path": "/crypto/early-warning",
       "status_code": 404,
-      "elapsed_ms": 225.91400146484375,
+      "elapsed_ms": 80.55615425109863,
       "body_excerpt": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Page Not Found \u2014 Nerq</title>\n<meta name=\"description\" content=\"The page you&#x27;re looking for doesn&#x27;t exist.\">\n<link rel=\"canonical\" href=\"https://nerq.ai/\">\n<style>\n*{margin:0;padding:0;box-sizing:border-box}\nbody{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0f172a;line-height:1.6;font-size:15px;background:#fff}\na{color:#2563eb;text-decoration:none}a:hover{color:#1d4ed8;text-decoration:underline}\ncode,pre{font-family:ui-monospace,'SF Mono','Cascadia Mono',monospace}\ncode{background:#f1f5f9;padding:1px 5px;font-size:.9em;border-radius:3px}\npre{background:#f1f5f9;padding:16px;overflow-x:auto;font-size:13px;line-height:1.5;border:1px solid #e2e8f0;border-radius:6px}\nh1,h2,h3,h4{font-weight:700;line-height:1.3}\nh1{font-size:1.5rem;margin-bottom:8px}\nh2{font-size:1.15rem;margin:24px 0 8px;padding-top:16px;border-top:1px solid #f1f5f9}\nh3{font-size:1rem;margin:16px 0 6px}\ntable{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0}\nth{text-align:left;padding:8px 10px;border-bottom:2px solid #e2e8f0;color:#64748b;font-weight:600;font-size:13px}\ntd{padding:8px 10px;border-bottom:1px solid #f1f5f9}\ntr:nth-child(even){background:#fafbfc}\n.container{max-width:780px;margin:0 auto;padding:0 20px}\n.nav{border-bottom:1px solid #e2e8f0;padding:10px 0;position:sticky;top:0;background:#fff;z-index:100}",
       "pg_pool": "",
       "extra": {
@@ -2594,7 +2484,7 @@
       "method": "GET",
       "path": "/crypto/track-record",
       "status_code": 404,
-      "elapsed_ms": 7911.2389087677,
+      "elapsed_ms": 150.9110927581787,
       "body_excerpt": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Page Not Found \u2014 Nerq</title>\n<meta name=\"description\" content=\"The page you&#x27;re looking for doesn&#x27;t exist.\">\n<link rel=\"canonical\" href=\"https://nerq.ai/\">\n<style>\n*{margin:0;padding:0;box-sizing:border-box}\nbody{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0f172a;line-height:1.6;font-size:15px;background:#fff}\na{color:#2563eb;text-decoration:none}a:hover{color:#1d4ed8;text-decoration:underline}\ncode,pre{font-family:ui-monospace,'SF Mono','Cascadia Mono',monospace}\ncode{background:#f1f5f9;padding:1px 5px;font-size:.9em;border-radius:3px}\npre{background:#f1f5f9;padding:16px;overflow-x:auto;font-size:13px;line-height:1.5;border:1px solid #e2e8f0;border-radius:6px}\nh1,h2,h3,h4{font-weight:700;line-height:1.3}\nh1{font-size:1.5rem;margin-bottom:8px}\nh2{font-size:1.15rem;margin:24px 0 8px;padding-top:16px;border-top:1px solid #f1f5f9}\nh3{font-size:1rem;margin:16px 0 6px}\ntable{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0}\nth{text-align:left;padding:8px 10px;border-bottom:2px solid #e2e8f0;color:#64748b;font-weight:600;font-size:13px}\ntd{padding:8px 10px;border-bottom:1px solid #f1f5f9}\ntr:nth-child(even){background:#fafbfc}\n.container{max-width:780px;margin:0 auto;padding:0 20px}\n.nav{border-bottom:1px solid #e2e8f0;padding:10px 0;position:sticky;top:0;background:#fff;z-index:100}",
       "pg_pool": "",
       "extra": {
@@ -2610,7 +2500,7 @@
       "method": "GET",
       "path": "/crypto/vitality-backtest",
       "status_code": 404,
-      "elapsed_ms": 427.96802520751953,
+      "elapsed_ms": 70.66583633422852,
       "body_excerpt": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Page Not Found \u2014 Nerq</title>\n<meta name=\"description\" content=\"The page you&#x27;re looking for doesn&#x27;t exist.\">\n<link rel=\"canonical\" href=\"https://nerq.ai/\">\n<style>\n*{margin:0;padding:0;box-sizing:border-box}\nbody{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0f172a;line-height:1.6;font-size:15px;background:#fff}\na{color:#2563eb;text-decoration:none}a:hover{color:#1d4ed8;text-decoration:underline}\ncode,pre{font-family:ui-monospace,'SF Mono','Cascadia Mono',monospace}\ncode{background:#f1f5f9;padding:1px 5px;font-size:.9em;border-radius:3px}\npre{background:#f1f5f9;padding:16px;overflow-x:auto;font-size:13px;line-height:1.5;border:1px solid #e2e8f0;border-radius:6px}\nh1,h2,h3,h4{font-weight:700;line-height:1.3}\nh1{font-size:1.5rem;margin-bottom:8px}\nh2{font-size:1.15rem;margin:24px 0 8px;padding-top:16px;border-top:1px solid #f1f5f9}\nh3{font-size:1rem;margin:16px 0 6px}\ntable{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0}\nth{text-align:left;padding:8px 10px;border-bottom:2px solid #e2e8f0;color:#64748b;font-weight:600;font-size:13px}\ntd{padding:8px 10px;border-bottom:1px solid #f1f5f9}\ntr:nth-child(even){background:#fafbfc}\n.container{max-width:780px;margin:0 auto;padding:0 20px}\n.nav{border-bottom:1px solid #e2e8f0;padding:10px 0;position:sticky;top:0;background:#fff;z-index:100}",
       "pg_pool": "",
       "extra": {
@@ -2626,7 +2516,7 @@
       "method": "GET",
       "path": "/crypto/vitality-methodology",
       "status_code": 404,
-      "elapsed_ms": 69.74911689758301,
+      "elapsed_ms": 117.9511547088623,
       "body_excerpt": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Page Not Found \u2014 Nerq</title>\n<meta name=\"description\" content=\"The page you&#x27;re looking for doesn&#x27;t exist.\">\n<link rel=\"canonical\" href=\"https://nerq.ai/\">\n<style>\n*{margin:0;padding:0;box-sizing:border-box}\nbody{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0f172a;line-height:1.6;font-size:15px;background:#fff}\na{color:#2563eb;text-decoration:none}a:hover{color:#1d4ed8;text-decoration:underline}\ncode,pre{font-family:ui-monospace,'SF Mono','Cascadia Mono',monospace}\ncode{background:#f1f5f9;padding:1px 5px;font-size:.9em;border-radius:3px}\npre{background:#f1f5f9;padding:16px;overflow-x:auto;font-size:13px;line-height:1.5;border:1px solid #e2e8f0;border-radius:6px}\nh1,h2,h3,h4{font-weight:700;line-height:1.3}\nh1{font-size:1.5rem;margin-bottom:8px}\nh2{font-size:1.15rem;margin:24px 0 8px;padding-top:16px;border-top:1px solid #f1f5f9}\nh3{font-size:1rem;margin:16px 0 6px}\ntable{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0}\nth{text-align:left;padding:8px 10px;border-bottom:2px solid #e2e8f0;color:#64748b;font-weight:600;font-size:13px}\ntd{padding:8px 10px;border-bottom:1px solid #f1f5f9}\ntr:nth-child(even){background:#fafbfc}\n.container{max-width:780px;margin:0 auto;padding:0 20px}\n.nav{border-bottom:1px solid #e2e8f0;padding:10px 0;position:sticky;top:0;background:#fff;z-index:100}",
       "pg_pool": "",
       "extra": {
@@ -2642,7 +2532,7 @@
       "method": "GET",
       "path": "/crypto/agent-intelligence",
       "status_code": 404,
-      "elapsed_ms": 66.31588935852051,
+      "elapsed_ms": 66.76411628723145,
       "body_excerpt": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Page Not Found \u2014 Nerq</title>\n<meta name=\"description\" content=\"The page you&#x27;re looking for doesn&#x27;t exist.\">\n<link rel=\"canonical\" href=\"https://nerq.ai/\">\n<style>\n*{margin:0;padding:0;box-sizing:border-box}\nbody{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0f172a;line-height:1.6;font-size:15px;background:#fff}\na{color:#2563eb;text-decoration:none}a:hover{color:#1d4ed8;text-decoration:underline}\ncode,pre{font-family:ui-monospace,'SF Mono','Cascadia Mono',monospace}\ncode{background:#f1f5f9;padding:1px 5px;font-size:.9em;border-radius:3px}\npre{background:#f1f5f9;padding:16px;overflow-x:auto;font-size:13px;line-height:1.5;border:1px solid #e2e8f0;border-radius:6px}\nh1,h2,h3,h4{font-weight:700;line-height:1.3}\nh1{font-size:1.5rem;margin-bottom:8px}\nh2{font-size:1.15rem;margin:24px 0 8px;padding-top:16px;border-top:1px solid #f1f5f9}\nh3{font-size:1rem;margin:16px 0 6px}\ntable{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0}\nth{text-align:left;padding:8px 10px;border-bottom:2px solid #e2e8f0;color:#64748b;font-weight:600;font-size:13px}\ntd{padding:8px 10px;border-bottom:1px solid #f1f5f9}\ntr:nth-child(even){background:#fafbfc}\n.container{max-width:780px;margin:0 auto;padding:0 20px}\n.nav{border-bottom:1px solid #e2e8f0;padding:10px 0;position:sticky;top:0;background:#fff;z-index:100}",
       "pg_pool": "",
       "extra": {
@@ -2658,7 +2548,7 @@
       "method": "GET",
       "path": "/crypto/recovery",
       "status_code": 404,
-      "elapsed_ms": 66.91813468933105,
+      "elapsed_ms": 67.98386573791504,
       "body_excerpt": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Page Not Found \u2014 Nerq</title>\n<meta name=\"description\" content=\"The page you&#x27;re looking for doesn&#x27;t exist.\">\n<link rel=\"canonical\" href=\"https://nerq.ai/\">\n<style>\n*{margin:0;padding:0;box-sizing:border-box}\nbody{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0f172a;line-height:1.6;font-size:15px;background:#fff}\na{color:#2563eb;text-decoration:none}a:hover{color:#1d4ed8;text-decoration:underline}\ncode,pre{font-family:ui-monospace,'SF Mono','Cascadia Mono',monospace}\ncode{background:#f1f5f9;padding:1px 5px;font-size:.9em;border-radius:3px}\npre{background:#f1f5f9;padding:16px;overflow-x:auto;font-size:13px;line-height:1.5;border:1px solid #e2e8f0;border-radius:6px}\nh1,h2,h3,h4{font-weight:700;line-height:1.3}\nh1{font-size:1.5rem;margin-bottom:8px}\nh2{font-size:1.15rem;margin:24px 0 8px;padding-top:16px;border-top:1px solid #f1f5f9}\nh3{font-size:1rem;margin:16px 0 6px}\ntable{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0}\nth{text-align:left;padding:8px 10px;border-bottom:2px solid #e2e8f0;color:#64748b;font-weight:600;font-size:13px}\ntd{padding:8px 10px;border-bottom:1px solid #f1f5f9}\ntr:nth-child(even){background:#fafbfc}\n.container{max-width:780px;margin:0 auto;padding:0 20px}\n.nav{border-bottom:1px solid #e2e8f0;padding:10px 0;position:sticky;top:0;background:#fff;z-index:100}",
       "pg_pool": "",
       "extra": {
@@ -2674,7 +2564,7 @@
       "method": "GET",
       "path": "/crypto/paper-trading",
       "status_code": 404,
-      "elapsed_ms": 100.61907768249512,
+      "elapsed_ms": 66.54500961303711,
       "body_excerpt": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Page Not Found \u2014 Nerq</title>\n<meta name=\"description\" content=\"The page you&#x27;re looking for doesn&#x27;t exist.\">\n<link rel=\"canonical\" href=\"https://nerq.ai/\">\n<style>\n*{margin:0;padding:0;box-sizing:border-box}\nbody{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0f172a;line-height:1.6;font-size:15px;background:#fff}\na{color:#2563eb;text-decoration:none}a:hover{color:#1d4ed8;text-decoration:underline}\ncode,pre{font-family:ui-monospace,'SF Mono','Cascadia Mono',monospace}\ncode{background:#f1f5f9;padding:1px 5px;font-size:.9em;border-radius:3px}\npre{background:#f1f5f9;padding:16px;overflow-x:auto;font-size:13px;line-height:1.5;border:1px solid #e2e8f0;border-radius:6px}\nh1,h2,h3,h4{font-weight:700;line-height:1.3}\nh1{font-size:1.5rem;margin-bottom:8px}\nh2{font-size:1.15rem;margin:24px 0 8px;padding-top:16px;border-top:1px solid #f1f5f9}\nh3{font-size:1rem;margin:16px 0 6px}\ntable{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0}\nth{text-align:left;padding:8px 10px;border-bottom:2px solid #e2e8f0;color:#64748b;font-weight:600;font-size:13px}\ntd{padding:8px 10px;border-bottom:1px solid #f1f5f9}\ntr:nth-child(even){background:#fafbfc}\n.container{max-width:780px;margin:0 auto;padding:0 20px}\n.nav{border-bottom:1px solid #e2e8f0;padding:10px 0;position:sticky;top:0;background:#fff;z-index:100}",
       "pg_pool": "",
       "extra": {
@@ -2690,8 +2580,8 @@
       "method": "GET",
       "path": "/learn/what-is-zarq",
       "status_code": 404,
-      "elapsed_ms": 54.895877838134766,
-      "body_excerpt": "<h1>Article not found</h1><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML=\"window.__CF$cv$params={r:'a03caffe9eee2aea',t:'MTc4MDEzMzA4Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);\";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>",
+      "elapsed_ms": 64.20707702636719,
+      "body_excerpt": "<h1>Article not found</h1><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML=\"window.__CF$cv$params={r:'a03ceae31b6f82d6',t:'MTc4MDEzNTQ5Ng=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);\";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>",
       "pg_pool": "",
       "extra": {
         "template": "learn_article.html",
@@ -2701,64 +2591,64 @@
   ],
   "passes_slow": [
     {
+      "test_id": "tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-zarq_compare_pages_L827_GET_compare]",
+      "target": "production",
+      "elapsed_ms": 37741.453886032104,
+      "path": "/compare"
+    },
+    {
+      "test_id": "tests/zarq_surface/test_cloudflared_routes.py::test_cloudflared_parity[zarq_tokens]",
+      "target": "diff",
+      "elapsed_ms": 7860.633134841919,
+      "path": "zarq_tokens"
+    },
+    {
+      "test_id": "tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-zarq_save_simulator_L82_GET_demo_save-simulator]",
+      "target": "production",
+      "elapsed_ms": 7201.4360427856445,
+      "path": "/demo/save-simulator"
+    },
+    {
       "test_id": "tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-zarq_yield_page_L44_GET_yield-traps]",
       "target": "production",
-      "elapsed_ms": 5407.238960266113,
+      "elapsed_ms": 5763.2896900177,
       "path": "/yield-traps"
     },
     {
-      "test_id": "tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-combined_dashboard_L341_GET_dashboard_data]",
+      "test_id": "tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-crypto_seo_pages_L2696_GET_agent-intelligence]",
       "target": "production",
-      "elapsed_ms": 5243.907928466797,
-      "path": "/dashboard/data"
+      "elapsed_ms": 5545.29881477356,
+      "path": "/agent-intelligence"
     },
     {
-      "test_id": "tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-discovery_L1467_GET_zarq_kya]",
+      "test_id": "tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-zarq_briefing_L24_GET_briefing]",
       "target": "production",
-      "elapsed_ms": 5210.568904876709,
-      "path": "/zarq/kya"
+      "elapsed_ms": 5188.160181045532,
+      "path": "/briefing"
     },
     {
-      "test_id": "tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-zarq_compare_pages_L857_GET_compare_zarq-vs-suprafin]",
+      "test_id": "tests/zarq_surface/test_templates_render.py::test_template_renders[production-learn_hub.html]",
       "target": "production",
-      "elapsed_ms": 5102.051258087158,
-      "path": "/compare/zarq-vs-suprafin"
+      "elapsed_ms": 5071.407079696655,
+      "path": "/learn"
     },
     {
-      "test_id": "tests/zarq_surface/test_cloudflared_routes.py::test_cloudflared_parity[zarq_cascade]",
-      "target": "diff",
-      "elapsed_ms": 5077.527046203613,
-      "path": "zarq_cascade"
-    },
-    {
-      "test_id": "tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-zarq_seo_builds_L400_GET_is-_token_id_-a-scam]",
-      "target": "production",
-      "elapsed_ms": 5074.589014053345,
-      "path": "/is-{token_id}-a-scam"
-    },
-    {
-      "test_id": "tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-crypto_seo_pages_L1601_GET_track-record]",
-      "target": "production",
-      "elapsed_ms": 5070.435047149658,
-      "path": "/track-record"
-    },
-    {
-      "test_id": "tests/zarq_surface/test_cloudflared_routes.py::test_cloudflared_parity[zarq_crypto_root]",
-      "target": "diff",
-      "elapsed_ms": 3923.198938369751,
-      "path": "zarq_crypto_root"
-    },
-    {
-      "test_id": "tests/zarq_surface/test_mcp_tools.py::test_mcp_tool[localhost-preflight_check]",
+      "test_id": "tests/zarq_surface/test_mcp_tools.py::test_mcp_tool[localhost-get_agent_stats]",
       "target": "localhost",
-      "elapsed_ms": 2463.2277488708496,
-      "path": "/mcp:preflight_check"
+      "elapsed_ms": 4590.752124786377,
+      "path": "/mcp:get_agent_stats"
     },
     {
-      "test_id": "tests/zarq_surface/test_templates_render.py::test_template_renders[localhost-zarq_landing.html]",
+      "test_id": "tests/zarq_surface/test_mcp_tools.py::test_mcp_tool[localhost-crypto_dtd]",
       "target": "localhost",
-      "elapsed_ms": 2413.7511253356934,
-      "path": "/crypto"
+      "elapsed_ms": 2544.524908065796,
+      "path": "/mcp:crypto_dtd"
+    },
+    {
+      "test_id": "tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-crypto_early_warning_L179_GET_crypto_signals]",
+      "target": "production",
+      "elapsed_ms": 2529.4389724731445,
+      "path": "/crypto/signals"
     }
   ],
   "skips": [
@@ -2788,7 +2678,7 @@
       "reason": "out-of-scope prefix: internal"
     },
     {
-      "test_id": "tests/zarq_surface/test_http_endpoints.py::test_endpoint[localhost-discovery_L2020_GET_admin_dashboard]",
+      "test_id": "tests/zarq_surface/test_http_endpoints.py::test_endpoint[localhost-discovery_L2054_GET_admin_dashboard]",
       "target": "localhost",
       "reason": "out-of-scope prefix: admin"
     },
@@ -2818,7 +2708,7 @@
       "reason": "out-of-scope prefix: internal"
     },
     {
-      "test_id": "tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-discovery_L2020_GET_admin_dashboard]",
+      "test_id": "tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-discovery_L2054_GET_admin_dashboard]",
       "target": "production",
       "reason": "out-of-scope prefix: admin"
     }

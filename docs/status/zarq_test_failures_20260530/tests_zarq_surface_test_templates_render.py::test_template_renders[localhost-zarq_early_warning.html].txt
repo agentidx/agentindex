@@ -2,7 +2,7 @@
 # Target: localhost
 # Category: HTTP_4XX_unexpected
 # GET /crypto/early-warning
-# status=404 elapsed=8.2ms pool=
+# status=404 elapsed=5.4ms pool=
 # detail: template route 404 — template exists, route may be missing or path wrong: /crypto/early-warning
 
 --- response excerpt ---

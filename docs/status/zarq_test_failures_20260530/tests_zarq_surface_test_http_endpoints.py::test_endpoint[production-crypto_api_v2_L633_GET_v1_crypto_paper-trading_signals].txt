@@ -2,7 +2,7 @@
 # Target: production
 # Category: HTTP_4XX_unexpected
 # GET /v1/crypto/paper-trading/signals
-# status=404 elapsed=143.1ms pool=
+# status=404 elapsed=56.0ms pool=
 # detail: unexpected 404 — route exists in code
 
 --- response excerpt ---

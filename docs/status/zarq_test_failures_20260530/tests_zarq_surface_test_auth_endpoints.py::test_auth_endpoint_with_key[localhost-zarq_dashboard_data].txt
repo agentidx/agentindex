@@ -1,0 +1,9 @@
+# Test: tests/zarq_surface/test_auth_endpoints.py::test_auth_endpoint_with_key[localhost-zarq_dashboard_data]
+# Target: localhost
+# Category: HTTP_4XX_unexpected
+# GET /zarq/dashboard/data
+# status=401 elapsed=11.7ms pool=
+# detail: auth path /zarq/dashboard/data rejected the test key: status 401
+
+--- response excerpt ---
+{"error":"Unauthorized"}

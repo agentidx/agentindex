@@ -2,7 +2,7 @@
 # Target: production
 # Category: HTTP_4XX_unexpected
 # GET /v1/crypto/contagion/{token_id}
-# status=404 elapsed=140.4ms pool=
+# status=404 elapsed=52.3ms pool=
 # detail: unexpected 404 — route exists in code
 
 --- response excerpt ---

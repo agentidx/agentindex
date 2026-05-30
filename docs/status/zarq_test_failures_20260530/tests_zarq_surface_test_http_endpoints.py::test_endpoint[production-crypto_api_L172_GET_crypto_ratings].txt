@@ -2,7 +2,7 @@
 # Target: production
 # Category: HTTP_4XX_unexpected
 # GET /crypto/ratings
-# status=404 elapsed=138.2ms pool=
+# status=404 elapsed=488.0ms pool=
 # detail: unexpected 404 — route exists in code
 
 --- response excerpt ---

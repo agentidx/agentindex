@@ -2,7 +2,7 @@
 # Target: production
 # Category: HTTP_4XX_unexpected
 # POST /mcp:crypto_signals
-# status=404 elapsed=136.4ms pool=
+# status=404 elapsed=70.3ms pool=
 # detail: mcp endpoint returned 404
 
 --- response excerpt ---

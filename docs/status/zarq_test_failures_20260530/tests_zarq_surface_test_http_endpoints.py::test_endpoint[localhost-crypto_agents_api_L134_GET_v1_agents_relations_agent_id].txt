@@ -2,7 +2,7 @@
 # Target: localhost
 # Category: HTTP_4XX_unexpected
 # GET /v1/agents/relations/{agent_id}
-# status=404 elapsed=21.1ms pool=
+# status=404 elapsed=20.5ms pool=
 # detail: unexpected 404 — route exists in code
 
 --- response excerpt ---

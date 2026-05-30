@@ -2,7 +2,7 @@
 # Target: production
 # Category: TIMEOUT
 # GET /weekly
-# status=None elapsed=8002.7ms pool=
-# detail: client timeout after 8003ms
+# status=None elapsed=8003.7ms pool=
+# detail: client timeout after 8004ms
 
 --- response excerpt ---

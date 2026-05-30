@@ -2,7 +2,7 @@
 # Target: production
 # Category: HTTP_4XX_unexpected
 # GET /v1/crypto/cascade/stats
-# status=404 elapsed=54.6ms pool=
+# status=404 elapsed=49.6ms pool=
 # detail: unexpected 404 — route exists in code
 
 --- response excerpt ---

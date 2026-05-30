@@ -2,7 +2,7 @@
 # Target: localhost
 # Category: EMPTY_RESPONSE
 # GET /v1/agents/in/{entity_type}/{entity_id}
-# status=400 elapsed=21.0ms pool=
+# status=400 elapsed=865.9ms pool=
 # detail: HTML body suspiciously small (40 bytes)
 
 --- response excerpt ---

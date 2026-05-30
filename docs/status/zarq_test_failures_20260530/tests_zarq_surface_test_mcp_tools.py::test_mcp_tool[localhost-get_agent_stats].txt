@@ -1,8 +1,8 @@
 # Test: tests/zarq_surface/test_mcp_tools.py::test_mcp_tool[localhost-get_agent_stats]
 # Target: localhost
-# Category: TIMEOUT
+# Category: NETWORK_ERROR
 # POST /mcp:get_agent_stats
-# status=None elapsed=8004.5ms pool=
-# detail: MCP timeout after 8004ms
+# status=None elapsed=0.7ms pool=
+# detail: ReadError: [Errno 54] Connection reset by peer
 
 --- response excerpt ---

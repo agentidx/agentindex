@@ -2,7 +2,7 @@
 # Target: production
 # Category: HTTP_4XX_unexpected
 # GET /v1/agents/new
-# status=404 elapsed=338.9ms pool=
+# status=404 elapsed=51.8ms pool=
 # detail: unexpected 404 — route exists in code
 
 --- response excerpt ---

@@ -1,9 +1,8 @@
 # Test: tests/zarq_surface/test_mcp_tools.py::test_mcp_tool[localhost-best_in_category]
 # Target: localhost
-# Category: HTTP_4XX_unexpected
+# Category: NETWORK_ERROR
 # POST /mcp:best_in_category
-# status=406 elapsed=2.5ms pool=
-# detail: mcp status 406
+# status=None elapsed=0.6ms pool=
+# detail: ReadError: [Errno 54] Connection reset by peer
 
 --- response excerpt ---
-{"jsonrpc":"2.0","id":"server-error","error":{"code":-32600,"message":"Not Acceptable: Client must accept application/json"}}

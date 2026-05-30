@@ -2,7 +2,7 @@
 # Target: localhost
 # Category: NETWORK_ERROR
 # POST /mcp:get_signal_feed
-# status=None elapsed=3.3ms pool=
+# status=None elapsed=2.0ms pool=
 # detail: ReadError: [Errno 54] Connection reset by peer
 
 --- response excerpt ---

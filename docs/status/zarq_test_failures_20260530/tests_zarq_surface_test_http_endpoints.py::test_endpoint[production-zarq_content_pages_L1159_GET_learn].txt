@@ -1,0 +1,8 @@
+# Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-zarq_content_pages_L1159_GET_learn]
+# Target: production
+# Category: TIMEOUT
+# GET /learn
+# status=None elapsed=8003.9ms pool=
+# detail: client timeout after 8004ms
+
+--- response excerpt ---

@@ -1,0 +1,9 @@
+# Test: tests/zarq_surface/test_auth_endpoints.py::test_auth_endpoint_with_key[localhost-zarq_dashboard_root]
+# Target: localhost
+# Category: HTTP_4XX_unexpected
+# GET /zarq/dashboard
+# status=401 elapsed=6.8ms pool=
+# detail: auth path /zarq/dashboard rejected the test key: status 401
+
+--- response excerpt ---
+<h1>401 Unauthorized</h1><p>Pass Bearer token or ?token=...</p>

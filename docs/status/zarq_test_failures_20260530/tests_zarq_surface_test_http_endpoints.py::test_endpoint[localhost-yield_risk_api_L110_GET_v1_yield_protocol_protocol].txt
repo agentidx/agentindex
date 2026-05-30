@@ -2,7 +2,7 @@
 # Target: localhost
 # Category: HTTP_4XX_unexpected
 # GET /v1/yield/protocol/{protocol}
-# status=404 elapsed=22.5ms pool=
+# status=404 elapsed=23.2ms pool=
 # detail: unexpected 404 — route exists in code
 
 --- response excerpt ---

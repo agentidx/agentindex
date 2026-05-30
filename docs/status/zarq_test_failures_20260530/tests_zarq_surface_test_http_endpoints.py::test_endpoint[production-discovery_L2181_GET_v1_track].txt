@@ -1,0 +1,8 @@
+# Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-discovery_L2181_GET_v1_track]
+# Target: production
+# Category: HTTP_4XX_unexpected
+# GET /v1/track
+# status=404 elapsed=55.8ms pool=
+# detail: unexpected 404 — route exists in code
+
+--- response excerpt ---

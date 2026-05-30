@@ -2,7 +2,7 @@
 # Target: production
 # Category: HTTP_4XX_unexpected
 # GET /v1/yield/pool/{pool_id}
-# status=404 elapsed=130.4ms pool=
+# status=404 elapsed=54.0ms pool=
 # detail: unexpected 404 — route exists in code
 
 --- response excerpt ---

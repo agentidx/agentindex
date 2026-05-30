@@ -2,7 +2,7 @@
 # Target: production
 # Category: HTTP_4XX_unexpected
 # GET /v1/crypto/portfolio/adaptive
-# status=404 elapsed=52.2ms pool=
+# status=404 elapsed=137.9ms pool=
 # detail: unexpected 404 — route exists in code
 
 --- response excerpt ---

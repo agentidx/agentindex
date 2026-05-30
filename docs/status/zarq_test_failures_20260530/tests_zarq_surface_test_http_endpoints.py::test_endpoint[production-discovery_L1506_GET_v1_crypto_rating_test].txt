@@ -1,0 +1,8 @@
+# Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-discovery_L1506_GET_v1_crypto_rating_test]
+# Target: production
+# Category: HTTP_4XX_unexpected
+# GET /v1/crypto/rating/test
+# status=404 elapsed=55.8ms pool=
+# detail: unexpected 404 — route exists in code
+
+--- response excerpt ---
