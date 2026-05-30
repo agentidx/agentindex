@@ -60,6 +60,9 @@ api_keys.json
 *.pem
 *.key
 secrets.json
+
+# Test-suite credentials directory — nothing here should be committed
+secrets/
 credentials.json
 
 # ─── Numrerade backup-filer som .bak2, .bak3 ──────────────────
