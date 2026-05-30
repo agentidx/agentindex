@@ -115,9 +115,14 @@ def record_skip(test_id: str, target: str, reason: str) -> None:
 TARGETS = ("localhost", "production")
 
 
-@pytest.fixture(params=TARGETS, ids=TARGETS)
+@pytest.fixture
 def target(request) -> str:
-    """The current test target — either `localhost` or `production`."""
+    """The current test target — either `localhost` or `production`.
+
+    Always parametrized by `pytest_generate_tests` below, never via fixture
+    params (the latter collides with the hook when --zarq-target narrows
+    the set to one value).
+    """
     return request.param
 
 
@@ -315,7 +320,12 @@ def pytest_addoption(parser):
 
 
 def pytest_generate_tests(metafunc):
-    # If --zarq-target was passed, narrow the parametrization.
+    """Parametrize the `target` fixture per test that uses it.
+
+    Default: both localhost and production. `--zarq-target X` narrows to one.
+    """
+    if "target" not in metafunc.fixturenames:
+        return
     override = metafunc.config.getoption("--zarq-target")
-    if override and "target" in metafunc.fixturenames:
-        metafunc.parametrize("target", [override], ids=[override])
+    targets = (override,) if override else TARGETS
+    metafunc.parametrize("target", targets, ids=targets)
