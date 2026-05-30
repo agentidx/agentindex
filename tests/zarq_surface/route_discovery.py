@@ -2,9 +2,18 @@
 
 We *don't* import the app to discover routes (that would couple the test
 suite to the app's import graph and runtime DB connections). We grep the
-source and extract the route path string from each decorator. Static, fast,
-and works even when the app is down — which matters for regression
+source and extract the route path string from each decorator, then prepend
+the APIRouter prefix that the file's router was declared with. Static,
+fast, and works even when the app is down — which matters for regression
 detection.
+
+Prefix handling rationale (post-2026-05-30 phase 3 finding): a route
+declared `@router.get("/rating/{token_id}")` inside
+`crypto_api.py` where the file has `router = APIRouter(prefix="/crypto")`
+serves traffic at `/crypto/rating/{token_id}` once included. The earlier
+version of this module greppd the decorator string only and produced 100+
+false 404s in the phase-2 run. We now parse the prefix per file and
+prepend it.
 """
 
 from __future__ import annotations
@@ -41,10 +50,38 @@ DECORATOR_RE = re.compile(
 SKIP_FILE_SUBSTRINGS = ("dashboard_old.py",)
 SKIP_PATH_PREFIXES = ("/sitemap-",)
 
+# Match `<name> = APIRouter(prefix="/foo", ...)` or `prefix='/foo'`.
+# Stops at the first non-greedy quoted string after `prefix=`.
+ROUTER_PREFIX_RE = re.compile(
+    r"""
+    (?P<name>\w+)\s*=\s*APIRouter\(
+    [^)]*?
+    prefix\s*=\s*(?P<q>['"])(?P<prefix>[^'"]*)(?P=q)
+    """,
+    re.VERBOSE | re.DOTALL,
+)
+
 
 def _is_zarq_relevant(file_path: str, route_path: str) -> bool:
     needle = f"{file_path} {route_path}".lower()
     return any(kw in needle for kw in ZARQ_KEYWORDS)
+
+
+def _file_prefix_map(file_path: str) -> dict[str, str]:
+    """Return {router_var_name: prefix_string} for APIRouters in the file.
+
+    Read once per file, cached at the call site by `discover_zarq_routes`.
+    Files with no APIRouter declarations return {}.
+    """
+    out: dict[str, str] = {}
+    try:
+        with open(file_path) as fh:
+            src = fh.read()
+    except OSError:
+        return out
+    for m in ROUTER_PREFIX_RE.finditer(src):
+        out[m.group("name")] = m.group("prefix").rstrip("/")
+    return out
 
 
 def discover_zarq_routes(source_root: Path) -> list[dict]:
@@ -65,6 +102,7 @@ def discover_zarq_routes(source_root: Path) -> list[dict]:
     ]
     out = subprocess.run(cmd, capture_output=True, text=True, check=False)
     routes: list[dict] = []
+    prefix_cache: dict[str, dict[str, str]] = {}
     for raw in out.stdout.splitlines():
         # raw: <path>:<line>:<text>
         try:
@@ -78,17 +116,27 @@ def discover_zarq_routes(source_root: Path) -> list[dict]:
         m = DECORATOR_RE.search(code)
         if not m:
             continue
-        path = m.group("path")
-        if any(path.startswith(p) for p in SKIP_PATH_PREFIXES):
+        raw_path = m.group("path")
+        decorator_obj = m.group("obj")
+
+        # Look up the router prefix for this file × object pair, if any.
+        if file_part not in prefix_cache:
+            prefix_cache[file_part] = _file_prefix_map(file_part)
+        prefix = prefix_cache[file_part].get(decorator_obj, "")
+        full_path = (prefix + raw_path) if prefix else raw_path
+
+        if any(full_path.startswith(p) for p in SKIP_PATH_PREFIXES):
             continue
-        if not _is_zarq_relevant(file_part, path):
+        if not _is_zarq_relevant(file_part, full_path):
             continue
         routes.append({
             "file": file_part,
             "line": int(line_part),
             "method": m.group("method").upper(),
-            "path": path,
-            "decorator_object": m.group("obj"),
+            "path": full_path,
+            "raw_path": raw_path,
+            "router_prefix": prefix,
+            "decorator_object": decorator_obj,
         })
     return routes
 

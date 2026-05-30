@@ -59,8 +59,17 @@ CACHE_NOT_BUILT_PATTERNS = (
 )
 
 
-def classify_response(resp: httpx.Response, body: str, elapsed_ms: float) -> tuple[str, str] | None:
-    """Return (category, detail) or None if the response passes."""
+def classify_response(resp: httpx.Response, body_excerpt: str, elapsed_ms: float,
+                      body_full: str | None = None) -> tuple[str, str] | None:
+    """Return (category, detail) or None if the response passes.
+
+    `body_excerpt` is the truncated form used for error patterns and the
+    failure-dump artifact. `body_full` (defaults to `body_excerpt`) is the
+    untruncated text used for JSON parsing — without this we get spurious
+    PARSE_ERROR on every JSON endpoint returning more than 4000 bytes.
+    """
+    body = body_excerpt
+    body_for_json = body_full if body_full is not None else body_excerpt
     sc = resp.status_code
 
     # 5xx → server-side crash
@@ -97,10 +106,10 @@ def classify_response(resp: httpx.Response, body: str, elapsed_ms: float) -> tup
         if pat.search(body):
             return cf.FailureCategory.CACHE_NOT_BUILT, f"placeholder in body"
 
-    # Empty body on JSON path
+    # Empty body on JSON path — parse full body, not the truncated excerpt
     if "application/json" in resp.headers.get("content-type", ""):
         try:
-            data = json.loads(body) if body else None
+            data = json.loads(body_for_json) if body_for_json else None
             if data is None or data == {} or data == []:
                 return cf.FailureCategory.EMPTY_RESPONSE, "empty JSON body"
         except json.JSONDecodeError as e:
@@ -212,8 +221,9 @@ def test_endpoint(route, target, http_client, base_url, api_base_url, request):
         pytest.fail(f"NETWORK_ERROR {url}: {e}")
 
     elapsed = (time.time() - t0) * 1000
-    body = resp.text[:4000]
-    failure = classify_response(resp, body, elapsed)
+    body_full = resp.text
+    body = body_full[:4000]
+    failure = classify_response(resp, body, elapsed, body_full=body_full)
     if failure is not None:
         category, detail = failure
         cf.record_failure(cf.FailureRecord(
