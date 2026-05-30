@@ -12,6 +12,12 @@ alerts.log
 missionary_output/
 .DS_Store
 *.sql
+# Whitelist directories that hold versioned migrations.
+# Post-2026-05-30 ops-discipline rule: schema changes go in git via migrations/zarq/
+# (see migrations/zarq/README.md). docs/migrations/ preserved for the historical
+# baseline.
+!migrations/**/*.sql
+!docs/migrations/*.sql
 
 # Databases
 *.db
