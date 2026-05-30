@@ -1,0 +1,9 @@
+# Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[localhost-crypto_api_v2_L672_GET_v1_crypto_alerts]
+# Target: localhost
+# Category: PARSE_ERROR
+# GET /v1/crypto/alerts
+# status=200 elapsed=23.3ms pool=
+# detail: JSON decode failed: Unterminated string starting at: line 1 column 4000 (char 3999)
+
+--- response excerpt ---
+{"active_alerts":295,"critical":30,"warnings":102,"watch":163,"alerts":[{"token_id":"hastra-prime","name":"PRIME","symbol":"prime","type":"structural_collapse","severity":"critical","alert_level":"DISTRESS","crash_probability":0.34,"ndd":1.0,"trust_score":42.29,"structural_weakness":2,"ndd_trend":"FREEFALL","market_cap_rank":125},{"token_id":"asteroid-shiba","name":"Asteroid Shiba","symbol":"asteroid","type":"severe_distress","severity":"critical","alert_level":"DISTRESS","crash_probability":0.28,"ndd":1.0,"trust_score":null,"structural_weakness":null,"ndd_trend":"SLIDING","market_cap_rank":364},{"token_id":"asset","name":"REAL","symbol":"asset","type":"severe_distress","severity":"critical","alert_level":"DISTRESS","crash_probability":0.3,"ndd":1.0,"trust_score":null,"structural_weakness":null,"ndd_trend":"UNKNOWN","market_cap_rank":868},{"token_id":"pippin","name":"pippin","symbol":"pippin","type":"structural_collapse","severity":"critical","alert_level":"DISTRESS","crash_probability":0.3,"ndd":1.5,"trust_score":41.94,"structural_weakness":3,"ndd_trend":"STABLE","market_cap_rank":903},{"token_id":"bitcoin-cash","name":"Bitcoin Cash","symbol":"bch","type":"watch","severity":"watch","alert_level":"WATCH","crash_probability":0.28,"ndd":1.5,"trust_score":50.38,"structural_weakness":2,"ndd_trend":"FREEFALL","market_cap_rank":21},{"token_id":"build-on","name":"BUILDon","symbol":"b","type":"structural_collapse","severity":"critical","alert_level":"DISTRESS","crash_probability":0.3

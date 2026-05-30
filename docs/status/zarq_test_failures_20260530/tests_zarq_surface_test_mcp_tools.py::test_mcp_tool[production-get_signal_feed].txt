@@ -2,7 +2,7 @@
 # Target: production
 # Category: HTTP_4XX_unexpected
 # POST /mcp:get_signal_feed
-# status=404 elapsed=57.4ms pool=
+# status=404 elapsed=96.6ms pool=
 # detail: mcp endpoint returned 404
 
 --- response excerpt ---

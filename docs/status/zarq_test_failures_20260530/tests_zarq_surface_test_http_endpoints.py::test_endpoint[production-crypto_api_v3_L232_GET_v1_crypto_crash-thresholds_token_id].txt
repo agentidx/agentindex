@@ -1,0 +1,8 @@
+# Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-crypto_api_v3_L232_GET_v1_crypto_crash-thresholds_token_id]
+# Target: production
+# Category: HTTP_4XX_unexpected
+# GET /v1/crypto/crash-thresholds/{token_id}
+# status=404 elapsed=55.5ms pool=
+# detail: unexpected 404 — route exists in code
+
+--- response excerpt ---

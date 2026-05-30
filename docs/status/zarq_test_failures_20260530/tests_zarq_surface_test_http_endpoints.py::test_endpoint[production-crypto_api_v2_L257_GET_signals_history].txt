@@ -2,7 +2,7 @@
 # Target: production
 # Category: HTTP_4XX_unexpected
 # GET /signals/history
-# status=404 elapsed=62.3ms pool=
+# status=404 elapsed=114.1ms pool=
 # detail: unexpected 404 — route exists in code
 
 --- response excerpt ---

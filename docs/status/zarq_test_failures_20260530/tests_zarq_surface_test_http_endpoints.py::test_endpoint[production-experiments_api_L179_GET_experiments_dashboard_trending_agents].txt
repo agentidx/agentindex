@@ -2,7 +2,7 @@
 # Target: production
 # Category: HTTP_4XX_unexpected
 # GET /experiments/dashboard/trending/agents
-# status=404 elapsed=139.7ms pool=
+# status=404 elapsed=98.3ms pool=
 # detail: unexpected 404 — route exists in code
 
 --- response excerpt ---

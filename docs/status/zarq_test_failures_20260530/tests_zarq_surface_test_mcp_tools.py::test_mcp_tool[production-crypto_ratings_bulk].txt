@@ -2,7 +2,7 @@
 # Target: production
 # Category: HTTP_4XX_unexpected
 # POST /mcp:crypto_ratings_bulk
-# status=404 elapsed=157.1ms pool=
+# status=404 elapsed=709.6ms pool=
 # detail: mcp endpoint returned 404
 
 --- response excerpt ---

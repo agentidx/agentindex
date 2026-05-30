@@ -1,0 +1,8 @@
+# Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[localhost-intelligence_api_L206_GET_v1_intelligence_agent_agent_name_dashboard]
+# Target: localhost
+# Category: TIMEOUT
+# GET /v1/intelligence/agent/{agent_name}/dashboard
+# status=None elapsed=8002.8ms pool=
+# detail: client timeout after 8003ms
+
+--- response excerpt ---

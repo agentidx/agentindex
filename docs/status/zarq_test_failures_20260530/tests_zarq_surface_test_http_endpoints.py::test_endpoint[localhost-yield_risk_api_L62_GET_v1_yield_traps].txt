@@ -1,0 +1,9 @@
+# Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[localhost-yield_risk_api_L62_GET_v1_yield_traps]
+# Target: localhost
+# Category: PARSE_ERROR
+# GET /v1/yield/traps
+# status=200 elapsed=106.8ms pool=
+# detail: JSON decode failed: Unterminated string starting at: line 1 column 3993 (char 3992)
+
+--- response excerpt ---
+{"summary":{"total_pools_analyzed":1863,"yield_traps_detected":1394,"high_risk_pools":775,"tier_distribution":{"EXTREME":27,"HIGH":748,"MEDIUM":1022,"LOW":66,"SAFE":0},"top_trap_chains":[{"chain":"Solana","traps":476},{"chain":"Base","traps":472},{"chain":"Ethereum","traps":124},{"chain":"BSC","traps":71},{"chain":"Arbitrum","traps":47},{"chain":"Polygon","traps":32},{"chain":"Optimism","traps":32},{"chain":"Hyperliquid L1","traps":22}],"filter":{"min_apy":50.0,"chain":null,"include_stablecoins":false}},"yield_traps":[{"pool_id":"0a312d42-ab02-4c80-9bb6-e87071587038","protocol":"raydium-amm","chain":"Solana","symbol":"USDT-BTC-S","tvl_usd":22678.0,"apy":621.46868,"apy_base":5.36,"apy_reward":616.10868,"il_risk":"yes","stablecoin":false,"protocol_risk_level":"WATCH","yield_risk_score":86,"yield_risk_tier":"EXTREME","is_yield_trap":true,"components":{"apy_risk":40,"reward_dependency":20,"tvl_risk":15,"il_risk":3,"protocol_risk":8.4}},{"pool_id":"4346572d-34f8-4be4-b127-89897e4f1a5a","protocol":"sir","chain":"MegaETH","symbol":"WETH-USDM","tvl_usd":17374.0,"apy":487.49897,"apy_base":11.09877,"apy_reward":476.4002,"il_risk":"yes","stablecoin":false,"protocol_risk_level":"WATCH","yield_risk_score":80,"yield_risk_tier":"EXTREME","is_yield_trap":true,"components":{"apy_risk":33,"reward_dependency":20,"tvl_risk":15,"il_risk":3,"protocol_risk":9}},{"pool_id":"7d681312-9364-421e-a729-3cfd20caf32a","protocol":"raydium-amm","chain":"Solana","symbol":"WSOL-MISAKA","tvl_usd":10255.0,"apy":

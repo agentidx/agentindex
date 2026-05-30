@@ -2,7 +2,7 @@
 # Target: localhost
 # Category: HTTP_4XX_unexpected
 # GET /crypto/track-record
-# status=404 elapsed=4.8ms pool=
+# status=404 elapsed=7.1ms pool=
 # detail: template route 404 — template exists, route may be missing or path wrong: /crypto/track-record
 
 --- response excerpt ---

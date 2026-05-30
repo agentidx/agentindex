@@ -1,0 +1,9 @@
+# Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[localhost-crypto_api_v3_L320_GET_v1_crypto_cascade_hotspots]
+# Target: localhost
+# Category: PARSE_ERROR
+# GET /v1/crypto/cascade/hotspots
+# status=200 elapsed=19.5ms pool=
+# detail: JSON decode failed: Unterminated string starting at: line 1 column 3994 (char 3993)
+
+--- response excerpt ---
+{"hotspots":[{"node_id":"token:pippin","symbol":"pippin","chain":"unknown","risk_level":"CRITICAL","structural_weakness":3,"crash_prob":0.9,"trust_score":41.9,"ai_agent_ratio":0.0,"graph_degree":7,"hotspot_score":127.6},{"node_id":"token:berachain-bera","symbol":"berachain-bera","chain":"unknown","risk_level":"CRITICAL","structural_weakness":3,"crash_prob":0.783,"trust_score":44.5,"ai_agent_ratio":0.0,"graph_degree":7,"hotspot_score":124.2},{"node_id":"token:river","symbol":"river","chain":"unknown","risk_level":"CRITICAL","structural_weakness":3,"crash_prob":0.652,"trust_score":28.0,"ai_agent_ratio":0.0,"graph_degree":7,"hotspot_score":124.2},{"node_id":"token:fasttoken","symbol":"fasttoken","chain":"unknown","risk_level":"CRITICAL","structural_weakness":3,"crash_prob":0.695,"trust_score":38.0,"ai_agent_ratio":0.0,"graph_degree":7,"hotspot_score":123.3},{"node_id":"token:power-protocol","symbol":"power-protocol","chain":"unknown","risk_level":"CRITICAL","structural_weakness":3,"crash_prob":0.563,"trust_score":41.9,"ai_agent_ratio":0.0,"graph_degree":7,"hotspot_score":119.2},{"node_id":"token:monero","symbol":"xmr","chain":"unknown","risk_level":"CRITICAL","structural_weakness":3,"crash_prob":0.497,"trust_score":42.3,"ai_agent_ratio":0.0,"graph_degree":7,"hotspot_score":117.5},{"node_id":"token:zebec-network","symbol":"zbcn","chain":"unknown","risk_level":"CRITICAL","structural_weakness":3,"crash_prob":0.49,"trust_score":43.4,"ai_agent_ratio":0.0,"graph_degree":7,"hotspot_sco

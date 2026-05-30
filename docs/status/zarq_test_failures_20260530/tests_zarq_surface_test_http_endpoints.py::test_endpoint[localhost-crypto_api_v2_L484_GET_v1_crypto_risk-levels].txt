@@ -1,0 +1,9 @@
+# Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[localhost-crypto_api_v2_L484_GET_v1_crypto_risk-levels]
+# Target: localhost
+# Category: PARSE_ERROR
+# GET /v1/crypto/risk-levels
+# status=200 elapsed=34.1ms pool=
+# detail: JSON decode failed: Unterminated string starting at: line 1 column 3985 (char 3984)
+
+--- response excerpt ---
+{"data":[{"token_id":"pippin","signal_date":"2026-05-29","risk_level":"CRITICAL","structural_weakness":3,"structural_strength":1,"ndd_current":1.5,"trust_score":41.94,"trust_p3":35.0,"drawdown_90d":-0.9771936986583126,"symbol":"pippin","name":"pippin","market_cap_rank":903,"rating":null,"score":null},{"token_id":"berachain-bera","signal_date":"2026-05-29","risk_level":"CRITICAL","structural_weakness":3,"structural_strength":1,"ndd_current":2.36,"trust_score":44.5,"trust_p3":30.0,"drawdown_90d":-0.6307857911733047,"symbol":"bera","name":"Berachain","market_cap_rank":304,"rating":null,"score":null},{"token_id":"monero","signal_date":"2026-05-29","risk_level":"CRITICAL","structural_weakness":3,"structural_strength":1,"ndd_current":2.74,"trust_score":42.29,"trust_p3":35.0,"drawdown_90d":-0.15409212917445284,"symbol":"xmr","name":"Monero","market_cap_rank":17,"rating":"A1","score":76.21},{"token_id":"river","signal_date":"2026-05-29","risk_level":"CRITICAL","structural_weakness":3,"structural_strength":0,"ndd_current":2.89,"trust_score":28.02,"trust_p3":11.25,"drawdown_90d":-0.7593268260557062,"symbol":"river","name":"River","market_cap_rank":238,"rating":null,"score":null},{"token_id":"power-protocol","signal_date":"2026-05-29","risk_level":"CRITICAL","structural_weakness":3,"structural_strength":0,"ndd_current":3.02,"trust_score":41.94,"trust_p3":35.0,"drawdown_90d":-0.9543290716695763,"symbol":"power","name":"Power Protocol","market_cap_rank":977,"rating":null,"score":null},{"t

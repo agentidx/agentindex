@@ -1,0 +1,8 @@
+# Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-crypto_agents_api_L134_GET_v1_agents_relations_agent_id]
+# Target: production
+# Category: HTTP_4XX_unexpected
+# GET /v1/agents/relations/{agent_id}
+# status=404 elapsed=2945.4ms pool=
+# detail: unexpected 404 — route exists in code
+
+--- response excerpt ---

@@ -2,7 +2,7 @@
 # Target: production
 # Category: HTTP_4XX_unexpected
 # GET /exit-score/{token_id}
-# status=404 elapsed=67.0ms pool=
+# status=404 elapsed=70.0ms pool=
 # detail: unexpected 404 — route exists in code
 
 --- response excerpt ---

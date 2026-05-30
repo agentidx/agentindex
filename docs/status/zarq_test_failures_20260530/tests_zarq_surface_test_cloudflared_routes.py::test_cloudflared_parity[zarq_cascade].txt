@@ -1,0 +1,8 @@
+# Test: tests/zarq_surface/test_cloudflared_routes.py::test_cloudflared_parity[zarq_cascade]
+# Target: diff
+# Category: CLOUDFLARED_GAP
+# GET http://localhost:8000/cascade-risk
+# status=None elapsed=8018.9ms pool=
+# detail: local OK but prod failed; local=200 (9ms) prod=TIMEOUT (8019ms)
+
+--- response excerpt ---

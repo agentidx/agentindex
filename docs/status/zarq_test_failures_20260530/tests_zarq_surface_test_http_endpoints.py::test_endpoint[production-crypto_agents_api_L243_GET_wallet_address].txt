@@ -2,7 +2,7 @@
 # Target: production
 # Category: HTTP_4XX_unexpected
 # GET /wallet/{address}
-# status=404 elapsed=127.8ms pool=
+# status=404 elapsed=68.9ms pool=
 # detail: unexpected 404 — route exists in code
 
 --- response excerpt ---

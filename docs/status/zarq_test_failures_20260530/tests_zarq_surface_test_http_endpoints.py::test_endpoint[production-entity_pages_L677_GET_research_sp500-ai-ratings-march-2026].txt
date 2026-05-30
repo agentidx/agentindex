@@ -1,0 +1,8 @@
+# Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-entity_pages_L677_GET_research_sp500-ai-ratings-march-2026]
+# Target: production
+# Category: TIMEOUT
+# GET /research/sp500-ai-ratings-march-2026
+# status=None elapsed=8003.2ms pool=
+# detail: client timeout after 8003ms
+
+--- response excerpt ---

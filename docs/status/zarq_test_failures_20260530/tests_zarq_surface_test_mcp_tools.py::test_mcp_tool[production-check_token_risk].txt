@@ -2,7 +2,7 @@
 # Target: production
 # Category: HTTP_4XX_unexpected
 # POST /mcp:check_token_risk
-# status=404 elapsed=53.4ms pool=
+# status=404 elapsed=151.5ms pool=
 # detail: mcp endpoint returned 404
 
 --- response excerpt ---

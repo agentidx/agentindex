@@ -1,0 +1,8 @@
+# Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-yield_risk_api_L110_GET_v1_yield_protocol_protocol]
+# Target: production
+# Category: HTTP_4XX_unexpected
+# GET /v1/yield/protocol/{protocol}
+# status=404 elapsed=57.6ms pool=
+# detail: unexpected 404 — route exists in code
+
+--- response excerpt ---

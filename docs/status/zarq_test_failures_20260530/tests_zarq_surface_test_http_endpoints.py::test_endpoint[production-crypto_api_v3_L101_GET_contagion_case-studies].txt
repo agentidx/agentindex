@@ -2,7 +2,7 @@
 # Target: production
 # Category: HTTP_4XX_unexpected
 # GET /contagion/case-studies
-# status=404 elapsed=64.5ms pool=
+# status=404 elapsed=67.4ms pool=
 # detail: unexpected 404 — route exists in code
 
 --- response excerpt ---

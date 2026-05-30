@@ -2,7 +2,7 @@
 # Target: localhost
 # Category: TIMEOUT
 # GET /dashboard/data
-# status=None elapsed=8001.9ms pool=
+# status=None elapsed=8002.4ms pool=
 # detail: client timeout after 8002ms
 
 --- response excerpt ---

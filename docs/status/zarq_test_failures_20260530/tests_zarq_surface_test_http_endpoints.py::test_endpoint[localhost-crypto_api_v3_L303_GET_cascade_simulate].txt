@@ -2,7 +2,7 @@
 # Target: localhost
 # Category: HTTP_4XX_unexpected
 # GET /cascade/simulate
-# status=404 elapsed=5.3ms pool=
+# status=404 elapsed=8.1ms pool=
 # detail: unexpected 404 — route exists in code
 
 --- response excerpt ---

@@ -1,0 +1,9 @@
+# Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[localhost-crypto_agents_api_L315_GET_v1_agents_risk-exposure]
+# Target: localhost
+# Category: PARSE_ERROR
+# GET /v1/agents/risk-exposure
+# status=200 elapsed=21.8ms pool=
+# detail: JSON decode failed: Unterminated string starting at: line 1 column 3998 (char 3997)
+
+--- response excerpt ---
+{"total":80,"limit":50,"offset":0,"summary":{"critical":9,"warning":23,"structural_collapse":9,"high_crash_risk":31,"total_mcap_usd":2477959211.55,"mcap_at_risk_usd":517445628.93},"agents":[{"agent_id":"virtuals-17815","agent_source":"virtuals","agent_name":"Pippin ","chain":"BASE","token_symbol":"PIPPIN","market_cap_usd":6000.321256380999,"risk_level":"CRITICAL","structural_weakness":3,"trust_p3":35.0,"crash_prob_v3":0.900079977163464,"is_structural_collapse":1,"is_high_crash_risk":1,"is_warning_or_critical":1,"computed_at":"2026-03-31T02:00:01.991881+00:00"},{"agent_id":"cg-pippin","agent_source":"coingecko","agent_name":"pippin","chain":"multi","token_symbol":"PIPPIN","market_cap_usd":344611296.0,"risk_level":"CRITICAL","structural_weakness":3,"trust_p3":35.0,"crash_prob_v3":0.900079977163464,"is_structural_collapse":1,"is_high_crash_risk":1,"is_warning_or_critical":1,"computed_at":"2026-03-31T02:00:01.991881+00:00"},{"agent_id":"virtuals-48362","agent_source":"virtuals","agent_name":"River by Virtuals","chain":"BASE","token_symbol":"RIVER","market_cap_usd":5700.0,"risk_level":"CRITICAL","structural_weakness":3,"trust_p3":11.25,"crash_prob_v3":0.6520887645808069,"is_structural_collapse":1,"is_high_crash_risk":1,"is_warning_or_critical":1,"computed_at":"2026-03-31T02:00:01.991881+00:00"},{"agent_id":"virtuals-16371","agent_source":"virtuals","agent_name":"KAIA AI","chain":"BASE","token_symbol":"KAIA","market_cap_usd":6001.722886115,"risk_level":"CRITICAL","structural_weakne

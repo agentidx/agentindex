@@ -1,0 +1,9 @@
+# Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[localhost-crypto_agents_api_L213_GET_v1_agents_activity-overview]
+# Target: localhost
+# Category: PARSE_ERROR
+# GET /v1/agents/activity-overview
+# status=200 elapsed=21.5ms pool=
+# detail: JSON decode failed: Expecting ',' delimiter: line 1 column 4001 (char 4000)
+
+--- response excerpt ---
+{"global_stats":{"total_agents":74770,"total_ai_agents":72047,"entities_indexed":200},"total_results":193,"limit":50,"offset":0,"entities":[{"entity_type":"chain","entity_id":"fetch","entity_name":"Fetch.ai Chain","entity_symbol":null,"total_agents":24100,"identified_ai_agents":24100,"ai_agent_ratio":1.0,"ai_tvl_ratio":null,"avg_agent_confidence":0.7,"computed_at":"2026-03-04T18:31:06.125975+00:00"},{"entity_type":"protocol","entity_id":"fetch-ai","entity_name":"Fetch.ai","entity_symbol":null,"total_agents":24100,"identified_ai_agents":24100,"ai_agent_ratio":1.0,"ai_tvl_ratio":null,"avg_agent_confidence":0.7,"computed_at":"2026-03-04T18:31:06.235651+00:00"},{"entity_type":"chain","entity_id":"base","entity_name":"BASE","entity_symbol":null,"total_agents":19378,"identified_ai_agents":19378,"ai_agent_ratio":1.0,"ai_tvl_ratio":1.0,"avg_agent_confidence":0.7,"computed_at":"2026-03-04T18:31:06.334528+00:00"},{"entity_type":"chain","entity_id":"bittensor","entity_name":"Bittensor","entity_symbol":null,"total_agents":641,"identified_ai_agents":641,"ai_agent_ratio":1.0,"ai_tvl_ratio":1.0,"avg_agent_confidence":0.7,"computed_at":"2026-03-04T18:31:06.429319+00:00"},{"entity_type":"chain","entity_id":"solana","entity_name":"SOLANA","entity_symbol":null,"total_agents":509,"identified_ai_agents":509,"ai_agent_ratio":1.0,"ai_tvl_ratio":1.0,"avg_agent_confidence":0.7,"computed_at":"2026-03-04T18:31:06.458713+00:00"},{"entity_type":"subnet","entity_id":"bittensor-subnet-1","entity_name":"Sub

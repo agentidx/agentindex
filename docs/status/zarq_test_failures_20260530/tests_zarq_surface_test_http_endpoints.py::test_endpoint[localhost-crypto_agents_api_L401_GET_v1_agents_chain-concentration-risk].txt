@@ -1,0 +1,9 @@
+# Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[localhost-crypto_agents_api_L401_GET_v1_agents_chain-concentration-risk]
+# Target: localhost
+# Category: PARSE_ERROR
+# GET /v1/agents/chain-concentration-risk
+# status=200 elapsed=22.0ms pool=
+# detail: JSON decode failed: Unterminated string starting at: line 1 column 3997 (char 3996)
+
+--- response excerpt ---
+{"global":{"total_agents":204808,"total_mcap_usd":122194301420.99,"agents_at_risk":32},"chains":[{"chain":"fetch","total_agents":55827,"total_market_cap_usd":0.0,"agents_in_critical":0,"agents_in_warning":0,"agents_structural_collapse":0,"agents_high_crash_risk":0,"mcap_in_critical_usd":0.0,"mcap_in_warning_usd":0.0,"mcap_high_crash_risk_usd":0.0,"mcap_structural_collapse_usd":0.0,"concentration_risk_score":8.18,"risk_summary":"55,827 AI-agenter på Fetch. 0.0% exponerade mot WARNING/CRITICAL tokens. $0.0M i riskkapital. Koncentrationsrisk: 8.18/10.","computed_at":"2026-03-31T02:00:03.341865+00:00","rank":1,"risk_label":"EXTREME"},{"chain":"bsc","total_agents":42821,"total_market_cap_usd":19206039.66,"agents_in_critical":0,"agents_in_warning":0,"agents_structural_collapse":0,"agents_high_crash_risk":0,"mcap_in_critical_usd":0.0,"mcap_in_warning_usd":0.0,"mcap_high_crash_risk_usd":0.0,"mcap_structural_collapse_usd":0.0,"concentration_risk_score":6.27,"risk_summary":"42,821 AI-agenter på Bsc. 0.0% exponerade mot WARNING/CRITICAL tokens. $0.0M i riskkapital. Koncentrationsrisk: 6.27/10.","computed_at":"2026-03-31T02:00:03.341865+00:00","rank":2,"risk_label":"HIGH"},{"chain":"base","total_agents":39285,"total_market_cap_usd":1919879565.9697275,"agents_in_critical":6,"agents_in_warning":20,"agents_structural_collapse":6,"agents_high_crash_risk":25,"mcap_in_critical_usd":36207.875673177,"mcap_in_warning_usd":108918.12626337144,"mcap_high_crash_risk_usd":163785.91658555894,"mcap_stru

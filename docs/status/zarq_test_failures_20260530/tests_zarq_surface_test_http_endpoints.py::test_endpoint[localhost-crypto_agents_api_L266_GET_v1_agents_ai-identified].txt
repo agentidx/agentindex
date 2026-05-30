@@ -1,0 +1,9 @@
+# Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[localhost-crypto_agents_api_L266_GET_v1_agents_ai-identified]
+# Target: localhost
+# Category: PARSE_ERROR
+# GET /v1/agents/ai-identified
+# status=200 elapsed=3485.7ms pool=
+# detail: JSON decode failed: Unterminated string starting at: line 1 column 3990 (char 3989)
+
+--- response excerpt ---
+{"total":7,"limit":50,"offset":0,"type_breakdown":{"trading-agent":7},"agents":[{"wallet_address":"0xbb73ac55844b3decc557585bcbcd7bd9c320ecb8","agent_type":"trading-agent","confidence":0.65,"avg_tx_per_day":6.0,"night_tx_ratio":1.0,"interval_regularity":0.106,"unique_protocols":6,"analyzed_at":"2026-03-04T18:17:17.873951+00:00","agent_id":"olas-0x0cad00","agent_name":"nickcom007/prediction_request_sme","source":"olas","chain":"ethereum","token_symbol":null,"market_cap_usd":null},{"wallet_address":"0xbb73ac55844b3decc557585bcbcd7bd9c320ecb8","agent_type":"trading-agent","confidence":0.65,"avg_tx_per_day":6.0,"night_tx_ratio":1.0,"interval_regularity":0.106,"unique_protocols":6,"analyzed_at":"2026-03-04T18:17:17.873951+00:00","agent_id":"olas-0x0caf00","agent_name":"nickcom007/sme_generation_request","source":"olas","chain":"ethereum","token_symbol":null,"market_cap_usd":null},{"wallet_address":"0xda3863583c9fcd8a5d3506d91aaf33157124d1d1","agent_type":"trading-agent","confidence":0.45,"avg_tx_per_day":1.62,"night_tx_ratio":0.338,"interval_regularity":0.0,"unique_protocols":57,"analyzed_at":"2026-03-04T18:17:25.942401+00:00","agent_id":"olas-0x0cb900","agent_name":"n/a","source":"olas","chain":"ethereum","token_symbol":null,"market_cap_usd":null},{"wallet_address":"0xda3863583c9fcd8a5d3506d91aaf33157124d1d1","agent_type":"trading-agent","confidence":0.45,"avg_tx_per_day":1.62,"night_tx_ratio":0.338,"interval_regularity":0.0,"unique_protocols":57,"analyzed_at":"2026-03-04T18:17:2

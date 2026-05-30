@@ -1,0 +1,8 @@
+# Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-zarq_cascade_page_L8_GET_cascade-risk]
+# Target: production
+# Category: TIMEOUT
+# GET /cascade-risk
+# status=None elapsed=8002.4ms pool=
+# detail: client timeout after 8002ms
+
+--- response excerpt ---

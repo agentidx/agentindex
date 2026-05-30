@@ -2,7 +2,7 @@
 # Target: production
 # Category: HTTP_4XX_unexpected
 # POST /mcp:vitality_check
-# status=404 elapsed=57.2ms pool=
+# status=404 elapsed=51.6ms pool=
 # detail: mcp endpoint returned 404
 
 --- response excerpt ---

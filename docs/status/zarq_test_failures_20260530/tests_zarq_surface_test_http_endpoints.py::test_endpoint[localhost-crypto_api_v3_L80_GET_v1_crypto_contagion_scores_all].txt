@@ -1,0 +1,9 @@
+# Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[localhost-crypto_api_v3_L80_GET_v1_crypto_contagion_scores_all]
+# Target: localhost
+# Category: PARSE_ERROR
+# GET /v1/crypto/contagion/scores/all
+# status=200 elapsed=118.8ms pool=
+# detail: JSON decode failed: Unterminated string starting at: line 1 column 3996 (char 3995)
+
+--- response excerpt ---
+[{"token_id":"chainlink","symbol":"link","name":"Chainlink","contagion_score":4.9,"contagion_level":"MODERATE","ecosystem":"ethereum"},{"token_id":"ethereum","symbol":"eth","name":"Ethereum","contagion_score":4.3,"contagion_level":"MODERATE","ecosystem":"ethereum"},{"token_id":"aave","symbol":"aave","name":"Aave","contagion_score":4.3,"contagion_level":"MODERATE","ecosystem":"ethereum"},{"token_id":"shiba-inu","symbol":"shib","name":"Shiba Inu","contagion_score":3.9,"contagion_level":"MODERATE","ecosystem":"ethereum"},{"token_id":"uniswap","symbol":"uni","name":"Uniswap","contagion_score":3.9,"contagion_level":"MODERATE","ecosystem":"ethereum"},{"token_id":"pepe","symbol":"pepe","name":"Pepe","contagion_score":3.9,"contagion_level":"MODERATE","ecosystem":"ethereum"},{"token_id":"solana","symbol":"sol","name":"Solana","contagion_score":3.5,"contagion_level":"MODERATE","ecosystem":"solana"},{"token_id":"crypto-com-chain","symbol":"cro","name":"Cronos","contagion_score":3.1,"contagion_level":"MODERATE","ecosystem":"independent"},{"token_id":"pyth-network","symbol":"pyth","name":"Pyth Network","contagion_score":3.1,"contagion_level":"MODERATE","ecosystem":"solana"},{"token_id":"binancecoin","symbol":"bnb","name":"BNB","contagion_score":3.0,"contagion_level":"MODERATE","ecosystem":"bnb"},{"token_id":"curve-dao-token","symbol":"crv","name":"Curve DAO","contagion_score":3.0,"contagion_level":"MODERATE","ecosystem":"ethereum"},{"token_id":"lido-dao","symbol":"ldo","name":"Lido DAO","

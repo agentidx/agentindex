@@ -1,0 +1,9 @@
+# Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[localhost-crypto_agents_api_L434_GET_v1_agents_exodus-snapshot]
+# Target: localhost
+# Category: PARSE_ERROR
+# GET /v1/agents/exodus-snapshot
+# status=200 elapsed=22.0ms pool=
+# detail: JSON decode failed: Expecting ',' delimiter: line 1 column 4001 (char 4000)
+
+--- response excerpt ---
+{"days_of_history":28,"exodus_signal_eta":"Q3 2026 (requires 90 days of data)","snapshots":[{"snapshot_date":"2026-03-31","protocol_id":"fetch","agent_count":55827,"total_market_cap_usd":0.0},{"snapshot_date":"2026-03-31","protocol_id":"bsc","agent_count":42821,"total_market_cap_usd":19206039.66},{"snapshot_date":"2026-03-31","protocol_id":"base","agent_count":39285,"total_market_cap_usd":1919879565.9697275},{"snapshot_date":"2026-03-31","protocol_id":"fetch-ai","agent_count":24100,"total_market_cap_usd":0.0},{"snapshot_date":"2026-03-31","protocol_id":"mcp","agent_count":15750,"total_market_cap_usd":0.0},{"snapshot_date":"2026-03-31","protocol_id":"ethereum","agent_count":10630,"total_market_cap_usd":11379951492.0},{"snapshot_date":"2026-03-31","protocol_id":"evm-4326","agent_count":8233,"total_market_cap_usd":0.0},{"snapshot_date":"2026-03-31","protocol_id":"evm-143","agent_count":8205,"total_market_cap_usd":0.0},{"snapshot_date":"2026-03-31","protocol_id":"evm-42220","agent_count":5568,"total_market_cap_usd":0.0},{"snapshot_date":"2026-03-31","protocol_id":"evm-100","agent_count":3281,"total_market_cap_usd":0.0},{"snapshot_date":"2026-03-31","protocol_id":"evm-360","agent_count":1872,"total_market_cap_usd":0.0},{"snapshot_date":"2026-03-31","protocol_id":"multi","agent_count":1789,"total_market_cap_usd":15299175065.938917},{"snapshot_date":"2026-03-31","protocol_id":"evm-10143","agent_count":1701,"total_market_cap_usd":0.0},{"snapshot_date":"2026-03-31","protocol_id":"evm-

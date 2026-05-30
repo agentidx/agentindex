@@ -1,0 +1,9 @@
+# Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[localhost-crypto_api_v2_L375_GET_v1_crypto_distress-watch]
+# Target: localhost
+# Category: PARSE_ERROR
+# GET /v1/crypto/distress-watch
+# status=200 elapsed=21.8ms pool=
+# detail: JSON decode failed: Unterminated string starting at: line 1 column 3999 (char 3998)
+
+--- response excerpt ---
+{"data":[{"token_id":"hastra-prime","symbol":"prime","name":"PRIME","market_cap_rank":125,"ndd":1.0,"alert_level":"DISTRESS","crash_probability":0.34,"hc_alert":0,"bottlefish_signal":null,"rating":"A2","score":73.19,"price_usd":1.039,"risk_level":"WARNING","structural_weakness":2},{"token_id":"asteroid-shiba","symbol":"asteroid","name":"Asteroid Shiba","market_cap_rank":364,"ndd":1.0,"alert_level":"DISTRESS","crash_probability":0.28,"hc_alert":0,"bottlefish_signal":null,"rating":null,"score":null,"price_usd":null,"risk_level":null,"structural_weakness":null},{"token_id":"asset","symbol":"asset","name":"REAL","market_cap_rank":868,"ndd":1.0,"alert_level":"DISTRESS","crash_probability":0.3,"hc_alert":0,"bottlefish_signal":null,"rating":null,"score":null,"price_usd":null,"risk_level":null,"structural_weakness":null},{"token_id":"bitcoin-cash","symbol":"bch","name":"Bitcoin Cash","market_cap_rank":21,"ndd":1.5,"alert_level":"WATCH","crash_probability":0.28,"hc_alert":0,"bottlefish_signal":null,"rating":"A3","score":67.56,"price_usd":305.03,"risk_level":"WARNING","structural_weakness":2},{"token_id":"apxusd","symbol":"apxusd","name":"apxUSD","market_cap_rank":98,"ndd":1.5,"alert_level":"DISTRESS","crash_probability":0.34,"hc_alert":0,"bottlefish_signal":null,"rating":"A2","score":74.67,"price_usd":0.998931,"risk_level":null,"structural_weakness":null},{"token_id":"siren-2","symbol":"siren","name":"Siren","market_cap_rank":132,"ndd":1.5,"alert_level":"DISTRESS","crash_probability":

@@ -2,7 +2,7 @@
 # Target: localhost
 # Category: HTTP_4XX_unexpected
 # GET /contagion/case-studies
-# status=404 elapsed=12.0ms pool=
+# status=404 elapsed=5.2ms pool=
 # detail: unexpected 404 — route exists in code
 
 --- response excerpt ---

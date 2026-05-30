@@ -1,0 +1,9 @@
+# Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[localhost-crypto_api_v2_L524_GET_v1_crypto_portfolio_pairs]
+# Target: localhost
+# Category: PARSE_ERROR
+# GET /v1/crypto/portfolio/pairs
+# status=200 elapsed=29.2ms pool=
+# detail: JSON decode failed: Unterminated string starting at: line 1 column 3998 (char 3997)
+
+--- response excerpt ---
+{"data":[{"month":"2025-12","regime":"BEAR","pairs_ret":0.0,"n_pairs":0,"pairs_status":"REGIME_SKIP","pairs_detail":[],"nav":457753.85},{"month":"2025-11","regime":"BULL","pairs_ret":0.312211,"n_pairs":5,"pairs_status":"5 pairs","pairs_detail":[{"long":"bitcoin-cash","short":"avalanche-2","long_ret":-0.003,"short_ret":-0.4196,"alpha":0.4166,"conviction":0.9819},{"long":"bitcoin-cash","short":"cardano","long_ret":-0.003,"short_ret":-0.4771,"alpha":0.4742,"conviction":0.8557},{"long":"bitcoin","short":"avalanche-2","long_ret":-0.2359,"short_ret":-0.4196,"alpha":0.1837,"conviction":0.7107},{"long":"bitcoin","short":"cardano","long_ret":-0.2359,"short_ret":-0.4771,"alpha":0.2413,"conviction":0.5845},{"long":"quant-network","short":"chainlink","long_ret":-0.1263,"short_ret":-0.3716,"alpha":0.2453,"conviction":0.4412}],"nav":456205.87},{"month":"2025-10","regime":"BULL","pairs_ret":0.391862,"n_pairs":5,"pairs_status":"5 pairs","pairs_detail":[{"long":"tron","short":"avalanche-2","long_ret":-0.1635,"short_ret":-0.5911,"alpha":0.4276,"conviction":0.8925},{"long":"bitcoin","short":"avalanche-2","long_ret":-0.255,"short_ret":-0.5911,"alpha":0.3361,"conviction":0.7953},{"long":"tron","short":"cosmos","long_ret":-0.1635,"short_ret":-0.5253,"alpha":0.3618,"conviction":0.717},{"long":"bitcoin","short":"cosmos","long_ret":-0.255,"short_ret":-0.5253,"alpha":0.2703,"conviction":0.6199},{"long":"decred","short":"dogecoin","long_ret":0.0579,"short_ret":-0.5056,"alpha":0.5635,"conviction":0.37}]

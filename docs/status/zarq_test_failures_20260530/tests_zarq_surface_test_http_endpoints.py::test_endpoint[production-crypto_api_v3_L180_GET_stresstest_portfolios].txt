@@ -2,7 +2,7 @@
 # Target: production
 # Category: HTTP_4XX_unexpected
 # GET /stresstest/portfolios
-# status=404 elapsed=60.5ms pool=
+# status=404 elapsed=71.6ms pool=
 # detail: unexpected 404 — route exists in code
 
 --- response excerpt ---

@@ -1,0 +1,8 @@
+# Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-crypto_api_v2_L308_GET_v1_crypto_compare_token1_token2]
+# Target: production
+# Category: HTTP_4XX_unexpected
+# GET /v1/crypto/compare/{token1}/{token2}
+# status=404 elapsed=54.7ms pool=
+# detail: unexpected 404 — route exists in code
+
+--- response excerpt ---

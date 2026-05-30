@@ -1,0 +1,9 @@
+# Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[localhost-crypto_api_v3_L94_GET_v1_crypto_contagion_network]
+# Target: localhost
+# Category: PARSE_ERROR
+# GET /v1/crypto/contagion/network
+# status=200 elapsed=24.2ms pool=
+# detail: JSON decode failed: Unterminated string starting at: line 1 column 3996 (char 3995)
+
+--- response excerpt ---
+{"nodes":[{"id":"bitcoin","symbol":"btc","name":"Bitcoin","group":"bitcoin","score":78.9,"ndd":3.03,"contagion_score":1.5,"market_cap":1474392704768.0,"alert_level":"WATCH","size":30},{"id":"ethereum","symbol":"eth","name":"Ethereum","group":"ethereum","score":76.15,"ndd":2.8,"contagion_score":4.3,"market_cap":243309197323.0,"alert_level":"WATCH","size":24.3309197323},{"id":"binancecoin","symbol":"bnb","name":"BNB","group":"bnb","score":77.06,"ndd":3.21,"contagion_score":3.0,"market_cap":86464494031.0,"alert_level":"WATCH","size":8.6464494031},{"id":"ripple","symbol":"xrp","name":"XRP","group":"other","score":79.31,"ndd":3.13,"contagion_score":1.9,"market_cap":81868223123.0,"alert_level":"WATCH","size":8.1868223123},{"id":"solana","symbol":"sol","name":"Solana","group":"solana","score":78.06,"ndd":2.95,"contagion_score":3.5,"market_cap":47480783194.0,"alert_level":"WATCH","size":4.7480783194},{"id":"tron","symbol":"trx","name":"TRON","group":"other","score":81.42,"ndd":3.73,"contagion_score":1.3,"market_cap":32608911314.0,"alert_level":"WATCH","size":3.2608911314},{"id":"figure-heloc","symbol":"figr_heloc","name":"Figure Heloc","group":"other","score":82.0,"ndd":3.0,"contagion_score":0.8,"market_cap":18862721363.0,"alert_level":"","size":3},{"id":"dogecoin","symbol":"doge","name":"Dogecoin","group":"other","score":76.31,"ndd":3.26,"contagion_score":1.6,"market_cap":15440275232.0,"alert_level":"WATCH","size":3},{"id":"hyperliquid","symbol":"hype","name":"Hyperliquid","group":"

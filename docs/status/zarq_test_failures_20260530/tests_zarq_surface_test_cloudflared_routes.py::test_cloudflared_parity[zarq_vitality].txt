@@ -2,7 +2,7 @@
 # Target: diff
 # Category: CLOUDFLARED_GAP
 # GET http://localhost:8000/vitality
-# status=None elapsed=85988.2ms pool=
-# detail: local OK but prod failed; local=200 (930ms) prod=TIMEOUT (85988ms)
+# status=None elapsed=8034.6ms pool=
+# detail: local OK but prod failed; local=200 (4345ms) prod=TIMEOUT (8035ms)
 
 --- response excerpt ---

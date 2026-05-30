@@ -1,0 +1,9 @@
+# Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[localhost-crypto_api_v2_L163_GET_v1_crypto_ratings]
+# Target: localhost
+# Category: PARSE_ERROR
+# GET /v1/crypto/ratings
+# status=200 elapsed=25.1ms pool=
+# detail: JSON decode failed: Unterminated string starting at: line 1 column 3990 (char 3989)
+
+--- response excerpt ---
+{"data":[{"token_id":"figure-heloc","symbol":"figr_heloc","name":"Figure Heloc","market_cap_rank":9,"rating":"Aa3","score":82.0,"pillar_1":97.5,"pillar_2":60.0,"pillar_3":92.5,"pillar_4":77.5,"pillar_5":91.67,"price_usd":1.033,"market_cap":18862721363.0,"volume_24h":464970898.0,"price_change_24h":-0.87425,"price_change_7d":0.19835844896965443,"price_change_30d":-0.017010696794737514,"risk_level":null,"structural_weakness":null,"structural_strength":null},{"token_id":"tron","symbol":"trx","name":"TRON","market_cap_rank":8,"rating":"Aa3","score":81.42,"pillar_1":97.5,"pillar_2":66.67,"pillar_3":87.5,"pillar_4":77.5,"pillar_5":85.0,"price_usd":0.343979,"market_cap":32608911314.0,"volume_24h":723528182.0,"price_change_24h":-2.71056,"price_change_7d":-5.053489180914346,"price_change_30d":6.390015486735582,"risk_level":"SAFE","structural_weakness":0,"structural_strength":3},{"token_id":"usd1-wlfi","symbol":"usd1","name":"USD1","market_cap_rank":24,"rating":"Aa3","score":81.23,"pillar_1":96.25,"pillar_2":66.67,"pillar_3":92.5,"pillar_4":65.0,"pillar_5":93.33,"price_usd":0.998269,"market_cap":4729660256.0,"volume_24h":1757324431.0,"price_change_24h":-0.01443,"price_change_7d":-0.11828950807788595,"price_change_30d":-0.1375909110283092,"risk_level":"SAFE","structural_weakness":0,"structural_strength":3},{"token_id":"tether-gold","symbol":"xaut","name":"Tether Gold","market_cap_rank":37,"rating":"Aa3","score":81.02,"pillar_1":95.0,"pillar_2":73.33,"pillar_3":83.75,"pillar_4":73.75,"pil

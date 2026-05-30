@@ -1,0 +1,9 @@
+# Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[localhost-crypto_api_v3_L314_GET_v1_crypto_cascade_graph]
+# Target: localhost
+# Category: PARSE_ERROR
+# GET /v1/crypto/cascade/graph
+# status=200 elapsed=120.2ms pool=
+# detail: JSON decode failed: Unterminated string starting at: line 1 column 3990 (char 3989)
+
+--- response excerpt ---
+{"nodes":[{"id":"token:world-liberty-financial","type":"token","label":"wlfi","risk_level":"WARNING","structural_weakness":2,"crash_prob":0.466,"ai_agent_ratio":0.0},{"id":"token:gatechain-token","type":"token","label":"gt","risk_level":"WATCH","structural_weakness":1,"crash_prob":0.292,"ai_agent_ratio":0.0},{"id":"token:dogecoin","type":"token","label":"doge","risk_level":"WATCH","structural_weakness":1,"crash_prob":0.338,"ai_agent_ratio":0.0},{"id":"token:coinw","type":"token","label":"coinw","risk_level":"WARNING","structural_weakness":1,"crash_prob":0.0,"ai_agent_ratio":0.0},{"id":"token:instadapp","type":"token","label":"instadapp","risk_level":"WATCH","structural_weakness":1,"crash_prob":0.555,"ai_agent_ratio":0.0},{"id":"token:theta-token","type":"token","label":"theta","risk_level":"WATCH","structural_weakness":1,"crash_prob":0.404,"ai_agent_ratio":0.0},{"id":"token:fantohm","type":"token","label":"fantohm","risk_level":"WARNING","structural_weakness":1,"crash_prob":0.0,"ai_agent_ratio":0.0},{"id":"token:neo","type":"token","label":"neo","risk_level":"WATCH","structural_weakness":1,"crash_prob":0.39,"ai_agent_ratio":0.0},{"id":"token:vision-3","type":"token","label":"vision-3","risk_level":"WATCH","structural_weakness":1,"crash_prob":0.36,"ai_agent_ratio":0.0},{"id":"token:bitcoin-cash-sv","type":"token","label":"bsv","risk_level":"WATCH","structural_weakness":1,"crash_prob":0.477,"ai_agent_ratio":0.0},{"id":"chain:ethereum","type":"chain","label":"ethereum","risk_lev

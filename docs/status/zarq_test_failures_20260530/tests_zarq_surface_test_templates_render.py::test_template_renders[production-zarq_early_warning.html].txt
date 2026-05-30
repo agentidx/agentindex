@@ -2,7 +2,7 @@
 # Target: production
 # Category: HTTP_4XX_unexpected
 # GET /crypto/early-warning
-# status=404 elapsed=107.6ms pool=
+# status=404 elapsed=225.9ms pool=
 # detail: template route 404 — template exists, route may be missing or path wrong: /crypto/early-warning
 
 --- response excerpt ---

@@ -2,7 +2,7 @@
 # Target: localhost
 # Category: HTTP_4XX_unexpected
 # GET /overview
-# status=404 elapsed=14.7ms pool=
+# status=404 elapsed=7.1ms pool=
 # detail: unexpected 404 — route exists in code
 
 --- response excerpt ---

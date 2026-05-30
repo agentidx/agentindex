@@ -1,0 +1,9 @@
+# Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[localhost-crypto_api_v2_L777_GET_v1_crypto_paper-trading_audit]
+# Target: localhost
+# Category: PARSE_ERROR
+# GET /v1/crypto/paper-trading/audit
+# status=200 elapsed=19.6ms pool=
+# detail: JSON decode failed: Unterminated string starting at: line 1 column 3993 (char 3992)
+
+--- response excerpt ---
+{"data":[{"id":1,"timestamp":"2026-03-01T13:00:26.094043","event_type":"SIGNAL_GENERATION","data_hash":"713449f3974e8aa5ce9b301f93cafc6d4d7740583a78ef854c9f6327510d2b8d","prev_hash":"GENESIS"},{"id":2,"timestamp":"2026-03-02T01:05:04.561579","event_type":"DAILY_NAV","data_hash":"c42dfe5894e003d627c11c69b4d4468755d7cc7bbd21beb05d498d3e13dfaf51","prev_hash":"713449f3974e8aa5ce9b301f93cafc6d4d7740583a78ef854c9f6327510d2b8d"},{"id":3,"timestamp":"2026-03-02T16:08:04.695684","event_type":"DAILY_NAV","data_hash":"60ac74796d879e6a34c61d53b5bca915ad2a92c45f3a17298c8f81c9eae8ab70","prev_hash":"c42dfe5894e003d627c11c69b4d4468755d7cc7bbd21beb05d498d3e13dfaf51"},{"id":4,"timestamp":"2026-03-02T16:31:43.198775","event_type":"DAILY_NAV","data_hash":"83a5c712325adfb69ac3ec465aa820fdc4c4c6177a02fc1f326170b2d8e7a995","prev_hash":"60ac74796d879e6a34c61d53b5bca915ad2a92c45f3a17298c8f81c9eae8ab70"},{"id":5,"timestamp":"2026-03-02T16:32:08.966652","event_type":"DAILY_NAV","data_hash":"1c76bd07e4a4d86f655d285580eef788404afdb8d4f00a974193bf5ab1685dc0","prev_hash":"83a5c712325adfb69ac3ec465aa820fdc4c4c6177a02fc1f326170b2d8e7a995"},{"id":6,"timestamp":"2026-03-02T17:16:52.136439","event_type":"DAILY_NAV","data_hash":"f72214d79462604537f423c08d9bc3c5a50cd24b3be1796bba80229463dc677a","prev_hash":"1c76bd07e4a4d86f655d285580eef788404afdb8d4f00a974193bf5ab1685dc0"},{"id":7,"timestamp":"2026-03-03T07:00:01.560283","event_type":"DAILY_NAV","data_hash":"5662e0844063bf1482b5459993d65a279aa9eff374ff0b35f9de5bd

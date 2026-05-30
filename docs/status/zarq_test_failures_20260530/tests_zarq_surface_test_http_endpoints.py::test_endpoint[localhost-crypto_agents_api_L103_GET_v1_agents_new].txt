@@ -1,0 +1,9 @@
+# Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[localhost-crypto_agents_api_L103_GET_v1_agents_new]
+# Target: localhost
+# Category: PARSE_ERROR
+# GET /v1/agents/new
+# status=200 elapsed=344.5ms pool=
+# detail: JSON decode failed: Unterminated string starting at: line 1 column 3979 (char 3978)
+
+--- response excerpt ---
+{"total_agents":363051,"by_source":{"erc8004":222879,"agentverse":70540,"fetchai":24100,"virtuals":19905,"pulsemcp":11189,"mcp_registry":10378,"coingecko":1789,"bittensor":641,"lobehub":505,"olas":474,"openrouter":441,"dexscreener":210},"agents":[{"agent_id":"erc8004-56:0x8004a169fb4a3325136eb29fa0ceb6d2e539a432:35171","source":"erc8004","agent_name":"Debot Trading Agent","agent_type":"agent","chain":"bsc","token_symbol":null,"market_cap_usd":null,"first_seen_at":"2026-03-09T17:24:26.765811+00:00","last_updated_at":"2026-05-30T04:05:48.272979+00:00"},{"agent_id":"erc8004-56:0x8004a169fb4a3325136eb29fa0ceb6d2e539a432:35168","source":"erc8004","agent_name":"Ave.ai Trading Agent","agent_type":"agent","chain":"bsc","token_symbol":null,"market_cap_usd":null,"first_seen_at":"2026-03-09T17:24:26.765811+00:00","last_updated_at":"2026-05-30T04:05:48.272979+00:00"},{"agent_id":"erc8004-56:0x8004a169fb4a3325136eb29fa0ceb6d2e539a432:35167","source":"erc8004","agent_name":"Ave.ai Trading Agent","agent_type":"agent","chain":"bsc","token_symbol":null,"market_cap_usd":null,"first_seen_at":"2026-03-09T17:24:26.765811+00:00","last_updated_at":"2026-05-30T04:05:48.272979+00:00"},{"agent_id":"erc8004-11155111:0x8004a818bfb912233c491871b3d84c89a494bd9e:1689","source":"erc8004","agent_name":"icy","agent_type":"agent","chain":"evm-11155111","token_symbol":null,"market_cap_usd":null,"first_seen_at":"2026-03-09T17:24:26.765811+00:00","last_updated_at":"2026-05-30T04:05:48.272979+00:00"},{"agent_id":"

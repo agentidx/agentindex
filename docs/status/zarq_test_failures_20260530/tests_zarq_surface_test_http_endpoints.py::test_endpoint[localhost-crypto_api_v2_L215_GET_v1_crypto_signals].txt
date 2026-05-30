@@ -1,0 +1,9 @@
+# Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[localhost-crypto_api_v2_L215_GET_v1_crypto_signals]
+# Target: localhost
+# Category: PARSE_ERROR
+# GET /v1/crypto/signals
+# status=200 elapsed=27.4ms pool=
+# detail: JSON decode failed: Unterminated string starting at: line 1 column 3995 (char 3994)
+
+--- response excerpt ---
+{"data":[{"token_id":"pippin","signal_date":"2026-05-29","risk_level":"CRITICAL","structural_weakness":3,"structural_strength":1,"btc_beta":-0.05900988230436344,"vol_30d":0.9654419064867876,"ndd_current":1.5,"ndd_min_4w":1.0,"trust_p3":35.0,"trust_score":41.94,"drawdown_90d":-0.9771936986583126,"details":{"p3":35.0,"p3_3m_ago":20.4,"sig6":1.83,"ndd":1.5,"ndd_min_4w":1.0,"beta":-0.06,"vol_30d":0.965,"dd_90d":-97.7,"weeks_ath":13.0,"weakness_signals":{"p3_below_40":true,"sig6_below_2.5":true,"ndd_below_3":true,"p3_decay_15":false},"strength_signals":{"p3_above_60":false,"sig6_above_4":false,"ndd_above_3.5":false,"p3_improving_10":true}},"hc_alert":0,"hc_streak":13,"bottlefish_signal":null,"crash_probability":0.3,"symbol":"pippin","name":"pippin","market_cap_rank":903,"rating":null,"trust_score_total":null},{"token_id":"berachain-bera","signal_date":"2026-05-29","risk_level":"CRITICAL","structural_weakness":3,"structural_strength":1,"btc_beta":1.2872456967834884,"vol_30d":0.6431001674839801,"ndd_current":2.36,"ndd_min_4w":1.5,"trust_p3":30.0,"trust_score":44.5,"drawdown_90d":-0.6307857911733047,"details":{"p3":30.0,"p3_3m_ago":15.9,"sig6":1.96,"ndd":2.36,"ndd_min_4w":1.5,"beta":1.29,"vol_30d":0.643,"dd_90d":-63.1,"weeks_ath":66.1,"weakness_signals":{"p3_below_40":true,"sig6_below_2.5":true,"ndd_below_3":true,"p3_decay_15":false},"strength_signals":{"p3_above_60":false,"sig6_above_4":false,"ndd_above_3.5":false,"p3_improving_10":true}},"hc_alert":0,"hc_streak":13,"bottlefish_sign

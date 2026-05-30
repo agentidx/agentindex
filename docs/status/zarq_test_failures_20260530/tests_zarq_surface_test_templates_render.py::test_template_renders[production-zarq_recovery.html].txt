@@ -2,7 +2,7 @@
 # Target: production
 # Category: HTTP_4XX_unexpected
 # GET /crypto/recovery
-# status=404 elapsed=66.5ms pool=
+# status=404 elapsed=66.9ms pool=
 # detail: template route 404 — template exists, route may be missing or path wrong: /crypto/recovery
 
 --- response excerpt ---

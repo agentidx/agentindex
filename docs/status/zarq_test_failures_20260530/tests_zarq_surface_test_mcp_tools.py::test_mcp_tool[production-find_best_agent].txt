@@ -2,7 +2,7 @@
 # Target: production
 # Category: HTTP_4XX_unexpected
 # POST /mcp:find_best_agent
-# status=404 elapsed=142.1ms pool=
+# status=404 elapsed=52.6ms pool=
 # detail: mcp endpoint returned 404
 
 --- response excerpt ---

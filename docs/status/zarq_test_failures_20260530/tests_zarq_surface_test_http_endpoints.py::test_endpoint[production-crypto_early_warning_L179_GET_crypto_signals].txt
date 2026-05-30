@@ -1,0 +1,8 @@
+# Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-crypto_early_warning_L179_GET_crypto_signals]
+# Target: production
+# Category: TIMEOUT
+# GET /crypto/signals
+# status=None elapsed=8019.8ms pool=
+# detail: client timeout after 8020ms
+
+--- response excerpt ---

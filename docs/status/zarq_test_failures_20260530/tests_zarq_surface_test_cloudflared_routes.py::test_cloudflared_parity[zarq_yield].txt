@@ -1,0 +1,8 @@
+# Test: tests/zarq_surface/test_cloudflared_routes.py::test_cloudflared_parity[zarq_yield]
+# Target: diff
+# Category: CLOUDFLARED_GAP
+# GET http://localhost:8000/yield
+# status=None elapsed=8025.5ms pool=
+# detail: local OK but prod failed; local=200 (33ms) prod=TIMEOUT (8025ms)
+
+--- response excerpt ---

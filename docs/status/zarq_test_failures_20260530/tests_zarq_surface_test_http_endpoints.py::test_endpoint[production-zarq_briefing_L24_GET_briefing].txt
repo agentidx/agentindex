@@ -1,0 +1,8 @@
+# Test: tests/zarq_surface/test_http_endpoints.py::test_endpoint[production-zarq_briefing_L24_GET_briefing]
+# Target: production
+# Category: TIMEOUT
+# GET /briefing
+# status=None elapsed=8001.0ms pool=
+# detail: client timeout after 8001ms
+
+--- response excerpt ---

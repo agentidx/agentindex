@@ -2,7 +2,7 @@
 # Target: production
 # Category: HTTP_4XX_unexpected
 # GET /exodus-snapshot
-# status=404 elapsed=128.2ms pool=
+# status=404 elapsed=68.9ms pool=
 # detail: unexpected 404 — route exists in code
 
 --- response excerpt ---

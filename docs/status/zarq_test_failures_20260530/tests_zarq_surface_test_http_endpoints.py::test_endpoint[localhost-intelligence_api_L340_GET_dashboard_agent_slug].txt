@@ -2,7 +2,7 @@
 # Target: localhost
 # Category: HTTP_4XX_unexpected
 # GET /dashboard/{agent_slug}
-# status=404 elapsed=4.2ms pool=
+# status=404 elapsed=6.7ms pool=
 # detail: unexpected 404 — route exists in code
 
 --- response excerpt ---

@@ -2,7 +2,7 @@
 # Target: production
 # Category: HTTP_4XX_unexpected
 # POST /mcp:kya_check_agent
-# status=404 elapsed=52.5ms pool=
+# status=404 elapsed=51.8ms pool=
 # detail: mcp endpoint returned 404
 
 --- response excerpt ---

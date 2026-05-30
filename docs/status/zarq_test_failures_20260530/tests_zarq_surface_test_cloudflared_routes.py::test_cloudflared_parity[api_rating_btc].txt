@@ -2,8 +2,8 @@
 # Target: localhost
 # Category: HTTP_4XX_unexpected
 # GET http://localhost:8000/rating/bitcoin
-# status=404 elapsed=7.3ms pool=
-# detail: local does not return expected 200; local=404 (7ms) prod=404 (357ms)
+# status=404 elapsed=2710.0ms pool=
+# detail: local does not return expected 200; local=404 (2710ms) prod=404 (238ms)
 
 --- response excerpt ---
 <!DOCTYPE html>
