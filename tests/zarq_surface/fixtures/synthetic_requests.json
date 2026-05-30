@@ -1,0 +1,44 @@
+{
+    "tokens": ["bitcoin", "ethereum"],
+    "distressed_token": "siren",
+    "missing_token": "nonexist-token-xyz",
+    "agents": ["autogpt", "crewai"],
+    "categories": ["vpn", "npm", "password_manager"],
+
+    "_param_substitutions": {
+        "token_id": "bitcoin",
+        "token": "bitcoin",
+        "slug": "bitcoin",
+        "token1": "bitcoin",
+        "token2": "ethereum",
+        "token_a": "bitcoin",
+        "token_b": "ethereum",
+        "agent": "autogpt",
+        "agent_id": "autogpt",
+        "agent_name": "autogpt",
+        "agent_slug": "autogpt",
+        "agent_a": "autogpt",
+        "agent_b": "crewai",
+        "category": "vpn",
+        "protocol": "aave",
+        "protocol_id": "aave",
+        "pool": "1",
+        "pool_id": "1",
+        "entity_type": "token",
+        "entity_id": "bitcoin",
+        "address": "0x0000000000000000000000000000000000000000",
+        "exchange_id": "binance"
+    },
+
+    "_paper_trading_write_test": {
+        "enabled": false,
+        "reason": "Write-side test deferred — paper trading data model not yet inventoried for is_test isolation. Re-enable once a test-pool or is_test flag is confirmed in the schema.",
+        "expected_endpoint": "/api/paper-trading/orders",
+        "test_payload": {
+            "token_id": "bitcoin",
+            "side": "buy",
+            "size_usd": 100,
+            "is_test": true
+        }
+    }
+}
