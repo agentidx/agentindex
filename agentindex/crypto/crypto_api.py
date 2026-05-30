@@ -269,11 +269,14 @@ def compare_tokens(token1: str, token2: str):
                 ORDER BY year_month DESC LIMIT 1
             """, (tid,)).fetchone()
 
-        # NDD
+        # NDD. Same schema-rename caveat as get_distress_watch: the
+        # crypto_ndd_daily table exposes `ndd_trend` (categorical) and
+        # `ndd_change_4w` (numeric), not the legacy `ndd_trend_7d/30d`
+        # columns this query used to reference. Updated in R12.
         n_row = conn.execute("""
             SELECT ndd, alert_level, signal_1, signal_2, signal_3,
                    signal_4, signal_5, signal_6, signal_7,
-                   ndd_trend_7d, ndd_trend_30d
+                   ndd_trend, ndd_change_4w
             FROM crypto_ndd_daily WHERE token_id=?
             ORDER BY run_date DESC LIMIT 1
         """, (tid,)).fetchone()
