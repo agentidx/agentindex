@@ -352,14 +352,21 @@ def get_distress_watch():
     """
     conn = get_db()
 
-    # Try daily table
+    # Try daily table.
+    # Schema-match (2026-05-30): crypto_ndd_daily exposes `ndd_trend` (text
+    # categorical: FREEFALL/FALLING/SLIDING/STABLE/IMPROVING) and
+    # `ndd_change_4w` (numeric). The earlier query referenced
+    # `ndd_trend_7d`/`ndd_trend_30d` which do not exist in the table —
+    # likely a schema rename that the handler missed. crypto_rating_daily
+    # uses `score` not `r.score`; verify column-by-column against
+    # docs/migrations/zarq-tier-a-postgres.sql if doubt arises.
     run_date = latest_run_date(conn, "crypto_ndd_daily")
     if run_date:
         rows = conn.execute("""
             SELECT d.token_id, d.symbol, d.ndd, d.alert_level,
                    d.signal_1, d.signal_2, d.signal_3, d.signal_4,
                    d.signal_5, d.signal_6, d.signal_7,
-                   d.ndd_trend_7d, d.ndd_trend_30d,
+                   d.ndd_trend, d.ndd_change_4w,
                    r.rating, r.score, r.price_usd, r.market_cap_rank
             FROM crypto_ndd_daily d
             LEFT JOIN crypto_rating_daily r ON d.token_id = r.token_id AND r.run_date = d.run_date
