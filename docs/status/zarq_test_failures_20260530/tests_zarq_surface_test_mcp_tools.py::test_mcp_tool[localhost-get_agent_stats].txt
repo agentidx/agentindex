@@ -2,7 +2,7 @@
 # Target: localhost
 # Category: NETWORK_ERROR
 # POST /mcp:get_agent_stats
-# status=None elapsed=0.7ms pool=
+# status=None elapsed=0.5ms pool=
 # detail: ReadError: [Errno 54] Connection reset by peer
 
 --- response excerpt ---

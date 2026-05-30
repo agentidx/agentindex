@@ -2,7 +2,7 @@
 # Target: localhost
 # Category: NETWORK_ERROR
 # POST /mcp:crypto_ratings_bulk
-# status=None elapsed=1.0ms pool=
+# status=None elapsed=1.4ms pool=
 # detail: ReadError: [Errno 54] Connection reset by peer
 
 --- response excerpt ---

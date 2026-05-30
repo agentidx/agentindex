@@ -2,7 +2,7 @@
 # Target: diff
 # Category: CLOUDFLARED_GAP
 # GET http://localhost:8001/health
-# status=404 elapsed=230.9ms pool=
-# detail: local OK but prod failed; local=200 (3ms) prod=404 (231ms)
+# status=404 elapsed=343.9ms pool=
+# detail: local OK but prod failed; local=200 (3ms) prod=404 (344ms)
 
 --- response excerpt ---

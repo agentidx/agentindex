@@ -5,6 +5,46 @@
 > causes, cross-references against the five non-zero-exit LaunchAgents,
 > and proposes a prioritized fix-roadmap for phase 4. No fixes here.
 
+## RETROACTIVE CORRECTION (added 2026-05-30 18:10)
+
+The phase-3 R7 cluster ("Endpoints that time out under PgBouncer pressure")
+was **wrongly attributed** to the ADR-003a HA-prerequisites lane.
+Investigation that afternoon (`docs/status/r7_state_check_20260530_1735.md`)
+identified the actual root cause as an app-level bug:
+
+  * `agentindex/preflight.py:250` runs
+    `WHERE registry = :reg AND lower(name) LIKE lower(:pat)` against
+    `software_registry` (2.9M rows). The existing btree on
+    `(registry, lower(name))` doesn't use `text_pattern_ops`, so LIKE
+    falls back to full filter-scan → 65-second queries under
+    concurrency.
+
+  * Amplified by `agentindex/review_pages.py:_ensure_reviews_table()`
+    running `CREATE TABLE IF NOT EXISTS user_reviews` on **every uvicorn
+    worker boot**. Under DB saturation the DDL timed out → worker died →
+    uvicorn restart → restart-loop fed back into PgBouncer load.
+
+Neither is HA-blocked. **Re-classifying as R-SW** ("software_registry
+saturation") to keep the HA lane (ADR-003a) clean. R7 in this document
+should be read as R-SW going forward — the deferred items below
+(Patroni recovery, Mac Studio replica re-bootstrap, etc.) remain HA
+work, but R-SW is its own thing.
+
+R-SW status: **fixed 2026-05-30 via commits `f41eb34` (boot-DDL out of
+worker path) and `04ee95e` (text_pattern_ops functional index)**.
+10-minute soak post-fix: 0 restarts, 3 PgBouncer crashes (was ~60/hour),
+all endpoints 200, no open infrastructure_alerts. STEP 3 commit
+`ef7efe1` extends the healthcheck with SELECT 1 + slow-trend so the next
+saturation of this kind alerts within 5 min instead of running
+unnoticed for hours (the meta-bug that hid R-SW from us until incidents
+in May).
+
+Lesson for future sessions: when phase-3 sees TIMEOUT clustering on a
+single backend, default-think "app-level slow query / missing index"
+before defaulting to "HA infra problem." Three suite-fix rounds in
+phase 3 also missed this — the rumour-style label "R7 = PgBouncer
+pressure" stuck and we deferred prematurely.
+
 **Inputs:**
 - `tests/zarq_surface/` (current commit `ff3fdf9`)
 - `docs/status/zarq_surface_test_run.json` (latest)

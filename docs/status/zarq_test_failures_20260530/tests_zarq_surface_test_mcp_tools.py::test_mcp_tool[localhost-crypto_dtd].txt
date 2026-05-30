@@ -1,8 +1,8 @@
 # Test: tests/zarq_surface/test_mcp_tools.py::test_mcp_tool[localhost-crypto_dtd]
 # Target: localhost
-# Category: NETWORK_ERROR
+# Category: TIMEOUT
 # POST /mcp:crypto_dtd
-# status=None elapsed=1.2ms pool=
-# detail: ReadError: [Errno 54] Connection reset by peer
+# status=None elapsed=8005.2ms pool=
+# detail: MCP timeout after 8005ms
 
 --- response excerpt ---

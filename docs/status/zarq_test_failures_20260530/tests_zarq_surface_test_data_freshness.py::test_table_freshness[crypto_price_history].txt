@@ -2,7 +2,7 @@
 # Target: pg-nbg
 # Category: STALE_DATA
 # SELECT zarq.crypto_price_history
-# status=None elapsed=11748.4ms pool=agentindex_write (direct to Nbg)
-# detail: zarq.crypto_price_history latest=2026-05-29T00:00:00+00:00 age=39.1h > threshold 36h
+# status=None elapsed=2806.0ms pool=agentindex_write (direct to Nbg)
+# detail: zarq.crypto_price_history latest=2026-05-29T00:00:00+00:00 age=40.0h > threshold 36h
 
 --- response excerpt ---

@@ -2,7 +2,7 @@
 # Target: diff
 # Category: CLOUDFLARED_GAP
 # GET http://localhost:8000/tokens
-# status=None elapsed=8111.6ms pool=
-# detail: local OK but prod failed; local=200 (8101ms) prod=TIMEOUT (8112ms)
+# status=None elapsed=8298.8ms pool=
+# detail: local OK but prod failed; local=200 (7ms) prod=TIMEOUT (8299ms)
 
 --- response excerpt ---

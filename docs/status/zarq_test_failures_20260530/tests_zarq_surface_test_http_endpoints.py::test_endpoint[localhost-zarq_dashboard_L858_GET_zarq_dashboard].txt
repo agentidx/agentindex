@@ -2,7 +2,7 @@
 # Target: localhost
 # Category: HTTP_4XX_unexpected
 # GET /zarq/dashboard
-# status=401 elapsed=5.1ms pool=
+# status=401 elapsed=5.5ms pool=
 # detail: auth-required: status 401
 
 --- response excerpt ---
