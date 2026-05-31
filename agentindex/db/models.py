@@ -253,8 +253,14 @@ def get_engine():
             database_url,
             pool_size=2,            # Per worker: 2 base + 3 overflow = 5 max
             max_overflow=3,
-            pool_pre_ping=True,     # Validate connections before use
-            pool_recycle=300,       # Recycle every 5 min (was 1h — prevents stale heavy connections)
+            # pool_pre_ping=False (was True): under PG saturation, every checkout's
+            # SELECT 1 piles up in the PgBouncer queue → QueuePool exhausted →
+            # BaseHTTPMiddleware anyio.WouldBlock → worker death. The
+            # 2026-05-31 03:00 incident was driven by exactly this loop.
+            # Trade-off: stale connections will surface as OperationalError
+            # at first use, but pool_recycle below keeps that rare.
+            pool_pre_ping=False,
+            pool_recycle=60,        # Recycle every 60s (was 300s) — cheaper than per-checkout pings
             pool_timeout=5,         # Fail fast — don't wait 30s for a connection
             echo=False,
             # statement_timeout set per-query via SET LOCAL, not connect_args
@@ -271,8 +277,9 @@ def get_write_engine():
             get_write_dsn(),
             pool_size=2,
             max_overflow=2,
-            pool_pre_ping=True,
-            pool_recycle=300,
+            # Same change as the read engine — see comment above.
+            pool_pre_ping=False,
+            pool_recycle=60,
             pool_timeout=10,
             echo=False,
             # statement_timeout set per-query, not via connect_args (PgBouncer compat)
