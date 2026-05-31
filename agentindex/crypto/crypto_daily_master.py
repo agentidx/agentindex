@@ -36,6 +36,11 @@ from datetime import datetime, timezone
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 PYTHON = sys.executable
+REPO_ROOT = os.path.dirname(os.path.dirname(SCRIPT_DIR))
+# Self-sufficient agentindex import even when run from a shell without
+# PYTHONPATH set (LaunchAgent sets it via plist, manual runs do not).
+if REPO_ROOT not in sys.path:
+    sys.path.insert(0, REPO_ROOT)
 LOG_DIR = os.path.expanduser("~/agentindex/logs")
 CRYPTO_DB = os.path.join(SCRIPT_DIR, "crypto_trust.db")
 DATA_DB = os.path.join(SCRIPT_DIR, "..", "data", "crypto_trust.db")
@@ -66,6 +71,9 @@ def run_step(name, script, args=None, timeout_min=60):
     log(f"  Args: {args or 'none'}")
 
     t0 = time.time()
+    # PYTHONPATH must include REPO_ROOT so children can `from agentindex.*`
+    # import — LaunchAgent sets this via plist, but manual shell runs do not.
+    child_env = {**os.environ, "PYTHONPATH": REPO_ROOT}
     try:
         result = subprocess.run(
             cmd,
@@ -73,6 +81,7 @@ def run_step(name, script, args=None, timeout_min=60):
             capture_output=True,
             text=True,
             timeout=timeout_min * 60,
+            env=child_env,
         )
 
         elapsed = time.time() - t0
@@ -104,6 +113,7 @@ def save_run_status(steps_results):
     """Save run status to DB for monitoring."""
     try:
         conn = sqlite3.connect(CRYPTO_DB)
+        conn.execute("PRAGMA busy_timeout=30000")
         conn.execute("""
             CREATE TABLE IF NOT EXISTS crypto_pipeline_runs (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
