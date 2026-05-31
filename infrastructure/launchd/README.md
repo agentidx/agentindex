@@ -51,6 +51,24 @@ History:
 - 2026-04-08: Created after the 70-second analytics_dashboard query
   caused worker exhaustion. See findings #18.
 
+### com.zarq.smedjan-canary.plist
+
+Runs `scripts/smedjan_smoke_canary.py` daily at 03:30 (30 minutes after
+the `com.nerq.smedjan.daily-merge` job at 03:00). Parses the most recent
+smoke result from `/Users/anstudio/smedjan/worker-logs/daily-merge.log`
+and opens / resolves a `zarq.infrastructure_alerts` row when the score
+falls below the floor (default 18/23, configurable via
+`SMEDJAN_SMOKE_FLOOR`).
+
+Why: the 2026-05-31 incident investigation found that Smedjan's
+daily-merge had been silently rolling back due to failed smoke for at
+least 5 days (`base=1/8`, `base=0/8`, `base=0/8 loc=0/5 sb=0/10`) with
+nothing reading the log. This canary is the read-the-log alarm we
+should have had from day one.
+
+History:
+- 2026-05-31: Created after the morning incident (`docs/status/zarq_incident_20260531_diagnosis.md`).
+
 ### com.nerq.infra-healthcheck.plist
 
 Runs `scripts/infra_healthcheck.py` every 5 minutes (300s). The script

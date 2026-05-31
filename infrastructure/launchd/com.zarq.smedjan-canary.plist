@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.zarq.smedjan-canary</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/anstudio/agentindex/venv/bin/python</string>
+        <string>/Users/anstudio/agentindex/scripts/smedjan_smoke_canary.py</string>
+    </array>
+
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key>
+        <integer>3</integer>
+        <key>Minute</key>
+        <integer>30</integer>
+    </dict>
+
+    <key>RunAtLoad</key>
+    <false/>
+
+    <key>WorkingDirectory</key>
+    <string>/Users/anstudio/agentindex</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PYTHONPATH</key>
+        <string>/Users/anstudio/agentindex</string>
+        <key>SMEDJAN_DAILY_MERGE_LOG</key>
+        <string>/Users/anstudio/smedjan/worker-logs/daily-merge.log</string>
+        <key>INFRA_ALERT_DSN</key>
+        <string>host=100.119.193.70 port=5432 dbname=agentindex user=anstudio</string>
+    </dict>
+
+    <key>StandardOutPath</key>
+    <string>/Users/anstudio/agentindex/logs/smedjan_smoke_canary.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/anstudio/agentindex/logs/smedjan_smoke_canary_err.log</string>
+</dict>
+</plist>
