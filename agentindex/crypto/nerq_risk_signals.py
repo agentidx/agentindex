@@ -103,6 +103,7 @@ def main():
         return False
 
     conn = sqlite3.connect(DB)
+    conn.execute("PRAGMA busy_timeout=30000")
 
     # Create tables
     conn.executescript("""

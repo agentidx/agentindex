@@ -84,6 +84,7 @@ log = logging.getLogger("pipeline")
 def connect_crypto_db():
     conn = sqlite3.connect(CRYPTO_DB_PATH)
     conn.execute("PRAGMA journal_mode=WAL")
+    conn.execute("PRAGMA busy_timeout=30000")
     conn.row_factory = sqlite3.Row
     return conn
 
@@ -92,6 +93,7 @@ def connect_data_db():
     if not os.path.exists(DATA_DB_PATH):
         return None
     conn = sqlite3.connect(DATA_DB_PATH)
+    conn.execute("PRAGMA busy_timeout=30000")
     conn.row_factory = sqlite3.Row
     return conn
 

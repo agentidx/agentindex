@@ -150,6 +150,7 @@ def connect_data_db():
         print(f"  ERROR: Data DB not found at {DATA_DB_PATH}")
         sys.exit(1)
     conn = sqlite3.connect(DATA_DB_PATH)
+    conn.execute("PRAGMA busy_timeout=30000")
     conn.row_factory = sqlite3.Row
     return conn
 
@@ -159,6 +160,7 @@ def connect_crypto_db():
         print(f"  ERROR: Crypto DB not found at {CRYPTO_DB_PATH}")
         sys.exit(1)
     conn = sqlite3.connect(CRYPTO_DB_PATH)
+    conn.execute("PRAGMA busy_timeout=30000")
     conn.row_factory = sqlite3.Row
     return conn
 

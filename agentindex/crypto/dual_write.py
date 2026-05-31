@@ -25,6 +25,26 @@ from agentindex import db_config  # noqa: F401
 
 _ENABLED = os.environ.get("ZARQ_DUAL_WRITE") == "1"
 
+# WAL is enabled on crypto_trust.db at DB-level, but busy_timeout is per-
+# connection and not persistent. Pipeline subprocesses and the long-running
+# MCP server hit "database is locked" the moment two writers race because
+# the default busy_timeout is 0. We set 30s once per connection on the
+# first dual_* call.
+_BUSY_TIMEOUT_MS = 30000
+_PRAGMA_FLAG = "_zarq_pragmas_applied"
+
+
+def _ensure_pragmas(sqlite_conn):
+    """Set busy_timeout once per connection (idempotent, cached on conn object)."""
+    if getattr(sqlite_conn, _PRAGMA_FLAG, False):
+        return
+    try:
+        sqlite_conn.execute(f"PRAGMA busy_timeout={_BUSY_TIMEOUT_MS}")
+        setattr(sqlite_conn, _PRAGMA_FLAG, True)
+    except Exception:
+        pass
+
+
 # ── Logging ──────────────────────────────────────────────────
 _log = logging.getLogger("zarq.dual_write")
 _log_handler = None
@@ -241,6 +261,7 @@ def dual_execute(sqlite_conn, sql, params=None):
     SQLite execute runs first and raises normally on error.
     Postgres errors are logged but never raised.
     """
+    _ensure_pragmas(sqlite_conn)
     # 1. SQLite — always runs
     sqlite_conn.execute(sql, params or ())
 
@@ -277,6 +298,7 @@ def dual_executemany(sqlite_conn, sql, rows):
     SQLite executemany runs first and raises normally on error.
     Postgres errors are logged but never raised.
     """
+    _ensure_pragmas(sqlite_conn)
     # 1. SQLite — always runs
     sqlite_conn.executemany(sql, rows)
 
@@ -311,6 +333,7 @@ def dual_executemany(sqlite_conn, sql, rows):
 
 def dual_executemany_named(sqlite_conn, sql, rows):
     """Like dual_executemany but for SQL with :name style params and dict rows."""
+    _ensure_pragmas(sqlite_conn)
     # 1. SQLite
     sqlite_conn.executemany(sql, rows)
 
@@ -344,6 +367,7 @@ def dual_executemany_named(sqlite_conn, sql, rows):
 
 def dual_delete(sqlite_conn, sql, params=None):
     """Execute DELETE against SQLite, then mirror to Postgres."""
+    _ensure_pragmas(sqlite_conn)
     # 1. SQLite
     sqlite_conn.execute(sql, params or ())
 

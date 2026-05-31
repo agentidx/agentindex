@@ -1,0 +1,40 @@
+-- 20260531-01-crypto-trust-wal-mode.sql
+--
+-- DOCUMENTATION-ONLY migration. WAL mode is already enabled on
+-- crypto_trust.db (it was set on a previous date — provenance unclear).
+-- This file records the *intent* and the *target settings* so a future
+-- restore-from-scratch reproduces the right state.
+--
+-- crypto_trust.db is a SQLite database, NOT a PostgreSQL one. These
+-- statements must be run via sqlite3, not psql. Kept here under
+-- migrations/zarq/ so the pipeline DB state is co-located with other
+-- ZARQ DB state changes.
+--
+-- Why these settings (R-PIPE-2 incident 2026-05-31):
+--   journal_mode=WAL — allow concurrent readers + writer; without WAL the
+--                      MCP server's open connection blocks all writers.
+--   synchronous=NORMAL — power-loss-safe in WAL mode; faster than FULL.
+--   busy_timeout per connection — DB-level pragma; must also be set in
+--                      every application connection because the value is
+--                      not persisted across connections. See:
+--                      - agentindex/crypto/dual_write.py:_ensure_pragmas
+--                      - agentindex/crypto/crypto_price_pipeline.py:connect_crypto_db
+--                      - agentindex/crypto/crypto_ndd_daily_v3.py:connect_crypto_db
+--                      - agentindex/crypto/nerq_risk_signals.py:main
+--                      - agentindex/crypto/crypto_daily_master.py:save_run_status
+--
+-- To verify state:
+--   sqlite3 ~/agentindex/agentindex/crypto/crypto_trust.db \
+--     "PRAGMA journal_mode; PRAGMA synchronous;"
+--
+-- To re-apply (idempotent — no-op if already set):
+--   sqlite3 ~/agentindex/agentindex/crypto/crypto_trust.db \
+--     "PRAGMA journal_mode=WAL; PRAGMA synchronous=NORMAL;"
+--
+-- 2026-05-31 incident verification result:
+--   journal_mode → wal     ✓
+--   synchronous  → 1 (NORMAL)  ✓
+--   busy_timeout → 0 (per-connection default) ← Python code must set 30000
+
+PRAGMA journal_mode=WAL;
+PRAGMA synchronous=NORMAL;
