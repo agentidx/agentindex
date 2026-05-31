@@ -1,0 +1,16 @@
+─── Pre-pause snapshot: 2026-05-31T06:15:32Z ───
+
+PID  EXIT  LABEL
+-       0     com.nerq.smedjan.l1b_observation
+-       0     com.nerq.smedjan.resolve-sweep
+-       0     com.nerq.smedjan.health-dashboard
+-       0     com.nerq.smedjan.analytics_export
+-       0     com.nerq.smedjan.ai_demand
+-       1     com.nerq.smedjan.canary_monitor
+1242    1     com.nerq.smedjan.worker-a
+-       0     com.nerq.smedjan.reclaim
+-       0     com.nerq.smedjan.l1_observation
+1243    1     com.nerq.smedjan.worker-b
+1244    1     com.nerq.smedjan.worker-c
+1245    1     com.nerq.smedjan.worker-d
+-       2     com.nerq.smedjan.daily-merge

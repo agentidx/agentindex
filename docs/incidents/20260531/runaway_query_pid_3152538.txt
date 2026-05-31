@@ -1,0 +1,14 @@
+─── Snapshot: 2026-05-31T06:17:38Z ───
+
+=== pg_stat_activity for pid 3152538 ===
+   pid   | usename  | application_name |  client_addr  |         backend_start         |          query_start          | state  | wait_event_type |  wait_event  |     runtime     |                               query_excerpt                               
+---------+----------+------------------+---------------+-------------------------------+-------------------------------+--------+-----------------+--------------+-----------------+---------------------------------------------------------------------------
+ 3152538 | anstudio |                  | 100.90.152.88 | 2026-05-31 04:00:01.551525+02 | 2026-05-31 08:01:24.457916+02 | active | IO              | DataFileRead | 00:19:24.739515 |                                                                          +
+         |          |                  |               |                               |                               |        |                 |              |                 |             SELECT id, risk_class, agent_type, domains, name, description+
+         |          |                  |               |                               |                               |        |                 |              |                 |             FROM agents                                                  +
+         |          |                  |               |                               |                               |        |                 |              |                 |             WHERE risk_class IS NOT NULL                                 +
+         |          |                  |               |                               |                               |        |                 |              |                 |             ORDER BY id                                                  +
+         |          |                  |               |                               |                               |        |                 |              |                 |             LIMIT 5000 OFFSET 1865000                                    +
+         |          |                  |               |                               |                               |        |                 |              |                 |         
+(1 row)
+
